@@ -52,7 +52,7 @@
             <div class="container-fluid">
                 <a class="navbar-brand" href="index.html">
                     <img style="height:80px; width:100px" src="{{ asset('images/logo.png') }}" alt="image">
-                    <b>Rose Of Sharon High School</b>
+                    
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd" aria-controls="navbar-wd" aria-expanded="false" aria-label="Toggle navigation">
                     <span></span>
