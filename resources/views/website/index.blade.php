@@ -23,15 +23,32 @@
 
     
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}?v={{ time() }}" />
     <!-- Pogo Slider CSS -->
-    <link rel="stylesheet" href="{{ asset('css/pogo-slider.min.css')}}" />
+    <link rel="stylesheet" href="{{ asset('css/pogo-slider.min.css')}}?v={{ time() }}" />
     <!-- Site CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css')}}" />
+    <link rel="stylesheet" href="{{ asset('css/style.css')}}?v={{ time() }}" />
     <!-- Responsive CSS -->
-    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ time() }}" />
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/custom.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}?v={{ time() }}" />
+    
+    <!-- Navigation Spacing Fix -->
+    <style>
+        .navbar-nav.equal-spacing {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100% !important;
+            padding: 0 60px !important;
+        }
+        .navbar-nav.equal-spacing li {
+            flex: 0 0 auto !important;
+        }
+        .navbar-nav.equal-spacing .logo-center {
+            margin: 0 50px !important;
+        }
+    </style>
 
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -49,30 +66,31 @@
     <!-- Start header -->
     <header class="top-header">
         <nav class="navbar header-nav navbar-expand-lg">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="index.html">
-                    <img style="height:80px; width:100px" src="{{ asset('images/logo.png') }}" alt="image">
-                    
-                </a>
+            <div class="container">
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd" aria-controls="navbar-wd" aria-expanded="false" aria-label="Toggle navigation">
                     <span></span>
                     <span></span>
                     <span></span>
                 </button>
-                <div class="collapse navbar-collapse justify-content-end" id="navbar-wd">
-                    <ul class="navbar-nav">
+                <div class="collapse navbar-collapse" id="navbar-wd">
+                    <ul class="navbar-nav equal-spacing">
                         <li><a class="nav-link active" href="{{ route('website.index') }}">Home</a></li>
                         <li><a class="nav-link" href="{{ route('website.about') }}">About</a></li>
-    
                         <li class="navbar">
-                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('studentParentDropdown')">Student Portal</a>
+                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('studentParentDropdown')">Parent/Student Portal</a>
                             <div class="dropdown-content" id="studentParentDropdown">
                                 <a href="{{route('website.results') }}">Our Results</a>
                                 <a href="{{ url('/logins') }}">Student Portal</a>
-                            
                             </div>
                         </li>
-    
+                        
+                        <!-- Center Logo -->
+                        <li class="nav-item d-flex align-items-center">
+                            <a class="navbar-brand logo-center" href="{{ route('website.index') }}">
+                                <img style="height:80px; width:100px;" src="{{ asset('images/logo.png') }}" alt="Rose of Sharon High School">
+                            </a>
+                        </li>
+                        
                         <li class="navbar">
                             <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('admissionDropdown')">Admission</a>
                             <div class="dropdown-content" id="admissionDropdown">
@@ -81,7 +99,6 @@
                                 <a href="{{ route('website.index') }}">Online Application</a>
                             </div>
                         </li>
-                        
                         <li><a class="nav-link" href="{{ route('website.News') }}">News Letter</a></li>
                         <li><a class="nav-link" href="{{ route('website.contact') }}">Contact Us</a></li>
                     </ul>
