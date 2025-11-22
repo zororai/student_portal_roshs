@@ -1,0 +1,23 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <h2>All Student Results</h2>
+
+    <div class="w-full sm:w-1/2 mr-2 mb-6">
+        <h3 class="text-gray-700 uppercase font-bold mb-2">Class List</h3>
+        <div class="flex flex-wrap items-center">
+            @foreach ($classes as $class)
+                <div class="w-full sm:w-1/2 text-center border border-gray-400 rounded">
+                    <div class="text-gray-800 uppercase font-semibold px-4 py-4 mb-2">{{ $class->class_name }}</div>
+                    <a href="{{ route('results.results', $class->id) }}" 
+                       class="bg-blue-600 inline-block mb-4 text-xs text-white uppercase font-semibold px-4 py-2 border border-gray-200 rounded">
+                        Add Student Results
+                    </a>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    
+</div>
+@endsection

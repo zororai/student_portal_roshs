@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Basic -->
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+ <meta name="google-site-verification" content="2AYp_7df5X-y63gLw2QzPzTyNWqyaCuWkZbiGwS4iSw" />
+    <!-- Mobile Metas -->
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Site Metas -->
+    <title>Rose Of Sharon High School </title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta name="author" content="">
+<meta name="google-site-verification" content="j0WLEeSR9tfA1xzwociTgtoABBROCrIIp_RJAFHuD9s" />
+
+    <!-- Site Icons -->
+    <link href="images/favicon.ico" rel="icon">
+    <link rel="apple-touch-icon" href="#" />
+
+
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
+    <!-- Pogo Slider CSS -->
+    <link rel="stylesheet" href="{{ asset('css/pogo-slider.min.css')}}" />
+    <!-- Site CSS -->
+    <link rel="stylesheet" href="{{ asset('css/style.css')}}" />
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}" />
+
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body id="home" data-spy="scroll" data-target="#navbar-wd" data-offset="98">
+
+
+    <!-- end loader -->
+    <!-- END LOADER -->
+
+    <!-- Start header -->
+    <header class="top-header">
+        <nav class="navbar header-nav navbar-expand-lg">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="index.html">
+                    <img style="height:80px; width:100px" src="{{ asset('images/logo.png') }}" alt="image">
+                    <b>Rose Of Sharon High School</b>
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd" aria-controls="navbar-wd" aria-expanded="false" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end" id="navbar-wd">
+                    <ul class="navbar-nav">
+                        <li><a class="nav-link active" href="{{ route('website.index') }}">Home</a></li>
+                        <li><a class="nav-link" href="{{ route('website.about') }}">About</a></li>
+    
+                        <li class="navbar">
+                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('studentParentDropdown')">Student/Parent Portal</a>
+                            <div class="dropdown-content" id="studentParentDropdown">
+                                <a href="{{route('website.results') }}">Our Results</a>
+                                <a href="{{ url('/logins') }}">Student Portal</a>
+                            
+                            </div>
+                        </li>
+    
+                        <li class="navbar">
+                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('admissionDropdown')">Admission</a>
+                            <div class="dropdown-content" id="admissionDropdown">
+                                <a href="{{ route('website.courses') }}">Our Subjects</a>
+                                <a href="{{ route('website.index') }}">Application Form</a>
+                                <a href="{{ route('website.index') }}">Online Application</a>
+                            </div>
+                        </li>
+                        
+                        <li><a class="nav-link" href="{{ route('website.News') }}">News Letter</a></li>
+                        <li><a class="nav-link" href="{{ route('website.contact') }}">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <!-- End header -->
+
+    <!-- Start Banner -->
+    @php
+    $banner = App\Banner::first(); // Get the first banner entry
+@endphp
+
+    <div class="ulockd-home-slider">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="pogoSlider" id="js-main-slider">
+                    <div class="pogoSlider-slide" style="background-image: url('{{ asset('storage/' . $banner->image_path_1) }}');">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="slide_text">
+                                      
+                                       
+                                       
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pogoSlider-slide" style="background-image: url('{{ asset('storage/' . $banner->image_path_2) }}');">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="slide_text">
+                                     
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pogoSlider-slide" style="background-image: url('{{ asset('storage/' . $banner->image_path_3) }}');">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="slide_text">
+                                     
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- .pogoSlider -->
+            </div>
+        </div>
+    </div>
+    <!-- End Banner -->
+    <!-- section -->
+	<div class="section tabbar_menu">
+	   <div class="container">
+	      <div class="row">
+		      <div class="col-md-12">
+			     <div class="tab_menu">
+				    <ul>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i1.png') }}" alt="#" /></span><span>Roshs Life</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i2.png') }}" alt="#" /></span><span>Graduation</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i3.png') }}" alt="#" /></span><span>Athletics</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i4.png') }}" alt="#" /></span><span>Social</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i5.png') }}" alt="#" /></span><span>Location</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i6.png') }}" alt="#" /></span><span>Call us</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i5.png') }}" alt="#" /></span><span>Email</span></a></li>
+					</ul>
+				 </div>
+			  </div>
+		  </div>
+	   </div>
+	</div>
+	<!-- end section -->
+    <div class="section margin-top_50 ">
+        <div class="container">
+            <div class="row">
+			    <div class="col-md-6">
+                    <div class="full float-right_img">
+                     <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid%3D100094334670439&tabs=timeline&width=500&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId=699810548919387" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                    </div>
+                </div>
+                <div class="col-md-6 layout_padding_2">
+                    <div class="full">
+                        <div class="heading_main text_align_left">
+						   <h2><span>About Rose of Sharon</h2>
+                        </div>
+						<div class="full">
+						  <p>Then Rose Of Sharon High School will know that he is the Lord God who lives in Zion his holy mountain, Rose of Sharon High School will remain forever and foreign mountains will drip with sweet wine and the hills will flow with milk, water will fill the streambeds of Rose of Sharon High School and the fountain will burst forth from the Lord’s temple watering the arid valleys of Rose of Sharon High School. Rose of Sharon High School will remain forever and Rose of Sharon High School will endure through all future generations</p>
+						</div>
+						<div class="full">
+						   <a class="hvr-radial-out button-theme" href="Application.html">Apply</a>
+						</div>
+                    </div>
+                </div>
+			</div>
+        </div>
+    </div>
+
+	<!-- section -->
+    <div class="section margin-top_50">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 layout_padding_2">
+                    <div class="full">
+                        <div class="heading_main text_align_left">
+						   <h2><span>Dr. Fatima Maruta
+                            </span > DIRECTOR OF EDUCATION</h2>
+                        </div>
+						<div class="full">
+						  <p>Dr. Fatima Maruta is a holder of several accounting qualifications that include a Bachelor’s Degree in Accountancy from the University of Zimbabwe and Masters Degree in Business Adminstration from Bloomsburg University, PA USA. In year 2014, she was conferred with an Honorary Doctorate Degree in Humane Letters, DHL, from the International Institute of Philanthropy IIP in recognition of practical application of expertise in Humanities. In 2016 she was conferred with an Honorary Doctor of Arts Degree and an Honorary Master of Business Leadership Degree from International Women’s University in recognition of practical application of expertise in Humanities. In the same year, she was conferred an award as Zimbabwe Top female academic leader by the Zimbabwe Leadership Awards</p>
+						</div>
+						<div class="full">
+						   <a class="hvr-radial-out button-theme" href="about.html">About more</a>
+						</div>
+                    </div>
+                </div>
+				<div class="col-md-6">
+                    <div class="full">
+                        <img src="images/img2.png" alt="#" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	<!-- end section -->
+    <div class="section layout_padding padding_bottom-0">
+        <div class="container">
+            <div class="row">
+              
+              </div>
+               <div class="row">
+                <div class="col-lg-12">
+                    <div id="demo" class="carousel slide" data-ride="carousel">
+
+                        <!-- The slideshow -->
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+                                       <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/1 (1).jpg" alt="#" />
+                                    
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+                                        <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/1 (2).jpg" alt="#" />
+                                    
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+                                       <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/1 (3).jpg" alt="#" />
+                                        
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+                                        <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/1 (4).jpg" alt="#" />
+                                        
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                                  <div class="carousel-item">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+                                       <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/1 (5).jpg" alt="#" />
+                                        
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+                                        <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/1 (2).jpg" alt="#" />
+                                        
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Left and right controls -->
+                        <a class="carousel-control-prev" href="#demo" data-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </a>
+                        <a class="carousel-control-next" href="#demo" data-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </a>
+
+                    </div>
+                </div>
+
+            </div>            
+           </div>
+        </div>
+	<!-- section -->
+    <div class="section layout_padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="full">
+                        <div class="heading_main text_align_center">
+						   <h2><span>OUR  </span>CLUBS</h2>
+                        </div>
+					  </div>
+                </div>
+				<div class="col-md-4">
+                    <div class="full blog_img_popular">
+                       <img class="img-responsive" src="images/drama.jpg" alt="#" /> 
+					   <h4>DRAMA</h4>
+                       <p>This club forms the basis of raising facts on specified topics hence providing indispensable to people. It is also aimed at developing and sharpening communication skills and inculcating confidence within learners.</p>
+                    </div>
+                </div>
+				<div class="col-md-4">
+                    <div class="full blog_img_popular">
+                        <img class="img-responsive" src="images/inreaction.jpg" alt="#" />
+						<h4>INTERACT</h4>
+                        <p>This club existed since 2012 at R.O.S.H. It is aimed at providing social support to the vulnerable and the deprived or underprivileged. It came into existence after the realization of some people in needy. </p>
+                    </div>
+                </div>
+				<div class="col-md-4">
+                    <div class="full blog_img_popular">
+                        <img class="img-responsive" src="images/dedate.jpg" alt="#" />
+						<h4>DEBATE</h4>
+                        <p>This club forms the basis of raising facts on specified topics hence providing indispensable to people. It is also aimed at developing and sharpening communication skills and inculcating confidence within learners.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	<!-- end section -->
+	<!-- section -->
+
+	<!-- end section -->
+	<!-- section -->
+    <div class="section layout_padding padding_bottom-0">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="full">
+                        <div class="heading_main text_align_left">
+						   <h2><span>SCHOOL DECLARATION</span></h2>
+                        </div>
+						<div class="full">
+						  <p>Then Rose Of Sharon High School will know that he is the Lord God who lives in Zion his holy mountain, Rose of Sharon High School will remain forever and foreign mountains will drip with sweet wine and the hills will flow with milk, water will fill the streambeds of Rose of Sharon High School and the fountain will burst forth from the Lord’s temple watering the arid valleys of Rose of Sharon High School. Rose of Sharon High School will remain forever and Rose of Sharon High School will endure through all future generations.</p>
+						</div>
+						<div class="full">
+						   <a class="hvr-radial-out button-theme" href="success.html">See More</a>
+						</div>
+                    </div>
+                </div>
+				<div class="col-md-6">
+                    <div class="full">
+                        <img class="img-responsive" src="images/req.jpg" alt="#" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	<!-- end section -->
+	<!-- section -->
+    <div class="section layout_padding padding_bottom-0">
+        <div class="container">
+            <div class="row">
+              
+			  </div>
+               <div class="row">
+                <div class="col-lg-12">
+                    <div id="demo" class="carousel slide" data-ride="carousel">
+
+                        <!-- The slideshow -->
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+									   <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/img9.png" alt="#" />
+									
+										</div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+                                        <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/img8.png" alt="#" />
+									
+										</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+									   <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/img9.png" alt="#" />
+										
+										</div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12">
+                                        <div class="full blog_img_popular">
+                                          <img class="img-responsive" src="images/img8.png" alt="#" />
+										
+										</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Left and right controls -->
+                        <a class="carousel-control-prev" href="#demo" data-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </a>
+                        <a class="carousel-control-next" href="#demo" data-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </a>
+
+                    </div>
+                </div>
+
+            </div>			  
+           </div>
+        </div>
+	<!-- end section -->
+
+
+    <!-- Start Footer -->
+    <footer class="footer-box">
+        <div class="container">
+		
+		   <div class="row">
+		   
+		      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
+			     <div class="footer_blog">
+				    <div class="full margin-bottom_30">
+				<img style="height:80px;width :100px" src="images/logo.png" alt="image">
+					 </div>
+					 <div class="full white_fonts">
+					    <p>Our Vision
+is provide a well-groomed, enriched (in ideas) and productive learner given a firm foundation for tertiary and life challenges.</p>
+					 </div>
+				 </div>
+			  </div>
+			  
+			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
+			       <div class="footer_blog footer_menu white_fonts">
+						    <h3>Quick links</h3>
+						    <ul> 
+							  <li><a href="#">> Join Us</a></li>
+							  <li><a href="#">> Maintenance</a></li>
+							  <li><a href="#">> Language Packs</a></li>
+							  <li><a href="#">> LearnPress</a></li>
+							  <li><a href="#">> Release Status</a></li>
+							</ul>
+						 </div>
+				 </div>
+				 
+				 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
+				 <div class="footer_blog full white_fonts">
+						     <h3>Newsletter</h3>
+					
+							 <div class="newsletter_form">
+							    <form action="index.html">
+								   <input type="email" placeholder="Your Email" name="#" required />
+								   <button>Submit</button>
+								</form>
+							 </div>
+						 </div>
+					</div>	 
+			  
+			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
+				 <div class="footer_blog full white_fonts">
+						     <h3>Contact us</h3>
+							 <ul class="full">
+			   <li><img src="images/i5.png"><span>  6884 Mt Madecheche Road<br>Zimre Park</span></li>
+							   <li><img src="images/i6.png"><span>infor@roshs.co.zw</span></li>
+							   <li><img src="images/i7.png"><span>+263 772 490 478</span></li>
+							 </ul>
+						 </div>
+					</div>	 
+			  
+		   </div>
+		
+        </div>
+    </footer>
+    <!-- End Footer -->
+
+    <div class="footer_bottom">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <p style="color: white">
+                    <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                    Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This website is made with <i class="icon-heart" aria-hidden="true"></i> by <a style="color: white" href="https://lotusdreammaker.co.zw" target="_blank" >Lotusdreammaker</a>
+                    <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="#" id="scroll-to-top" class="hvr-radial-out"><i class="fa fa-angle-up"></i></a>
+
+    <!-- ALL JS FILES -->
+
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
+	<script src="{{ asset('js/popper.min.js') }}"></script>
+    <script src="{{ asset('js/bootstrap.min.js') }}"></script>
+    <!-- ALL PLUGINS -->
+    <script src="{{ asset('js/jquery.magnific-popup.min.js') }}"></script>
+    <script src="{{ asset('js/jquery.pogo-slider.min.js') }}"></script>
+    <script src="{{ asset('js/slider-index.js') }}"></script>
+    <script src="{{ asset('js/smoothscroll.js') }}"></script>
+    <script src="{{ asset('js/form-validator.min.js') }}"></script>
+    <script src="{{ asset('js/contact-form-script.js') }}"></script>
+    <script src="{{ asset('js/isotope.min.js') }}"></script>
+    <script src="{{ asset('js/images-loded.min.js') }}"></script>
+    <script src="{{ asset('js/custom.js') }}"></script>
+
+	<script>
+	/* counter js */
+
+(function ($) {
+	$.fn.countTo = function (options) {
+		options = options || {};
+		
+		return $(this).each(function () {
+			// set options for current element
+			var settings = $.extend({}, $.fn.countTo.defaults, {
+				from:            $(this).data('from'),
+				to:              $(this).data('to'),
+				speed:           $(this).data('speed'),
+				refreshInterval: $(this).data('refresh-interval'),
+				decimals:        $(this).data('decimals')
+			}, options);
+			
+			// how many times to update the value, and how much to increment the value on each update
+			var loops = Math.ceil(settings.speed / settings.refreshInterval),
+				increment = (settings.to - settings.from) / loops;
+			
+			// references & variables that will change with each update
+			var self = this,
+				$self = $(this),
+				loopCount = 0,
+				value = settings.from,
+				data = $self.data('countTo') || {};
+			
+			$self.data('countTo', data);
+			
+			// if an existing interval can be found, clear it first
+			if (data.interval) {
+				clearInterval(data.interval);
+			}
+			data.interval = setInterval(updateTimer, settings.refreshInterval);
+			
+			// initialize the element with the starting value
+			render(value);
+			
+			function updateTimer() {
+				value += increment;
+				loopCount++;
+				
+				render(value);
+				
+				if (typeof(settings.onUpdate) == 'function') {
+					settings.onUpdate.call(self, value);
+				}
+				
+				if (loopCount >= loops) {
+					// remove the interval
+					$self.removeData('countTo');
+					clearInterval(data.interval);
+					value = settings.to;
+					
+					if (typeof(settings.onComplete) == 'function') {
+						settings.onComplete.call(self, value);
+					}
+				}
+			}
+			
+			function render(value) {
+				var formattedValue = settings.formatter.call(self, value, settings);
+				$self.html(formattedValue);
+			}
+		});
+	};
+	
+	$.fn.countTo.defaults = {
+		from: 0,               // the number the element should start at
+		to: 0,                 // the number the element should end at
+		speed: 1000,           // how long it should take to count between the target numbers
+		refreshInterval: 100,  // how often the element should be updated
+		decimals: 0,           // the number of decimal places to show
+		formatter: formatter,  // handler for formatting the value before rendering
+		onUpdate: null,        // callback method for every time the element is updated
+		onComplete: null       // callback method for when the element finishes updating
+	};
+	
+	function formatter(value, settings) {
+		return value.toFixed(settings.decimals);
+	}
+}(jQuery));
+
+jQuery(function ($) {
+  // custom formatting example
+  $('.count-number').data('countToOptions', {
+	formatter: function (value, options) {
+	  return value.toFixed(options.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g, ',');
+	}
+  });
+  
+  // start all the timers
+  $('.timer').each(count);  
+  
+  function count(options) {
+	var $this = $(this);
+	options = $.extend({}, options || {}, $this.data('countToOptions') || {});
+	$this.countTo(options);
+  }
+});
+	</script>
+
+<script>
+    function toggleDropdown() {
+        document.getElementById("myDropdown").classList.toggle("show");
+    }
+
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(event) {
+        if (!event.target.matches('.nav-link')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+</script>
+<script>
+    function toggleDropdown(dropdownId) {
+        document.getElementById(dropdownId).classList.toggle("show");
+    }
+
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(event) {
+        if (!event.target.matches('.nav-link')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+</script>
+</body>
+
+</html>

@@ -1,0 +1,99 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log*
+yarn-error.log
+/.idea
+/.vscode
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Laravel specific
+/bootstrap/compiled.php
+/bootstrap/cache
+/storage/app/*
+!/storage/app/.gitkeep
+/storage/framework/cache/*
+!/storage/framework/cache/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+
+# Composer
+composer.phar
+/vendor/
+
+# NPM/Yarn
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+temp_extract/
+*.zip
+*.rar
+*.7z
+
+# Database
+*.sqlite
+*.db
+
+# Log files
+*.log
+
+# Cache files
+*.cache
+
+# Backup files
+*.backup
+*.bak
+
+# Configuration files with sensitive data
+.env.local
+.env.production
+.env.staging
+
+# Testing
+/coverage
+/.phpunit.cache
+/tests/coverage
+
+# Build files
+/public/build
+/public/mix-manifest.json
+
+# Laravel Mix
+/public/css
+/public/js
+mix-manifest.json
+
+# Deployment
+.deployer/
+deploy.php
