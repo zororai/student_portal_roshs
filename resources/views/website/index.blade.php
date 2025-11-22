@@ -65,7 +65,7 @@
                         <li><a class="nav-link" href="{{ route('website.about') }}">About</a></li>
     
                         <li class="navbar">
-                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('studentParentDropdown')">Student/Parent Portal</a>
+                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('studentParentDropdown')">Student Portal</a>
                             <div class="dropdown-content" id="studentParentDropdown">
                                 <a href="{{route('website.results') }}">Our Results</a>
                                 <a href="{{ url('/logins') }}">Student Portal</a>
