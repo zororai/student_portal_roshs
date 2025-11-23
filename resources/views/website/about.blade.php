@@ -46,6 +46,68 @@
         .navbar-nav.equal-spacing .logo-center {
             margin: 0 50px !important;
         }
+        
+        /* Mobile Navigation Fixes */
+        @media (max-width: 991px) {
+            .navbar-nav.equal-spacing {
+                flex-direction: column !important;
+                padding: 20px !important;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 10px;
+                margin-top: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+            
+            .navbar-nav.equal-spacing li {
+                width: 100% !important;
+                margin: 5px 0 !important;
+                text-align: center;
+            }
+            
+            .navbar-nav.equal-spacing .logo-center {
+                order: -1;
+                margin: 10px 0 20px 0 !important;
+            }
+            
+            .navbar-nav.equal-spacing .nav-link {
+                padding: 12px 20px !important;
+                border-radius: 8px;
+                background: #f8f9fa;
+                margin: 3px 0;
+                color: #333 !important;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+            
+            .navbar-nav.equal-spacing .nav-link:hover,
+            .navbar-nav.equal-spacing .nav-link.active {
+                background: #2d5016 !important;
+                color: white !important;
+            }
+            
+            .dropdown-content {
+                position: static !important;
+                display: block !important;
+                background: #e9ecef !important;
+                box-shadow: none !important;
+                border-radius: 5px !important;
+                margin-top: 5px !important;
+                padding: 10px !important;
+            }
+            
+            .dropdown-content a {
+                padding: 8px 15px !important;
+                margin: 2px 0 !important;
+                border-radius: 5px !important;
+                background: white !important;
+                color: #333 !important;
+            }
+            
+            .dropdown-content a:hover {
+                background: #2d5016 !important;
+                color: white !important;
+            }
+        }
     </style>
 
 </head>
