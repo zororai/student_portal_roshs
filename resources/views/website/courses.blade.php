@@ -65,8 +65,29 @@
             }
             
             .navbar-nav.equal-spacing .logo-center {
-                order: -1;
-                margin: 10px 0 20px 0 !important;
+                order: -1 !important;
+                margin: 15px 0 25px 0 !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                width: 100% !important;
+                background: transparent !important;
+            }
+            
+            .navbar-nav.equal-spacing .logo-center .navbar-brand {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            .navbar-nav.equal-spacing .logo-center img {
+                width: 90px !important;
+                height: 90px !important;
+                display: block !important;
+                margin: 0 auto !important;
+                border-radius: 50% !important;
+                box-shadow: 0 6px 12px rgba(45, 80, 22, 0.3) !important;
+                border: 3px solid #2d5016 !important;
             }
             
             .navbar-nav.equal-spacing .nav-link {
