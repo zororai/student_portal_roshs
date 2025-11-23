@@ -22,15 +22,32 @@
 
     
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}?v={{ time() }}" />
     <!-- Pogo Slider CSS -->
-    <link rel="stylesheet" href="{{ asset('css/pogo-slider.min.css')}}" />
+    <link rel="stylesheet" href="{{ asset('css/pogo-slider.min.css')}}?v={{ time() }}" />
     <!-- Site CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css')}}" />
+    <link rel="stylesheet" href="{{ asset('css/style.css')}}?v={{ time() }}" />
     <!-- Responsive CSS -->
-    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ time() }}" />
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/custom.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/custom.css') }}?v={{ time() }}" />
+    
+    <!-- Navigation Spacing Fix -->
+    <style>
+        .navbar-nav.equal-spacing {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100% !important;
+            padding: 0 60px !important;
+        }
+        .navbar-nav.equal-spacing li {
+            flex: 0 0 auto !important;
+        }
+        .navbar-nav.equal-spacing .logo-center {
+            margin: 0 50px !important;
+        }
+    </style>
 
     <!--[if lt IE 9]>
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
