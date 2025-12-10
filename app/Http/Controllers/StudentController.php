@@ -21,7 +21,7 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $students = Student::with('class')->latest()->paginate(10);
+        $students = Student::with(['class', 'user'])->latest()->paginate(10);
 
         return view('backend.students.index', compact('students'));
     }
@@ -226,5 +226,124 @@ class StudentController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * Show the form for creating a student with parents (stepper form)
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function createWithParents()
+    {
+        $classes = Grade::latest()->get();
+
+        return view('backend.students.create_with_parents', compact('classes'));
+    }
+
+    /**
+     * Store a newly created student with multiple parents
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function storeWithParents(Request $request)
+    {
+        // Validate student data
+        $request->validate([
+            'student_name'              => 'required|string|max:255',
+            'student_email'             => 'required|string|email|max:255|unique:users,email',
+            'student_password'          => 'required|string|min:8',
+            'student_phone'             => 'required|string|max:255',
+            'student_gender'            => 'required|string',
+            'dateofbirth'               => 'required|date',
+            'student_current_address'   => 'required|string|max:255',
+            'student_permanent_address' => 'required|string|max:255',
+            'class_id'                  => 'required|numeric',
+            'roll_number'               => [
+                'required',
+                'numeric',
+                Rule::unique('students')->where(function ($query) use ($request) {
+                    return $query->where('class_id', $request->class_id);
+                })
+            ],
+            'parents'                   => 'required|array|min:1',
+            'parents.*.name'            => 'required|string|max:255',
+            'parents.*.email'           => 'required|string|email|max:255|unique:users,email',
+            'parents.*.password'        => 'required|string|min:8',
+            'parents.*.phone'           => 'required|string|max:255',
+            'parents.*.gender'          => 'required|string',
+            'parents.*.current_address' => 'required|string|max:255',
+            'parents.*.permanent_address' => 'required|string|max:255',
+        ]);
+
+        // Create student user
+        $studentUser = User::create([
+            'name'      => $request->student_name,
+            'email'     => $request->student_email,
+            'password'  => Hash::make($request->student_password)
+        ]);
+
+        // Handle student profile picture
+        if ($request->hasFile('student_profile_picture')) {
+            $profile = Str::slug($studentUser->name).'-'.$studentUser->id.'.'.$request->student_profile_picture->getClientOriginalExtension();
+            $request->student_profile_picture->move(public_path('images/profile'), $profile);
+        } else {
+            $profile = 'avatar.png';
+        }
+        $studentUser->update([
+            'profile_picture' => $profile
+        ]);
+
+        // Create parents and collect their IDs
+        $parentIds = [];
+        foreach ($request->parents as $index => $parentData) {
+            // Create parent user
+            $parentUser = User::create([
+                'name'      => $parentData['name'],
+                'email'     => $parentData['email'],
+                'password'  => Hash::make($parentData['password'])
+            ]);
+
+            // Handle parent profile picture
+            if ($request->hasFile("parents.{$index}.profile_picture")) {
+                $parentProfile = Str::slug($parentUser->name).'-'.$parentUser->id.'.'.$request->file("parents.{$index}.profile_picture")->getClientOriginalExtension();
+                $request->file("parents.{$index}.profile_picture")->move(public_path('images/profile'), $parentProfile);
+            } else {
+                $parentProfile = 'avatar.png';
+            }
+            $parentUser->update([
+                'profile_picture' => $parentProfile
+            ]);
+
+            // Create parent record
+            $parent = $parentUser->parent()->create([
+                'gender'            => $parentData['gender'],
+                'phone'             => $parentData['phone'],
+                'current_address'   => $parentData['current_address'],
+                'permanent_address' => $parentData['permanent_address']
+            ]);
+
+            $parentUser->assignRole('Parent');
+            $parentIds[] = $parent->id;
+        }
+
+        // Create student record
+        $student = $studentUser->student()->create([
+            'parent_id'         => $parentIds[0], // First parent for backward compatibility
+            'class_id'          => $request->class_id,
+            'roll_number'       => $request->roll_number,
+            'gender'            => $request->student_gender,
+            'phone'             => $request->student_phone,
+            'dateofbirth'       => $request->dateofbirth,
+            'current_address'   => $request->student_current_address,
+            'permanent_address' => $request->student_permanent_address
+        ]);
+
+        // Attach all parents to the student
+        $student->parents()->attach($parentIds);
+
+        $studentUser->assignRole('Student');
+
+        return redirect()->route('student.index')->with('success', 'Student and parent(s) created successfully!');
     }
 }

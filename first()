@@ -1,0 +1,21 @@
+
+   Psy\Exception\ParseErrorException 
+
+  PHP Parse error: Syntax error, unexpected ';' on line 1
+
+  at C:\Users\Mazarura\Documents\GitHub\roshs\student_portal_roshs\vendor\psy\psysh\src\Exception\ParseErrorException.php:40
+    36|      * @return self
+    37|      */
+    38|     public static function fromParseError(\PhpParser\Error $e): self
+    39|     {
+  > 40|         return new self($e->getRawMessage(), $e->getStartLine());
+    41|     }
+    42| }
+    43|
+
+  1   C:\Users\Mazarura\Documents\GitHub\roshs\student_portal_roshs\vendor\psy\psysh\src\CodeCleaner.php:340
+      Psy\Exception\ParseErrorException::fromParseError(Object(PhpParser\Error))
+
+  2   C:\Users\Mazarura\Documents\GitHub\roshs\student_portal_roshs\vendor\psy\psysh\src\CodeCleaner.php:267
+      Psy\CodeCleaner::parse("<?php DB::table('students')-;
+")

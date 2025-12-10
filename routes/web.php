@@ -47,7 +47,7 @@ Route::post('/profile/changepassword', 'HomeController@changePassword')->name('p
 
 
 
-Route::group(['middleware' => ['auth','role:Admin']], function () 
+Route::group(['middleware' => ['auth','role:Admin']], function ()
 {
     Route::get('/roles-permissions', 'RolePermissionController@roles')->name('roles-permissions');
     Route::get('/role-create', 'RolePermissionController@createRole')->name('role.create');
@@ -64,7 +64,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::resource('classes', 'GradeController');
     /////
     // Show the post and view student results
-    
+
     Route::post('/adminshowclassresults/year', 'ResultController@adminshowResult')->name('adminresults.classresults');
      Route::get('/classnameadmin/{class_id}','ResultController@adminclassnames')->name('adminresults.classname');
     Route::get('/studentadmin/show/{student}', 'ResultController@adminStuntentname')->name('adminresults.yearsubject');
@@ -77,8 +77,11 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::resource('teacher', 'TeacherController');
     Route::resource('parents', 'ParentsController');
     Route::resource('student', 'StudentController');
+    // Stepper route for creating student with parents
+    Route::get('student-with-parents/create', 'StudentController@createWithParents')->name('student.create-with-parents');
+    Route::post('student-with-parents', 'StudentController@storeWithParents')->name('student.store-with-parents');
     Route::get('attendance', 'AttendanceController@index')->name('attendance.index');
-    ///banner 
+    ///banner
     Route::get('/banner', 'BannerController@index')->name('banner.index');
     Route::post('/banner', 'BannerController@store')->name('banner.store');
     ///Newsletter
@@ -96,7 +99,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('/Term/{id}', 'ResultsStatusController@update')->name('results_status.update');
     Route::get('/Term', 'ResultsStatusController@index')->name('results_status.index');
     Route::delete('/results-status/{id}', 'ResultsStatusController@destroy')->name('results_status.destroy');
-    ///resultactive 
+    ///resultactive
     Route::get('/activeresults', 'ResultController@resultsactive')->name('activeresults.index');
     Route::get('/viewstudent/{student}', 'ResultController@changestatus')->name('viewstudentstatus.results');
     Route::get('/Admin/results/{class_id}','ResultController@activelistResults')->name('active.results');
@@ -123,7 +126,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
 });
 
-Route::group(['middleware' => ['auth','role:Teacher']], function () 
+Route::group(['middleware' => ['auth','role:Teacher']], function ()
 {
     Route::post('attendance', 'AttendanceController@store')->name('teacher.attendance.store');
     Route::get('attendance-create/{classid}', 'AttendanceController@createByTeacher')->name('teacher.attendance.create');
@@ -132,7 +135,7 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
 
     Route::resource('readings', AddsubjectController::class);
     Route::post('subjects/{id}/upload','AddsubjectController@upload')->name('subject.upload');
-    
+
     Route::get('/results', 'ResultController@index')->name('results.index');
     Route::get('/viewresults', 'ResultController@recordindex')->name('results.record');
     Route::get('/selectyear', 'ResultController@viewresultsindex')->name('results.viewrecord');
@@ -141,7 +144,7 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::get('/student/addresults/{student}', 'ResultController@Showssubject')->name('results.studentsubject');
     Route::post('/results/store', 'ResultController@store')->name('teacher.results.store');
 
-    
+
 
     // Show the post and view student results
 
@@ -159,11 +162,11 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
      Route::get('/results/student/{id}', 'ResultController@show')->name('results.show');
      Route::get('/teacher/results/{class_id}','ResultController@listResults')->name('results.results');
 
-  
+
 
 });
 
-Route::group(['middleware' => ['auth','role:Parent']], function () 
+Route::group(['middleware' => ['auth','role:Parent']], function ()
 {
     Route::get('studentattendance/{attendance}', 'AttendanceController@show')->name('attendance.show');
     Route::get('/viewstudentresults/viewstudentresults', 'ResultController@viewstudentshow')->name('parentviewresults.studentresults');
@@ -178,6 +181,6 @@ Route::group(['middleware' => ['auth','role:Student']], function () {
    Route::get('/studentresults/studentresults', 'ResultController@studentshow')->name('viewresults.studentresults');
    Route::get('Reading/{id}','AddsubjectController@showread')->name('subject.viewreading');
    Route::get('/readings/download/{id}', 'AddsubjectController@download')->name('readings.download');
-    
+
 
 });
