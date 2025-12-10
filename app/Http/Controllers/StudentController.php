@@ -25,7 +25,7 @@ class StudentController extends Controller
 
         return view('backend.students.index', compact('students'));
     }
-    
+
     public function downloadIdCard($id)
     {
         $student = Student::with(['user', 'parent', 'class'])->findOrFail($id);
@@ -37,7 +37,7 @@ class StudentController extends Controller
     public function showid($id)
     {
         $student = Student::with(['user', 'parent', 'class', 'attendances', 'subjects'])->findOrFail($id);
-        
+
         return view('student.id_card', compact('student'));
     }
 
@@ -50,7 +50,7 @@ class StudentController extends Controller
     {
         $classes = Grade::latest()->get();
         $parents = Parents::with('user')->latest()->get();
-        
+
         return view('backend.students.create', compact('classes','parents'));
     }
 
@@ -66,7 +66,8 @@ class StudentController extends Controller
             'name'              => 'required|string|max:255',
             'email'             => 'required|string|email|max:255|unique:users',
             'password'          => 'required|string|min:8',
-            'parent_id'         => 'required|numeric',
+            'parent_id'         => 'required|array|min:1',
+            'parent_id.*'       => 'required|numeric|exists:parents,id',
             'class_id'          => 'required|numeric',
             'roll_number'       => [
                 'required',
@@ -98,8 +99,8 @@ class StudentController extends Controller
             'profile_picture' => $profile
         ]);
 
-        $user->student()->create([
-            'parent_id'         => $request->parent_id,
+        $student = $user->student()->create([
+            'parent_id'         => $request->parent_id[0], // Keep first parent for backward compatibility
             'class_id'          => $request->class_id,
             'roll_number'       => $request->roll_number,
             'gender'            => $request->gender,
@@ -108,6 +109,9 @@ class StudentController extends Controller
             'current_address'   => $request->current_address,
             'permanent_address' => $request->permanent_address
         ]);
+
+        // Attach all parents to the student
+        $student->parents()->attach($request->parent_id);
 
         $user->assignRole('Student');
 
@@ -123,7 +127,7 @@ class StudentController extends Controller
     public function show(Student $student)
     {
         $class = Grade::with('subjects')->where('id', $student->class_id)->first();
-        
+
         return view('backend.students.show', compact('class','student'));
     }
 
@@ -153,7 +157,8 @@ class StudentController extends Controller
         $request->validate([
             'name'              => 'required|string|max:255',
             'email'             => 'required|string|email|max:255|unique:users,email,'.$student->user_id,
-            'parent_id'         => 'required|numeric',
+            'parent_id'         => 'required|array|min:1',
+            'parent_id.*'       => 'required|numeric|exists:parents,id',
             'class_id'          => 'required|numeric',
             'roll_number'       => [
                 'required',
@@ -183,7 +188,7 @@ class StudentController extends Controller
         ]);
 
         $student->update([
-            'parent_id'         => $request->parent_id,
+            'parent_id'         => $request->parent_id[0], // Keep first parent for backward compatibility
             'class_id'          => $request->class_id,
             'roll_number'       => $request->roll_number,
             'gender'            => $request->gender,
@@ -192,6 +197,9 @@ class StudentController extends Controller
             'current_address'   => $request->current_address,
             'permanent_address' => $request->permanent_address
         ]);
+
+        // Sync parents (removes old, adds new)
+        $student->parents()->sync($request->parent_id);
 
         return redirect()->route('student.index');
     }

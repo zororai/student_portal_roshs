@@ -172,25 +172,68 @@
                 <div class="md:flex md:items-center mb-6">
                     <div class="md:w-1/3">
                         <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Student Parent
+                            Student's Parent(s)
                         </label>
                     </div>
-                    <div class="md:w-2/3 block text-gray-600 font-bold">
-                        <div class="relative">
-                            <select name="parent_id" class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
-                                <option value="">--Select Parent--</option>
-                                @foreach ($parents as $parent)
-                                    <option value="{{ $parent->id }}"
-                                        {{ ($parent->id === $student->parent_id) ? 'selected' : '' }}
-                                    >
-                                    {{ $parent->user->name }}
-                                </option>
+                    <div class="md:w-2/3">
+                        <div id="parent-container">
+                            @php
+                                $studentParents = $student->parents->pluck('id')->toArray();
+                            @endphp
+                            @if(count($studentParents) > 0)
+                                @foreach($studentParents as $index => $selectedParentId)
+                                    <div class="parent-item mb-3 flex items-center gap-2">
+                                        <div class="flex-1">
+                                            <select name="parent_id[]" class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+                                                <option value="">--Select Parent--</option>
+                                                @foreach ($parents as $parent)
+                                                    <option value="{{ $parent->id }}" {{ ($parent->id == $selectedParentId) ? 'selected' : '' }}>
+                                                        {{ $parent->user->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        @if($index == 0)
+                                            <button type="button" class="add-parent bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded" title="Add Another Parent">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </button>
+                                        @else
+                                            <button type="button" class="remove-parent bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded" title="Remove Parent">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </button>
+                                        @endif
+                                    </div>
                                 @endforeach
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                            </div>
+                            @else
+                                <div class="parent-item mb-3 flex items-center gap-2">
+                                    <div class="flex-1">
+                                        <select name="parent_id[]" class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+                                            <option value="">--Select Parent--</option>
+                                            @foreach ($parents as $parent)
+                                                <option value="{{ $parent->id }}" {{ ($parent->id === $student->parent_id) ? 'selected' : '' }}>
+                                                    {{ $parent->user->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <button type="button" class="add-parent bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded" title="Add Another Parent">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            @endif
                         </div>
+                        @error('parent_id')
+                            <p class="text-red-500 text-xs italic">{{ $message }}</p>
+                        @enderror
+                        @error('parent_id.*')
+                            <p class="text-red-500 text-xs italic">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
                 <div class="md:flex md:items-center mb-6">
@@ -212,7 +255,7 @@
                         </button>
                     </div>
                 </div>
-            </form>        
+            </form>
         </div>
         <!-- Log on to codeastro.com for more projects -->
     </div>
@@ -220,8 +263,43 @@
 
 @push('scripts')
 <script>
-    $(function() {       
+    $(function() {
         $( "#datepicker-se" ).datepicker({ dateFormat: 'yy-mm-dd' });
+
+        // Add parent functionality
+        $(document).on('click', '.add-parent', function(e) {
+            e.preventDefault();
+
+            var parentOptions = `
+                <option value="">--Select Parent--</option>
+                @foreach ($parents as $parent)
+                    <option value="{{ $parent->id }}">{{ $parent->user->name }}</option>
+                @endforeach
+            `;
+
+            var newParentField = `
+                <div class="parent-item mb-3 flex items-center gap-2">
+                    <div class="flex-1">
+                        <select name="parent_id[]" class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
+                            ${parentOptions}
+                        </select>
+                    </div>
+                    <button type="button" class="remove-parent bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded" title="Remove Parent">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            $('#parent-container').append(newParentField);
+        });
+
+        // Remove parent functionality
+        $(document).on('click', '.remove-parent', function(e) {
+            e.preventDefault();
+            $(this).closest('.parent-item').remove();
+        });
     })
 </script>
 @endpush

@@ -25,4 +25,10 @@ class Parents extends Model
     {
         return $this->hasMany(Student::class, 'parent_id');
     }
+
+    // Many-to-many relationship with students
+    public function students()
+    {
+        return $this->belongsToMany(Student::class, 'student_parent', 'parent_id', 'student_id')->withTimestamps();
+    }
 }
