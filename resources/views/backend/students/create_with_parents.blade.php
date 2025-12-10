@@ -107,16 +107,19 @@
 
                         <div class="grid md:grid-cols-2 gap-6 mb-6">
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Roll Number *</label>
-                                <input name="roll_number" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="number" value="{{ old('roll_number') }}" placeholder="Enter roll number">
-                                @error('roll_number')
-                                    <p class="text-red-500 text-xs mt-1 flex items-center">
-                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                        </svg>
-                                        {{ $message }}
-                                    </p>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Roll Number</label>
+                                <div class="w-full px-5 py-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-400 rounded-lg shadow-md">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center text-gray-600">
+                                            <svg class="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <span class="text-sm font-medium">Auto-generated:</span>
+                                        </div>
+                                        <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">{{ $nextRollNumber }}</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">This roll number will be assigned to the new student</p>
                             </div>
 
                             <div>
@@ -206,42 +209,31 @@
                             </div>
                         </div>
 
-                        <div class="md:flex md:items-center mb-6">
-                            <div class="md:w-1/3">
-                                <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Permanent Address *</label>
-                            </div>
-                            <div class="md:w-2/3">
-                                <input name="student_permanent_address" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text" value="{{ old('student_permanent_address') }}">
-                                @error('student_permanent_address')
-                                    <p class="text-red-500 text-xs italic">{{ $message }}</p>
-                                @enderror
-                            </div>
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Permanent Address *</label>
+                            <textarea name="student_permanent_address" rows="2" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter permanent address">{{ old('student_permanent_address') }}</textarea>
+                            @error('student_permanent_address')
+                                <p class="text-red-500 text-xs mt-1 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
 
-                        <div class="md:flex md:items-center mb-6">
-                            <div class="md:w-1/3">
-                                <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Assign Class *</label>
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Profile Picture</label>
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center justify-center px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition duration-200 w-full">
+                                    <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span class="text-gray-600">Choose file or drag here</span>
+                                    <input name="student_profile_picture" class="hidden" type="file" accept="image/*">
+                                </label>
                             </div>
-                            <div class="md:w-2/3">
-                                <select name="class_id" class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500">
-                                    <option value="">--Select Class--</option>
-                                    @foreach ($classes as $class)
-                                        <option value="{{ $class->id }}">{{ $class->class_name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('class_id')
-                                    <p class="text-red-500 text-xs italic">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="md:flex md:items-center mb-6">
-                            <div class="md:w-1/3">
-                                <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Picture</label>
-                            </div>
-                            <div class="md:w-2/3">
-                                <input name="student_profile_picture" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="file">
-                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Supported formats: JPG, PNG, GIF (Max 2MB)</p>
                         </div>
                     </div>
 
@@ -254,99 +246,85 @@
 
                 <!-- Step 2: Parent Information -->
                 <div class="step-content hidden px-6 py-8" id="step-2">
-                    <h3 class="text-lg font-bold text-gray-700 mb-6">Parent Information</h3>
+                    <h3 class="text-xl font-bold text-gray-800 mb-8 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                        </svg>
+                        Parent Information
+                    </h3>
 
-                    <div class="max-w-2xl">
+                    <div class="max-w-3xl">
                         <div id="parents-container">
                             <!-- Parent 1 -->
-                            <div class="parent-block border-2 border-gray-300 rounded-lg p-6 mb-6" data-parent-index="0">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h4 class="text-md font-bold text-gray-600">Parent #1</h4>
+                            <div class="parent-block bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-xl p-6 mb-6 shadow-sm hover:shadow-md transition duration-200" data-parent-index="0">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h4 class="text-lg font-bold text-blue-700 flex items-center">
+                                        <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm">1</span>
+                                        Parent #1
+                                    </h4>
                                 </div>
 
-                                <div class="md:flex md:items-center mb-4">
-                                    <div class="md:w-1/3">
-                                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Name *</label>
-                                    </div>
-                                    <div class="md:w-2/3">
-                                        <input name="parents[0][name]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text">
-                                    </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
+                                    <input name="parents[0][name]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name">
                                 </div>
 
-                                <div class="md:flex md:items-center mb-4">
-                                    <div class="md:w-1/3">
-                                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Email *</label>
+                                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
+                                        <input name="parents[0][email]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="email" placeholder="parent@example.com">
                                     </div>
-                                    <div class="md:w-2/3">
-                                        <input name="parents[0][email]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="email">
-                                    </div>
-                                </div>
 
-                                <div class="md:flex md:items-center mb-4">
-                                    <div class="md:w-1/3">
-                                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Password *</label>
-                                    </div>
-                                    <div class="md:w-2/3">
-                                        <input name="parents[0][password]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="password">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Password *</label>
+                                        <input name="parents[0][password]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="password" placeholder="Create a password">
                                     </div>
                                 </div>
 
-                                <div class="md:flex md:items-center mb-4">
-                                    <div class="md:w-1/3">
-                                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Phone *</label>
+                                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
+                                        <input name="parents[0][phone]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="(123) 456-7890">
                                     </div>
-                                    <div class="md:w-2/3">
-                                        <input name="parents[0][phone]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text">
-                                    </div>
-                                </div>
 
-                                <div class="md:flex md:items-center mb-4">
-                                    <div class="md:w-1/3">
-                                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Gender *</label>
-                                    </div>
-                                    <div class="md:w-2/3">
-                                        <div class="flex flex-row items-center">
-                                            <label class="block text-gray-500 font-bold">
-                                                <input name="parents[0][gender]" class="mr-2 leading-tight" type="radio" value="male">
-                                                <span class="text-sm">Male</span>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Gender *</label>
+                                        <div class="flex gap-4 mt-3">
+                                            <label class="flex items-center cursor-pointer group">
+                                                <input name="parents[0][gender]" class="w-5 h-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500" type="radio" value="male">
+                                                <span class="ml-2 text-gray-700 group-hover:text-blue-600 font-medium">Male</span>
                                             </label>
-                                            <label class="ml-4 block text-gray-500 font-bold">
-                                                <input name="parents[0][gender]" class="mr-2 leading-tight" type="radio" value="female">
-                                                <span class="text-sm">Female</span>
+                                            <label class="flex items-center cursor-pointer group">
+                                                <input name="parents[0][gender]" class="w-5 h-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500" type="radio" value="female">
+                                                <span class="ml-2 text-gray-700 group-hover:text-blue-600 font-medium">Female</span>
                                             </label>
-                                            <label class="ml-4 block text-gray-500 font-bold">
-                                                <input name="parents[0][gender]" class="mr-2 leading-tight" type="radio" value="other">
-                                                <span class="text-sm">Other</span>
+                                            <label class="flex items-center cursor-pointer group">
+                                                <input name="parents[0][gender]" class="w-5 h-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500" type="radio" value="other">
+                                                <span class="ml-2 text-gray-700 group-hover:text-blue-600 font-medium">Other</span>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="md:flex md:items-center mb-4">
-                                    <div class="md:w-1/3">
-                                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Current Address *</label>
-                                    </div>
-                                    <div class="md:w-2/3">
-                                        <input name="parents[0][current_address]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text">
-                                    </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Current Address *</label>
+                                    <textarea name="parents[0][current_address]" rows="2" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter current residential address"></textarea>
                                 </div>
 
-                                <div class="md:flex md:items-center mb-4">
-                                    <div class="md:w-1/3">
-                                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Permanent Address *</label>
-                                    </div>
-                                    <div class="md:w-2/3">
-                                        <input name="parents[0][permanent_address]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text">
-                                    </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Permanent Address *</label>
+                                    <textarea name="parents[0][permanent_address]" rows="2" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter permanent address"></textarea>
                                 </div>
 
-                                <div class="md:flex md:items-center mb-4">
-                                    <div class="md:w-1/3">
-                                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Picture</label>
-                                    </div>
-                                    <div class="md:w-2/3">
-                                        <input name="parents[0][profile_picture]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="file">
-                                    </div>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Profile Picture</label>
+                                    <label class="flex items-center justify-center px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition duration-200">
+                                        <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span class="text-gray-600">Choose file</span>
+                                        <input name="parents[0][profile_picture]" class="hidden" type="file" accept="image/*">
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -565,7 +543,7 @@
             const studentInfo = {
                 'Name': $('input[name="student_name"]').val(),
                 'Email': $('input[name="student_email"]').val(),
-                'Roll Number': $('input[name="roll_number"]').val(),
+                'Roll Number': '{{ $nextRollNumber }}',
                 'Phone': $('input[name="student_phone"]').val(),
                 'Gender': $('input[name="student_gender"]:checked').val(),
                 'Date of Birth': $('input[name="dateofbirth"]').val(),

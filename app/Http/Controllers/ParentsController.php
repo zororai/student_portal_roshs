@@ -30,7 +30,8 @@ class ParentsController extends Controller
      */
     public function create()
     {
-        return view('backend.parents.create');
+        $students = \App\Student::with('user')->latest()->get();
+        return view('backend.parents.create', compact('students'));
     }
 
     /**
@@ -48,7 +49,9 @@ class ParentsController extends Controller
             'gender'            => 'required|string|max:255',
             'phone'             => 'required|string|max:255',
             'current_address'   => 'required|string|max:255',
-            'permanent_address' => 'required|string|max:255'
+            'permanent_address' => 'required|string|max:255',
+            'student_ids'       => 'nullable|array',
+            'student_ids.*'     => 'exists:students,id'
         ]);
 
         $user = User::create([
@@ -67,12 +70,17 @@ class ParentsController extends Controller
             'profile_picture' => $profile
         ]);
 
-        $user->parent()->create([
+        $parent = $user->parent()->create([
             'gender'            => $request->gender,
             'phone'             => $request->phone,
             'current_address'   => $request->current_address,
             'permanent_address' => $request->permanent_address
         ]);
+
+        // Attach selected students to this parent
+        if ($request->has('student_ids') && is_array($request->student_ids)) {
+            $parent->students()->attach($request->student_ids);
+        }
 
         $user->assignRole('Parent');
 

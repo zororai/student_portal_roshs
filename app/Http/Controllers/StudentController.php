@@ -15,6 +15,30 @@ use Barryvdh\DomPDF\Facade as PDF;
 class StudentController extends Controller
 {
     /**
+     * Generate next roll number
+     *
+     * @return string
+     */
+    private function generateRollNumber()
+    {
+        // Get the last student's roll number
+        $lastStudent = Student::orderBy('id', 'desc')->first();
+
+        if (!$lastStudent || empty($lastStudent->roll_number)) {
+            // First student
+            return 'RSH0001';
+        }
+
+        // Extract the numeric part from the last roll number
+        $lastNumber = (int) substr($lastStudent->roll_number, 3);
+
+        // Increment and format with leading zeros
+        $newNumber = $lastNumber + 1;
+
+        return 'RSH' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -50,8 +74,12 @@ class StudentController extends Controller
     {
         $classes = Grade::latest()->get();
         $parents = Parents::with('user')->latest()->get();
+        $nextRollNumber = $this->generateRollNumber();
 
-        return view('backend.students.create', compact('classes','parents'));
+        // Store the roll number in session for this form
+        session(['student_roll_number' => $nextRollNumber]);
+
+        return view('backend.students.create', compact('classes','parents','nextRollNumber'));
     }
 
     /**
@@ -69,19 +97,18 @@ class StudentController extends Controller
             'parent_id'         => 'required|array|min:1',
             'parent_id.*'       => 'required|numeric|exists:parents,id',
             'class_id'          => 'required|numeric',
-            'roll_number'       => [
-                'required',
-                'numeric',
-                Rule::unique('students')->where(function ($query) use ($request) {
-                    return $query->where('class_id', $request->class_id);
-                })
-            ],
             'gender'            => 'required|string',
             'phone'             => 'required|string|max:255',
             'dateofbirth'       => 'required|date',
             'current_address'   => 'required|string|max:255',
             'permanent_address' => 'required|string|max:255'
         ]);
+
+        // Get the roll number from session (generated when form was opened)
+        $rollNumber = session('student_roll_number', $this->generateRollNumber());
+
+        // Clear the session roll number
+        session()->forget('student_roll_number');
 
         $user = User::create([
             'name'              => $request->name,
@@ -102,7 +129,7 @@ class StudentController extends Controller
         $student = $user->student()->create([
             'parent_id'         => $request->parent_id[0], // Keep first parent for backward compatibility
             'class_id'          => $request->class_id,
-            'roll_number'       => $request->roll_number,
+            'roll_number'       => $rollNumber,
             'gender'            => $request->gender,
             'phone'             => $request->phone,
             'dateofbirth'       => $request->dateofbirth,
@@ -236,8 +263,12 @@ class StudentController extends Controller
     public function createWithParents()
     {
         $classes = Grade::latest()->get();
+        $nextRollNumber = $this->generateRollNumber();
 
-        return view('backend.students.create_with_parents', compact('classes'));
+        // Store the roll number in session for this form
+        session(['student_roll_number' => $nextRollNumber]);
+
+        return view('backend.students.create_with_parents', compact('classes', 'nextRollNumber'));
     }
 
     /**
@@ -259,13 +290,6 @@ class StudentController extends Controller
             'student_current_address'   => 'required|string|max:255',
             'student_permanent_address' => 'required|string|max:255',
             'class_id'                  => 'required|numeric',
-            'roll_number'               => [
-                'required',
-                'numeric',
-                Rule::unique('students')->where(function ($query) use ($request) {
-                    return $query->where('class_id', $request->class_id);
-                })
-            ],
             'parents'                   => 'required|array|min:1',
             'parents.*.name'            => 'required|string|max:255',
             'parents.*.email'           => 'required|string|email|max:255|unique:users,email',
@@ -327,11 +351,17 @@ class StudentController extends Controller
             $parentIds[] = $parent->id;
         }
 
+        // Get the roll number from session (generated when form was opened)
+        $rollNumber = session('student_roll_number', $this->generateRollNumber());
+
+        // Clear the session roll number
+        session()->forget('student_roll_number');
+
         // Create student record
         $student = $studentUser->student()->create([
             'parent_id'         => $parentIds[0], // First parent for backward compatibility
             'class_id'          => $request->class_id,
-            'roll_number'       => $request->roll_number,
+            'roll_number'       => $rollNumber,
             'gender'            => $request->student_gender,
             'phone'             => $request->student_phone,
             'dateofbirth'       => $request->dateofbirth,

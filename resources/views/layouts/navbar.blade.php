@@ -27,7 +27,7 @@
                     </div>
                 </div>
             </div>
-        @else 
+        @else
             <div class="flex items-center">
                 @if (Route::has('login'))
                     <div>
