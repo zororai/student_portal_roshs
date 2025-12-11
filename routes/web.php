@@ -168,7 +168,7 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
 // Store the updated results status
     Route::get('/teacher/results/status/{status}', 'ResultController@viewstatus')->name('results.status');
    //studentresults
-     Route::post('/results/update/{result}', [ResultController::class, 'update'])->name('results.update');
+     Route::post('/results/update/{result}', 'ResultController@update')->name('results.update');
      Route::delete('/results/delete/{result}', 'ResultController@destroy')->name('results.delete');
      Route::get('/student/results/{student}', 'ResultController@showstudentresults')->name('student.results');
      Route::get('/teacher/results/create/{class_id}', 'ResultController@createByTeacher')->name('results.create');
