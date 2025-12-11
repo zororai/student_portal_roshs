@@ -349,10 +349,10 @@ class StudentController extends Controller
 
             // Create parent record with registration token
             $parent = $parentUser->parent()->create([
-                'gender'                    => 'other', // Will be updated by parent
+                'gender'                    => 'male', // Temporary default, will be updated by parent during registration
                 'phone'                     => $parentData['phone'],
-                'current_address'           => '', // Will be filled by parent
-                'permanent_address'         => '', // Will be filled by parent
+                'current_address'           => 'Pending', // Will be filled by parent
+                'permanent_address'         => 'Pending', // Will be filled by parent
                 'registration_token'        => $registrationToken,
                 'token_expires_at'          => now()->addDays(7), // Token valid for 7 days
                 'registration_completed'    => false
