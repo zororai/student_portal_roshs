@@ -198,46 +198,7 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Address *</label>
-                            <textarea name="student_current_address" rows="2" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter current residential address">{{ old('student_current_address') }}</textarea>
-                            @error('student_current_address')
-                                <p class="text-red-500 text-xs mt-1 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                    </svg>
-                                    {{ $message }}
-                                </p>
-                                @enderror
-                            </div>
-                        </div>
 
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Permanent Address *</label>
-                            <textarea name="student_permanent_address" rows="2" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter permanent address">{{ old('student_permanent_address') }}</textarea>
-                            @error('student_permanent_address')
-                                <p class="text-red-500 text-xs mt-1 flex items-center">
-                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                    </svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
-                            <div class="flex items-center space-x-4">
-                                <label class="flex items-center justify-center px-3 py-2 bg-white border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition duration-200 w-full">
-                                    <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span class="text-gray-600">Choose file or drag here</span>
-                                    <input name="student_profile_picture" class="hidden" type="file" accept="image/*">
-                                </label>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Supported formats: JPG, PNG, GIF (Max 2MB)</p>
-                        </div>
                     </div>
 
                     <div class="flex justify-end mt-8">
@@ -417,18 +378,6 @@
                     showError('select[name="class_id"]', 'Please select a class');
                 }
 
-                // Check current address
-                if (!$('textarea[name="student_current_address"]').val().trim()) {
-                    isValid = false;
-                    showError('textarea[name="student_current_address"]', 'Current Address is required');
-                }
-
-                // Check permanent address
-                if (!$('textarea[name="student_permanent_address"]').val().trim()) {
-                    isValid = false;
-                    showError('textarea[name="student_permanent_address"]', 'Permanent Address is required');
-                }
-
                 if (!isValid) {
                     // Scroll to first error
                     $('html, body').animate({
@@ -586,9 +535,7 @@
                 'Phone': $('input[name="student_phone"]').val(),
                 'Gender': $('input[name="student_gender"]:checked').val(),
                 'Date of Birth': $('input[name="dateofbirth"]').val(),
-                'Class': $('select[name="class_id"] option:selected').text(),
-                'Current Address': $('textarea[name="student_current_address"]').val(),
-                'Permanent Address': $('textarea[name="student_permanent_address"]').val()
+                'Class': $('select[name="class_id"] option:selected').text()
             };
 
             let studentHtml = '';

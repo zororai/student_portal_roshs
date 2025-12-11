@@ -292,8 +292,6 @@ class StudentController extends Controller
                 'student_phone'             => 'required|string|max:255',
                 'student_gender'            => 'required|string',
                 'dateofbirth'               => 'required|date',
-                'student_current_address'   => 'required|string|max:255',
-                'student_permanent_address' => 'required|string|max:255',
                 'class_id'                  => 'required|numeric',
                 'parents'                   => 'required|array|min:1',
                 'parents.*.name'            => 'required|string|max:255',
@@ -368,7 +366,7 @@ class StudentController extends Controller
         // Clear the session roll number
         session()->forget('student_roll_number');
 
-        // Create student record
+        // Create student record with dummy values for fields that will be updated on password change
         $student = $studentUser->student()->create([
             'parent_id'         => $parentIds[0], // First parent for backward compatibility
             'class_id'          => $request->class_id,
@@ -376,8 +374,8 @@ class StudentController extends Controller
             'gender'            => $request->student_gender,
             'phone'             => $request->student_phone,
             'dateofbirth'       => $request->dateofbirth,
-            'current_address'   => $request->student_current_address,
-            'permanent_address' => $request->student_permanent_address
+            'current_address'   => 'To be updated', // Dummy value - student will update on first login
+            'permanent_address' => 'To be updated'  // Dummy value - student will update on first login
         ]);
 
         // Attach all parents to the student
