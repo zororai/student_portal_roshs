@@ -21,17 +21,42 @@
         <div class="mt-8 bg-white rounded border-b-4 border-gray-300">
             <div class="flex flex-wrap items-center uppercase text-sm font-semibold bg-gray-600 text-white rounded-tl rounded-tr">
                 <div class="w-3/12 px-4 py-3">Name</div>
-                <div class="w-3/12 px-4 py-3">Email</div>
+                <div class="w-2/12 px-4 py-3">Roll No</div>
                 <div class="w-2/12 px-4 py-3">Class</div>
-                <div class="w-2/12 px-4 py-3">Phone</div>
+                <div class="w-3/12 px-4 py-3">Parent Status</div>
                 <div class="w-2/12 px-4 py-3 text-right">Action</div>
             </div>
             @foreach ($students as $student)
+                @php
+                    $allParentsVerified = $student->parents->count() > 0 && $student->parents->every(function($parent) {
+                        return $parent->registration_completed == true;
+                    });
+                    $pendingParents = $student->parents->where('registration_completed', false)->count();
+                    $verifiedParents = $student->parents->where('registration_completed', true)->count();
+                @endphp
                 <div class="flex flex-wrap items-center text-gray-700 border-t-2 border-l-4 border-r-4 border-gray-300">
                     <div class="w-3/12 px-4 py-3 text-sm font-semibold text-gray-600 tracking-tight">{{ $student->user->name }}</div>
-                    <div class="w-3/12 px-4 py-3 text-sm font-semibold text-gray-600 tracking-tight">{{ $student->user->email }}</div>
+                    <div class="w-2/12 px-4 py-3 text-sm font-bold text-blue-600 tracking-tight">{{ $student->roll_number }}</div>
                     <div class="w-2/12 px-4 py-3 text-sm font-semibold text-gray-600 tracking-tight">{{ $student->class->class_name ?? '' }}</div>
-                    <div class="w-2/12 px-4 py-3 text-sm font-semibold text-gray-600 tracking-tight">{{ $student->phone }}</div>
+                    <div class="w-3/12 px-4 py-3 text-xs">
+                        @if($student->parents->count() == 0)
+                            <span class="bg-gray-200 text-gray-600 px-2 py-1 rounded">No Parents</span>
+                        @elseif($allParentsVerified)
+                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded flex items-center">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                All Verified ({{ $verifiedParents }})
+                            </span>
+                        @else
+                            <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded flex items-center">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                                Pending: {{ $pendingParents }}/{{ $student->parents->count() }}
+                            </span>
+                        @endif
+                    </div>
                     <div class="w-2/12 flex items-center justify-end px-3">
                         <a href="{{ route('student.show',$student->id) }}" class="ml-1 bg-blue-600 block p-1 border border-blue-600 rounded-sm" title="View Profile">
                             <svg class="h-3 w-3 fill-current text-gray-100" aria-hidden="true" focusable="false" data-prefix="far" data-icon="eye" class="svg-inline--fa fa-eye fa-w-18" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" d="M288 144a110.94 110.94 0 0 0-31.24 5 55.4 55.4 0 0 1 7.24 27 56 56 0 0 1-56 56 55.4 55.4 0 0 1-27-7.24A111.71 111.71 0 1 0 288 144zm284.52 97.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400c-98.65 0-189.09-55-237.93-144C98.91 167 189.34 112 288 112s189.09 55 237.93 144C477.1 345 386.66 400 288 400z"></path></svg>

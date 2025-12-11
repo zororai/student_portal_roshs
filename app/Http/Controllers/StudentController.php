@@ -45,7 +45,7 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $students = Student::with(['class', 'user'])->latest()->paginate(10);
+        $students = Student::with(['class', 'user', 'parents'])->latest()->paginate(10);
 
         return view('backend.students.index', compact('students'));
     }
@@ -279,8 +279,14 @@ class StudentController extends Controller
      */
     public function storeWithParents(Request $request)
     {
-        // Validate student data
-        $request->validate([
+        // Debug: Log all incoming request data
+        \Log::info('=== STORE WITH PARENTS DEBUG ===');
+        \Log::info('Request data:', $request->all());
+        \Log::info('Parents array:', $request->input('parents', []));
+
+        try {
+            // Validate student data
+            $request->validate([
             'student_name'              => 'required|string|max:255',
             'student_email'             => 'required|string|email|max:255|unique:users,email',
             'student_password'          => 'required|string|min:8',
@@ -295,7 +301,10 @@ class StudentController extends Controller
             'parents.*.phone'           => 'required|string|max:255|regex:/^\+[0-9]{10,15}$/',
         ]);
 
+        \Log::info('Validation passed successfully');
+
         // Create student user
+        \Log::info('Creating student user...');
         $studentUser = User::create([
             'name'      => $request->student_name,
             'email'     => $request->student_email,
@@ -312,6 +321,8 @@ class StudentController extends Controller
         $studentUser->update([
             'profile_picture' => $profile
         ]);
+
+        \Log::info('Student user created:', ['id' => $studentUser->id, 'name' => $studentUser->name]);
 
         // Create parents and collect their IDs
         $parentIds = [];
@@ -373,6 +384,9 @@ class StudentController extends Controller
         // Attach all parents to the student
         $student->parents()->attach($parentIds);
 
+        \Log::info('Student record created:', ['student_id' => $student->id, 'roll_number' => $rollNumber]);
+        \Log::info('Parents attached:', ['parent_ids' => $parentIds]);
+
         $studentUser->assignRole('Student');
 
         // Send SMS to all parents with registration link and student roll number
@@ -399,6 +413,22 @@ class StudentController extends Controller
             }
         }
 
+        \Log::info('Process completed successfully');
+        \Log::info('=== END DEBUG ===');
+
         return redirect()->route('student.index')->with('success', 'Student created successfully! SMS sent to parent(s) for registration completion.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed:', ['errors' => $e->errors()]);
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('Error in storeWithParents:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create student: ' . $e->getMessage());
+        }
     }
 }
