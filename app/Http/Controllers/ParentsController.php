@@ -19,7 +19,7 @@ class ParentsController extends Controller
     public function index()
     {
         $parents = Parents::with(['user','children'])->latest()->paginate(10);
-        
+
         return view('backend.parents.index', compact('parents'));
     }
 
@@ -59,7 +59,7 @@ class ParentsController extends Controller
             'email'     => $request->email,
             'password'  => Hash::make($request->password)
         ]);
-        
+
         if ($request->hasFile('profile_picture')) {
             $profile = Str::slug($user->name).'-'.$user->id.'.'.$request->profile_picture->getClientOriginalExtension();
             $request->profile_picture->move(public_path('images/profile'), $profile);
@@ -106,9 +106,10 @@ class ParentsController extends Controller
      */
     public function edit($id)
     {
-        $parent = Parents::with('user')->findOrFail($id); 
+        $parent = Parents::with(['user', 'students'])->findOrFail($id);
+        $students = \App\Student::with('user')->latest()->get();
 
-        return view('backend.parents.edit', compact('parent'));
+        return view('backend.parents.edit', compact('parent', 'students'));
     }
 
     /**
@@ -128,7 +129,9 @@ class ParentsController extends Controller
             'gender'            => 'required|string',
             'phone'             => 'required|string|max:255',
             'current_address'   => 'required|string|max:255',
-            'permanent_address' => 'required|string|max:255'
+            'permanent_address' => 'required|string|max:255',
+            'student_ids'       => 'nullable|array',
+            'student_ids.*'     => 'exists:students,id'
         ]);
 
         if ($request->hasFile('profile_picture')) {
@@ -150,6 +153,13 @@ class ParentsController extends Controller
             'current_address'   => $request->current_address,
             'permanent_address' => $request->permanent_address
         ]);
+
+        // Sync student relationships
+        if ($request->has('student_ids')) {
+            $parents->students()->sync($request->student_ids);
+        } else {
+            $parents->students()->detach();
+        }
 
         return redirect()->route('parents.index');
     }
