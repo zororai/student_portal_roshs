@@ -153,6 +153,8 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::post('attendance', 'AttendanceController@store')->name('teacher.attendance.store');
     Route::get('attendance-create/{classid}', 'AttendanceController@createByTeacher')->name('teacher.attendance.create');
 
+    // Subject routes for teachers
+    Route::get('subject', 'SubjectController@index')->name('subject.index');
     Route::get('readingmaterails/{id}','AddsubjectController@show')->name('subject.Reading');
 
     Route::resource('readings', 'AddsubjectController');

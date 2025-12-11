@@ -17,7 +17,18 @@ class SubjectController extends Controller
      */
     public function index()
     {
-        $subjects = Subject::with('teacher')->latest()->paginate(10);
+        // Check if the user is a teacher
+        if (auth()->user()->hasRole('Teacher')) {
+            $teacher = auth()->user()->teacher;
+            // Get only subjects assigned to this teacher
+            $subjects = Subject::with('teacher')
+                ->where('teacher_id', $teacher->id)
+                ->latest()
+                ->paginate(10);
+        } else {
+            // Admin sees all subjects
+            $subjects = Subject::with('teacher')->latest()->paginate(10);
+        }
         
         return view('backend.subjects.index', compact('subjects'));
 
