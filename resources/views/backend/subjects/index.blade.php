@@ -9,14 +9,6 @@
                     <h1 class="text-3xl font-bold text-gray-900">Subjects</h1>
                     <p class="mt-2 text-sm text-gray-600">Manage academic subjects and teacher assignments</p>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <a href="{{ route('subject.create') }}" class="inline-flex items-center px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 448 512">
-                            <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
-                        </svg>
-                        Add New Subject
-                    </a>
-                </div>
             </div>
         </div>
 
@@ -26,18 +18,24 @@
             
             <!-- Header Row -->
             <div class="flex items-center bg-gray-600 mx-6 rounded-tl rounded-tr">
-                <div class="w-1/3 text-left text-white py-2 px-4 font-semibold">Code</div>
-                <div class="w-1/3 text-left text-white py-2 px-4 font-semibold">Subject</div>
-                <div class="w-1/3 text-right text-white py-2 px-4 font-semibold">Teacher</div>
+                <div class="w-1/4 text-left text-white py-2 px-4 font-semibold">Code</div>
+                <div class="w-1/4 text-left text-white py-2 px-4 font-semibold">Subject</div>
+                <div class="w-1/4 text-left text-white py-2 px-4 font-semibold">Teacher</div>
+                <div class="w-1/4 text-center text-white py-2 px-4 font-semibold">Materials</div>
             </div>
             
             <!-- Subject Rows -->
             <div class="px-6 pb-6">
                 @forelse ($subjects as $subject)
-                    <div class="flex items-center justify-between border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors" onclick="window.location='{{ route('subject.Reading', $subject->id) }}'">
-                        <div class="w-1/3 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->subject_code }}</div>
-                        <div class="w-1/3 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->name }}</div>
-                        <div class="w-1/3 text-right text-gray-600 py-2 px-4 font-medium">{{ $subject->teacher->user->name ?? 'Not Assigned' }}</div>
+                    <div class="flex items-center justify-between border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors" onclick="window.location.href='{{ route('subject.Reading', $subject->id) }}'">
+                        <div class="w-1/4 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->subject_code }}</div>
+                        <div class="w-1/4 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->name }}</div>
+                        <div class="w-1/4 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->teacher->user->name ?? 'Not Assigned' }}</div>
+                        <div class="w-1/4 text-center text-gray-600 py-2 px-4 font-medium">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                                {{ $subject->readings_count ?? 0 }}
+                            </span>
+                        </div>
                     </div>
                 @empty
                     <div class="border border-gray-200 py-12 text-center">

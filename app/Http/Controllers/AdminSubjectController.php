@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Subject;
 use App\Teacher;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Str;
 
-class SubjectController extends Controller
+class AdminSubjectController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -17,29 +16,12 @@ class SubjectController extends Controller
      */
     public function index()
     {
-        /** @var \App\User $user */
-        $user = auth()->user();
+        $subjects = Subject::with('teacher')
+            ->withCount('readings')
+            ->latest()
+            ->paginate(10);
         
-        // Check if the user is a teacher
-        /** @phpstan-ignore-next-line */
-        if ($user->roles()->where('name', 'Teacher')->exists()) {
-            $teacher = $user->teacher;
-            // Get only subjects assigned to this teacher
-            $subjects = Subject::with('teacher')
-                ->withCount('readings')
-                ->where('teacher_id', $teacher->id)
-                ->latest()
-                ->paginate(10);
-        } else {
-            // Admin sees all subjects
-            $subjects = Subject::with('teacher')
-                ->withCount('readings')
-                ->latest()
-                ->paginate(10);
-        }
-        
-        return view('backend.subjects.index', compact('subjects'));
-
+        return view('backend.subjectsadmin.index', compact('subjects'));
     }
 
     /**
@@ -51,32 +33,9 @@ class SubjectController extends Controller
     {
         $teachers = Teacher::latest()->get();
 
-        return view('backend.subjects.create', compact('teachers'));
-    }
-     public function show($id)
-    {
-        $subject = Subject::with('files')->findOrFail($id);
-        return view('subject.show', compact('subject'));
+        return view('backend.subjectsadmin.create', compact('teachers'));
     }
 
-    public function upload(Request $request, $id)
-    {
-        $request->validate([
-            'file' => 'required|file|mimes:pdf,docx|max:2048',
-            'youtube_link' => 'required|url',
-        ]);
-
-        $subject = Subject::findOrFail($id);
-
-        // Handle file upload
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('uploads', 'public');
-            // Save the file information in the database
-            $subject->files()->create(['path' => $filePath, 'youtube_link' => $request->youtube_link]);
-        }
-
-        return redirect()->route('subject.show', $id)->with('success', 'File uploaded successfully!');
-    }
     /**
      * Store a newly created resource in storage.
      *
@@ -100,16 +59,8 @@ class SubjectController extends Controller
             'description'   => $request->description
         ]);
 
-        return redirect()->route('subject.index');
+        return redirect()->route('admin.subjects.index')->with('success', 'Subject created successfully.');
     }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Subject  $subject
-     * @return \Illuminate\Http\Response
-     */
-  
 
     /**
      * Show the form for editing the specified resource.
@@ -121,7 +72,7 @@ class SubjectController extends Controller
     {
         $teachers = Teacher::latest()->get();
 
-        return view('backend.subjects.edit', compact('subject','teachers'));
+        return view('backend.subjectsadmin.edit', compact('subject','teachers'));
     }
 
     /**
@@ -148,7 +99,7 @@ class SubjectController extends Controller
             'description'   => $request->description
         ]);
 
-        return redirect()->route('subject.index');
+        return redirect()->route('admin.subjects.index')->with('success', 'Subject updated successfully.');
     }
 
     /**
@@ -161,9 +112,6 @@ class SubjectController extends Controller
     {
         $subject->delete();
 
-        return back();
+        return back()->with('success', 'Subject deleted successfully.');
     }
-
-
-    
 }

@@ -81,6 +81,14 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     // Store the updated results status
     Route::get('manageresults', 'GradeController@adminindex')->name('manageresults.index');
     ////
+    // Admin Subject Management Routes
+    Route::get('admin/subjects', 'AdminSubjectController@index')->name('admin.subjects.index');
+    Route::get('admin/subjects/create', 'AdminSubjectController@create')->name('admin.subjects.create');
+    Route::post('admin/subjects', 'AdminSubjectController@store')->name('admin.subjects.store');
+    Route::get('admin/subjects/{subject}/edit', 'AdminSubjectController@edit')->name('admin.subjects.edit');
+    Route::put('admin/subjects/{subject}', 'AdminSubjectController@update')->name('admin.subjects.update');
+    Route::delete('admin/subjects/{subject}', 'AdminSubjectController@destroy')->name('admin.subjects.destroy');
+    
     Route::resource('subject', 'SubjectController');
     Route::resource('teacher', 'TeacherController')->except(['show']);
     Route::resource('parents', 'ParentsController');

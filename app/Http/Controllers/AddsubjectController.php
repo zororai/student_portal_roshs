@@ -84,7 +84,7 @@ class AddsubjectController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'path' => $path,
-          
+            'youtube_link' => $request->youtube_link,
             'subject_id' => $request->subject_id,
         ]);
         $subject_id =  $request->subject_id;

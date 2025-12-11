@@ -24,4 +24,10 @@ class Subject extends Model
     {
         return $this->hasMany(Result::class, 'subject_id');
     }
+
+    // A subject has many reading materials
+    public function readings()
+    {
+        return $this->hasMany(Reading::class, 'subject_id');
+    }
 }
