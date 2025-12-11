@@ -184,10 +184,43 @@ class TeacherController extends Controller
         // Verify the class belongs to this teacher
         $class = $teacher->classes()->withCount('students')->findOrFail($class_id);
 
-        // Get students in the class with their parent relationships
-        $students = $class->students()->with(['user', 'parents.user'])->get();
+        // Get students in the class with their parent relationships and subjects
+        $students = $class->students()->with(['user', 'parents.user', 'class.subjects'])->get();
 
         return view('backend.teacher.class-students', compact('class', 'students'));
+    }
+
+    /**
+     * Mark a student as transferred.
+     *
+     * @param  int  $student_id
+     * @return \Illuminate\Http\Response
+     */
+    public function transferStudent($student_id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        $student = \App\Student::findOrFail($student_id);
+
+        // Verify the student belongs to a class taught by this teacher
+        $class = $teacher->classes()->where('id', $student->class_id)->first();
+
+        if (!$class) {
+            return back()->with('error', 'You do not have permission to transfer this student.');
+        }
+
+        // Mark student as transferred
+        $student->is_transferred = true;
+        $student->save();
+
+        // Disable the user account
+        $student->user->update(['is_active' => false]);
+
+        return back()->with('success', 'Student has been marked as transferred.');
     }
 
     /**

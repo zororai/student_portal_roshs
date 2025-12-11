@@ -141,6 +141,14 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     // Student Record Routes - must be defined early to avoid conflicts
     Route::get('/teacher/student-record', 'TeacherController@studentRecord')->name('teacher.studentrecord');
     Route::get('/teacher/student-record/{class_id}', 'TeacherController@classStudents')->name('teacher.class.students');
+    Route::post('/teacher/student/{student_id}/transfer', 'TeacherController@transferStudent')->name('teacher.student.transfer');
+
+    // Disciplinary Records Routes
+    Route::get('/teacher/disciplinary-records', 'DisciplinaryController@index')->name('teacher.disciplinary.index');
+    Route::post('/teacher/disciplinary-records', 'DisciplinaryController@store')->name('teacher.disciplinary.store');
+    Route::get('/teacher/disciplinary-records/class/{class_id}/students', 'DisciplinaryController@getStudentsByClass')->name('teacher.disciplinary.students');
+    Route::put('/teacher/disciplinary-records/{id}', 'DisciplinaryController@update')->name('teacher.disciplinary.update');
+    Route::delete('/teacher/disciplinary-records/{id}', 'DisciplinaryController@destroy')->name('teacher.disciplinary.destroy');
 
     Route::post('attendance', 'AttendanceController@store')->name('teacher.attendance.store');
     Route::get('attendance-create/{classid}', 'AttendanceController@createByTeacher')->name('teacher.attendance.create');
