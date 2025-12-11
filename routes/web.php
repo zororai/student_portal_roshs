@@ -138,17 +138,17 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()
 {
+    // Student Record Routes - must be defined early to avoid conflicts
+    Route::get('/teacher/student-record', 'TeacherController@studentRecord')->name('teacher.studentrecord');
+    Route::get('/teacher/student-record/{class_id}', 'TeacherController@classStudents')->name('teacher.class.students');
+
     Route::post('attendance', 'AttendanceController@store')->name('teacher.attendance.store');
     Route::get('attendance-create/{classid}', 'AttendanceController@createByTeacher')->name('teacher.attendance.create');
 
     Route::get('readingmaterails/{id}','AddsubjectController@show')->name('subject.Reading');
 
-    Route::resource('readings', AddsubjectController::class);
+    Route::resource('readings', 'AddsubjectController');
     Route::post('subjects/{id}/upload','AddsubjectController@upload')->name('subject.upload');
-
-    // Student Record Routes
-    Route::get('/teacher/student-record', 'TeacherController@studentRecord')->name('teacher.studentrecord');
-    Route::get('/teacher/student-record/{class_id}', 'TeacherController@classStudents')->name('teacher.class.students');
 
     Route::get('/results', 'ResultController@index')->name('results.index');
     Route::get('/viewresults', 'ResultController@recordindex')->name('results.record');
