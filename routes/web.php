@@ -82,7 +82,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('manageresults', 'GradeController@adminindex')->name('manageresults.index');
     ////
     Route::resource('subject', 'SubjectController');
-    Route::resource('teacher', 'TeacherController');
+    Route::resource('teacher', 'TeacherController')->except(['show']);
     Route::resource('parents', 'ParentsController');
     Route::resource('student', 'StudentController');
 
