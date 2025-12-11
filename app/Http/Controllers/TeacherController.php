@@ -157,7 +157,12 @@ class TeacherController extends Controller
     public function studentRecord()
     {
         $teacher = auth()->user()->teacher;
-        $classes = $teacher ? $teacher->classes()->withCount('students')->get() : [];
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        $classes = $teacher->classes()->withCount('students')->get();
 
         return view('backend.teacher.student-record', compact('classes'));
     }
@@ -171,6 +176,10 @@ class TeacherController extends Controller
     public function classStudents($class_id)
     {
         $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
 
         // Verify the class belongs to this teacher
         $class = $teacher->classes()->withCount('students')->findOrFail($class_id);
