@@ -16,51 +16,51 @@ class ResultController extends Controller
     public function index()
     {
         // Get the logged-in teacher
-        $teacher = Auth::user()->teacher; 
-    
-        // Get classes assigned to this teacher
-        $classes = $teacher ? $teacher->classes : [];
-    
+        $teacher = Auth::user()->teacher;
+
+        // Get classes assigned to this teacher with student count
+        $classes = $teacher ? $teacher->classes()->withCount('students')->get() : [];
+
         return view('backend.results.index', compact('classes'));
     }
 
     public function parentindex()
     {
         // Get the logged-in teacher
-        $teacher = Auth::user()->teacher; 
-    
+        $teacher = Auth::user()->teacher;
+
         // Get classes assigned to this teacher
         $classes = $teacher ? $teacher->classes : [];
-    
+
         return view('backend.results.index', compact('classes'));
     }
     public function resultsactive()
     {
         // Get the logged-in teacher
         $classes = Grade::withCount('students')->latest()->paginate(10);
-    
+
         return view('backend.activeresults.index', compact('classes'));
     }
-    
+
 
     public function recordindex()
     {
         // Get the logged-in teacher
-        $teacher = Auth::user()->teacher; 
-    
+        $teacher = Auth::user()->teacher;
+
         // Get classes assigned to this teacher
         $classes = $teacher ? $teacher->classes : [];
         $years = ResultsStatus::select('year')->distinct()->pluck('year');
-    
+
         return view('backend.results.resultsrecord', compact('classes','years'));
-    
+
     }
 
     public function Classnames($class_id)
     {
         // Get the class with its students
         $classes = Grade::with('students')->findOrFail($class_id);
-    
+
         // Get results for students in this class
         $studentIds = $classes->students->pluck('id');
         $results = Result::whereIn('student_id', $studentIds)->get();
@@ -72,7 +72,7 @@ class ResultController extends Controller
     {
         // Get the class with its students
         $classes = Grade::with('students')->findOrFail($class_id);
-    
+
         // Get results for students in this class
         $studentIds = $classes->students->pluck('id');
         $results = Result::whereIn('student_id', $studentIds)->get();
@@ -80,26 +80,26 @@ class ResultController extends Controller
         return view('results.classname', compact('results', 'classes'));
     }
 
-    
+
 
     ////test
 
-    
-    
+
+
     public function listResults($class_id)
     {
         // Get the class with its students
         $classes = Grade::with('students')->findOrFail($class_id);
-    
+
         // Get student IDs from this class
         $studentIds =$classes->students->pluck('id');
-    
+
         // Get the last inserted ResultsStatus record
         $lastRecord = ResultsStatus::latest()->first();
-    
+
         // Retrieve results for the specified students and check if they match the last record
         $resultsQuery = Result::whereIn('student_id', $studentIds);
-    
+
         $exists = false;
         if ($lastRecord) {
             $exists = $resultsQuery
@@ -107,26 +107,26 @@ class ResultController extends Controller
                 ->where('result_period', $lastRecord->result_period)
                 ->exists();
         }
-    
+
         // Fetch results after filtering
         $results = $resultsQuery->get();
-    
+
         return view('backend.results.results', compact('results', 'classes', 'lastRecord', 'exists'));
     }
-    
 
-     
+
+
     public function activelistResults($class_id)
     {
         // Get the class with its students
         $classes = Grade::with('students')->findOrFail($class_id);
-    
+
         // Get student IDs from this class
         $studentIds =$classes->students->pluck('id');
-    
+
         // Get the last inserted ResultsStatus record
         $lastRecord = ResultsStatus::latest()->first();
-    
+
         // Retrieve results for the specified students and check if they match the last record
         $resultsQuery = Result::whereIn('student_id', $studentIds);
         $Pending='Paid';
@@ -138,15 +138,15 @@ class ResultController extends Controller
                 ->where('status', $Pending)
                 ->exists();
         }
-    
+
         // Fetch results after filtering
         $results = $resultsQuery->get();
-    
+
         return view('backend.activeresults.results', compact('results', 'classes', 'lastRecord', 'exists'));
     }
 
 
-    
+
     public function createByTeacher($classid)
     {
         $class = Grade::with(['students', 'subjects', 'teacher'])->findOrFail($classid);
@@ -157,10 +157,10 @@ class ResultController extends Controller
     public function edit($id)
     {
         $result = Result::findOrFail($id);
-        
+
         return view('backend.results.edit', compact('result'));
     }
-    
+
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -168,34 +168,34 @@ class ResultController extends Controller
             'comment' => 'nullable|string',
             'mark_grade' => 'nullable|string',
         ]);
-    
+
         $result = Result::findOrFail($id);
         $result->update($request->all());
-    
+
         return redirect()->route('results.index')->with('status', 'Result updated successfully!');
     }
-    
+
     public function destroy($id)
     {
         // Find the result by ID or fail if it doesn't exist
         $result = Result::findOrFail($id);
-        
+
         // Store the student ID for redirection after deletion
-        $studentId = $result->student_id; 
-        
+        $studentId = $result->student_id;
+
         // Delete the result
         $result->delete();
-        
+
         // Fetch the updated results for the student
         $studentResults = Result::with('subject')->where('student_id', $studentId)->get();
-        
+
         // Return the view with the updated student results
         return view('backend.results.viewstudentresults', compact('studentResults'));
     }
     public function showstudentresults($id)
     {
         // Retrieve the student by ID
-      
+
         $studentResults = Result::with('subject')->where('student_id', $id)->get();
         return view('backend.results.viewstudentresults', compact('studentResults'));
 
@@ -204,7 +204,7 @@ class ResultController extends Controller
     public function viewupdateresults($id)
     {
         // Retrieve the student by ID
-      
+
         $studentResults = Result::with('subject')->where('student_id', $id)->get();
         return view('backend.activeresults.viewstudentresults', compact('studentResults'));
 
@@ -215,7 +215,7 @@ class ResultController extends Controller
         // Retrieve the student results by ID and update the status
         $newStatus = 'Paid';
         Result::where('student_id', $id)->update(['status' => $newStatus]);
-    
+
         // Fetch updated results for the student
         $studentResults = Result::where('student_id', $id)->get();
         $class_id = optional($studentResults->first())->class_id;
@@ -224,18 +224,18 @@ class ResultController extends Controller
 
         // Get the class with its students
         $classes = Grade::with('students')->findOrFail($class_id);
-    
+
         // Get student IDs from this class
         $studentIds =$classes->students->pluck('id');
-    
+
         // Get the last inserted ResultsStatus record
         $lastRecord = ResultsStatus::latest()->first();
-    
+
         // Retrieve results for the specified students and check if they match the last record
         $resultsQuery = Result::whereIn('student_id',$studentIds);
         $Pending='Paid';
         $exists = false;
-        
+
         if ($lastRecord) {
             $exists = $resultsQuery
                 ->where('year', $lastRecord->year)
@@ -243,17 +243,17 @@ class ResultController extends Controller
                 ->where('status', $Pending)
                 ->exists();
         }
-    
+
         // Fetch results after filtering
         $results = $resultsQuery->get();
-  
+
         return view('backend.activeresults.results', compact('results', 'classes', 'lastRecord', 'exists'));
     }
-    
+
     public function Showssubject(Student $student)
     {
         $class = Grade::with('subjects')->where('id', $student->class_id)->first();
-        
+
         return view('backend.results.studentsubject', compact('class','student'));
     }
     public function Stuntentname($id)
@@ -268,23 +268,23 @@ class ResultController extends Controller
         $years = ResultsStatus::select('year')->distinct()->pluck('year');
         return view('results.Allresults', compact('class','years'));
     }
-    
+
     public function store(Request $request)
     {
         $classid = $request->class_id;
         $teacher = Teacher::findOrFail(auth()->user()->teacher->id);
         $class = Grade::find($classid);
-    
-      
-    
+
+
+
         $request->validate([
             'class_id' => 'required|numeric',
             'teacher_id' => 'required|numeric',
             'results' => 'required|array',
             'result_period'=> 'required',
-            
+
         ]);
-    
+
         foreach ($request->results as $studentId => $subjects) {
             foreach ($subjects as $subjectId => $data) {
                 Result::updateOrCreate(
@@ -304,10 +304,10 @@ class ResultController extends Controller
                     ]
                 );
 
-                
+
             }
         }
-    
+
         return redirect()->route('results.results', $classid)
             ->with('status', 'Results entered successfully!');
     }
@@ -391,7 +391,7 @@ public function adminshowResult(Request $request)
     public function studentshow()
     {
         $studentId = Auth::user()->id;
-       
+
 
 
         $studentId = Student::where('user_id', Auth::user()->id)->value('id');
@@ -429,8 +429,8 @@ public function adminshowResult(Request $request)
         ->with(['subject', 'teacher', 'class'])
         ->get();
 
-      
-      
+
+
         return view('reports.index', compact('results'));
 
     }

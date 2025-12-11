@@ -115,24 +115,24 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/Admin/results/{class_id}','ResultController@activelistResults')->name('active.results');
     Route::get('/viewstudent/viewresults/{student}', 'ResultController@viewupdateresults')->name('viewstudent.results');
     //fees import
-    Route::post('/students/import', [StudentsImport::class, 'import'])->name('students.import');
+    Route::post('/students/import', 'StudentController@import')->name('students.import');
     //fees paymeny
-    Route::get('payments/create/{studentId}', [PaymentController::class, 'create'])->name('payments.create');
-    Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
+    Route::get('payments/create/{studentId}', 'PaymentController@create')->name('payments.create');
+    Route::post('payments', 'PaymentController@store')->name('payments.store');
     Route::get('payments', 'PaymentController@index')->name('payments.index');
-    Route::get('payments/receipt/{id}', [PaymentController::class, 'receipt'])->name('payments.receipt');
-    Route::resource('fee_categories', FeeCategoryController::class);
-    Route::get('payments/receipt/download/{id}', [PaymentController::class, 'downloadReceipt'])->name('payments.receipt.download');
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('payments/receipt/{id}', 'PaymentController@receipt')->name('payments.receipt');
+    Route::resource('fee_categories', 'FeeCategoryController');
+    Route::get('payments/receipt/download/{id}', 'PaymentController@downloadReceipt')->name('payments.receipt.download');
+    Route::get('/reports', 'ReportController@index')->name('reports.index');
      //nweb
     Route::get('/webcam', 'WebcamController@index')->name('Webcam.index');
     Route::post('/webcam/upload', 'WebcamController@upload')->name('webcam.upload');
     //news letters
-    Route::resource('newsletters', NewsletterController::class)->except(['edit', 'update']);
-    Route::post('newsletters/{id}/publish', [NewsletterController::class, 'publish'])->name('newsletters.publish');
+    Route::resource('newsletters', 'NewsletterController')->except(['edit', 'update']);
+    Route::post('newsletters/{id}/publish', 'NewsletterController@publish')->name('newsletters.publish');
     //studentid
-    Route::get('/student/{id}/id-card', [StudentController::class, 'showid'])->name('student.id_card');
-    Route::get('/student/{id}/id-card/download', [StudentController::class, 'downloadIdCard'])->name('student.download_id_card');
+    Route::get('/student/{id}/id-card', 'StudentController@showid')->name('student.id_card');
+    Route::get('/student/{id}/id-card/download', 'StudentController@downloadIdCard')->name('student.download_id_card');
 
 });
 
@@ -145,6 +145,10 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
 
     Route::resource('readings', AddsubjectController::class);
     Route::post('subjects/{id}/upload','AddsubjectController@upload')->name('subject.upload');
+
+    // Student Record Routes
+    Route::get('/teacher/student-record', 'TeacherController@studentRecord')->name('teacher.studentrecord');
+    Route::get('/teacher/student-record/{class_id}', 'TeacherController@classStudents')->name('teacher.class.students');
 
     Route::get('/results', 'ResultController@index')->name('results.index');
     Route::get('/viewresults', 'ResultController@recordindex')->name('results.record');

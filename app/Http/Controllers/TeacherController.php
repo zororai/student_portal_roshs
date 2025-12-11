@@ -56,7 +56,7 @@ class TeacherController extends Controller
             'email'     => $request->email,
             'password'  => Hash::make($request->password)
         ]);
-        
+
         if ($request->hasFile('profile_picture')) {
             $profile = Str::slug($user->name).'-'.$user->id.'.'.$request->profile_picture->getClientOriginalExtension();
             $request->profile_picture->move(public_path('images/profile'), $profile);
@@ -150,6 +150,38 @@ class TeacherController extends Controller
     }
 
     /**
+     * Display classes taught by the logged-in teacher.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function studentRecord()
+    {
+        $teacher = auth()->user()->teacher;
+        $classes = $teacher ? $teacher->classes()->withCount('students')->get() : [];
+
+        return view('backend.teacher.student-record', compact('classes'));
+    }
+
+    /**
+     * Display students in a specific class.
+     *
+     * @param  int  $class_id
+     * @return \Illuminate\Http\Response
+     */
+    public function classStudents($class_id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        // Verify the class belongs to this teacher
+        $class = $teacher->classes()->withCount('students')->findOrFail($class_id);
+
+        // Get students in the class with their parent relationships
+        $students = $class->students()->with(['user', 'parents.user'])->get();
+
+        return view('backend.teacher.class-students', compact('class', 'students'));
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Teacher  $teacher
@@ -160,7 +192,7 @@ class TeacherController extends Controller
         $user = User::findOrFail($teacher->user_id);
 
         $user->teacher()->delete();
-        
+
         $user->removeRole('Teacher');
 
         if ($user->delete()) {
