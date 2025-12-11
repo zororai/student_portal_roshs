@@ -2,48 +2,45 @@
 
 @section('content')
     <div class="roles">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-3">
             <div>
                 <h2 class="text-gray-700 uppercase font-bold">Add New Student with Parents</h2>
             </div>
             <div class="flex flex-wrap items-center">
                 <a href="{{ route('student.index') }}" class="bg-gray-700 text-white text-sm uppercase py-2 px-4 flex items-center rounded">
                     <svg class="w-3 h-3 fill-current" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="long-arrow-alt-left" class="svg-inline--fa fa-long-arrow-alt-left fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M134.059 296H436c6.627 0 12-5.373 12-12v-56c0-6.627-5.373-12-12-12H134.059v-46.059c0-21.382-25.851-32.09-40.971-16.971L7.029 239.029c-9.373 9.373-9.373 24.569 0 33.941l86.059 86.059c15.119 15.119 40.971 4.411 40.971-16.971V296z"></path></svg>
-                    <span class="ml-2 text-xs font-semibold">Back</span>
+                    <span class="ml-2 text-xs font-medium">Back</span>
                 </a>
             </div>
         </div>
 
         <!-- Stepper -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <div class="flex items-center justify-between mb-8">
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <div class="flex items-center justify-between mb-4">
                 <div class="flex-1 flex items-center step-indicator" data-step="1">
-                    <div class="step-circle active flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white font-bold">
+                    <div class="step-circle active flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-bold">
                         1
                     </div>
-                    <div class="ml-3">
-                        <div class="step-title font-semibold text-gray-700">Student Information</div>
-                        <div class="step-subtitle text-xs text-gray-500">Basic student details</div>
+                    <div class="ml-2">
+                        <div class="step-title text-sm font-medium text-gray-700">Student Information</div>
                     </div>
                 </div>
-                <div class="flex-shrink-0 w-16 h-1 bg-gray-300 step-line"></div>
+                <div class="flex-shrink-0 w-12 h-1 bg-gray-300 step-line"></div>
                 <div class="flex-1 flex items-center step-indicator" data-step="2">
-                    <div class="step-circle flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-white font-bold">
+                    <div class="step-circle flex items-center justify-center w-8 h-8 rounded-full bg-gray-300 text-white text-sm font-bold">
                         2
                     </div>
-                    <div class="ml-3">
-                        <div class="step-title font-semibold text-gray-500">Parent Information</div>
-                        <div class="step-subtitle text-xs text-gray-500">Add one or more parents</div>
+                    <div class="ml-2">
+                        <div class="step-title text-sm font-medium text-gray-500">Parent Information</div>
                     </div>
                 </div>
-                <div class="flex-shrink-0 w-16 h-1 bg-gray-300 step-line"></div>
+                <div class="flex-shrink-0 w-12 h-1 bg-gray-300 step-line"></div>
                 <div class="flex-1 flex items-center step-indicator" data-step="3">
-                    <div class="step-circle flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 text-white font-bold">
+                    <div class="step-circle flex items-center justify-center w-8 h-8 rounded-full bg-gray-300 text-white text-sm font-bold">
                         3
                     </div>
-                    <div class="ml-3">
-                        <div class="step-title font-semibold text-gray-500">Review & Submit</div>
-                        <div class="step-subtitle text-xs text-gray-500">Confirm details</div>
+                    <div class="ml-2">
+                        <div class="step-title text-sm font-medium text-gray-500">Review & Submit</div>
                     </div>
                 </div>
             </div>
@@ -51,44 +48,25 @@
 
         <!-- Error/Success Messages -->
         @if(session('error'))
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded" role="alert">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                    </svg>
-                    <strong class="font-bold">Error: </strong>
-                    <span class="ml-2">{{ session('error') }}</span>
-                </div>
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-3 rounded text-sm" role="alert">
+                <strong class="font-bold">Error:</strong> {{ session('error') }}
             </div>
         @endif
 
         @if(session('success'))
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded" role="alert">
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    <strong class="font-bold">Success: </strong>
-                    <span class="ml-2">{{ session('success') }}</span>
-                </div>
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-3 mb-3 rounded text-sm" role="alert">
+                <strong class="font-bold">Success:</strong> {{ session('success') }}
             </div>
         @endif
 
         @if($errors->any())
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded" role="alert">
-                <div class="flex items-start">
-                    <svg class="w-6 h-6 mr-2 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                    </svg>
-                    <div>
-                        <strong class="font-bold">Validation Errors:</strong>
-                        <ul class="mt-2 ml-4 list-disc">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-3 rounded text-sm" role="alert">
+                <strong class="font-bold">Errors:</strong>
+                <ul class="mt-1 ml-4 list-disc">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
@@ -98,18 +76,18 @@
                 @csrf
 
                 <!-- Step 1: Student Information -->
-                <div class="step-content px-6 py-8" id="step-1">
-                    <h3 class="text-xl font-bold text-gray-800 mb-8 flex items-center">
+                <div class="step-content px-4 py-4" id="step-1">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
                         <svg class="w-6 h-6 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
                         </svg>
                         Student Information
                     </h3>
 
-                    <div class="max-w-3xl">
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
-                            <input name="student_name" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" value="{{ old('student_name') }}" placeholder="Enter student's full name">
+                    <div class="max-w-2xl">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                            <input name="student_name" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" type="text" value="{{ old('student_name') }}" placeholder="Enter student's full name">
                             @error('student_name')
                                 <p class="text-red-500 text-xs mt-1 flex items-center">
                                     <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -120,37 +98,23 @@
                             @enderror
                         </div>
 
-                        <div class="grid md:grid-cols-2 gap-6 mb-6">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
-                                <input name="student_email" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="email" value="{{ old('student_email') }}" placeholder="student@example.com">
-                                @error('student_email')
-                                    <p class="text-red-500 text-xs mt-1 flex items-center">
-                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                        </svg>
-                                        {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Password *</label>
-                                <input name="student_password" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="password" placeholder="Create a password">
-                                @error('student_password')
-                                    <p class="text-red-500 text-xs mt-1 flex items-center">
-                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                        </svg>
-                                        {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address (Auto-generated) *</label>
+                            <input name="student_email" id="student_email" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" type="email" value="{{ strtolower($nextRollNumber) }}@roshs.co.zw" readonly placeholder="Auto-generated from roll number">
+                            <p class="text-xs text-gray-500 mt-1">Email: {{ $nextRollNumber }}@roshs.co.zw | Default Password: 12345678 (must be changed on first login)</p>
+                            @error('student_email')
+                                <p class="text-red-500 text-xs mt-1 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         </div>
 
-                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <div class="grid md:grid-cols-2 gap-3 mb-3">
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Roll Number</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Roll Number</label>
                                 <div class="w-full px-5 py-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-400 rounded-lg shadow-md">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center text-gray-600">
@@ -166,8 +130,8 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
-                                <input name="student_phone" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" value="{{ old('student_phone') }}" placeholder="(123) 456-7890">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                                <input name="student_phone" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" value="{{ old('student_phone') }}" placeholder="(123) 456-7890">
                                 @error('student_phone')
                                     <p class="text-red-500 text-xs mt-1 flex items-center">
                                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -179,9 +143,9 @@
                             </div>
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">Gender *</label>
-                            <div class="flex gap-6">
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Gender *</label>
+                            <div class="flex gap-3">
                                 <label class="flex items-center cursor-pointer group">
                                     <input name="student_gender" class="w-5 h-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500" type="radio" value="male">
                                     <span class="ml-3 text-gray-700 group-hover:text-blue-600 font-medium">Male</span>
@@ -189,10 +153,6 @@
                                 <label class="flex items-center cursor-pointer group">
                                     <input name="student_gender" class="w-5 h-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500" type="radio" value="female">
                                     <span class="ml-3 text-gray-700 group-hover:text-blue-600 font-medium">Female</span>
-                                </label>
-                                <label class="flex items-center cursor-pointer group">
-                                    <input name="student_gender" class="w-5 h-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500" type="radio" value="other">
-                                    <span class="ml-3 text-gray-700 group-hover:text-blue-600 font-medium">Other</span>
                                 </label>
                             </div>
                             @error('student_gender')
@@ -205,10 +165,10 @@
                             @enderror
                         </div>
 
-                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <div class="grid md:grid-cols-2 gap-3 mb-3">
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Date of Birth *</label>
-                                <input name="dateofbirth" id="datepicker-student" autocomplete="off" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" value="{{ old('dateofbirth') }}" placeholder="YYYY-MM-DD">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth *</label>
+                                <input name="dateofbirth" id="datepicker-student" autocomplete="off" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" value="{{ old('dateofbirth') }}" placeholder="YYYY-MM-DD">
                                 @error('dateofbirth')
                                     <p class="text-red-500 text-xs mt-1 flex items-center">
                                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -220,8 +180,8 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Class *</label>
-                                <select name="class_id" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Class *</label>
+                                <select name="class_id" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400">
                                     <option value="">Select a class</option>
                                     @foreach ($classes as $class)
                                         <option value="{{ $class->id }}">{{ $class->class_name }}</option>
@@ -238,9 +198,9 @@
                             </div>
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Current Address *</label>
-                            <textarea name="student_current_address" rows="2" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter current residential address">{{ old('student_current_address') }}</textarea>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Address *</label>
+                            <textarea name="student_current_address" rows="2" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter current residential address">{{ old('student_current_address') }}</textarea>
                             @error('student_current_address')
                                 <p class="text-red-500 text-xs mt-1 flex items-center">
                                     <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -252,9 +212,9 @@
                             </div>
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Permanent Address *</label>
-                            <textarea name="student_permanent_address" rows="2" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter permanent address">{{ old('student_permanent_address') }}</textarea>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Permanent Address *</label>
+                            <textarea name="student_permanent_address" rows="2" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter permanent address">{{ old('student_permanent_address') }}</textarea>
                             @error('student_permanent_address')
                                 <p class="text-red-500 text-xs mt-1 flex items-center">
                                     <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -265,10 +225,10 @@
                             @enderror
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Profile Picture</label>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
                             <div class="flex items-center space-x-4">
-                                <label class="flex items-center justify-center px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition duration-200 w-full">
+                                <label class="flex items-center justify-center px-3 py-2 bg-white border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition duration-200 w-full">
                                     <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
@@ -297,13 +257,13 @@
                     </h3>
 
                     <div class="max-w-3xl">
-                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
                             <div class="flex">
                                 <svg class="w-6 h-6 text-blue-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                                 </svg>
                                 <div>
-                                    <p class="font-semibold text-blue-800">Parent Registration via SMS</p>
+                                    <p class="font-medium text-blue-800">Parent Registration via SMS</p>
                                     <p class="text-sm text-blue-700 mt-1">Enter parent details below. Each parent will receive an SMS with a secure link to complete their registration (set password, email, and addresses).</p>
                                 </div>
                             </div>
@@ -311,8 +271,8 @@
 
                         <div id="parents-container">
                             <!-- Parent 1 -->
-                            <div class="parent-block bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-xl p-6 mb-6 shadow-sm hover:shadow-md transition duration-200" data-parent-index="0">
-                                <div class="flex justify-between items-center mb-6">
+                            <div class="parent-block bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-xl p-6 mb-3 shadow-sm hover:shadow-md transition duration-200" data-parent-index="0">
+                                <div class="flex justify-between items-center mb-3">
                                     <h4 class="text-lg font-bold text-blue-700 flex items-center">
                                         <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm">1</span>
                                         Parent #1
@@ -320,26 +280,26 @@
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
-                                    <input name="parents[0][name]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name" required>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                                    <input name="parents[0][name]" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name" required>
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number (with country code) *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number (with country code) *</label>
                                     <div class="flex items-center">
                                         <span class="inline-flex items-center px-3 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
                                             </svg>
                                         </span>
-                                        <input name="parents[0][phone]" class="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789" required>
+                                        <input name="parents[0][phone]" class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789" required>
                                     </div>
                                     <p class="text-xs text-gray-500 mt-1">Include country code (e.g., +27 for South Africa)</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="flex justify-center mb-6">
+                        <div class="flex justify-center mb-3">
                             <button type="button" id="add-parent-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded flex items-center shadow-md hover:shadow-lg transition duration-200">
                                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
@@ -349,27 +309,24 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-between mt-8">
+                    <div class="flex justify-start mt-8">
                         <button type="button" class="prev-btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded">
                             ← Previous
-                        </button>
-                        <button type="button" class="next-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
-                            Next Step →
                         </button>
                     </div>
                 </div>
 
                 <!-- Step 3: Review & Submit -->
                 <div class="step-content hidden px-6 py-8" id="step-3">
-                    <h3 class="text-lg font-bold text-gray-700 mb-6">Review & Submit</h3>
+                    <h3 class="text-lg font-bold text-gray-700 mb-3">Review & Submit</h3>
 
                     <div class="max-w-3xl">
-                        <div class="border-2 border-gray-300 rounded-lg p-6 mb-6">
+                        <div class="border-2 border-gray-300 rounded-lg p-6 mb-3">
                             <h4 class="text-md font-bold text-gray-600 mb-4">Student Information</h4>
                             <div id="review-student" class="grid grid-cols-2 gap-4 text-sm"></div>
                         </div>
 
-                        <div class="border-2 border-gray-300 rounded-lg p-6 mb-6">
+                        <div class="border-2 border-gray-300 rounded-lg p-6 mb-3">
                             <h4 class="text-md font-bold text-gray-600 mb-4">Parents Information</h4>
                             <div id="review-parents"></div>
                         </div>
@@ -423,10 +380,145 @@
         }
 
         $('.next-btn').click(function() {
+            // Clear all previous validation errors
+            $('.validation-error').remove();
+
+            if (currentStep === 1) {
+                // Validate Step 1: Student Information
+                let isValid = true;
+
+                // Check student name
+                if (!$('input[name="student_name"]').val().trim()) {
+                    isValid = false;
+                    showError('input[name="student_name"]', 'Student Full Name is required');
+                }
+
+                // Check student phone
+                if (!$('input[name="student_phone"]').val().trim()) {
+                    isValid = false;
+                    showError('input[name="student_phone"]', 'Student Phone Number is required');
+                }
+
+                // Check student gender
+                if (!$('input[name="student_gender"]:checked').val()) {
+                    isValid = false;
+                    showError('input[name="student_gender"]', 'Please select a gender', true);
+                }
+
+                // Check date of birth
+                if (!$('input[name="dateofbirth"]').val().trim()) {
+                    isValid = false;
+                    showError('input[name="dateofbirth"]', 'Date of Birth is required');
+                }
+
+                // Check class
+                if (!$('select[name="class_id"]').val()) {
+                    isValid = false;
+                    showError('select[name="class_id"]', 'Please select a class');
+                }
+
+                // Check current address
+                if (!$('textarea[name="student_current_address"]').val().trim()) {
+                    isValid = false;
+                    showError('textarea[name="student_current_address"]', 'Current Address is required');
+                }
+
+                // Check permanent address
+                if (!$('textarea[name="student_permanent_address"]').val().trim()) {
+                    isValid = false;
+                    showError('textarea[name="student_permanent_address"]', 'Permanent Address is required');
+                }
+
+                if (!isValid) {
+                    // Scroll to first error
+                    $('html, body').animate({
+                        scrollTop: $('.validation-error:first').offset().top - 100
+                    }, 500);
+                    return;
+                }
+            }
+
+            if (currentStep === 2) {
+                // Validate Step 2: Parent Information
+                let isValid = true;
+
+                $('.parent-block').each(function(index) {
+                    const parentIndex = $(this).data('parent-index');
+                    const $nameInput = $(`input[name="parents[${parentIndex}][name]"]`);
+                    const $phoneInput = $(`input[name="parents[${parentIndex}][phone]"]`);
+                    const parentName = $nameInput.val().trim();
+                    const parentPhone = $phoneInput.val().trim();
+
+                    if (!parentName) {
+                        isValid = false;
+                        showParentError($nameInput, `Parent #${index + 1} Name is required`);
+                    }
+
+                    if (!parentPhone) {
+                        isValid = false;
+                        showParentError($phoneInput, `Parent #${index + 1} Phone Number is required`);
+                    }
+                });
+
+                if (!isValid) {
+                    // Scroll to first error
+                    $('html, body').animate({
+                        scrollTop: $('.validation-error:first').offset().top - 100
+                    }, 500);
+                    return;
+                }
+            }
+
             if (currentStep < 3) {
                 currentStep++;
                 showStep(currentStep);
             }
+        });
+
+        // Function to show validation error
+        function showError(selector, message, isRadio = false) {
+            const $field = $(selector);
+            const errorHtml = `
+                <p class="validation-error text-red-500 text-xs mt-1 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    ${message}
+                </p>
+            `;
+
+            if (isRadio) {
+                // For radio buttons, insert after the parent div
+                $field.closest('.mb-3').append(errorHtml);
+            } else {
+                // For other inputs, insert after the field
+                $field.after(errorHtml);
+            }
+
+            // Add error border
+            $field.addClass('border-red-500');
+        }
+
+        // Function to show parent validation error
+        function showParentError($field, message) {
+            const errorHtml = `
+                <p class="validation-error text-red-500 text-xs mt-1 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    ${message}
+                </p>
+            `;
+
+            $field.closest('.mb-4').append(errorHtml);
+            $field.addClass('border-red-500');
+        }
+
+        // Clear validation errors when user starts typing
+        $(document).on('input change', 'input, select, textarea', function() {
+            $(this).removeClass('border-red-500');
+            $(this).siblings('.validation-error').remove();
+            $(this).closest('.mb-3, .mb-4').find('.validation-error').remove();
         });
 
         $('.prev-btn').click(function() {
@@ -439,8 +531,8 @@
         // Add parent
         $('#add-parent-btn').click(function() {
             const newParentHtml = `
-                <div class="parent-block bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-xl p-6 mb-6 shadow-sm hover:shadow-md transition duration-200" data-parent-index="${parentCount}">
-                    <div class="flex justify-between items-center mb-6">
+                <div class="parent-block bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-xl p-6 mb-3 shadow-sm hover:shadow-md transition duration-200" data-parent-index="${parentCount}">
+                    <div class="flex justify-between items-center mb-3">
                         <h4 class="text-lg font-bold text-blue-700 flex items-center">
                             <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm">${parentCount + 1}</span>
                             Parent #${parentCount + 1}
@@ -451,19 +543,19 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
-                        <input name="parents[${parentCount}][name]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name" required>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                        <input name="parents[${parentCount}][name]" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name" required>
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number (with country code) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number (with country code) *</label>
                         <div class="flex items-center">
                             <span class="inline-flex items-center px-3 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
                                 </svg>
                             </span>
-                            <input name="parents[${parentCount}][phone]" class="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789" required>
+                            <input name="parents[${parentCount}][phone]" class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789" required>
                         </div>
                         <p class="text-xs text-gray-500 mt-1">Include country code (e.g., +27 for South Africa)</p>
                     </div>
@@ -489,6 +581,7 @@
             const studentInfo = {
                 'Name': $('input[name="student_name"]').val(),
                 'Email': $('input[name="student_email"]').val(),
+                'Default Password': '12345678 (must change on first login)',
                 'Roll Number': '{{ $nextRollNumber }}',
                 'Phone': $('input[name="student_phone"]').val(),
                 'Gender': $('input[name="student_gender"]:checked').val(),
@@ -514,7 +607,7 @@
                 };
 
                 parentsHtml += `<div class="mb-4 pb-4 border-b border-gray-200">
-                    <h5 class="font-semibold mb-2 flex items-center">
+                    <h5 class="font-medium mb-2 flex items-center">
                         <span class="bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">${index + 1}</span>
                         Parent #${index + 1}
                     </h5>

@@ -289,26 +289,25 @@ class StudentController extends Controller
             $request->validate([
             'student_name'              => 'required|string|max:255',
             'student_email'             => 'required|string|email|max:255|unique:users,email',
-            'student_password'          => 'required|string|min:8',
-            'student_phone'             => 'required|string|max:255',
-            'student_gender'            => 'required|string',
-            'dateofbirth'               => 'required|date',
-            'student_current_address'   => 'required|string|max:255',
-            'student_permanent_address' => 'required|string|max:255',
-            'class_id'                  => 'required|numeric',
-            'parents'                   => 'required|array|min:1',
-            'parents.*.name'            => 'required|string|max:255',
-            'parents.*.phone'           => 'required|string|max:255|regex:/^\+[0-9]{10,15}$/',
-        ]);
+                'student_phone'             => 'required|string|max:255',
+                'student_gender'            => 'required|string',
+                'dateofbirth'               => 'required|date',
+                'student_current_address'   => 'required|string|max:255',
+                'student_permanent_address' => 'required|string|max:255',
+                'class_id'                  => 'required|numeric',
+                'parents'                   => 'required|array|min:1',
+                'parents.*.name'            => 'required|string|max:255',
+                'parents.*.phone'           => 'required|string|max:255|regex:/^\+[0-9]{10,15}$/',
+            ]);
 
         \Log::info('Validation passed successfully');
 
-        // Create student user
+        // Create student user with default password
         \Log::info('Creating student user...');
         $studentUser = User::create([
             'name'      => $request->student_name,
             'email'     => $request->student_email,
-            'password'  => Hash::make($request->student_password)
+            'password'  => Hash::make('12345678') // Default password
         ]);
 
         // Handle student profile picture
@@ -431,4 +430,40 @@ class StudentController extends Controller
                 ->with('error', 'Failed to create student: ' . $e->getMessage());
         }
     }
-}
+
+    /**
+     * Show password change form
+     */
+    public function showChangePasswordForm()
+    {
+        return view('student.change_password');
+    }
+
+    /**
+     * Update student password
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = auth()->user();
+
+        // Check if current password is correct
+        if (!Hash::check($request->current_password, $user->password)) {
+            return redirect()->back()->with('error', 'Current password is incorrect.');
+        }
+
+        // Check if new password is same as default
+        if ($request->new_password === '12345678') {
+            return redirect()->back()->with('error', 'New password cannot be the default password (12345678).');
+        }
+
+        // Update password
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return redirect()->route('home')->with('success', 'Password changed successfully!');
+    }}

@@ -49,6 +49,10 @@ Route::put('/profile/update', 'HomeController@profileUpdate')->name('profile.upd
 Route::get('/profile/changepassword', 'HomeController@changePasswordForm')->name('profile.change.password');
 Route::post('/profile/changepassword', 'HomeController@changePassword')->name('profile.changepassword');
 
+// Student password change routes
+Route::get('/student/change-password', 'StudentController@showChangePasswordForm')->name('student.change-password');
+Route::post('/student/update-password', 'StudentController@updatePassword')->name('student.update-password');
+
 
 
 Route::group(['middleware' => ['auth','role:Admin']], function ()
