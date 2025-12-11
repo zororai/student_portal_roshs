@@ -27,7 +27,7 @@
             <!-- Subject Rows -->
             <div class="px-6 pb-6">
                 @forelse ($subjects as $subject)
-                    <div class="flex items-center justify-between border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors" onclick="window.location.href='{{ route('subject.Reading', $subject->id) }}'">
+                    <div class="flex items-center justify-between border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors" data-url="{{ route('subject.Reading', $subject->id) }}" onclick="window.location.href=this.getAttribute('data-url')">
                         <div class="w-1/4 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->subject_code }}</div>
                         <div class="w-1/4 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->name }}</div>
                         <div class="w-1/4 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->teacher->user->name ?? 'Not Assigned' }}</div>
