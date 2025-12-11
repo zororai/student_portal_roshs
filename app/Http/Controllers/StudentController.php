@@ -292,12 +292,7 @@ class StudentController extends Controller
             'class_id'                  => 'required|numeric',
             'parents'                   => 'required|array|min:1',
             'parents.*.name'            => 'required|string|max:255',
-            'parents.*.email'           => 'required|string|email|max:255|unique:users,email',
-            'parents.*.password'        => 'required|string|min:8',
-            'parents.*.phone'           => 'required|string|max:255',
-            'parents.*.gender'          => 'required|string',
-            'parents.*.current_address' => 'required|string|max:255',
-            'parents.*.permanent_address' => 'required|string|max:255',
+            'parents.*.phone'           => 'required|string|max:255|regex:/^\+[0-9]{10,15}$/',
         ]);
 
         // Create student user
@@ -320,35 +315,41 @@ class StudentController extends Controller
 
         // Create parents and collect their IDs
         $parentIds = [];
+        $parentPhones = [];
+
         foreach ($request->parents as $index => $parentData) {
-            // Create parent user
+            // Generate unique registration token
+            $registrationToken = \Illuminate\Support\Str::random(60);
+
+            // Create a temporary email for parent (will be updated when they register)
+            $tempEmail = 'pending_' . time() . '_' . $index . '@temp.parent';
+
+            // Create parent user with temporary data
             $parentUser = User::create([
                 'name'      => $parentData['name'],
-                'email'     => $parentData['email'],
-                'password'  => Hash::make($parentData['password'])
+                'email'     => $tempEmail,
+                'password'  => Hash::make(\Illuminate\Support\Str::random(16)) // Temporary password
             ]);
 
-            // Handle parent profile picture
-            if ($request->hasFile("parents.{$index}.profile_picture")) {
-                $parentProfile = Str::slug($parentUser->name).'-'.$parentUser->id.'.'.$request->file("parents.{$index}.profile_picture")->getClientOriginalExtension();
-                $request->file("parents.{$index}.profile_picture")->move(public_path('images/profile'), $parentProfile);
-            } else {
-                $parentProfile = 'avatar.png';
-            }
+            // Set default profile picture
             $parentUser->update([
-                'profile_picture' => $parentProfile
+                'profile_picture' => 'avatar.png'
             ]);
 
-            // Create parent record
+            // Create parent record with registration token
             $parent = $parentUser->parent()->create([
-                'gender'            => $parentData['gender'],
-                'phone'             => $parentData['phone'],
-                'current_address'   => $parentData['current_address'],
-                'permanent_address' => $parentData['permanent_address']
+                'gender'                    => 'other', // Will be updated by parent
+                'phone'                     => $parentData['phone'],
+                'current_address'           => '', // Will be filled by parent
+                'permanent_address'         => '', // Will be filled by parent
+                'registration_token'        => $registrationToken,
+                'token_expires_at'          => now()->addDays(7), // Token valid for 7 days
+                'registration_completed'    => false
             ]);
 
             $parentUser->assignRole('Parent');
             $parentIds[] = $parent->id;
+            $parentPhones[] = $parentData['phone'];
         }
 
         // Get the roll number from session (generated when form was opened)
@@ -374,6 +375,30 @@ class StudentController extends Controller
 
         $studentUser->assignRole('Student');
 
-        return redirect()->route('student.index')->with('success', 'Student and parent(s) created successfully!');
+        // Send SMS to all parents with registration link and student roll number
+        foreach ($request->parents as $index => $parentData) {
+            $parent = \App\Parents::where('phone', $parentData['phone'])->latest()->first();
+
+            if ($parent && $parent->registration_token) {
+                $registrationUrl = url('/parent/register/' . $parent->registration_token);
+
+                $message = "Welcome! Your child {$request->student_name} (Roll No: {$rollNumber}) has been registered at RSH School. " .
+                          "Please complete your parent registration by clicking: {$registrationUrl} " .
+                          "(Link expires in 7 days)";
+
+                // Send SMS using the helper
+                $smsResult = \App\Helpers\SmsHelper::sendSms($parentData['phone'], $message);
+
+                // Log the result (optional)
+                if (!$smsResult['success']) {
+                    \Log::warning('Failed to send SMS to parent', [
+                        'phone' => $parentData['phone'],
+                        'error' => $smsResult['message']
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('student.index')->with('success', 'Student created successfully! SMS sent to parent(s) for registration completion.');
     }
 }

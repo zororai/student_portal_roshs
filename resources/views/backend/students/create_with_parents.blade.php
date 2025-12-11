@@ -254,6 +254,18 @@
                     </h3>
 
                     <div class="max-w-3xl">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                            <div class="flex">
+                                <svg class="w-6 h-6 text-blue-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <p class="font-semibold text-blue-800">Parent Registration via SMS</p>
+                                    <p class="text-sm text-blue-700 mt-1">Enter parent details below. Each parent will receive an SMS with a secure link to complete their registration (set password, email, and addresses).</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div id="parents-container">
                             <!-- Parent 1 -->
                             <div class="parent-block bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-xl p-6 mb-6 shadow-sm hover:shadow-md transition duration-200" data-parent-index="0">
@@ -266,71 +278,26 @@
 
                                 <div class="mb-4">
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
-                                    <input name="parents[0][name]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name">
-                                </div>
-
-                                <div class="grid md:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
-                                        <input name="parents[0][email]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="email" placeholder="parent@example.com">
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Password *</label>
-                                        <input name="parents[0][password]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="password" placeholder="Create a password">
-                                    </div>
-                                </div>
-
-                                <div class="grid md:grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
-                                        <input name="parents[0][phone]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="(123) 456-7890">
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Gender *</label>
-                                        <div class="flex gap-4 mt-3">
-                                            <label class="flex items-center cursor-pointer group">
-                                                <input name="parents[0][gender]" class="w-5 h-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500" type="radio" value="male">
-                                                <span class="ml-2 text-gray-700 group-hover:text-blue-600 font-medium">Male</span>
-                                            </label>
-                                            <label class="flex items-center cursor-pointer group">
-                                                <input name="parents[0][gender]" class="w-5 h-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500" type="radio" value="female">
-                                                <span class="ml-2 text-gray-700 group-hover:text-blue-600 font-medium">Female</span>
-                                            </label>
-                                            <label class="flex items-center cursor-pointer group">
-                                                <input name="parents[0][gender]" class="w-5 h-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500" type="radio" value="other">
-                                                <span class="ml-2 text-gray-700 group-hover:text-blue-600 font-medium">Other</span>
-                                            </label>
-                                        </div>
-                                    </div>
+                                    <input name="parents[0][name]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name" required>
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Current Address *</label>
-                                    <textarea name="parents[0][current_address]" rows="2" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter current residential address"></textarea>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Permanent Address *</label>
-                                    <textarea name="parents[0][permanent_address]" rows="2" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" placeholder="Enter permanent address"></textarea>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Profile Picture</label>
-                                    <label class="flex items-center justify-center px-4 py-3 bg-white border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition duration-200">
-                                        <svg class="w-6 h-6 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span class="text-gray-600">Choose file</span>
-                                        <input name="parents[0][profile_picture]" class="hidden" type="file" accept="image/*">
-                                    </label>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number (with country code) *</label>
+                                    <div class="flex items-center">
+                                        <span class="inline-flex items-center px-3 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                            </svg>
+                                        </span>
+                                        <input name="parents[0][phone]" class="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789" required>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Include country code (e.g., +27 for South Africa)</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex justify-center mb-6">
-                            <button type="button" id="add-parent-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded flex items-center">
+                            <button type="button" id="add-parent-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded flex items-center shadow-md hover:shadow-lg transition duration-200">
                                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
                                 </svg>
@@ -429,97 +396,33 @@
         // Add parent
         $('#add-parent-btn').click(function() {
             const newParentHtml = `
-                <div class="parent-block border-2 border-gray-300 rounded-lg p-6 mb-6" data-parent-index="${parentCount}">
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-md font-bold text-gray-600">Parent #${parentCount + 1}</h4>
-                        <button type="button" class="remove-parent-btn bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-sm">
+                <div class="parent-block bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-xl p-6 mb-6 shadow-sm hover:shadow-md transition duration-200" data-parent-index="${parentCount}">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-lg font-bold text-blue-700 flex items-center">
+                            <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm">${parentCount + 1}</span>
+                            Parent #${parentCount + 1}
+                        </h4>
+                        <button type="button" class="remove-parent-btn bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded text-sm shadow-md hover:shadow-lg transition duration-200">
                             Remove
                         </button>
                     </div>
 
-                    <div class="md:flex md:items-center mb-4">
-                        <div class="md:w-1/3">
-                            <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Name *</label>
-                        </div>
-                        <div class="md:w-2/3">
-                            <input name="parents[${parentCount}][name]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text">
-                        </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
+                        <input name="parents[${parentCount}][name]" class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name" required>
                     </div>
 
-                    <div class="md:flex md:items-center mb-4">
-                        <div class="md:w-1/3">
-                            <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Email *</label>
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number (with country code) *</label>
+                        <div class="flex items-center">
+                            <span class="inline-flex items-center px-3 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                                </svg>
+                            </span>
+                            <input name="parents[${parentCount}][phone]" class="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789" required>
                         </div>
-                        <div class="md:w-2/3">
-                            <input name="parents[${parentCount}][email]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="email">
-                        </div>
-                    </div>
-
-                    <div class="md:flex md:items-center mb-4">
-                        <div class="md:w-1/3">
-                            <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Password *</label>
-                        </div>
-                        <div class="md:w-2/3">
-                            <input name="parents[${parentCount}][password]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="password">
-                        </div>
-                    </div>
-
-                    <div class="md:flex md:items-center mb-4">
-                        <div class="md:w-1/3">
-                            <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Phone *</label>
-                        </div>
-                        <div class="md:w-2/3">
-                            <input name="parents[${parentCount}][phone]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text">
-                        </div>
-                    </div>
-
-                    <div class="md:flex md:items-center mb-4">
-                        <div class="md:w-1/3">
-                            <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Gender *</label>
-                        </div>
-                        <div class="md:w-2/3">
-                            <div class="flex flex-row items-center">
-                                <label class="block text-gray-500 font-bold">
-                                    <input name="parents[${parentCount}][gender]" class="mr-2 leading-tight" type="radio" value="male">
-                                    <span class="text-sm">Male</span>
-                                </label>
-                                <label class="ml-4 block text-gray-500 font-bold">
-                                    <input name="parents[${parentCount}][gender]" class="mr-2 leading-tight" type="radio" value="female">
-                                    <span class="text-sm">Female</span>
-                                </label>
-                                <label class="ml-4 block text-gray-500 font-bold">
-                                    <input name="parents[${parentCount}][gender]" class="mr-2 leading-tight" type="radio" value="other">
-                                    <span class="text-sm">Other</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="md:flex md:items-center mb-4">
-                        <div class="md:w-1/3">
-                            <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Current Address *</label>
-                        </div>
-                        <div class="md:w-2/3">
-                            <input name="parents[${parentCount}][current_address]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text">
-                        </div>
-                    </div>
-
-                    <div class="md:flex md:items-center mb-4">
-                        <div class="md:w-1/3">
-                            <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Permanent Address *</label>
-                        </div>
-                        <div class="md:w-2/3">
-                            <input name="parents[${parentCount}][permanent_address]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text">
-                        </div>
-                    </div>
-
-                    <div class="md:flex md:items-center mb-4">
-                        <div class="md:w-1/3">
-                            <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">Picture</label>
-                        </div>
-                        <div class="md:w-2/3">
-                            <input name="parents[${parentCount}][profile_picture]" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="file">
-                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Include country code (e.g., +27 for South Africa)</p>
                     </div>
                 </div>
             `;
@@ -548,8 +451,8 @@
                 'Gender': $('input[name="student_gender"]:checked').val(),
                 'Date of Birth': $('input[name="dateofbirth"]').val(),
                 'Class': $('select[name="class_id"] option:selected').text(),
-                'Current Address': $('input[name="student_current_address"]').val(),
-                'Permanent Address': $('input[name="student_permanent_address"]').val()
+                'Current Address': $('textarea[name="student_current_address"]').val(),
+                'Permanent Address': $('textarea[name="student_permanent_address"]').val()
             };
 
             let studentHtml = '';
@@ -564,22 +467,23 @@
                 const parentIndex = $(this).data('parent-index');
                 const parentInfo = {
                     'Name': $(`input[name="parents[${parentIndex}][name]"]`).val(),
-                    'Email': $(`input[name="parents[${parentIndex}][email]"]`).val(),
-                    'Phone': $(`input[name="parents[${parentIndex}][phone]"]`).val(),
-                    'Gender': $(`input[name="parents[${parentIndex}][gender]"]:checked`).val(),
-                    'Current Address': $(`input[name="parents[${parentIndex}][current_address]"]`).val(),
-                    'Permanent Address': $(`input[name="parents[${parentIndex}][permanent_address]"]`).val()
+                    'Phone': $(`input[name="parents[${parentIndex}][phone]"]`).val()
                 };
 
                 parentsHtml += `<div class="mb-4 pb-4 border-b border-gray-200">
-                    <h5 class="font-semibold mb-2">Parent #${index + 1}</h5>
+                    <h5 class="font-semibold mb-2 flex items-center">
+                        <span class="bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs mr-2">${index + 1}</span>
+                        Parent #${index + 1}
+                    </h5>
                     <div class="grid grid-cols-2 gap-2 text-sm">`;
 
                 for (const [key, value] of Object.entries(parentInfo)) {
                     parentsHtml += `<div><strong>${key}:</strong> ${value || 'N/A'}</div>`;
                 }
 
-                parentsHtml += `</div></div>`;
+                parentsHtml += `</div>
+                    <p class="text-xs text-blue-600 mt-2"><i class="fas fa-sms mr-1"></i> SMS will be sent to complete registration</p>
+                </div>`;
             });
             $('#review-parents').html(parentsHtml);
         }

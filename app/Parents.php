@@ -14,6 +14,9 @@ class Parents extends Model
         'phone',
         'current_address',
         'permanent_address',
+        'registration_token',
+        'token_expires_at',
+        'registration_completed',
     ];
 
     public function user()

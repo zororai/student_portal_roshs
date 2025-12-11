@@ -190,4 +190,83 @@ class ParentsController extends Controller
 
         return back();
     }
+
+    /**
+     * Show the registration form for parent to complete their profile
+     *
+     * @param string $token
+     * @return \Illuminate\Http\Response
+     */
+    public function showRegistrationForm($token)
+    {
+        $parent = Parents::where('registration_token', $token)
+                        ->where('registration_completed', false)
+                        ->where('token_expires_at', '>', now())
+                        ->first();
+
+        if (!$parent) {
+            return redirect('/')->with('error', 'Invalid or expired registration link.');
+        }
+
+        $parent->load('user', 'students.user');
+
+        return view('backend.parents.complete_registration', compact('parent'));
+    }
+
+    /**
+     * Complete parent registration
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $token
+     * @return \Illuminate\Http\Response
+     */
+    public function completeRegistration(Request $request, $token)
+    {
+        $parent = Parents::where('registration_token', $token)
+                        ->where('registration_completed', false)
+                        ->where('token_expires_at', '>', now())
+                        ->first();
+
+        if (!$parent) {
+            return redirect('/')->with('error', 'Invalid or expired registration link.');
+        }
+
+        $request->validate([
+            'email'             => 'required|string|email|max:255|unique:users,email,' . $parent->user_id,
+            'password'          => 'required|string|min:8|confirmed',
+            'gender'            => 'required|string',
+            'current_address'   => 'required|string|max:255',
+            'permanent_address' => 'required|string|max:255',
+            'profile_picture'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        // Update user record
+        $parent->user->update([
+            'email'    => $request->email,
+            'password' => Hash::make($request->password)
+        ]);
+
+        // Handle profile picture
+        if ($request->hasFile('profile_picture')) {
+            $profile = Str::slug($parent->user->name) . '-' . $parent->user_id . '.' . $request->profile_picture->getClientOriginalExtension();
+            $request->profile_picture->move(public_path('images/profile'), $profile);
+
+            $parent->user->update([
+                'profile_picture' => $profile
+            ]);
+        }
+
+        // Update parent record
+        $parent->update([
+            'gender'                => $request->gender,
+            'current_address'       => $request->current_address,
+            'permanent_address'     => $request->permanent_address,
+            'registration_completed' => true,
+            'registration_token'    => null, // Clear the token
+            'token_expires_at'      => null
+        ]);
+
+        return redirect('/login')->with('success', 'Registration completed successfully! You can now login with your email and password.');
+    }
 }
+
