@@ -259,8 +259,12 @@ class TeacherController extends Controller
         // Verify the class belongs to this teacher
         $class = $teacher->classes()->findOrFail($class_id);
 
-        // Get assessments for this class (placeholder - you'll need to create Assessment model)
-        $assessments = []; // TODO: Fetch from database when Assessment model is created
+        // Get assessments for this class and teacher
+        $assessments = \App\Assessment::where('teacher_id', $teacher->id)
+            ->where('class_id', $class_id)
+            ->with('subject')
+            ->orderBy('date', 'desc')
+            ->get();
 
         return view('backend.teacher.assessment-list', compact('class', 'assessments', 'teacher'));
     }
@@ -302,8 +306,31 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
-        // TODO: Validate and store assessment when Assessment model is created
-        // For now, just redirect back with success message
+        // Validate the request
+        $validated = $request->validate([
+            'class_id' => 'required|exists:grades,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'topic' => 'required|string|max:255',
+            'assessment_type' => 'required|string',
+            'date' => 'required|date',
+            'due_date' => 'required|date',
+            'papers' => 'nullable|array'
+        ]);
+
+        // Verify the class belongs to this teacher
+        $class = $teacher->classes()->findOrFail($request->class_id);
+
+        // Create the assessment
+        $assessment = \App\Assessment::create([
+            'teacher_id' => $teacher->id,
+            'class_id' => $request->class_id,
+            'subject_id' => $request->subject_id,
+            'topic' => $request->topic,
+            'assessment_type' => $request->assessment_type,
+            'date' => $request->date,
+            'due_date' => $request->due_date,
+            'papers' => $request->papers ?? []
+        ]);
 
         return redirect()->route('teacher.assessment.list', $request->class_id)
             ->with('success', 'Assessment created successfully!');
