@@ -304,34 +304,45 @@
                         @csrf
                         <input type="hidden" name="class_id" value="{{ $class->id }}">
 
-                        <!-- Comment Input -->
-                        <div>
-                            <input type="text" name="comment" placeholder="Enter the comment" required
-                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                        </div>
-
-                        <!-- Subject and Grade Row -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <select name="subject_id" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                                    <option value="">Select Subject</option>
-                                    @foreach($class->subjects as $subject)
-                                        <option value="{{ $subject->id }}">{{ $subject->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <select name="grade" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                                    <option value="">Grade</option>
-                                    <option value="A">A</option>
-                                    <option value="B">B</option>
-                                    <option value="C">C</option>
-                                    <option value="D">D</option>
-                                    <option value="E">E</option>
-                                    <option value="F">F</option>
-                                </select>
+                        <!-- Dynamic Grade Entries Container -->
+                        <div id="gradeEntriesContainer">
+                            <!-- Initial Subject and Grade Row -->
+                            <div class="grade-entry-row flex items-center gap-3 mb-3">
+                                <div class="flex-1">
+                                    <input type="text" name="entries[0][comment]" placeholder="Enter the comment" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                </div>
+                                <div class="flex-1">
+                                    <select name="entries[0][subject_id]" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                                        <option value="">Select Subject</option>
+                                        @foreach($class->subjects as $subject)
+                                            <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="flex-1">
+                                    <select name="entries[0][grade]" required
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                                        <option value="">Grade</option>
+                                        <option value="A">A (80-100%)</option>
+                                        <option value="B">B (70-79%)</option>
+                                        <option value="C">C (60-69%)</option>
+                                        <option value="D">D (50-59%)</option>
+                                        <option value="E">E (40-49%)</option>
+                                        <option value="F">F (0-39%)</option>
+                                    </select>
+                                </div>
+                                <button type="button" onclick="addGradeEntry()" class="p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors" title="Add more">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
+                                        <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" onclick="removeGradeEntry(this)" class="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors" title="Remove">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
+                                        <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
 
@@ -354,6 +365,7 @@
 
     <script>
         let paperCount = 1;
+        let gradeEntryCount = 1;
 
         function openAssessmentModal() {
             document.getElementById('assessmentModal').classList.remove('hidden');
@@ -407,6 +419,60 @@
                 button.closest('.paper-row').remove();
             } else {
                 alert('You must have at least one paper.');
+            }
+        }
+
+        function addGradeEntry() {
+            const container = document.getElementById('gradeEntriesContainer');
+            const subjectOptions = `@foreach($class->subjects as $subject)<option value="{{ $subject->id }}">{{ $subject->name }}</option>@endforeach`;
+            
+            const newRow = document.createElement('div');
+            newRow.className = 'grade-entry-row flex items-center gap-3 mb-3';
+            newRow.innerHTML = `
+                <div class="flex-1">
+                    <input type="text" name="entries[${gradeEntryCount}][comment]" placeholder="Enter the comment" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                </div>
+                <div class="flex-1">
+                    <select name="entries[${gradeEntryCount}][subject_id]" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                        <option value="">Select Subject</option>
+                        ${subjectOptions}
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <select name="entries[${gradeEntryCount}][grade]" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                        <option value="">Grade</option>
+                        <option value="A">A (80-100%)</option>
+                        <option value="B">B (70-79%)</option>
+                        <option value="C">C (60-69%)</option>
+                        <option value="D">D (50-59%)</option>
+                        <option value="E">E (40-49%)</option>
+                        <option value="F">F (0-39%)</option>
+                    </select>
+                </div>
+                <button type="button" onclick="addGradeEntry()" class="p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors" title="Add more">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
+                        <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
+                    </svg>
+                </button>
+                <button type="button" onclick="removeGradeEntry(this)" class="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors" title="Remove">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
+                        <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
+                    </svg>
+                </button>
+            `;
+            container.appendChild(newRow);
+            gradeEntryCount++;
+        }
+
+        function removeGradeEntry(button) {
+            const container = document.getElementById('gradeEntriesContainer');
+            if (container.children.length > 1) {
+                button.closest('.grade-entry-row').remove();
+            } else {
+                alert('You must have at least one grade entry.');
             }
         }
 

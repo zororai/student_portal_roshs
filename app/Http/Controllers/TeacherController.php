@@ -361,24 +361,32 @@ class TeacherController extends Controller
         // Validate the request
         $validated = $request->validate([
             'class_id' => 'required|exists:grades,id',
-            'subject_id' => 'required|exists:subjects,id',
-            'comment' => 'required|string',
-            'grade' => 'required|string|max:10'
+            'entries' => 'required|array|min:1',
+            'entries.*.comment' => 'required|string',
+            'entries.*.subject_id' => 'required|exists:subjects,id',
+            'entries.*.grade' => 'required|string|max:10'
         ]);
 
         // Verify the class belongs to this teacher
         $class = $teacher->classes()->findOrFail($request->class_id);
 
-        // Create the assessment comment
-        \App\AssessmentComment::create([
-            'class_id' => $request->class_id,
-            'subject_id' => $request->subject_id,
-            'comment' => $request->comment,
-            'grade' => $request->grade
-        ]);
+        // Create multiple assessment comments
+        foreach ($request->entries as $entry) {
+            \App\AssessmentComment::create([
+                'class_id' => $request->class_id,
+                'subject_id' => $entry['subject_id'],
+                'comment' => $entry['comment'],
+                'grade' => $entry['grade']
+            ]);
+        }
+
+        $count = count($request->entries);
+        $message = $count > 1 
+            ? "Successfully added {$count} assessment comments!" 
+            : 'Assessment comment added successfully!';
 
         return redirect()->route('teacher.assessment.list', $request->class_id)
-            ->with('success', 'Assessment comment added successfully!');
+            ->with('success', $message);
     }
 
     /**
