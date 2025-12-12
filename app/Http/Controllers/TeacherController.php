@@ -314,6 +314,7 @@ class TeacherController extends Controller
             'assessment_type' => 'required|string',
             'date' => 'required|date',
             'due_date' => 'required|date',
+            'exam' => 'nullable|string|max:255',
             'papers' => 'nullable|array'
         ]);
 
@@ -329,6 +330,7 @@ class TeacherController extends Controller
             'assessment_type' => $request->assessment_type,
             'date' => $request->date,
             'due_date' => $request->due_date,
+            'exam' => $request->exam,
             'papers' => $request->papers ?? []
         ]);
 

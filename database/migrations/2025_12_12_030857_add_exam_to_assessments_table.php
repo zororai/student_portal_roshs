@@ -14,7 +14,7 @@ class AddExamToAssessmentsTable extends Migration
     public function up()
     {
         Schema::table('assessments', function (Blueprint $table) {
-            //
+            $table->string('exam')->nullable()->after('assessment_type');
         });
     }
 
@@ -26,7 +26,7 @@ class AddExamToAssessmentsTable extends Migration
     public function down()
     {
         Schema::table('assessments', function (Blueprint $table) {
-            //
+            $table->dropColumn('exam');
         });
     }
 }

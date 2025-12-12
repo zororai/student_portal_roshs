@@ -70,12 +70,12 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold 
-                                        @if($assessment->type == 'Quiz') bg-blue-100 text-blue-800
-                                        @elseif($assessment->type == 'Test') bg-purple-100 text-purple-800
-                                        @elseif($assessment->type == 'Assignment') bg-green-100 text-green-800
+                                        @if($assessment->assessment_type == 'Quiz') bg-blue-100 text-blue-800
+                                        @elseif($assessment->assessment_type == 'Test') bg-purple-100 text-purple-800
+                                        @elseif($assessment->assessment_type == 'Assignment') bg-green-100 text-green-800
                                         @else bg-gray-100 text-gray-800
                                         @endif">
-                                        {{ $assessment->type ?? 'N/A' }}
+                                        {{ $assessment->assessment_type ?? 'N/A' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -189,6 +189,12 @@
                                 <option value="Project">Project</option>
                             </select>
                         </div>
+                    </div>
+
+                    <!-- Exam Field -->
+                    <div class="mb-6">
+                        <input type="text" name="exam" placeholder="Exam Name (Optional)"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                     </div>
 
                     <!-- Papers Section -->
