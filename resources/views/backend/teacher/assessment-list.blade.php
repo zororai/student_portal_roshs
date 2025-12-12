@@ -285,7 +285,17 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $comment->subject->name ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-900">{{ $comment->comment }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $comment->grade }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">
+                                            @if(is_array($comment->grade))
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach($comment->grade as $grade)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ $grade }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ $comment->grade }}</span>
+                                            @endif
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                                             <form action="{{ route('teacher.assessment.comment.delete', $comment->id) }}" method="POST" class="inline">
                                                 @csrf
@@ -322,16 +332,35 @@
                                 </select>
                             </div>
                             <div>
-                                <select name="grade" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                                    <option value="">Grade</option>
-                                    <option value="A">A</option>
-                                    <option value="B">B</option>
-                                    <option value="C">C</option>
-                                    <option value="D">D</option>
-                                    <option value="E">E</option>
-                                    <option value="F">F</option>
-                                </select>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Select Grades (Multiple)</label>
+                                <div class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white">
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" name="grade[]" value="A" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="text-sm">A</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" name="grade[]" value="B" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="text-sm">B</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" name="grade[]" value="C" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="text-sm">C</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" name="grade[]" value="D" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="text-sm">D</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" name="grade[]" value="E" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="text-sm">E</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="checkbox" name="grade[]" value="F" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                            <span class="text-sm">F</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
