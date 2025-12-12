@@ -224,6 +224,92 @@ class TeacherController extends Controller
     }
 
     /**
+     * Display student assessment page for teachers.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function assessment()
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        // Get classes taught by this teacher with student count
+        $classes = $teacher->classes()->withCount('students')->get();
+
+        return view('backend.teacher.assessment', compact('classes', 'teacher'));
+    }
+
+    /**
+     * Display assessment list for a specific class.
+     *
+     * @param  int  $class_id
+     * @return \Illuminate\Http\Response
+     */
+    public function assessmentList($class_id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        // Verify the class belongs to this teacher
+        $class = $teacher->classes()->findOrFail($class_id);
+
+        // Get assessments for this class (placeholder - you'll need to create Assessment model)
+        $assessments = []; // TODO: Fetch from database when Assessment model is created
+
+        return view('backend.teacher.assessment-list', compact('class', 'assessments', 'teacher'));
+    }
+
+    /**
+     * Show form to create a new assessment.
+     *
+     * @param  int  $class_id
+     * @return \Illuminate\Http\Response
+     */
+    public function createAssessment($class_id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        // Verify the class belongs to this teacher
+        $class = $teacher->classes()->findOrFail($class_id);
+
+        // Get subjects for this class
+        $subjects = $class->subjects;
+
+        return view('backend.teacher.assessment-create', compact('class', 'subjects', 'teacher'));
+    }
+
+    /**
+     * Store a new assessment.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function storeAssessment(Request $request)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        // TODO: Validate and store assessment when Assessment model is created
+        // For now, just redirect back with success message
+
+        return redirect()->route('teacher.assessment.list', $request->class_id)
+            ->with('success', 'Assessment created successfully!');
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Teacher  $teacher

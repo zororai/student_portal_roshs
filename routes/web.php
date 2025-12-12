@@ -168,6 +168,12 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::resource('readings', 'AddsubjectController');
     Route::post('subjects/{id}/upload','AddsubjectController@upload')->name('subject.upload');
 
+    // Student Assessment
+    Route::get('/teacher/assessment', 'TeacherController@assessment')->name('teacher.assessment');
+    Route::get('/teacher/assessment/class/{class_id}', 'TeacherController@assessmentList')->name('teacher.assessment.list');
+    Route::get('/teacher/assessment/create/{class_id}', 'TeacherController@createAssessment')->name('teacher.assessment.create');
+    Route::post('/teacher/assessment/store', 'TeacherController@storeAssessment')->name('teacher.assessment.store');
+
     Route::get('/results', 'ResultController@index')->name('results.index');
     Route::get('/viewresults', 'ResultController@recordindex')->name('results.record');
     Route::get('/selectyear', 'ResultController@viewresultsindex')->name('results.viewrecord');
