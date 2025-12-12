@@ -173,6 +173,8 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::get('/teacher/assessment/class/{class_id}', 'TeacherController@assessmentList')->name('teacher.assessment.list');
     Route::get('/teacher/assessment/create/{class_id}', 'TeacherController@createAssessment')->name('teacher.assessment.create');
     Route::post('/teacher/assessment/store', 'TeacherController@storeAssessment')->name('teacher.assessment.store');
+    Route::post('/teacher/assessment/comment/store', 'TeacherController@storeAssessmentComment')->name('teacher.assessment.comment.store');
+    Route::delete('/teacher/assessment/comment/{id}', 'TeacherController@deleteAssessmentComment')->name('teacher.assessment.comment.delete');
 
     Route::get('/results', 'ResultController@index')->name('results.index');
     Route::get('/viewresults', 'ResultController@recordindex')->name('results.record');

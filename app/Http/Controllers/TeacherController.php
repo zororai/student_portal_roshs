@@ -266,7 +266,13 @@ class TeacherController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        return view('backend.teacher.assessment-list', compact('class', 'assessments', 'teacher'));
+        // Get assessment comments for this class
+        $assessmentComments = \App\AssessmentComment::where('class_id', $class_id)
+            ->with('subject')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('backend.teacher.assessment-list', compact('class', 'assessments', 'assessmentComments', 'teacher'));
     }
 
     /**
@@ -336,6 +342,68 @@ class TeacherController extends Controller
 
         return redirect()->route('teacher.assessment.list', $request->class_id)
             ->with('success', 'Assessment created successfully!');
+    }
+
+    /**
+     * Store a new assessment comment.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function storeAssessmentComment(Request $request)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        // Validate the request
+        $validated = $request->validate([
+            'class_id' => 'required|exists:grades,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'comment' => 'required|string',
+            'grade' => 'required|string|max:10'
+        ]);
+
+        // Verify the class belongs to this teacher
+        $class = $teacher->classes()->findOrFail($request->class_id);
+
+        // Create the assessment comment
+        \App\AssessmentComment::create([
+            'class_id' => $request->class_id,
+            'subject_id' => $request->subject_id,
+            'comment' => $request->comment,
+            'grade' => $request->grade
+        ]);
+
+        return redirect()->route('teacher.assessment.list', $request->class_id)
+            ->with('success', 'Assessment comment added successfully!');
+    }
+
+    /**
+     * Delete an assessment comment.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAssessmentComment($id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        $comment = \App\AssessmentComment::findOrFail($id);
+
+        // Verify the class belongs to this teacher
+        $class = $teacher->classes()->findOrFail($comment->class_id);
+
+        $comment->delete();
+
+        return redirect()->route('teacher.assessment.list', $comment->class_id)
+            ->with('success', 'Assessment comment deleted successfully!');
     }
 
     /**

@@ -253,6 +253,105 @@
         </div>
     </div>
 
+    <!-- Grade System Modal -->
+    <div id="gradeSystemModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-8 w-full max-w-4xl">
+            <div class="bg-white rounded-2xl shadow-2xl">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-900">Assessment General Comments</h3>
+                    <button type="button" onclick="closeGradeSystemModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="px-8 py-6">
+                    <!-- Existing Comments Table -->
+                    <div class="mb-6 overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Subject</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Comment</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Grade</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="commentsTableBody">
+                                @foreach($assessmentComments ?? [] as $comment)
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $comment->subject->name ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900">{{ $comment->comment }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $comment->grade }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <form action="{{ route('teacher.assessment.comment.delete', $comment->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-800 font-semibold">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Add New Comment Form -->
+                    <form action="{{ route('teacher.assessment.comment.store') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="class_id" value="{{ $class->id }}">
+
+                        <!-- Comment Input -->
+                        <div>
+                            <input type="text" name="comment" placeholder="Enter the comment" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        </div>
+
+                        <!-- Subject and Grade Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <select name="subject_id" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                                    <option value="">Select Subject</option>
+                                    @foreach($class->subjects as $subject)
+                                        <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <select name="grade" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                                    <option value="">Grade</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="E">E</option>
+                                    <option value="F">F</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+                            <button type="button" onclick="closeGradeSystemModal()" 
+                                class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
+                                Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let paperCount = 1;
 
@@ -263,6 +362,16 @@
 
         function closeAssessmentModal() {
             document.getElementById('assessmentModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openGradeSystemModal() {
+            document.getElementById('gradeSystemModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeGradeSystemModal() {
+            document.getElementById('gradeSystemModal').classList.add('hidden');
             document.body.style.overflow = 'auto';
         }
 
