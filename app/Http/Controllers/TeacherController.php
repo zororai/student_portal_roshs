@@ -363,8 +363,7 @@ class TeacherController extends Controller
             'class_id' => 'required|exists:grades,id',
             'subject_id' => 'required|exists:subjects,id',
             'comment' => 'required|string',
-            'grade' => 'required|array|min:1',
-            'grade.*' => 'required|string|in:A,B,C,D,E,F'
+            'grade' => 'required|string|max:10'
         ]);
 
         // Verify the class belongs to this teacher

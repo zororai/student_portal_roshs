@@ -13,10 +13,6 @@ class AssessmentComment extends Model
         'grade'
     ];
 
-    protected $casts = [
-        'grade' => 'array'
-    ];
-
     public function class()
     {
         return $this->belongsTo(Grade::class, 'class_id');
