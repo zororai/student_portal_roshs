@@ -16,6 +16,12 @@
                         </svg>
                         Back to Classes
                     </a>
+                    <a href="{{ route('teacher.assessment.marks', $class->id) }}" class="inline-flex items-center px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 384 512">
+                            <path d="M336 64h-80c0-35.3-28.7-64-64-64s-64 28.7-64 64H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zM192 40c13.3 0 24 10.7 24 24s-10.7 24-24 24-24-10.7-24-24 10.7-24 24-24zm96 304c0 4.4-3.6 8-8 8h-56v56c0 4.4-3.6 8-8 8h-16c-4.4 0-8-3.6-8-8v-56h-56c-4.4 0-8-3.6-8-8v-16c0-4.4 3.6-8 8-8h56v-56c0-4.4 3.6-8 8-8h16c4.4 0 8 3.6 8 8v56h56c4.4 0 8 3.6 8 8v16z"/>
+                        </svg>
+                        Add Assessment Mark
+                    </a>
                     <button type="button" onclick="openGradeSystemModal()" class="inline-flex items-center px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 576 512">
                             <path d="M528 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h480c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm0 400H48V80h480v352zM208 256c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm-89.6 128h179.2c12.4 0 22.4-8.6 22.4-19.2v-19.2c0-31.8-30.1-57.6-67.2-57.6-10.8 0-18.7 8-44.8 8-26.9 0-33.4-8-44.8-8-37.1 0-67.2 25.8-67.2 57.6v19.2c0 10.6 10 19.2 22.4 19.2zM360 320h112c4.4 0 8-3.6 8-8v-16c0-4.4-3.6-8-8-8H360c-4.4 0-8 3.6-8 8v16c0 4.4 3.6 8 8 8zm0-64h112c4.4 0 8-3.6 8-8v-16c0-4.4-3.6-8-8-8H360c-4.4 0-8 3.6-8 8v16c0 4.4 3.6 8 8 8zm0-64h112c4.4 0 8-3.6 8-8v-16c0-4.4-3.6-8-8-8H360c-4.4 0-8 3.6-8 8v16c0 4.4 3.6 8 8 8z"/>
@@ -157,18 +163,36 @@
                 </div>
 
                 <!-- Modal Body -->
-                <form action="{{ route('teacher.assessment.store') }}" method="POST" class="px-8 py-6">
+                <form action="{{ route('teacher.assessment.store') }}" method="POST" class="px-8 py-6" id="assessmentForm" onsubmit="return validateAssessmentForm()">
                     @csrf
                     <input type="hidden" name="class_id" value="{{ $class->id }}">
+
+                    <!-- Validation Errors -->
+                    @if($errors->any())
+                        <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                            <strong class="font-bold">Validation Error!</strong>
+                            <ul class="mt-2 list-disc list-inside">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <!-- Form Validation Error Container -->
+                    <div id="assessmentValidationError" class="hidden mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                        <strong class="font-bold">Please fix the following errors:</strong>
+                        <ul id="assessmentErrorList" class="mt-2 list-disc list-inside"></ul>
+                    </div>
 
                     <!-- Topic and Date Row -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
-                            <input type="text" name="topic" placeholder="Topic" required
+                            <input type="text" name="topic" placeholder="Topic (min 3 characters)" maxlength="255"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                         </div>
                         <div>
-                            <input type="date" name="date" value="{{ date('Y-m-d') }}" required
+                            <input type="date" name="date" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                         </div>
                     </div>
@@ -176,7 +200,7 @@
                     <!-- Subject and Assessment Type Row -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
-                            <select name="subject_id" required
+                            <select name="subject_id"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                                 <option value="">Select Subject</option>
                                 @foreach($class->subjects as $subject)
@@ -185,7 +209,7 @@
                             </select>
                         </div>
                         <div>
-                            <select name="assessment_type" required
+                            <select name="assessment_type"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                                 <option value="">Assessment Type</option>
                                 <option value="Quiz">Quiz</option>
@@ -199,22 +223,25 @@
 
                     <!-- Exam Field -->
                     <div class="mb-6">
-                        <input type="text" name="exam" placeholder="Exam Name (Optional)"
+                        <input type="text" name="exam" placeholder="Exam Name (Optional)" maxlength="255"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                     </div>
 
                     <!-- Papers Section -->
                     <div class="mb-6">
-                        <p class="text-sm font-medium text-gray-700 mb-4">Define papers & their weights (They must be add up to 100%)</p>
+                        <div class="flex items-center justify-between mb-4">
+                            <p class="text-sm font-medium text-gray-700">Define papers & their weights (They must add up to 100%)</p>
+                            <p class="text-sm font-semibold" id="totalWeightDisplay">Total: <span id="totalWeight">0</span>%</p>
+                        </div>
                         
                         <div id="papersContainer">
                             <!-- Initial Paper Row -->
                             <div class="paper-row flex items-center gap-3 mb-3">
-                                <input type="text" name="papers[0][name]" placeholder="Paper Name..." 
+                                <input type="text" name="papers[0][name]" placeholder="Paper Name (min 2 chars)" maxlength="100"
                                     class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <input type="number" name="papers[0][total_marks]" placeholder="Total Marks" min="1"
+                                <input type="number" name="papers[0][total_marks]" placeholder="Total Marks" max="1000" oninput="validatePaperMarks(this)"
                                     class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <input type="number" name="papers[0][weight]" placeholder="Weight(%)" min="1" max="100"
+                                <input type="number" name="papers[0][weight]" placeholder="Weight(%)" max="100" oninput="updateTotalWeight()"
                                     class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 <button type="button" onclick="addPaper()" class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
                                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
@@ -233,7 +260,7 @@
                     <!-- Due Date -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                        <input type="date" name="due_date" required
+                        <input type="date" name="due_date" min="{{ date('Y-m-d') }}"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                     </div>
 
@@ -269,6 +296,17 @@
 
                 <!-- Modal Body -->
                 <div class="px-8 py-6">
+                    <!-- Validation Errors -->
+                    @if($errors->any())
+                        <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                            <strong class="font-bold">Validation Error!</strong>
+                            <ul class="mt-2 list-disc list-inside">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <!-- Existing Comments Table -->
                     <div class="mb-6 overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -300,20 +338,30 @@
                     </div>
 
                     <!-- Add New Comment Form -->
-                    <form action="{{ route('teacher.assessment.comment.store') }}" method="POST" class="space-y-4">
+                    <form action="{{ route('teacher.assessment.comment.store') }}" method="POST" class="space-y-4" id="assessmentCommentForm" onsubmit="return validateForm()">
                         @csrf
                         <input type="hidden" name="class_id" value="{{ $class->id }}">
+
+                        <!-- Form Validation Error Container -->
+                        <div id="formValidationError" class="hidden mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                            <strong class="font-bold">Please fix the following errors:</strong>
+                            <ul id="formErrorList" class="mt-2 list-disc list-inside"></ul>
+                        </div>
 
                         <!-- Dynamic Grade Entries Container -->
                         <div id="gradeEntriesContainer">
                             <!-- Initial Subject and Grade Row -->
                             <div class="grade-entry-row flex items-center gap-3 mb-3">
                                 <div class="flex-1">
-                                    <input type="text" name="entries[0][comment]" placeholder="Enter the comment" required
+                                    <input type="text" name="entries[0][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
+                                        maxlength="500" oninput="updateCharCount(this)"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        <span class="char-count">0</span>/500 characters
+                                    </div>
                                 </div>
                                 <div class="flex-1">
-                                    <select name="entries[0][subject_id]" required
+                                    <select name="entries[0][subject_id]"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                                         <option value="">Select Subject</option>
                                         @foreach($class->subjects as $subject)
@@ -322,7 +370,7 @@
                                     </select>
                                 </div>
                                 <div class="flex-1">
-                                    <select name="entries[0][grade]" required
+                                    <select name="entries[0][grade]"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                                         <option value="">Grade</option>
                                         <option value="A">A (80-100%)</option>
@@ -389,14 +437,21 @@
 
         function addPaper() {
             const container = document.getElementById('papersContainer');
+            
+            // Check max papers limit
+            if (container.children.length >= 20) {
+                alert('You cannot add more than 20 papers.');
+                return;
+            }
+            
             const newRow = document.createElement('div');
             newRow.className = 'paper-row flex items-center gap-3 mb-3';
             newRow.innerHTML = `
-                <input type="text" name="papers[${paperCount}][name]" placeholder="Paper Name..." 
+                <input type="text" name="papers[${paperCount}][name]" placeholder="Paper Name (min 2 chars)" maxlength="100"
                     class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <input type="number" name="papers[${paperCount}][total_marks]" placeholder="Total Marks" min="1"
+                <input type="number" name="papers[${paperCount}][total_marks]" placeholder="Total Marks" max="1000" oninput="validatePaperMarks(this)"
                     class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <input type="number" name="papers[${paperCount}][weight]" placeholder="Weight(%)" min="1" max="100"
+                <input type="number" name="papers[${paperCount}][weight]" placeholder="Weight(%)" max="100" oninput="updateTotalWeight()"
                     class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <button type="button" onclick="addPaper()" class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
@@ -417,31 +472,222 @@
             const container = document.getElementById('papersContainer');
             if (container.children.length > 1) {
                 button.closest('.paper-row').remove();
+                updateTotalWeight();
             } else {
                 alert('You must have at least one paper.');
             }
+        }
+
+        // Validate paper marks input
+        function validatePaperMarks(input) {
+            if (input.value && parseInt(input.value) < 1) {
+                input.value = 1;
+            }
+            if (input.value && parseInt(input.value) > 1000) {
+                input.value = 1000;
+            }
+        }
+
+        // Update total weight display
+        function updateTotalWeight() {
+            const container = document.getElementById('papersContainer');
+            const weightInputs = container.querySelectorAll('input[name*="[weight]"]');
+            let total = 0;
+            
+            weightInputs.forEach(input => {
+                const value = parseInt(input.value) || 0;
+                total += value;
+            });
+            
+            const totalSpan = document.getElementById('totalWeight');
+            const totalDisplay = document.getElementById('totalWeightDisplay');
+            
+            totalSpan.textContent = total;
+            
+            // Color code based on total
+            if (total === 100) {
+                totalDisplay.classList.remove('text-red-600', 'text-orange-600');
+                totalDisplay.classList.add('text-green-600');
+            } else if (total > 100) {
+                totalDisplay.classList.remove('text-green-600', 'text-orange-600');
+                totalDisplay.classList.add('text-red-600');
+            } else {
+                totalDisplay.classList.remove('text-green-600', 'text-red-600');
+                totalDisplay.classList.add('text-orange-600');
+            }
+        }
+
+        // Comprehensive Assessment form validation
+        function validateAssessmentForm() {
+            const errors = [];
+            
+            // Validate topic
+            const topic = document.querySelector('input[name="topic"]');
+            if (!topic.value.trim()) {
+                errors.push('Topic is required.');
+            } else if (topic.value.trim().length < 3) {
+                errors.push('Topic must be at least 3 characters long.');
+            } else if (topic.value.trim().length > 255) {
+                errors.push('Topic cannot exceed 255 characters.');
+            }
+            
+            // Validate date
+            const date = document.querySelector('input[name="date"]');
+            if (!date.value) {
+                errors.push('Assessment date is required.');
+            } else {
+                const selectedDate = new Date(date.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    errors.push('Assessment date cannot be in the future.');
+                }
+            }
+            
+            // Validate subject
+            const subject = document.querySelector('select[name="subject_id"]');
+            if (!subject.value) {
+                errors.push('Subject selection is required.');
+            }
+            
+            // Validate assessment type
+            const assessmentType = document.querySelector('select[name="assessment_type"]');
+            if (!assessmentType.value) {
+                errors.push('Assessment type is required.');
+            }
+            
+            // Validate papers
+            const container = document.getElementById('papersContainer');
+            const papers = container.querySelectorAll('.paper-row');
+            
+            if (papers.length === 0) {
+                errors.push('At least one paper is required.');
+            }
+            
+            const paperNames = [];
+            let totalWeight = 0;
+            
+            papers.forEach((paper, index) => {
+                const name = paper.querySelector('input[name*="[name]"]');
+                const totalMarks = paper.querySelector('input[name*="[total_marks]"]');
+                const weight = paper.querySelector('input[name*="[weight]"]');
+                
+                // Validate paper name
+                if (!name.value.trim()) {
+                    errors.push(`Paper ${index + 1}: Paper name is required.`);
+                } else if (name.value.trim().length < 2) {
+                    errors.push(`Paper ${index + 1}: Paper name must be at least 2 characters long.`);
+                } else if (name.value.trim().length > 100) {
+                    errors.push(`Paper ${index + 1}: Paper name cannot exceed 100 characters.`);
+                } else {
+                    // Check for duplicate names
+                    if (paperNames.includes(name.value.trim().toLowerCase())) {
+                        errors.push(`Paper ${index + 1}: Paper name "${name.value.trim()}" is already used. Each paper must have a unique name.`);
+                    } else {
+                        paperNames.push(name.value.trim().toLowerCase());
+                    }
+                }
+                
+                // Validate total marks
+                if (!totalMarks.value) {
+                    errors.push(`Paper ${index + 1}: Total marks is required.`);
+                } else {
+                    const marks = parseInt(totalMarks.value);
+                    if (marks < 1) {
+                        errors.push(`Paper ${index + 1}: Total marks must be at least 1.`);
+                    } else if (marks > 1000) {
+                        errors.push(`Paper ${index + 1}: Total marks cannot exceed 1000.`);
+                    }
+                }
+                
+                // Validate weight
+                if (!weight.value) {
+                    errors.push(`Paper ${index + 1}: Weight percentage is required.`);
+                } else {
+                    const w = parseInt(weight.value);
+                    if (w < 1) {
+                        errors.push(`Paper ${index + 1}: Weight must be at least 1%.`);
+                    } else if (w > 100) {
+                        errors.push(`Paper ${index + 1}: Weight cannot exceed 100%.`);
+                    }
+                    totalWeight += w;
+                }
+            });
+            
+            // Validate total weight equals 100%
+            if (papers.length > 0 && totalWeight !== 100) {
+                errors.push(`Paper weights must add up to 100%. Current total: ${totalWeight}%`);
+            }
+            
+            // Validate due date
+            const dueDate = document.querySelector('input[name="due_date"]');
+            if (!dueDate.value) {
+                errors.push('Due date is required.');
+            } else if (date.value) {
+                const dueDateValue = new Date(dueDate.value);
+                const assessmentDate = new Date(date.value);
+                if (dueDateValue < assessmentDate) {
+                    errors.push('Due date must be on or after the assessment date.');
+                }
+            }
+            
+            // Display errors or submit
+            if (errors.length > 0) {
+                displayAssessmentValidationErrors(errors);
+                return false;
+            }
+            
+            // Hide error container if validation passes
+            document.getElementById('assessmentValidationError').classList.add('hidden');
+            return true;
+        }
+
+        // Display assessment validation errors
+        function displayAssessmentValidationErrors(errors) {
+            const errorContainer = document.getElementById('assessmentValidationError');
+            const errorList = document.getElementById('assessmentErrorList');
+            
+            errorList.innerHTML = '';
+            errors.forEach(error => {
+                const li = document.createElement('li');
+                li.textContent = error;
+                errorList.appendChild(li);
+            });
+            
+            errorContainer.classList.remove('hidden');
+            errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function addGradeEntry() {
             const container = document.getElementById('gradeEntriesContainer');
             const subjectOptions = `@foreach($class->subjects as $subject)<option value="{{ $subject->id }}">{{ $subject->name }}</option>@endforeach`;
             
+            // Check max entries limit
+            if (container.children.length >= 50) {
+                alert('You cannot add more than 50 entries at once.');
+                return;
+            }
+            
             const newRow = document.createElement('div');
             newRow.className = 'grade-entry-row flex items-center gap-3 mb-3';
             newRow.innerHTML = `
                 <div class="flex-1">
-                    <input type="text" name="entries[${gradeEntryCount}][comment]" placeholder="Enter the comment" required
+                    <input type="text" name="entries[${gradeEntryCount}][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
+                        maxlength="500" oninput="updateCharCount(this)"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    <div class="text-xs text-gray-500 mt-1">
+                        <span class="char-count">0</span>/500 characters
+                    </div>
                 </div>
                 <div class="flex-1">
-                    <select name="entries[${gradeEntryCount}][subject_id]" required
+                    <select name="entries[${gradeEntryCount}][subject_id]"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                         <option value="">Select Subject</option>
                         ${subjectOptions}
                     </select>
                 </div>
                 <div class="flex-1">
-                    <select name="entries[${gradeEntryCount}][grade]" required
+                    <select name="entries[${gradeEntryCount}][grade]"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                         <option value="">Grade</option>
                         <option value="A">A (80-100%)</option>
@@ -475,6 +721,106 @@
                 alert('You must have at least one grade entry.');
             }
         }
+
+        // Update character count for comment inputs
+        function updateCharCount(input) {
+            const charCountSpan = input.parentElement.querySelector('.char-count');
+            if (charCountSpan) {
+                charCountSpan.textContent = input.value.length;
+                
+                // Visual feedback for character count
+                if (input.value.length < 10) {
+                    charCountSpan.classList.add('text-red-500');
+                    charCountSpan.classList.remove('text-green-500', 'text-gray-500');
+                } else if (input.value.length > 450) {
+                    charCountSpan.classList.add('text-orange-500');
+                    charCountSpan.classList.remove('text-green-500', 'text-gray-500');
+                } else {
+                    charCountSpan.classList.add('text-green-500');
+                    charCountSpan.classList.remove('text-red-500', 'text-orange-500', 'text-gray-500');
+                }
+            }
+        }
+
+        // Comprehensive form validation
+        function validateForm() {
+            const errors = [];
+            const container = document.getElementById('gradeEntriesContainer');
+            const entries = container.querySelectorAll('.grade-entry-row');
+            const subjectIds = [];
+
+            // Check if at least one entry exists
+            if (entries.length === 0) {
+                errors.push('At least one assessment comment entry is required.');
+            }
+
+            // Validate each entry
+            entries.forEach((entry, index) => {
+                const comment = entry.querySelector('input[name*="[comment]"]');
+                const subjectId = entry.querySelector('select[name*="[subject_id]"]');
+                const grade = entry.querySelector('select[name*="[grade]"]');
+
+                // Validate comment
+                if (!comment.value.trim()) {
+                    errors.push(`Entry ${index + 1}: Comment is required.`);
+                } else if (comment.value.trim().length < 10) {
+                    errors.push(`Entry ${index + 1}: Comment must be at least 10 characters long.`);
+                } else if (comment.value.trim().length > 500) {
+                    errors.push(`Entry ${index + 1}: Comment cannot exceed 500 characters.`);
+                }
+
+                // Validate subject
+                if (!subjectId.value) {
+                    errors.push(`Entry ${index + 1}: Subject selection is required.`);
+                } else {
+                    // Check for duplicate subjects
+                    if (subjectIds.includes(subjectId.value)) {
+                        errors.push(`Entry ${index + 1}: Subject "${subjectId.options[subjectId.selectedIndex].text}" is already selected. Each subject must be unique.`);
+                    } else {
+                        subjectIds.push(subjectId.value);
+                    }
+                }
+
+                // Validate grade
+                if (!grade.value) {
+                    errors.push(`Entry ${index + 1}: Grade selection is required.`);
+                }
+            });
+
+            // Display errors or submit
+            if (errors.length > 0) {
+                displayValidationErrors(errors);
+                return false;
+            }
+
+            // Hide error container if validation passes
+            document.getElementById('formValidationError').classList.add('hidden');
+            return true;
+        }
+
+        // Display validation errors
+        function displayValidationErrors(errors) {
+            const errorContainer = document.getElementById('formValidationError');
+            const errorList = document.getElementById('formErrorList');
+            
+            errorList.innerHTML = '';
+            errors.forEach(error => {
+                const li = document.createElement('li');
+                li.textContent = error;
+                errorList.appendChild(li);
+            });
+            
+            errorContainer.classList.remove('hidden');
+            errorContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Initialize character counters on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const commentInputs = document.querySelectorAll('input[name*="[comment]"]');
+            commentInputs.forEach(input => {
+                updateCharCount(input);
+            });
+        });
 
         // Close modal when clicking outside
         document.getElementById('assessmentModal').addEventListener('click', function(e) {

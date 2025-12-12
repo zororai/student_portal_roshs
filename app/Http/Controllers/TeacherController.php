@@ -312,32 +312,80 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
-        // Validate the request
+        // Validate the request with enhanced validation rules
         $validated = $request->validate([
             'class_id' => 'required|exists:grades,id',
             'subject_id' => 'required|exists:subjects,id',
-            'topic' => 'required|string|max:255',
-            'assessment_type' => 'required|string',
-            'date' => 'required|date',
-            'due_date' => 'required|date',
+            'topic' => 'required|string|min:3|max:255',
+            'assessment_type' => 'required|string|in:Quiz,Test,Assignment,Exam,Project',
+            'date' => 'required|date|before_or_equal:today',
+            'due_date' => 'required|date|after_or_equal:date',
             'exam' => 'nullable|string|max:255',
-            'papers' => 'nullable|array'
+            'papers' => 'required|array|min:1|max:20',
+            'papers.*.name' => 'required|string|min:2|max:100',
+            'papers.*.total_marks' => 'required|integer|min:1|max:1000',
+            'papers.*.weight' => 'required|integer|min:1|max:100'
+        ], [
+            'class_id.required' => 'Class selection is required.',
+            'class_id.exists' => 'The selected class does not exist.',
+            'subject_id.required' => 'Subject selection is required.',
+            'subject_id.exists' => 'The selected subject does not exist.',
+            'topic.required' => 'Topic is required.',
+            'topic.min' => 'Topic must be at least 3 characters long.',
+            'topic.max' => 'Topic cannot exceed 255 characters.',
+            'assessment_type.required' => 'Assessment type is required.',
+            'assessment_type.in' => 'Assessment type must be one of: Quiz, Test, Assignment, Exam, or Project.',
+            'date.required' => 'Assessment date is required.',
+            'date.before_or_equal' => 'Assessment date cannot be in the future.',
+            'due_date.required' => 'Due date is required.',
+            'due_date.after_or_equal' => 'Due date must be on or after the assessment date.',
+            'exam.max' => 'Exam name cannot exceed 255 characters.',
+            'papers.required' => 'At least one paper is required.',
+            'papers.min' => 'At least one paper is required.',
+            'papers.max' => 'You cannot add more than 20 papers.',
+            'papers.*.name.required' => 'Paper name is required for all papers.',
+            'papers.*.name.min' => 'Paper name must be at least 2 characters long.',
+            'papers.*.name.max' => 'Paper name cannot exceed 100 characters.',
+            'papers.*.total_marks.required' => 'Total marks is required for all papers.',
+            'papers.*.total_marks.integer' => 'Total marks must be a valid number.',
+            'papers.*.total_marks.min' => 'Total marks must be at least 1.',
+            'papers.*.total_marks.max' => 'Total marks cannot exceed 1000.',
+            'papers.*.weight.required' => 'Weight percentage is required for all papers.',
+            'papers.*.weight.integer' => 'Weight must be a valid number.',
+            'papers.*.weight.min' => 'Weight must be at least 1%.',
+            'papers.*.weight.max' => 'Weight cannot exceed 100%.'
         ]);
 
         // Verify the class belongs to this teacher
         $class = $teacher->classes()->findOrFail($request->class_id);
+
+        // Validate that paper weights add up to 100%
+        $totalWeight = array_sum(array_column($request->papers, 'weight'));
+        if ($totalWeight != 100) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['papers' => "Paper weights must add up to 100%. Current total: {$totalWeight}%"]);
+        }
+
+        // Check for duplicate paper names
+        $paperNames = array_column($request->papers, 'name');
+        if (count($paperNames) !== count(array_unique($paperNames))) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['papers' => 'Paper names must be unique. Please ensure each paper has a different name.']);
+        }
 
         // Create the assessment
         $assessment = \App\Assessment::create([
             'teacher_id' => $teacher->id,
             'class_id' => $request->class_id,
             'subject_id' => $request->subject_id,
-            'topic' => $request->topic,
+            'topic' => trim($request->topic),
             'assessment_type' => $request->assessment_type,
             'date' => $request->date,
             'due_date' => $request->due_date,
-            'exam' => $request->exam,
-            'papers' => $request->papers ?? []
+            'exam' => $request->exam ? trim($request->exam) : null,
+            'papers' => $request->papers
         ]);
 
         return redirect()->route('teacher.assessment.list', $request->class_id)
@@ -358,25 +406,46 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
-        // Validate the request
+        // Validate the request with enhanced validation rules
         $validated = $request->validate([
             'class_id' => 'required|exists:grades,id',
-            'entries' => 'required|array|min:1',
-            'entries.*.comment' => 'required|string',
+            'entries' => 'required|array|min:1|max:50',
+            'entries.*.comment' => 'required|string|min:10|max:500',
             'entries.*.subject_id' => 'required|exists:subjects,id',
-            'entries.*.grade' => 'required|string|max:10'
+            'entries.*.grade' => 'required|string|in:A,B,C,D,E,F'
+        ], [
+            'class_id.required' => 'Class selection is required.',
+            'class_id.exists' => 'The selected class does not exist.',
+            'entries.required' => 'At least one assessment comment entry is required.',
+            'entries.min' => 'At least one assessment comment entry is required.',
+            'entries.max' => 'You cannot add more than 50 entries at once.',
+            'entries.*.comment.required' => 'Comment field is required for all entries.',
+            'entries.*.comment.min' => 'Each comment must be at least 10 characters long.',
+            'entries.*.comment.max' => 'Each comment cannot exceed 500 characters.',
+            'entries.*.subject_id.required' => 'Subject selection is required for all entries.',
+            'entries.*.subject_id.exists' => 'One or more selected subjects do not exist.',
+            'entries.*.grade.required' => 'Grade selection is required for all entries.',
+            'entries.*.grade.in' => 'Grade must be one of: A, B, C, D, E, or F.'
         ]);
 
         // Verify the class belongs to this teacher
         $class = $teacher->classes()->findOrFail($request->class_id);
+
+        // Check for duplicate subject entries
+        $subjectIds = array_column($request->entries, 'subject_id');
+        if (count($subjectIds) !== count(array_unique($subjectIds))) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['entries' => 'You cannot add multiple comments for the same subject. Please ensure each subject is unique.']);
+        }
 
         // Create multiple assessment comments
         foreach ($request->entries as $entry) {
             \App\AssessmentComment::create([
                 'class_id' => $request->class_id,
                 'subject_id' => $entry['subject_id'],
-                'comment' => $entry['comment'],
-                'grade' => $entry['grade']
+                'comment' => trim($entry['comment']),
+                'grade' => strtoupper($entry['grade'])
             ]);
         }
 
