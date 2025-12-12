@@ -24,11 +24,11 @@
     <!-- Navigation Section -->
     <div class="p-4 space-y-1">
         <!-- Toggle Button -->
-        <button @click="collapsed = !collapsed" class="w-full flex items-center justify-center px-3 py-2 mb-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors" :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
-            <svg class="w-5 h-5 transition-transform" :class="{'rotate-180': collapsed}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <button @click="collapsed = !collapsed" class="w-full flex items-center px-3 py-2 mb-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors" :class="collapsed ? 'justify-center' : 'justify-center'" :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+            <svg class="w-5 h-5 transition-transform flex-shrink-0" :class="{'rotate-180': collapsed}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
             </svg>
-            <span class="ml-2" x-show="!collapsed">Toggle Menu</span>
+            <span class="ml-2 whitespace-nowrap" x-show="!collapsed">Toggle Menu</span>
         </button>
         
         <!-- Notifications -->
