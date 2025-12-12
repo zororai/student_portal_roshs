@@ -1,7 +1,7 @@
 <div x-data="{ collapsed: false }" :class="collapsed ? 'w-20' : 'w-64'" class="sidebar block bg-white h-screen shadow-lg fixed top-0 left-0 bottom-0 z-40 overflow-y-auto border-r border-gray-200 transition-all duration-300">
     <!-- Header Section -->
     <div class="p-4 border-b border-gray-200">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between">
             <div class="flex items-center flex-1" :class="collapsed ? 'justify-center' : 'space-x-3'">
                 <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-pink-500 rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -13,9 +13,9 @@
                     <p class="text-xs text-gray-500">Foundation</p>
                 </div>
             </div>
-            <button @click="collapsed = !collapsed" class="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0" :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
-                <svg class="w-5 h-5 transition-transform" :class="{'rotate-180': collapsed}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+            <button @click="collapsed = !collapsed" class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0 ml-2" :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+                <svg class="w-5 h-5 transition-transform" :class="{'rotate-180': collapsed}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
                 </svg>
             </button>
         </div>
@@ -23,6 +23,14 @@
 
     <!-- Navigation Section -->
     <div class="p-4 space-y-1">
+        <!-- Toggle Button -->
+        <button @click="collapsed = !collapsed" class="w-full flex items-center justify-center px-3 py-2 mb-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors" :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+            <svg class="w-5 h-5 transition-transform" :class="{'rotate-180': collapsed}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+            </svg>
+            <span class="ml-2" x-show="!collapsed">Toggle Menu</span>
+        </button>
+        
         <!-- Notifications -->
         <a href="#" class="flex items-center px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'" :title="collapsed ? 'Notifications' : ''">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
