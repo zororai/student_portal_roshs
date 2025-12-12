@@ -14,6 +14,7 @@ class Assessment extends Model
         'assessment_type',
         'date',
         'due_date',
+        'exam',
         'papers'
     ];
 
