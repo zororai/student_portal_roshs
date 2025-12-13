@@ -100,25 +100,4 @@ class ResultsStatusController extends Controller
 
         return redirect()->route('results_status.index')->with('success', 'Record updated successfully.');
     }
-
-    // Method to store a new fee type via AJAX
-    public function storeFeeType(Request $request)
-    {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255|unique:fee_types,name',
-            'description' => 'nullable|string',
-        ]);
-
-        $feeType = FeeType::create([
-            'name' => $validatedData['name'],
-            'description' => $validatedData['description'] ?? '',
-            'is_active' => true
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Fee type created successfully',
-            'feeType' => $feeType
-        ]);
-    }
 }
