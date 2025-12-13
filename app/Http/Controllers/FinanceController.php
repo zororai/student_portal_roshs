@@ -75,20 +75,7 @@ class FinanceController extends Controller
         
         $classes = \App\Grade::orderBy('class_name')->get();
         
-        // Load all students for the Record Payment modal (unfiltered)
-        $allStudentsForModal = Student::with(['user', 'class'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-        
-        // Calculate fees for modal students
-        foreach ($allStudentsForModal as $student) {
-            $student->total_fees = $currentTerm ? $currentTerm->total_fees : 0;
-            $student->amount_paid = \App\StudentPayment::where('student_id', $student->id)
-                ->sum('amount_paid');
-            $student->balance = $student->total_fees - $student->amount_paid;
-        }
-        
-        return view('backend.finance.student-payments', compact('students', 'currentTerm', 'classes', 'allStudentsForModal'));
+        return view('backend.finance.student-payments', compact('students', 'currentTerm', 'classes'));
     }
 
     public function storePayment(Request $request)

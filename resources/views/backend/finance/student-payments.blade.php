@@ -261,7 +261,7 @@
                             <label class="block text-xs text-gray-600 mb-1">Select Student</label>
                             <select name="student_id" id="modal_student_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required onchange="updateStudentBalance()">
                                 <option value="">-- Select a student --</option>
-                                @foreach($allStudentsForModal as $student)
+                                @foreach($students as $student)
                                     @php
                                         $totalFees = $student->total_fees ?? 0;
                                         $amountPaid = $student->amount_paid ?? 0;
@@ -279,7 +279,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <p class="text-xs text-gray-500 mt-1" id="student_count">{{ $allStudentsForModal->count() }} students available</p>
+                            <p class="text-xs text-gray-500 mt-1" id="student_count">{{ $students->count() }} students available</p>
                         </div>
                         </div>
                         <div class="flex justify-end mt-4">
