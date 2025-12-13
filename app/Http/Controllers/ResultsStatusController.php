@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\ResultsStatus;
+use App\FeeType;
+use App\TermFee;
 
 class ResultsStatusController extends Controller
 {
     // Method to show the form for creating a new record
     public function create()
     {
-        return view('results_status.create');
+        $feeTypes = FeeType::where('is_active', true)->get();
+        return view('results_status.create', compact('feeTypes'));
     }
     public function index()
     {
@@ -24,6 +27,9 @@ class ResultsStatusController extends Controller
         $validatedData = $request->validate([
             'year' => 'required|integer',
             'result_period' => 'required|string',
+            'fees' => 'required|array',
+            'fees.*.fee_type_id' => 'required|exists:fee_types,id',
+            'fees.*.amount' => 'required|numeric|min:0',
         ]);
     
         // Attempt to create a new record only if it doesn't already exist
@@ -36,9 +42,21 @@ class ResultsStatusController extends Controller
         }
     
         // Create a new ResultsStatus record
-        ResultsStatus::create($validatedData);
+        $resultsStatus = ResultsStatus::create([
+            'year' => $validatedData['year'],
+            'result_period' => $validatedData['result_period']
+        ]);
+        
+        // Create term fees
+        foreach ($validatedData['fees'] as $fee) {
+            TermFee::create([
+                'results_status_id' => $resultsStatus->id,
+                'fee_type_id' => $fee['fee_type_id'],
+                'amount' => $fee['amount']
+            ]);
+        }
     
-        return redirect()->route('results_status.index')->with('success', 'Record created successfully.');
+        return redirect()->route('results_status.index')->with('success', 'Term and fees created successfully.');
     }
 
     public function destroy($id)
@@ -81,5 +99,26 @@ class ResultsStatusController extends Controller
         $resultStatus->update($request->only('result_period'));
 
         return redirect()->route('results_status.index')->with('success', 'Record updated successfully.');
+    }
+
+    // Method to store a new fee type via AJAX
+    public function storeFeeType(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255|unique:fee_types,name',
+            'description' => 'nullable|string',
+        ]);
+
+        $feeType = FeeType::create([
+            'name' => $validatedData['name'],
+            'description' => $validatedData['description'] ?? '',
+            'is_active' => true
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Fee type created successfully',
+            'feeType' => $feeType
+        ]);
     }
 }

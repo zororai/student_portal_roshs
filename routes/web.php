@@ -158,6 +158,9 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/finance/products', 'FinanceController@products')->name('finance.products');
     Route::get('/finance/statements', 'FinanceController@financialStatements')->name('finance.statements');
 
+    // Fee Type Management
+    Route::post('/fee-types/store', 'ResultsStatusController@storeFeeType')->name('fee-types.store');
+
 });
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()

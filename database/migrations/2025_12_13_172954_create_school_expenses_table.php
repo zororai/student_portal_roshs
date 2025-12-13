@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSchoolIncomesTable extends Migration
+class CreateSchoolExpensesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateSchoolIncomesTable extends Migration
      */
     public function up()
     {
-        Schema::create('school_incomes', function (Blueprint $table) {
+        Schema::create('school_expenses', function (Blueprint $table) {
             $table->id();
             $table->date('date');
             $table->string('category');
@@ -21,7 +21,8 @@ class CreateSchoolIncomesTable extends Migration
             $table->decimal('amount', 10, 2);
             $table->string('payment_method')->nullable();
             $table->string('reference_number')->nullable();
-            $table->string('received_by')->nullable();
+            $table->string('paid_to')->nullable();
+            $table->string('approved_by')->nullable();
             $table->timestamps();
         });
     }
@@ -33,6 +34,6 @@ class CreateSchoolIncomesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('school_incomes');
+        Schema::dropIfExists('school_expenses');
     }
 }
