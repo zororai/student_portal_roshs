@@ -56,7 +56,7 @@
 
     <!-- Students Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto overflow-y-visible" style="max-width: 100%;">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
@@ -171,7 +171,7 @@
 
     <!-- Payment Modal -->
     <div id="paymentModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white mb-10 max-h-[90vh] overflow-y-auto">
             <div class="mt-3">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xl font-bold text-gray-900">Record Payment</h3>
@@ -182,12 +182,46 @@
                     </button>
                 </div>
 
+                <!-- Stepper -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center flex-1">
+                            <div class="flex items-center text-blue-600 relative">
+                                <div class="rounded-full transition duration-500 ease-in-out h-10 w-10 flex items-center justify-center border-2 border-blue-600 bg-blue-600 text-white font-bold" id="step1-circle">1</div>
+                                <div class="absolute top-0 -ml-10 text-center mt-12 w-32 text-xs font-medium text-blue-600" id="step1-label">Select Student</div>
+                            </div>
+                            <div class="flex-auto border-t-2 transition duration-500 ease-in-out border-gray-300" id="line1"></div>
+                        </div>
+                        <div class="flex items-center flex-1">
+                            <div class="flex items-center text-gray-500 relative">
+                                <div class="rounded-full transition duration-500 ease-in-out h-10 w-10 flex items-center justify-center border-2 border-gray-300 bg-white font-bold" id="step2-circle">2</div>
+                                <div class="absolute top-0 -ml-10 text-center mt-12 w-32 text-xs font-medium text-gray-500" id="step2-label">Select Fees</div>
+                            </div>
+                            <div class="flex-auto border-t-2 transition duration-500 ease-in-out border-gray-300" id="line2"></div>
+                        </div>
+                        <div class="flex items-center flex-1">
+                            <div class="flex items-center text-gray-500 relative">
+                                <div class="rounded-full transition duration-500 ease-in-out h-10 w-10 flex items-center justify-center border-2 border-gray-300 bg-white font-bold" id="step3-circle">3</div>
+                                <div class="absolute top-0 -ml-10 text-center mt-12 w-32 text-xs font-medium text-gray-500" id="step3-label">Payment Details</div>
+                            </div>
+                            <div class="flex-auto border-t-2 transition duration-500 ease-in-out border-gray-300" id="line3"></div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="flex items-center text-gray-500 relative">
+                                <div class="rounded-full transition duration-500 ease-in-out h-10 w-10 flex items-center justify-center border-2 border-gray-300 bg-white font-bold" id="step4-circle">4</div>
+                                <div class="absolute top-0 -ml-10 text-center mt-12 w-32 text-xs font-medium text-gray-500" id="step4-label">Review & Submit</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <form id="paymentForm" method="POST" action="{{ route('finance.payments.store') }}">
                     @csrf
                     <input type="hidden" name="results_status_id" id="modal_results_status_id" value="{{ $currentTerm->id ?? '' }}">
 
-                    <!-- Student Selection Filters -->
-                    <div class="mb-4 bg-gray-50 p-4 rounded-lg">
+                    <!-- Step 1: Student Selection -->
+                    <div class="step-content" id="step1" style="display: block;">
+                        <div class="mb-4 bg-gray-50 p-4 rounded-lg">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Find Student</label>
                         <div class="grid grid-cols-2 gap-3 mb-3">
                             <div>
@@ -234,46 +268,93 @@
                             </select>
                             <p class="text-xs text-gray-500 mt-1" id="student_count">{{ $students->count() }} students available</p>
                         </div>
+                        </div>
+                        <div class="flex justify-end mt-4">
+                            <button type="button" onclick="nextStep(1)" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" id="step1-next">Next</button>
+                        </div>
                     </div>
 
-                    <!-- Student Info -->
+                    <!-- Step 2: Select Fees -->
+                    <div class="step-content" id="step2" style="display: none;">
+                        <!-- Student Info -->
                     <div class="bg-blue-50 p-4 rounded-lg mb-4" id="student_info_section" style="display: none;">
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
                             <div>
                                 <p class="text-sm text-gray-600">Student Name</p>
                                 <p class="font-semibold text-gray-900" id="modal_student_name"></p>
                             </div>
+                            <div class="text-center">
+                                <p class="text-sm text-gray-600">Original Balance</p>
+                                <p class="text-lg font-semibold text-gray-700" id="modal_original_balance">$0.00</p>
+                            </div>
                             <div class="text-right">
                                 <p class="text-sm text-gray-600">Outstanding Balance</p>
                                 <p class="text-2xl font-bold text-red-600" id="modal_balance">$0.00</p>
+                                <p class="text-xs text-gray-500 mt-1" id="balance_change_indicator"></p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Fee Types Selection -->
-                    <div class="mb-4" id="fee_types_section" style="display: none;">
+                        <!-- Fee Types Selection -->
+                        <div class="mb-4">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Select Fee Types to Pay</label>
-                        <div class="border border-gray-300 rounded-lg p-4 max-h-64 overflow-y-auto" id="feeTypesContainer">
+                        <div class="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto" id="feeTypesContainer">
                             @if(isset($currentTerm) && $currentTerm->termFees->count() > 0)
                                 @foreach($currentTerm->termFees as $termFee)
-                                <div class="flex items-center justify-between py-2 border-b border-gray-200 last:border-0">
-                                    <div class="flex items-center">
-                                        <input type="checkbox" name="fee_types[]" value="{{ $termFee->id }}" 
-                                               class="fee-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                               data-amount="{{ $termFee->amount }}">
-                                        <label class="ml-3 text-sm font-medium text-gray-700">{{ $termFee->feeType->name }}</label>
+                                <div class="py-3 border-b border-gray-200 last:border-0 fee-item">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center flex-1">
+                                            <input type="checkbox" 
+                                                   id="fee_{{ $termFee->id }}"
+                                                   class="fee-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                   data-fee-id="{{ $termFee->id }}"
+                                                   data-full-amount="{{ $termFee->amount }}"
+                                                   onchange="toggleFeeAmount({{ $termFee->id }})">
+                                            <label for="fee_{{ $termFee->id }}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
+                                                {{ $termFee->feeType->name }}
+                                            </label>
+                                            <span class="text-sm font-semibold text-gray-600">Full: ${{ number_format($termFee->amount, 2) }}</span>
+                                        </div>
                                     </div>
-                                    <span class="text-sm font-semibold text-gray-900">${{ number_format($termFee->amount, 2) }}</span>
+                                    <div class="ml-7 mt-2 hidden" id="amount_input_{{ $termFee->id }}">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex-1">
+                                                <label class="block text-xs text-gray-600 mb-1">Amount to Pay</label>
+                                                <input type="number" 
+                                                       name="fee_amounts[{{ $termFee->id }}]"
+                                                       id="amount_{{ $termFee->id }}"
+                                                       class="fee-amount-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                                       placeholder="Enter amount"
+                                                       min="0"
+                                                       max="{{ $termFee->amount }}"
+                                                       step="0.01"
+                                                       value="{{ $termFee->amount }}"
+                                                       oninput="updatePaymentCalculation()">
+                                            </div>
+                                            <button type="button" 
+                                                    onclick="setFullAmount({{ $termFee->id }}, {{ $termFee->amount }})"
+                                                    class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-xs font-medium mt-5">
+                                                Full Amount
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Maximum: ${{ number_format($termFee->amount, 2) }}</p>
+                                    </div>
                                 </div>
                                 @endforeach
                             @else
                                 <p class="text-gray-500 text-center py-4">No fee types available for current term</p>
                             @endif
                         </div>
+                        </div>
+                        <div class="flex justify-between mt-4">
+                            <button type="button" onclick="prevStep(2)" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Previous</button>
+                            <button type="button" onclick="nextStep(2)" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" id="step2-next">Next</button>
+                        </div>
                     </div>
 
-                    <!-- Payment Details -->
-                    <div class="grid grid-cols-2 gap-4 mb-4" id="payment_details_section" style="display: none;">
+                    <!-- Step 3: Payment Details -->
+                    <div class="step-content" id="step3" style="display: none;">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
                             <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" 
@@ -292,22 +373,29 @@
                         </div>
                     </div>
 
-                    <div class="mb-4" id="reference_section" style="display: none;">
+                        <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Reference Number (Optional)</label>
                         <input type="text" name="reference_number" 
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
                                placeholder="Transaction/Receipt number">
                     </div>
 
-                    <div class="mb-4" id="notes_section" style="display: none;">
+                        <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
                         <textarea name="notes" rows="2" 
                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
                                   placeholder="Additional notes about this payment"></textarea>
+                        </div>
+                        <div class="flex justify-between mt-4">
+                            <button type="button" onclick="prevStep(3)" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Previous</button>
+                            <button type="button" onclick="nextStep(3)" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Next</button>
+                        </div>
                     </div>
 
-                    <!-- Payment Summary -->
-                    <div class="bg-gray-50 p-4 rounded-lg mb-4" id="payment_summary_section" style="display: none;">
+                    <!-- Step 4: Review & Submit -->
+                    <div class="step-content" id="step4" style="display: none;">
+                        <!-- Payment Summary -->
+                        <div class="bg-gray-50 p-4 rounded-lg mb-4">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-sm text-gray-600">Selected Fees Total:</span>
                             <span class="text-lg font-bold text-gray-900" id="selected_total">$0.00</span>
@@ -320,18 +408,16 @@
                             <span class="text-sm font-bold text-gray-700">Remaining Balance:</span>
                             <span class="text-xl font-bold text-blue-600" id="remaining_balance">$0.00</span>
                         </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex gap-3">
-                        <button type="button" onclick="closePaymentModal()" 
-                                class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-300">
-                            Cancel
-                        </button>
-                        <button type="submit" 
-                                class="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700">
-                            Record Payment
-                        </button>
+                        </div>
+                        <div class="flex justify-between mt-4">
+                            <button type="button" onclick="prevStep(4)" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Previous</button>
+                            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
+                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Record Payment
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -341,18 +427,83 @@
 
 <script>
     let currentBalance = 0;
+    let currentStep = 1;
 
     function openPaymentModal() {
-        // Reset form and hide all sections
+        // Reset form and stepper
         document.getElementById('paymentForm').reset();
-        document.getElementById('student_info_section').style.display = 'none';
-        document.getElementById('fee_types_section').style.display = 'none';
-        document.getElementById('payment_details_section').style.display = 'none';
-        document.getElementById('reference_section').style.display = 'none';
-        document.getElementById('notes_section').style.display = 'none';
-        document.getElementById('payment_summary_section').style.display = 'none';
+        currentStep = 1;
+        showStep(1);
         
         document.getElementById('paymentModal').classList.remove('hidden');
+    }
+
+    function showStep(step) {
+        // Hide all steps
+        document.querySelectorAll('.step-content').forEach(el => el.style.display = 'none');
+        
+        // Show current step
+        document.getElementById('step' + step).style.display = 'block';
+        
+        // Update stepper UI
+        for (let i = 1; i <= 4; i++) {
+            const circle = document.getElementById('step' + i + '-circle');
+            const label = document.getElementById('step' + i + '-label');
+            const line = document.getElementById('line' + i);
+            
+            if (i < step) {
+                // Completed steps
+                circle.className = 'rounded-full transition duration-500 ease-in-out h-10 w-10 flex items-center justify-center border-2 border-green-600 bg-green-600 text-white font-bold';
+                circle.innerHTML = '✓';
+                label.className = 'absolute top-0 -ml-10 text-center mt-12 w-32 text-xs font-medium text-green-600';
+                if (line) line.className = 'flex-auto border-t-2 transition duration-500 ease-in-out border-green-600';
+            } else if (i === step) {
+                // Current step
+                circle.className = 'rounded-full transition duration-500 ease-in-out h-10 w-10 flex items-center justify-center border-2 border-blue-600 bg-blue-600 text-white font-bold';
+                circle.innerHTML = i;
+                label.className = 'absolute top-0 -ml-10 text-center mt-12 w-32 text-xs font-medium text-blue-600';
+                if (line) line.className = 'flex-auto border-t-2 transition duration-500 ease-in-out border-gray-300';
+            } else {
+                // Future steps
+                circle.className = 'rounded-full transition duration-500 ease-in-out h-10 w-10 flex items-center justify-center border-2 border-gray-300 bg-white font-bold';
+                circle.innerHTML = i;
+                label.className = 'absolute top-0 -ml-10 text-center mt-12 w-32 text-xs font-medium text-gray-500';
+                if (line) line.className = 'flex-auto border-t-2 transition duration-500 ease-in-out border-gray-300';
+            }
+        }
+        
+        currentStep = step;
+    }
+
+    function nextStep(step) {
+        // Validate current step before proceeding
+        if (step === 1) {
+            const studentId = document.getElementById('modal_student_id').value;
+            if (!studentId) {
+                alert('Please select a student before proceeding.');
+                return;
+            }
+            // Ensure student info section is visible when moving to Step 2
+            document.getElementById('student_info_section').style.display = 'block';
+        } else if (step === 2) {
+            const checkedFees = document.querySelectorAll('.fee-checkbox:checked');
+            if (checkedFees.length === 0) {
+                alert('Please select at least one fee type to proceed.');
+                return;
+            }
+        } else if (step === 3) {
+            const paymentMethod = document.querySelector('select[name="payment_method"]').value;
+            if (!paymentMethod) {
+                alert('Please select a payment method before proceeding.');
+                return;
+            }
+        }
+        
+        showStep(step + 1);
+    }
+
+    function prevStep(step) {
+        showStep(step - 1);
     }
 
     function closePaymentModal() {
@@ -414,44 +565,95 @@
             // Update student info
             document.getElementById('modal_student_name').textContent = studentName;
             document.getElementById('modal_balance').textContent = '$' + balance.toFixed(2);
+            document.getElementById('modal_original_balance').textContent = '$' + balance.toFixed(2);
             currentBalance = balance;
             
-            // Show all sections
+            // Show student info section
             document.getElementById('student_info_section').style.display = 'block';
-            document.getElementById('fee_types_section').style.display = 'block';
-            document.getElementById('payment_details_section').style.display = 'grid';
-            document.getElementById('reference_section').style.display = 'block';
-            document.getElementById('notes_section').style.display = 'block';
-            document.getElementById('payment_summary_section').style.display = 'block';
             
             // Reset checkboxes and calculations
-            document.querySelectorAll('.fee-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.fee-checkbox').forEach(cb => {
+                cb.checked = false;
+                const feeId = cb.dataset.feeId;
+                const amountInput = document.getElementById('amount_input_' + feeId);
+                if (amountInput) {
+                    amountInput.classList.add('hidden');
+                }
+            });
             updatePaymentCalculation();
         } else {
-            // Hide all sections if no student selected
+            // Hide student info section
             document.getElementById('student_info_section').style.display = 'none';
-            document.getElementById('fee_types_section').style.display = 'none';
-            document.getElementById('payment_details_section').style.display = 'none';
-            document.getElementById('reference_section').style.display = 'none';
-            document.getElementById('notes_section').style.display = 'none';
-            document.getElementById('payment_summary_section').style.display = 'none';
         }
+    }
+
+    function toggleFeeAmount(feeId) {
+        const checkbox = document.getElementById('fee_' + feeId);
+        const amountInput = document.getElementById('amount_input_' + feeId);
+        
+        if (checkbox.checked) {
+            amountInput.classList.remove('hidden');
+            // Set default to full amount
+            const fullAmount = parseFloat(checkbox.dataset.fullAmount);
+            document.getElementById('amount_' + feeId).value = fullAmount;
+        } else {
+            amountInput.classList.add('hidden');
+            document.getElementById('amount_' + feeId).value = '';
+        }
+        
+        updatePaymentCalculation();
+    }
+
+    function setFullAmount(feeId, amount) {
+        document.getElementById('amount_' + feeId).value = amount;
+        updatePaymentCalculation();
     }
 
     function updatePaymentCalculation() {
         let selectedTotal = 0;
         
+        // Calculate total from checked fees with their custom amounts
         document.querySelectorAll('.fee-checkbox:checked').forEach(checkbox => {
-            selectedTotal += parseFloat(checkbox.dataset.amount);
+            const feeId = checkbox.dataset.feeId;
+            const amountInput = document.getElementById('amount_' + feeId);
+            const amount = parseFloat(amountInput.value) || 0;
+            selectedTotal += amount;
         });
         
         const remainingBalance = currentBalance - selectedTotal;
         
+        // Update outstanding balance in Step 2 (student info section)
+        const balanceElement = document.getElementById('modal_balance');
+        const balanceIndicator = document.getElementById('balance_change_indicator');
+        
+        if (balanceElement) {
+            balanceElement.textContent = '$' + remainingBalance.toFixed(2);
+            
+            // Update color based on remaining balance
+            if (remainingBalance < 0) {
+                balanceElement.className = 'text-2xl font-bold text-red-600';
+                balanceIndicator.textContent = 'Overpayment!';
+                balanceIndicator.className = 'text-xs text-red-600 mt-1 font-semibold';
+            } else if (remainingBalance === 0) {
+                balanceElement.className = 'text-2xl font-bold text-green-600';
+                balanceIndicator.textContent = 'Fully Paid ✓';
+                balanceIndicator.className = 'text-xs text-green-600 mt-1 font-semibold';
+            } else if (selectedTotal > 0) {
+                balanceElement.className = 'text-2xl font-bold text-orange-600';
+                balanceIndicator.textContent = 'Paying $' + selectedTotal.toFixed(2);
+                balanceIndicator.className = 'text-xs text-blue-600 mt-1 font-semibold';
+            } else {
+                balanceElement.className = 'text-2xl font-bold text-red-600';
+                balanceIndicator.textContent = '';
+            }
+        }
+        
+        // Update Step 4 summary
         document.getElementById('selected_total').textContent = '$' + selectedTotal.toFixed(2);
         document.getElementById('current_balance').textContent = '$' + currentBalance.toFixed(2);
         document.getElementById('remaining_balance').textContent = '$' + remainingBalance.toFixed(2);
         
-        // Change color based on remaining balance
+        // Change color based on remaining balance in Step 4
         const remainingElement = document.getElementById('remaining_balance');
         if (remainingBalance < 0) {
             remainingElement.classList.remove('text-blue-600', 'text-green-600');

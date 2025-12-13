@@ -51,31 +51,47 @@ class FinanceController extends Controller
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
             'results_status_id' => 'required|exists:results_statuses,id',
-            'fee_types' => 'required|array',
-            'fee_types.*' => 'exists:term_fees,id',
+            'fee_amounts' => 'required|array',
+            'fee_amounts.*' => 'required|numeric|min:0',
             'payment_date' => 'required|date',
             'payment_method' => 'required|string',
             'reference_number' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
 
-        foreach ($validated['fee_types'] as $termFeeId) {
+        $totalPaid = 0;
+
+        foreach ($validated['fee_amounts'] as $termFeeId => $amount) {
+            // Skip if amount is 0 or empty
+            if ($amount <= 0) {
+                continue;
+            }
+
             $termFee = \App\TermFee::findOrFail($termFeeId);
+            
+            // Validate amount doesn't exceed fee amount
+            if ($amount > $termFee->amount) {
+                return redirect()->back()
+                    ->withErrors(['fee_amounts' => 'Payment amount cannot exceed the fee amount for ' . $termFee->feeType->name])
+                    ->withInput();
+            }
             
             \App\StudentPayment::create([
                 'student_id' => $validated['student_id'],
                 'results_status_id' => $validated['results_status_id'],
                 'term_fee_id' => $termFeeId,
-                'amount_paid' => $termFee->amount,
+                'amount_paid' => $amount,
                 'payment_date' => $validated['payment_date'],
                 'payment_method' => $validated['payment_method'],
                 'reference_number' => $validated['reference_number'],
                 'notes' => $validated['notes'],
             ]);
+
+            $totalPaid += $amount;
         }
 
         return redirect()->route('finance.student-payments')
-            ->with('success', 'Payment recorded successfully!');
+            ->with('success', 'Payment of $' . number_format($totalPaid, 2) . ' recorded successfully!');
     }
 
     public function parentsArrears()
