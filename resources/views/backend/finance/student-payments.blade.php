@@ -14,17 +14,13 @@
         </div>
     </div>
 
-    <!-- Search and Filter -->
+    <!-- Filter -->
     <form method="GET" action="{{ route('finance.student-payments') }}" id="filterForm">
         <div class="bg-white rounded-lg shadow p-4 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Student</label>
-                    <input type="text" name="search" id="searchStudent" value="{{ request('search') }}" placeholder="Search by name or roll number..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Class</label>
-                    <select name="class_id" id="filterClass" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="document.getElementById('filterForm').submit()">
+                    <select name="class_id" id="filterClass" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">All Classes</option>
                         @foreach($classes as $class)
                             <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
@@ -35,7 +31,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
-                    <select name="status" id="filterStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="document.getElementById('filterForm').submit()">
+                    <select name="status" id="filterStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">All Status</option>
                         <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Fully Paid</option>
                         <option value="partial" {{ request('status') == 'partial' ? 'selected' : '' }}>Partially Paid</option>
@@ -182,6 +178,21 @@
                     </button>
                 </div>
 
+                <!-- Alert Container -->
+                <div id="modal_alert" class="hidden mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <span id="modal_alert_message" class="font-medium"></span>
+                    </div>
+                    <button onclick="hideAlert()" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                        <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                        </svg>
+                    </button>
+                </div>
+
                 <!-- Stepper -->
                 <div class="mb-6">
                     <div class="flex items-center justify-between">
@@ -250,7 +261,7 @@
                             <label class="block text-xs text-gray-600 mb-1">Select Student</label>
                             <select name="student_id" id="modal_student_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required onchange="updateStudentBalance()">
                                 <option value="">-- Select a student --</option>
-                                @foreach($students as $student)
+                                @foreach($allStudentsForModal as $student)
                                     @php
                                         $totalFees = $student->total_fees ?? 0;
                                         $amountPaid = $student->amount_paid ?? 0;
@@ -258,6 +269,8 @@
                                     @endphp
                                     <option value="{{ $student->id }}" 
                                             data-name="{{ $student->name }}" 
+                                            data-total-fees="{{ $totalFees }}"
+                                            data-amount-paid="{{ $amountPaid }}"
                                             data-balance="{{ $balance }}"
                                             data-class="{{ $student->class->id ?? '' }}"
                                             data-roll="{{ $student->roll_number }}"
@@ -266,7 +279,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <p class="text-xs text-gray-500 mt-1" id="student_count">{{ $students->count() }} students available</p>
+                            <p class="text-xs text-gray-500 mt-1" id="student_count">{{ $allStudentsForModal->count() }} students available</p>
                         </div>
                         </div>
                         <div class="flex justify-end mt-4">
@@ -406,7 +419,7 @@
                         </div>
                         <div class="flex justify-between items-center pt-2 border-t border-gray-300">
                             <span class="text-sm font-bold text-gray-700">Remaining Balance:</span>
-                            <span class="text-xl font-bold text-blue-600" id="remaining_balance">$0.00</span>
+                            <span class="text-xl font-bold text-red-600" id="remaining_balance">$0.00</span>
                         </div>
                         </div>
                         <div class="flex justify-between mt-4">
@@ -475,12 +488,34 @@
         currentStep = step;
     }
 
+    function showAlert(message) {
+        const alertBox = document.getElementById('modal_alert');
+        const alertMessage = document.getElementById('modal_alert_message');
+        alertMessage.textContent = message;
+        alertBox.classList.remove('hidden');
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            hideAlert();
+        }, 5000);
+        
+        // Scroll to top of modal to show alert
+        document.querySelector('#paymentModal > div').scrollTop = 0;
+    }
+
+    function hideAlert() {
+        document.getElementById('modal_alert').classList.add('hidden');
+    }
+
     function nextStep(step) {
+        // Hide any existing alerts
+        hideAlert();
+        
         // Validate current step before proceeding
         if (step === 1) {
             const studentId = document.getElementById('modal_student_id').value;
             if (!studentId) {
-                alert('Please select a student before proceeding.');
+                showAlert('Please select a student before proceeding.');
                 return;
             }
             // Ensure student info section is visible when moving to Step 2
@@ -488,13 +523,13 @@
         } else if (step === 2) {
             const checkedFees = document.querySelectorAll('.fee-checkbox:checked');
             if (checkedFees.length === 0) {
-                alert('Please select at least one fee type to proceed.');
+                showAlert('Please select at least one fee type to proceed.');
                 return;
             }
         } else if (step === 3) {
             const paymentMethod = document.querySelector('select[name="payment_method"]').value;
             if (!paymentMethod) {
-                alert('Please select a payment method before proceeding.');
+                showAlert('Please select a payment method before proceeding.');
                 return;
             }
         }
@@ -554,13 +589,18 @@
         }
     }
 
+    let totalFees = 0;
+    let amountAlreadyPaid = 0;
+
     function updateStudentBalance() {
         const studentSelect = document.getElementById('modal_student_id');
         const selectedOption = studentSelect.options[studentSelect.selectedIndex];
         
         if (selectedOption.value) {
             const studentName = selectedOption.dataset.name;
-            const balance = parseFloat(selectedOption.dataset.balance);
+            totalFees = parseFloat(selectedOption.dataset.totalFees) || 0;
+            amountAlreadyPaid = parseFloat(selectedOption.dataset.amountPaid) || 0;
+            const balance = totalFees - amountAlreadyPaid;
             
             // Update student info
             document.getElementById('modal_student_name').textContent = studentName;
@@ -662,8 +702,8 @@
             remainingElement.classList.remove('text-blue-600', 'text-red-600');
             remainingElement.classList.add('text-green-600');
         } else {
-            remainingElement.classList.remove('text-red-600', 'text-green-600');
-            remainingElement.classList.add('text-blue-600');
+            remainingElement.classList.remove('text-blue-600', 'text-green-600');
+            remainingElement.classList.add('text-red-600');
         }
     }
 

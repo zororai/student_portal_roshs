@@ -14,6 +14,11 @@ class FinanceController extends Controller
 {
     public function studentPayments(Request $request)
     {
+        $currentTerm = \App\ResultsStatus::with('termFees.feeType')
+            ->orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+        
         $query = Student::with(['user', 'class', 'parent.user', 'payments.termFee.feeType']);
         
         // Apply class filter if provided
@@ -21,29 +26,69 @@ class FinanceController extends Controller
             $query->where('class_id', $request->class_id);
         }
         
-        // Apply search filter if provided
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->whereHas('user', function($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%');
-            })->orWhere('roll_number', 'like', '%' . $search . '%');
+        $allStudents = $query->orderBy('created_at', 'desc')->get();
+        
+        // Calculate total fees and amount paid for each student
+        foreach ($allStudents as $student) {
+            // Get total fees from current term
+            $student->total_fees = $currentTerm ? $currentTerm->total_fees : 0;
+            
+            // Calculate amount already paid by this student
+            $student->amount_paid = \App\StudentPayment::where('student_id', $student->id)
+                ->sum('amount_paid');
+            
+            // Calculate balance
+            $student->balance = $student->total_fees - $student->amount_paid;
         }
         
-        // Apply status filter if provided
+        // Apply status filter after calculating balances
         if ($request->has('status') && $request->status != '') {
-            // This will be handled in the view since we need to calculate balance
+            $status = $request->status;
+            $allStudents = $allStudents->filter(function($student) use ($status) {
+                $balance = $student->balance;
+                $totalFees = $student->total_fees;
+                $amountPaid = $student->amount_paid;
+                
+                if ($status === 'paid') {
+                    return $balance == 0 && $totalFees > 0;
+                } elseif ($status === 'partial') {
+                    return $amountPaid > 0 && $balance > 0;
+                } elseif ($status === 'unpaid') {
+                    return $amountPaid == 0 || $balance == $totalFees;
+                }
+                return true;
+            });
         }
         
-        $students = $query->orderBy('created_at', 'desc')->paginate(20);
+        // Manual pagination
+        $perPage = 20;
+        $currentPage = $request->get('page', 1);
+        $offset = ($currentPage - 1) * $perPage;
         
-        $currentTerm = \App\ResultsStatus::with('termFees.feeType')
-            ->orderBy('year', 'desc')
-            ->orderBy('result_period', 'desc')
-            ->first();
+        $students = new \Illuminate\Pagination\LengthAwarePaginator(
+            $allStudents->slice($offset, $perPage)->values(),
+            $allStudents->count(),
+            $perPage,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
         
         $classes = \App\Grade::orderBy('class_name')->get();
         
-        return view('backend.finance.student-payments', compact('students', 'currentTerm', 'classes'));
+        // Load all students for the Record Payment modal (unfiltered)
+        $allStudentsForModal = Student::with(['user', 'class'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Calculate fees for modal students
+        foreach ($allStudentsForModal as $student) {
+            $student->total_fees = $currentTerm ? $currentTerm->total_fees : 0;
+            $student->amount_paid = \App\StudentPayment::where('student_id', $student->id)
+                ->sum('amount_paid');
+            $student->balance = $student->total_fees - $student->amount_paid;
+        }
+        
+        return view('backend.finance.student-payments', compact('students', 'currentTerm', 'classes', 'allStudentsForModal'));
     }
 
     public function storePayment(Request $request)
@@ -90,8 +135,15 @@ class FinanceController extends Controller
             $totalPaid += $amount;
         }
 
+        // Calculate student's new balance for success message
+        $student = Student::find($validated['student_id']);
+        $currentTerm = \App\ResultsStatus::find($validated['results_status_id']);
+        $totalFees = $currentTerm ? $currentTerm->total_fees : 0;
+        $totalAmountPaid = \App\StudentPayment::where('student_id', $validated['student_id'])->sum('amount_paid');
+        $remainingBalance = $totalFees - $totalAmountPaid;
+
         return redirect()->route('finance.student-payments')
-            ->with('success', 'Payment of $' . number_format($totalPaid, 2) . ' recorded successfully!');
+            ->with('success', 'Payment of $' . number_format($totalPaid, 2) . ' recorded successfully! Remaining balance: $' . number_format($remainingBalance, 2));
     }
 
     public function parentsArrears()
