@@ -157,22 +157,54 @@
                     @csrf
                     <input type="hidden" name="results_status_id" id="modal_results_status_id" value="{{ $currentTerm->id ?? '' }}">
 
-                    <!-- Student Selection -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Select Student</label>
-                        <select name="student_id" id="modal_student_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required onchange="updateStudentBalance()">
-                            <option value="">-- Select a student --</option>
-                            @foreach($students as $student)
-                                @php
-                                    $totalFees = $student->total_fees ?? 0;
-                                    $amountPaid = $student->amount_paid ?? 0;
-                                    $balance = $totalFees - $amountPaid;
-                                @endphp
-                                <option value="{{ $student->id }}" data-name="{{ $student->name }}" data-balance="{{ $balance }}">
-                                    {{ $student->name }} ({{ $student->roll_number }}) - Balance: ${{ number_format($balance, 2) }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <!-- Student Selection Filters -->
+                    <div class="mb-4 bg-gray-50 p-4 rounded-lg">
+                        <label class="block text-sm font-bold text-gray-700 mb-3">Find Student</label>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">Filter by Class</label>
+                                <select id="modal_class_filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" onchange="filterStudents()">
+                                    <option value="">All Classes</option>
+                                    @php
+                                        $classes = $students->pluck('class')->unique()->filter();
+                                    @endphp
+                                    @foreach($classes as $class)
+                                        @if($class)
+                                            <option value="{{ $class->id }}">{{ $class->class_name }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">Search Student</label>
+                                <input type="text" id="modal_student_search" placeholder="Name or Roll Number..." 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                       oninput="filterStudents()">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs text-gray-600 mb-1">Select Student</label>
+                            <select name="student_id" id="modal_student_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required onchange="updateStudentBalance()">
+                                <option value="">-- Select a student --</option>
+                                @foreach($students as $student)
+                                    @php
+                                        $totalFees = $student->total_fees ?? 0;
+                                        $amountPaid = $student->amount_paid ?? 0;
+                                        $balance = $totalFees - $amountPaid;
+                                    @endphp
+                                    <option value="{{ $student->id }}" 
+                                            data-name="{{ $student->name }}" 
+                                            data-balance="{{ $balance }}"
+                                            data-class="{{ $student->class->id ?? '' }}"
+                                            data-roll="{{ $student->roll_number }}"
+                                            class="student-option">
+                                        {{ $student->name }} ({{ $student->roll_number }}) - {{ $student->class->class_name ?? 'N/A' }} - Balance: ${{ number_format($balance, 2) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1" id="student_count">{{ $students->count() }} students available</p>
+                        </div>
                     </div>
 
                     <!-- Student Info -->
@@ -277,9 +309,7 @@
         </div>
     </div>
 </div>
-@endsection
 
-@push('scripts')
 <script>
     let currentBalance = 0;
 
@@ -299,6 +329,49 @@
     function closePaymentModal() {
         document.getElementById('paymentModal').classList.add('hidden');
         document.getElementById('paymentForm').reset();
+    }
+
+    function filterStudents() {
+        const classFilter = document.getElementById('modal_class_filter').value;
+        const searchText = document.getElementById('modal_student_search').value.toLowerCase();
+        const studentSelect = document.getElementById('modal_student_id');
+        const options = studentSelect.querySelectorAll('.student-option');
+        
+        let visibleCount = 0;
+        
+        options.forEach(option => {
+            const studentName = option.dataset.name.toLowerCase();
+            const studentRoll = option.dataset.roll.toLowerCase();
+            const studentClass = option.dataset.class;
+            
+            // Check class filter
+            const classMatch = !classFilter || studentClass === classFilter;
+            
+            // Check search text
+            const searchMatch = !searchText || 
+                               studentName.includes(searchText) || 
+                               studentRoll.includes(searchText);
+            
+            // Show or hide option
+            if (classMatch && searchMatch) {
+                option.style.display = '';
+                visibleCount++;
+            } else {
+                option.style.display = 'none';
+            }
+        });
+        
+        // Update count
+        document.getElementById('student_count').textContent = visibleCount + ' student' + (visibleCount !== 1 ? 's' : '') + ' found';
+        
+        // Reset selection if current selection is hidden
+        if (studentSelect.value) {
+            const selectedOption = studentSelect.options[studentSelect.selectedIndex];
+            if (selectedOption.style.display === 'none') {
+                studentSelect.value = '';
+                updateStudentBalance();
+            }
+        }
     }
 
     function updateStudentBalance() {
@@ -401,4 +474,5 @@
         });
     });
 </script>
-@endpush
+
+@endsection
