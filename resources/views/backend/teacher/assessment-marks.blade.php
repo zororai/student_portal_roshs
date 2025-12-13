@@ -223,6 +223,17 @@
                     td.className = 'px-6 py-4 border-l border-gray-200';
                     td.innerHTML = `
                         <div class="space-y-2">
+                            <select name="marks[${studentId}][${paperIndex}][absence_reason]"
+                                    class="absence-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                    data-student="${studentId}"
+                                    data-paper="${paperIndex}"
+                                    onchange="handleAbsenceChange(this)">
+                                <option value="">Present</option>
+                                <option value="Sick">Sick</option>
+                                <option value="Absent">Absent</option>
+                                <option value="Late">Late</option>
+                                <option value="Excused">Excused</option>
+                            </select>
                             <input type="number" 
                                    name="marks[${studentId}][${paperIndex}][mark]"
                                    placeholder="Mark"
@@ -245,6 +256,33 @@
                     row.appendChild(td);
                 });
             });
+        }
+
+        function handleAbsenceChange(selectElement) {
+            const studentId = selectElement.dataset.student;
+            const paperIndex = selectElement.dataset.paper;
+            const absenceReason = selectElement.value;
+            
+            // Find the corresponding mark input and comment textarea
+            const markInput = document.querySelector(`input[name="marks[${studentId}][${paperIndex}][mark]"]`);
+            const commentTextarea = document.querySelector(`textarea[name="marks[${studentId}][${paperIndex}][comment]"]`);
+            
+            if (absenceReason) {
+                // Student is absent - disable mark entry and clear values
+                markInput.disabled = true;
+                markInput.value = '';
+                markInput.style.backgroundColor = '#f3f4f6';
+                commentTextarea.value = absenceReason;
+                commentTextarea.disabled = true;
+                commentTextarea.style.backgroundColor = '#f3f4f6';
+            } else {
+                // Student is present - enable mark entry
+                markInput.disabled = false;
+                markInput.style.backgroundColor = '';
+                commentTextarea.value = '';
+                commentTextarea.disabled = false;
+                commentTextarea.style.backgroundColor = '';
+            }
         }
 
         function calculateGrade(mark, totalMarks) {

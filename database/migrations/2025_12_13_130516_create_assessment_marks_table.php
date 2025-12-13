@@ -19,9 +19,10 @@ class CreateAssessmentMarksTable extends Migration
             $table->unsignedBigInteger('student_id');
             $table->string('paper_name');
             $table->integer('paper_index');
-            $table->decimal('mark', 8, 2);
+            $table->decimal('mark', 8, 2)->nullable();
             $table->decimal('total_marks', 8, 2);
             $table->text('comment')->nullable();
+            $table->string('absence_reason')->nullable();
             $table->timestamps();
 
             $table->foreign('assessment_id')->references('id')->on('assessments')->onDelete('cascade');

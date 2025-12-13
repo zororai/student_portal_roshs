@@ -13,7 +13,8 @@ class AssessmentMark extends Model
         'paper_index',
         'mark',
         'total_marks',
-        'comment'
+        'comment',
+        'absence_reason'
     ];
 
     protected $casts = [

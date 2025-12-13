@@ -514,15 +514,18 @@ class TeacherController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        // Get assessment IDs that already have marks
-        $assessmentsWithMarks = \App\AssessmentMark::whereIn('assessment_id', $allAssessments->pluck('id'))
-            ->distinct('assessment_id')
-            ->pluck('assessment_id')
-            ->toArray();
+        // Get students count in the class
+        $studentsCount = $class->students()->count();
 
-        // Filter out assessments that already have marks
-        $assessments = $allAssessments->filter(function($assessment) use ($assessmentsWithMarks) {
-            return !in_array($assessment->id, $assessmentsWithMarks);
+        // Filter out assessments where all students have marks entered
+        $assessments = $allAssessments->filter(function($assessment) use ($studentsCount) {
+            // Count how many students have marks for this assessment
+            $markedStudentsCount = \App\AssessmentMark::where('assessment_id', $assessment->id)
+                ->distinct('student_id')
+                ->count('student_id');
+            
+            // Only show assessment if not all students have been marked
+            return $markedStudentsCount < $studentsCount;
         });
 
         // Get students in the class

@@ -141,10 +141,11 @@
             );
 
             validPapers.forEach(paper => {
-                const th = document.createElement('th');
-                th.scope = 'col';
-                th.className = 'px-6 py-4 text-center text-xs font-semibold text-gray-700 border-l border-gray-200';
-                th.innerHTML = `
+                // Mark column
+                const thMark = document.createElement('th');
+                thMark.scope = 'col';
+                thMark.className = 'px-6 py-4 text-center text-xs font-semibold text-gray-700 border-l border-gray-200';
+                thMark.innerHTML = `
                     <div class="space-y-1">
                         <div class="font-bold text-gray-900">${paper.name}</div>
                         <div class="text-gray-600 text-xs">Type: ${paper.name}</div>
@@ -152,7 +153,14 @@
                         <div class="text-gray-600">Out of ${paper.weight} marks</div>
                     </div>
                 `;
-                headerRow.appendChild(th);
+                headerRow.appendChild(thMark);
+                
+                // Comment column
+                const thComment = document.createElement('th');
+                thComment.scope = 'col';
+                thComment.className = 'px-6 py-4 text-center text-xs font-semibold text-gray-700 border-l border-gray-200';
+                thComment.innerHTML = `<div class="font-semibold text-gray-900">Comment</div>`;
+                headerRow.appendChild(thComment);
             });
 
             // Build body
@@ -183,21 +191,18 @@
 
                 validPapers.forEach((paper, index) => {
                     const paperMark = studentMark.papers[index];
-                    const td = document.createElement('td');
-                    td.className = 'px-6 py-4 border-l border-gray-200';
                     
-                    if (paperMark) {
-                        td.innerHTML = `
-                            <div class="space-y-1">
-                                <div class="text-sm font-bold text-gray-900 text-center">${paperMark.mark}</div>
-                                <div class="text-xs text-gray-600">${paperMark.comment || ''}</div>
-                            </div>
-                        `;
-                    } else {
-                        td.innerHTML = `<div class="text-sm text-gray-400 text-center">-</div>`;
-                    }
+                    // Mark column
+                    const tdMark = document.createElement('td');
+                    tdMark.className = 'px-6 py-4 border-l border-gray-200 text-center';
+                    tdMark.innerHTML = paperMark ? `<div class="text-sm font-bold text-gray-900">${paperMark.mark}</div>` : `<div class="text-sm text-gray-400">-</div>`;
+                    tr.appendChild(tdMark);
                     
-                    tr.appendChild(td);
+                    // Comment column
+                    const tdComment = document.createElement('td');
+                    tdComment.className = 'px-6 py-4 border-l border-gray-200';
+                    tdComment.innerHTML = paperMark ? `<div class="text-xs text-gray-600">${paperMark.comment || ''}</div>` : `<div class="text-sm text-gray-400">-</div>`;
+                    tr.appendChild(tdComment);
                 });
 
                 tbody.appendChild(tr);
