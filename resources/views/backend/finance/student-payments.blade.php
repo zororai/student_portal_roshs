@@ -15,29 +15,44 @@
     </div>
 
     <!-- Search and Filter -->
-    <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Search Student</label>
-                <input type="text" id="searchStudent" placeholder="Search by name or roll number..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <form method="GET" action="{{ route('finance.student-payments') }}" id="filterForm">
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Student</label>
+                    <input type="text" name="search" id="searchStudent" value="{{ request('search') }}" placeholder="Search by name or roll number..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Class</label>
+                    <select name="class_id" id="filterClass" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Classes</option>
+                        @foreach($classes as $class)
+                            <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                                {{ $class->class_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
+                    <select name="status" id="filterStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Status</option>
+                        <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Fully Paid</option>
+                        <option value="partial" {{ request('status') == 'partial' ? 'selected' : '' }}>Partially Paid</option>
+                        <option value="unpaid" {{ request('status') == 'unpaid' ? 'selected' : '' }}>Unpaid</option>
+                    </select>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Class</label>
-                <select id="filterClass" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Classes</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
-                <select id="filterStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">All Status</option>
-                    <option value="paid">Fully Paid</option>
-                    <option value="partial">Partially Paid</option>
-                    <option value="unpaid">Unpaid</option>
-                </select>
+            <div class="mt-3 flex justify-end gap-2">
+                <a href="{{ route('finance.student-payments') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm">
+                    Clear Filters
+                </a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                    Apply Filters
+                </button>
             </div>
         </div>
-    </div>
+    </form>
 
     <!-- Students Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -49,6 +64,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fees Paid For</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Fees</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
@@ -98,6 +114,19 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $student->parent->user->name ?? 'N/A' }}
                         </td>
+                        <td class="px-6 py-4">
+                            @if($student->payments && $student->payments->count() > 0)
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach($student->payments->unique('term_fee_id') as $payment)
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800" title="Paid on {{ $payment->payment_date->format('M d, Y') }}">
+                                            {{ $payment->termFee->feeType->name ?? 'N/A' }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @else
+                                <span class="text-xs text-gray-400 italic">No payments yet</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                             ${{ number_format($totalFees, 2) }}
                         </td>
@@ -125,7 +154,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="10" class="px-6 py-4 text-center text-gray-500">
                             No students found
                         </td>
                     </tr>
@@ -460,17 +489,12 @@
             }
         });
         
-        // Add event listeners for filtering (implement AJAX filtering if needed)
-        searchInput.addEventListener('input', function() {
-            // Implement search functionality
-        });
-        
-        filterClass.addEventListener('change', function() {
-            // Implement class filter
-        });
-        
-        filterStatus.addEventListener('change', function() {
-            // Implement status filter
+        // Search input - submit form on Enter key
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('filterForm').submit();
+            }
         });
     });
 </script>

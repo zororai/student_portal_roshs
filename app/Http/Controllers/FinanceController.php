@@ -12,18 +12,38 @@ use DB;
 
 class FinanceController extends Controller
 {
-    public function studentPayments()
+    public function studentPayments(Request $request)
     {
-        $students = Student::with(['user', 'class', 'parent.user'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $query = Student::with(['user', 'class', 'parent.user', 'payments.termFee.feeType']);
+        
+        // Apply class filter if provided
+        if ($request->has('class_id') && $request->class_id != '') {
+            $query->where('class_id', $request->class_id);
+        }
+        
+        // Apply search filter if provided
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%');
+            })->orWhere('roll_number', 'like', '%' . $search . '%');
+        }
+        
+        // Apply status filter if provided
+        if ($request->has('status') && $request->status != '') {
+            // This will be handled in the view since we need to calculate balance
+        }
+        
+        $students = $query->orderBy('created_at', 'desc')->paginate(20);
         
         $currentTerm = \App\ResultsStatus::with('termFees.feeType')
             ->orderBy('year', 'desc')
             ->orderBy('result_period', 'desc')
             ->first();
         
-        return view('backend.finance.student-payments', compact('students', 'currentTerm'));
+        $classes = \App\Grade::orderBy('class_name')->get();
+        
+        return view('backend.finance.student-payments', compact('students', 'currentTerm', 'classes'));
     }
 
     public function storePayment(Request $request)

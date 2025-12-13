@@ -45,6 +45,11 @@ class Student extends Model
         return $this->hasMany(Attendance::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(StudentPayment::class);
+    }
+
     public function subjects()
     {
         return $this->belongsToMany(Subject::class, 'student_subject', 'student_id', 'subject_id');
