@@ -152,6 +152,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
     // Finance & Accounting Routes
     Route::get('/finance/student-payments', 'FinanceController@studentPayments')->name('finance.student-payments');
+    Route::post('/finance/payments/store', 'FinanceController@storePayment')->name('finance.payments.store');
     Route::get('/finance/parents-arrears', 'FinanceController@parentsArrears')->name('finance.parents-arrears');
     Route::get('/finance/school-income', 'FinanceController@schoolIncome')->name('finance.school-income');
     Route::get('/finance/school-expenses', 'FinanceController@schoolExpenses')->name('finance.school-expenses');

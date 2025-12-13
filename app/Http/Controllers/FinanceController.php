@@ -18,7 +18,44 @@ class FinanceController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
         
-        return view('backend.finance.student-payments', compact('students'));
+        $currentTerm = \App\ResultsStatus::with('termFees.feeType')
+            ->orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+        
+        return view('backend.finance.student-payments', compact('students', 'currentTerm'));
+    }
+
+    public function storePayment(Request $request)
+    {
+        $validated = $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'results_status_id' => 'required|exists:results_statuses,id',
+            'fee_types' => 'required|array',
+            'fee_types.*' => 'exists:term_fees,id',
+            'payment_date' => 'required|date',
+            'payment_method' => 'required|string',
+            'reference_number' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        foreach ($validated['fee_types'] as $termFeeId) {
+            $termFee = \App\TermFee::findOrFail($termFeeId);
+            
+            \App\StudentPayment::create([
+                'student_id' => $validated['student_id'],
+                'results_status_id' => $validated['results_status_id'],
+                'term_fee_id' => $termFeeId,
+                'amount_paid' => $termFee->amount,
+                'payment_date' => $validated['payment_date'],
+                'payment_method' => $validated['payment_method'],
+                'reference_number' => $validated['reference_number'],
+                'notes' => $validated['notes'],
+            ]);
+        }
+
+        return redirect()->route('finance.student-payments')
+            ->with('success', 'Payment recorded successfully!');
     }
 
     public function parentsArrears()
