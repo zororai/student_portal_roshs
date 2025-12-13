@@ -378,7 +378,7 @@
 
         function saveMarks() {
             if (!currentAssessmentId) {
-                alert('Please select an assessment first.');
+                showErrorDialog('Please select an assessment first.');
                 return;
             }
 
@@ -412,7 +412,7 @@
             });
 
             if (marksData.length === 0) {
-                alert('Please enter at least one mark before saving.');
+                showErrorDialog('Please enter at least one mark before saving.');
                 return;
             }
 
@@ -423,7 +423,77 @@
             });
 
             // For now, just show a success message
-            alert('Marks saved successfully! (Note: Backend integration pending)');
+            showSuccessDialog('Marks saved successfully!', 'Note: Backend integration pending');
+        }
+
+        function showSuccessDialog(title, message) {
+            const modalContent = `
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="successModal">
+                    <div class="relative top-20 mx-auto p-8 w-full max-w-md">
+                        <div class="bg-white rounded-2xl shadow-2xl">
+                            <div class="px-8 py-6">
+                                <div class="flex items-center justify-center mb-4">
+                                    <div class="bg-green-100 rounded-full p-3">
+                                        <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 text-center mb-2">${title}</h3>
+                                <p class="text-gray-600 text-center mb-6">${message}</p>
+                                <div class="flex justify-center">
+                                    <button type="button" onclick="closeSuccessModal()" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors">
+                                        OK
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function closeSuccessModal() {
+            const modal = document.getElementById('successModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function showErrorDialog(message) {
+            const modalContent = `
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="errorModal">
+                    <div class="relative top-20 mx-auto p-8 w-full max-w-md">
+                        <div class="bg-white rounded-2xl shadow-2xl">
+                            <div class="px-8 py-6">
+                                <div class="flex items-center justify-center mb-4">
+                                    <div class="bg-red-100 rounded-full p-3">
+                                        <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 text-center mb-2">Error</h3>
+                                <p class="text-gray-600 text-center mb-6">${message}</p>
+                                <div class="flex justify-center">
+                                    <button type="button" onclick="closeErrorModal()" class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
+                                        OK
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function closeErrorModal() {
+            const modal = document.getElementById('errorModal');
+            if (modal) {
+                modal.remove();
+            }
         }
     </script>
 @endsection
