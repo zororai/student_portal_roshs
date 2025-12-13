@@ -290,6 +290,29 @@
                 <span class="font-medium" x-show="!collapsed">Roles & Permissions</span>
             </div>
         </a>
+
+        <!-- Finance & Accounting Section -->
+        <div x-data="{ open: false }" class="mt-1" x-show="!collapsed">
+            <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="font-medium">Finance & Accounting</span>
+                </div>
+                <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                <a href="{{ route('finance.student-payments') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Student Payments</a>
+                <a href="{{ route('finance.parents-arrears') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Parents with Arrears</a>
+                <a href="{{ route('finance.school-income') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">School Income</a>
+                <a href="{{ route('finance.school-expenses') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">School Expenses</a>
+                <a href="{{ route('finance.products') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Products Sold</a>
+                <a href="{{ route('finance.statements') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Financial Statements</a>
+            </div>
+        </div>
         @endrole
     </div>
 

@@ -25,7 +25,7 @@
                         </label>
                     </div>
                     <div class="md:w-2/3">
-                        <input name="name" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text" value="{{ old('name') }}">
+                        <input id="subject_name" name="name" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text" value="{{ old('name') }}">
                         @error('name')
                             <p class="text-red-500 text-xs italic">{{ $message }}</p>
                         @enderror
@@ -38,7 +38,7 @@
                         </label>
                     </div>
                     <div class="md:w-2/3">
-                        <input name="subject_code" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="number" value="{{ old('subject_code') }}">
+                        <input id="subject_code" name="subject_code" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text" value="{{ old('subject_code') }}">
                         @error('subject_code')
                             <p class="text-red-500 text-xs italic">{{ $message }}</p>
                         @enderror
@@ -95,3 +95,26 @@
         <!-- Log on to codeastro.com for more projects -->
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const subjectNameInput = document.getElementById('subject_name');
+        const subjectCodeInput = document.getElementById('subject_code');
+        
+        subjectNameInput.addEventListener('input', function() {
+            const subjectName = this.value.trim();
+            
+            if (subjectName.length >= 2) {
+                // Generate subject code: F + first 2 letters uppercase
+                const firstTwoLetters = subjectName.substring(0, 2).toUpperCase();
+                const subjectCode = 'F' + firstTwoLetters;
+                
+                subjectCodeInput.value = subjectCode;
+            } else {
+                subjectCodeInput.value = '';
+            }
+        });
+    });
+</script>
+@endpush

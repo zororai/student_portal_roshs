@@ -24,8 +24,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        // Seed school data daily at midnight
+        // $schedule->command('school:seed')->daily();
+        
+        // Or run it weekly on Monday at 2 AM
+        // $schedule->command('school:seed')->weeklyOn(1, '2:00');
+        
+        // Or run it monthly on the 1st at 3 AM
+        // $schedule->command('school:seed')->monthlyOn(1, '3:00');
     }
 
     /**
