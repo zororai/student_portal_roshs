@@ -31,7 +31,7 @@ class Assessment extends Model
 
     public function class()
     {
-        return $this->belongsTo(Classes::class, 'class_id');
+        return $this->belongsTo(Grade::class, 'class_id');
     }
 
     public function subject()
