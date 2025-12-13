@@ -1,0 +1,276 @@
+@extends('layouts.app')
+
+@section('content')
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ $class->class_name }} - Assessment Marks</h1>
+                    <p class="mt-2 text-sm text-gray-600">Add and manage assessment marks for students</p>
+                </div>
+                <a href="{{ route('teacher.assessment.list', $class->id) }}" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Assessments
+                </a>
+            </div>
+        </div>
+
+        @if(session('success'))
+            <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative" role="alert">
+                <span class="block sm:inline">{{ session('success') }}</span>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                <span class="block sm:inline">{{ session('error') }}</span>
+            </div>
+        @endif
+
+        <!-- Assessment Selection -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <label for="assessmentSelect" class="block text-sm font-semibold text-gray-700 mb-3">Select Assessment</label>
+            <select id="assessmentSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white" onchange="loadAssessmentMarks()">
+                <option value="">Choose an assessment...</option>
+                @foreach($assessments as $assessment)
+                    <option value="{{ $assessment->id }}" 
+                            data-papers="{{ json_encode($assessment->papers) }}"
+                            data-subject="{{ $assessment->subject->name ?? 'N/A' }}"
+                            data-topic="{{ $assessment->topic }}"
+                            data-date="{{ $assessment->date->format('D, d M Y') }}"
+                            data-type="{{ $assessment->assessment_type }}">
+                        {{ $assessment->subject->name ?? 'N/A' }} - {{ $assessment->topic }} ({{ $assessment->date->format('M d, Y') }})
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <!-- Assessment Details and Marks Table -->
+        <div id="marksContainer" class="hidden">
+            <!-- Assessment Info -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Subject</p>
+                        <p class="text-lg font-bold text-gray-900" id="assessmentSubject">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Topic</p>
+                        <p class="text-lg font-bold text-gray-900" id="assessmentTopic">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Date</p>
+                        <p class="text-lg font-bold text-gray-900" id="assessmentDate">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marks Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sticky left-0 bg-gray-50">
+                                    Student
+                                </th>
+                                <th scope="col" id="paperHeaders" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                    <!-- Paper columns will be dynamically added here -->
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="marksTableBody">
+                            @forelse($students as $student)
+                                <tr class="hover:bg-gray-50 transition-colors" data-student-id="{{ $student->id }}">
+                                    <td class="px-6 py-4 whitespace-nowrap sticky left-0 bg-white">
+                                        <div class="flex items-center">
+                                            <div>
+                                                <div class="text-sm font-semibold text-gray-900">{{ $student->user->name }}</div>
+                                                <div class="text-xs text-gray-500">ID: {{ $student->id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="paper-marks-container">
+                                        <!-- Paper marks will be dynamically added here -->
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="2" class="px-6 py-12 text-center">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                            </svg>
+                                            <p class="text-gray-500 text-lg font-medium">No students found in this class</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Save Button -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+                    <button type="button" onclick="saveMarks()" class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 448 512">
+                            <path d="M433.941 129.941l-83.882-83.882A48 48 0 0 0 316.118 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V163.882a48 48 0 0 0-14.059-33.941zM224 416c-35.346 0-64-28.654-64-64 0-35.346 28.654-64 64-64s64 28.654 64 64c0 35.346-28.654 64-64 64zm96-304.52V212c0 6.627-5.373 12-12 12H76c-6.627 0-12-5.373-12-12V108c0-6.627 5.373-12 12-12h228.52c3.183 0 6.235 1.264 8.485 3.515l3.48 3.48A11.996 11.996 0 0 1 320 111.48z"/>
+                        </svg>
+                        Save All Marks
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAssessmentId = null;
+        let currentPapers = [];
+        let currentSubjectId = null;
+        let assessmentComments = @json($assessmentComments);
+
+        function loadAssessmentMarks() {
+            const select = document.getElementById('assessmentSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (!selectedOption.value) {
+                document.getElementById('marksContainer').classList.add('hidden');
+                return;
+            }
+
+            currentAssessmentId = selectedOption.value;
+            currentPapers = JSON.parse(selectedOption.dataset.papers || '[]');
+
+            // Update assessment info
+            document.getElementById('assessmentSubject').textContent = selectedOption.dataset.subject;
+            document.getElementById('assessmentTopic').textContent = selectedOption.dataset.topic;
+            document.getElementById('assessmentDate').textContent = selectedOption.dataset.date;
+
+            // Build paper headers
+            buildPaperHeaders();
+
+            // Build marks inputs for each student
+            buildMarksInputs();
+
+            // Show the marks container
+            document.getElementById('marksContainer').classList.remove('hidden');
+        }
+
+        function buildPaperHeaders() {
+            const headerContainer = document.getElementById('paperHeaders');
+            let headersHTML = '';
+
+            currentPapers.forEach((paper, index) => {
+                headersHTML += `
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-l border-gray-200">
+                        <div class="space-y-1">
+                            <div class="font-bold text-blue-600">Paper: ${paper.name}</div>
+                            <div class="text-gray-500">Date: ${document.getElementById('assessmentDate').textContent}</div>
+                            <div class="text-gray-500">Out of: ${paper.total_marks}</div>
+                            <div class="text-gray-500">Weight: ${paper.weight}%</div>
+                            <div class="text-gray-700 mt-2">Mark | Comment</div>
+                        </div>
+                    </th>
+                `;
+            });
+
+            // Replace the placeholder header
+            const thead = headerContainer.closest('tr');
+            thead.innerHTML = `
+                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sticky left-0 bg-gray-50">
+                    Student
+                </th>
+                ${headersHTML}
+            `;
+        }
+
+        function buildMarksInputs() {
+            const rows = document.querySelectorAll('tbody tr[data-student-id]');
+
+            rows.forEach(row => {
+                const studentId = row.dataset.studentId;
+                const marksContainer = row.querySelector('.paper-marks-container');
+                let inputsHTML = '';
+
+                currentPapers.forEach((paper, paperIndex) => {
+                    inputsHTML += `
+                        <td class="px-6 py-4 border-l border-gray-200">
+                            <div class="space-y-2">
+                                <input type="number" 
+                                       name="marks[${studentId}][${paperIndex}][mark]"
+                                       placeholder="Mark"
+                                       min="0"
+                                       max="${paper.total_marks}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                       data-student="${studentId}"
+                                       data-paper="${paperIndex}">
+                                <textarea name="marks[${studentId}][${paperIndex}][comment]"
+                                          placeholder="Comment (optional)"
+                                          rows="2"
+                                          maxlength="500"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
+                                          data-student="${studentId}"
+                                          data-paper="${paperIndex}"></textarea>
+                            </div>
+                        </td>
+                    `;
+                });
+
+                marksContainer.innerHTML = inputsHTML;
+            });
+        }
+
+        function saveMarks() {
+            if (!currentAssessmentId) {
+                alert('Please select an assessment first.');
+                return;
+            }
+
+            const marksData = [];
+            const rows = document.querySelectorAll('tbody tr[data-student-id]');
+
+            rows.forEach(row => {
+                const studentId = row.dataset.studentId;
+                const studentMarks = {
+                    student_id: studentId,
+                    papers: []
+                };
+
+                currentPapers.forEach((paper, paperIndex) => {
+                    const markInput = row.querySelector(`input[name="marks[${studentId}][${paperIndex}][mark]"]`);
+                    const commentTextarea = row.querySelector(`textarea[name="marks[${studentId}][${paperIndex}][comment]"]`);
+
+                    if (markInput && markInput.value) {
+                        studentMarks.papers.push({
+                            paper_index: paperIndex,
+                            paper_name: paper.name,
+                            mark: parseFloat(markInput.value),
+                            comment: commentTextarea.value
+                        });
+                    }
+                });
+
+                if (studentMarks.papers.length > 0) {
+                    marksData.push(studentMarks);
+                }
+            });
+
+            if (marksData.length === 0) {
+                alert('Please enter at least one mark before saving.');
+                return;
+            }
+
+            // Here you would send the data to the server
+            console.log('Saving marks:', {
+                assessment_id: currentAssessmentId,
+                marks: marksData
+            });
+
+            // For now, just show a success message
+            alert('Marks saved successfully! (Note: Backend integration pending)');
+        }
+    </script>
+@endsection

@@ -484,6 +484,41 @@ class TeacherController extends Controller
     }
 
     /**
+     * Show form to add assessment marks for a class.
+     *
+     * @param  int  $class_id
+     * @return \Illuminate\Http\Response
+     */
+    public function assessmentMarks($class_id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        // Verify the class belongs to this teacher
+        $class = $teacher->classes()->findOrFail($class_id);
+
+        // Get assessments for this class
+        $assessments = \App\Assessment::where('teacher_id', $teacher->id)
+            ->where('class_id', $class_id)
+            ->with('subject')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        // Get students in the class
+        $students = $class->students()->with('user')->get();
+
+        // Get assessment comments for this class
+        $assessmentComments = \App\AssessmentComment::where('class_id', $class_id)
+            ->with('subject')
+            ->get();
+
+        return view('backend.teacher.assessment-marks', compact('class', 'assessments', 'students', 'teacher', 'assessmentComments'));
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Teacher  $teacher
