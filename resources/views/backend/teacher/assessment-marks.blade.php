@@ -179,8 +179,13 @@
                 headerRow.removeChild(headerRow.lastChild);
             }
 
-            // Add header for each paper
-            currentPapers.forEach((paper, index) => {
+            // Filter out papers with null or undefined values
+            const validPapers = currentPapers.filter(paper => 
+                paper && paper.name && paper.total_marks && paper.weight
+            );
+
+            // Add header for each valid paper
+            validPapers.forEach((paper, index) => {
                 const th = document.createElement('th');
                 th.scope = 'col';
                 th.className = 'px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-l border-gray-200';
@@ -195,6 +200,9 @@
                 `;
                 headerRow.appendChild(th);
             });
+            
+            // Update currentPapers to only include valid papers
+            currentPapers = validPapers;
         }
 
         function buildMarksInputs() {
