@@ -31,9 +31,12 @@
                             </div>
                         </div>
 
-                        <div class="mt-4">
+                        <div class="mt-4 space-y-2">
                             <a href="{{ route('teacher.assessment.list', $class->id) }}" class="block w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg text-center transition-colors">
                                 Create Assessment
+                            </a>
+                            <a href="{{ route('teacher.assessment.marks', $class->id) }}" class="block w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg text-center transition-colors">
+                                Add Assessment Marks
                             </a>
                         </div>
                     </div>
@@ -55,12 +58,43 @@
         <div class="mt-12">
             <h2 class="text-2xl font-bold text-gray-900 mb-6">Recent Assessments</h2>
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="p-6 text-center text-gray-500">
-                    <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    <p class="text-sm">No recent assessments</p>
-                </div>
+                @forelse($recentAssessments as $assessment)
+                    <div class="p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        @if($assessment->assessment_type == 'Quiz') bg-blue-100 text-blue-800
+                                        @elseif($assessment->assessment_type == 'Test') bg-purple-100 text-purple-800
+                                        @elseif($assessment->assessment_type == 'Assignment') bg-green-100 text-green-800
+                                        @elseif($assessment->assessment_type == 'Exam') bg-red-100 text-red-800
+                                        @else bg-gray-100 text-gray-800
+                                        @endif">
+                                        {{ $assessment->assessment_type }}
+                                    </span>
+                                    <h3 class="text-sm font-semibold text-gray-900">{{ $assessment->topic }}</h3>
+                                </div>
+                                <div class="mt-1 flex items-center space-x-4 text-xs text-gray-500">
+                                    <span>{{ $assessment->subject->name ?? 'N/A' }}</span>
+                                    <span>•</span>
+                                    <span>{{ $assessment->class->class_name ?? 'N/A' }}</span>
+                                    <span>•</span>
+                                    <span>{{ $assessment->date ? $assessment->date->format('M d, Y') : 'N/A' }}</span>
+                                </div>
+                            </div>
+                            <a href="{{ route('teacher.assessment.list', $assessment->class_id) }}" class="ml-4 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                @empty
+                    <div class="p-6 text-center text-gray-500">
+                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <p class="text-sm">No recent assessments</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>

@@ -239,7 +239,14 @@ class TeacherController extends Controller
         // Get classes taught by this teacher with student count
         $classes = $teacher->classes()->withCount('students')->get();
 
-        return view('backend.teacher.assessment', compact('classes', 'teacher'));
+        // Get recent assessments for this teacher (last 10)
+        $recentAssessments = \App\Assessment::where('teacher_id', $teacher->id)
+            ->with(['subject', 'class'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        return view('backend.teacher.assessment', compact('classes', 'teacher', 'recentAssessments'));
     }
 
     /**
@@ -500,12 +507,23 @@ class TeacherController extends Controller
         // Verify the class belongs to this teacher
         $class = $teacher->classes()->findOrFail($class_id);
 
-        // Get assessments for this class
-        $assessments = \App\Assessment::where('teacher_id', $teacher->id)
+        // Get all assessments for this class
+        $allAssessments = \App\Assessment::where('teacher_id', $teacher->id)
             ->where('class_id', $class_id)
             ->with('subject')
             ->orderBy('date', 'desc')
             ->get();
+
+        // Get assessment IDs that already have marks
+        $assessmentsWithMarks = \App\AssessmentMark::whereIn('assessment_id', $allAssessments->pluck('id'))
+            ->distinct('assessment_id')
+            ->pluck('assessment_id')
+            ->toArray();
+
+        // Filter out assessments that already have marks
+        $assessments = $allAssessments->filter(function($assessment) use ($assessmentsWithMarks) {
+            return !in_array($assessment->id, $assessmentsWithMarks);
+        });
 
         // Get students in the class
         $students = $class->students()->with('user')->get();
