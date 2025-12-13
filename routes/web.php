@@ -173,7 +173,12 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::get('/teacher/assessment/class/{class_id}', 'TeacherController@assessmentList')->name('teacher.assessment.list');
     Route::get('/teacher/assessment/create/{class_id}', 'TeacherController@createAssessment')->name('teacher.assessment.create');
     Route::post('/teacher/assessment/store', 'TeacherController@storeAssessment')->name('teacher.assessment.store');
+    Route::get('/teacher/assessment/{id}/view', 'TeacherController@viewAssessment')->name('teacher.assessment.view');
+    Route::get('/teacher/assessment/{id}/edit', 'TeacherController@editAssessment')->name('teacher.assessment.edit');
+    Route::put('/teacher/assessment/{id}/update', 'TeacherController@updateAssessment')->name('teacher.assessment.update');
+    Route::delete('/teacher/assessment/{id}/delete', 'TeacherController@deleteAssessment')->name('teacher.assessment.delete');
     Route::get('/teacher/assessment/marks/{class_id}', 'TeacherController@assessmentMarks')->name('teacher.assessment.marks');
+    Route::post('/teacher/assessment/marks/save', 'TeacherController@saveAssessmentMark')->name('teacher.assessment.marks.save');
     Route::post('/teacher/assessment/comment/store', 'TeacherController@storeAssessmentComment')->name('teacher.assessment.comment.store');
     Route::delete('/teacher/assessment/comment/{id}', 'TeacherController@deleteAssessmentComment')->name('teacher.assessment.comment.delete');
 

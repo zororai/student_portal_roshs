@@ -37,8 +37,9 @@
                 <option value="">Choose an assessment...</option>
                 @foreach($assessments as $assessment)
                     <option value="{{ $assessment->id }}" 
-                            data-papers="{{ json_encode($assessment->papers) }}"
+                            data-papers='@json($assessment->papers)'
                             data-subject="{{ $assessment->subject->name ?? 'N/A' }}"
+                            data-subject-id="{{ $assessment->subject_id }}"
                             data-topic="{{ $assessment->topic }}"
                             data-date="{{ $assessment->date->format('D, d M Y') }}"
                             data-type="{{ $assessment->assessment_type }}">
@@ -142,7 +143,20 @@
             }
 
             currentAssessmentId = selectedOption.value;
-            currentPapers = JSON.parse(selectedOption.dataset.papers || '[]');
+            
+            // Parse papers data - handle HTML entities
+            const papersData = selectedOption.dataset.papers;
+            console.log('Raw papers data:', papersData);
+            
+            try {
+                currentPapers = JSON.parse(papersData);
+                console.log('Parsed papers:', currentPapers);
+            } catch (e) {
+                console.error('Error parsing papers:', e);
+                currentPapers = [];
+            }
+            
+            currentSubjectId = parseInt(selectedOption.dataset.subjectId);
 
             // Update assessment info
             document.getElementById('assessmentSubject').textContent = selectedOption.dataset.subject;
@@ -204,14 +218,16 @@
                                        placeholder="Mark"
                                        min="0"
                                        max="${paper.total_marks}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                       class="mark-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                        data-student="${studentId}"
-                                       data-paper="${paperIndex}">
+                                       data-paper="${paperIndex}"
+                                       data-total-marks="${paper.total_marks}"
+                                       onchange="autoPopulateComment(this)">
                                 <textarea name="marks[${studentId}][${paperIndex}][comment]"
                                           placeholder="Comment (optional)"
                                           rows="2"
                                           maxlength="500"
-                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
+                                          class="comment-textarea w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
                                           data-student="${studentId}"
                                           data-paper="${paperIndex}"></textarea>
                             </div>
@@ -220,6 +236,135 @@
                 });
 
                 marksContainer.innerHTML = inputsHTML;
+            });
+        }
+
+        function calculateGrade(mark, totalMarks) {
+            const percentage = (mark / totalMarks) * 100;
+            
+            if (percentage >= 80) return 'A';
+            if (percentage >= 70) return 'B';
+            if (percentage >= 60) return 'C';
+            if (percentage >= 50) return 'D';
+            if (percentage >= 40) return 'E';
+            return 'F';
+        }
+
+        function autoPopulateComment(markInput) {
+            const mark = parseFloat(markInput.value);
+            const totalMarks = parseFloat(markInput.dataset.totalMarks);
+            const studentId = markInput.dataset.student;
+            const paperIndex = markInput.dataset.paper;
+
+            console.log('Mark entered:', mark);
+            console.log('Total marks:', totalMarks);
+            console.log('Current subject ID:', currentSubjectId);
+
+            if (!mark || !totalMarks || !currentSubjectId) {
+                console.log('Missing required data');
+                return;
+            }
+
+            // Calculate grade based on percentage
+            const grade = calculateGrade(mark, totalMarks);
+            console.log('Calculated grade:', grade);
+
+            // Find the corresponding comment for this subject and grade
+            const comment = assessmentComments.find(c => 
+                c.subject_id === currentSubjectId && c.grade === grade
+            );
+
+            console.log('Found comment:', comment);
+
+            // Populate the comment textarea
+            const commentTextarea = document.querySelector(
+                `textarea[name="marks[${studentId}][${paperIndex}][comment]"]`
+            );
+
+            if (commentTextarea && comment) {
+                commentTextarea.value = comment.comment;
+                console.log('Comment populated successfully');
+                
+                // Trigger auto-save after comment is populated
+                setTimeout(() => {
+                    checkAndAutoSave(studentId, paperIndex);
+                }, 500);
+            } else {
+                console.log('Comment textarea or comment not found');
+            }
+        }
+
+        function checkAndAutoSave(studentId, paperIndex) {
+            const markInput = document.querySelector(`input[name="marks[${studentId}][${paperIndex}][mark]"]`);
+            const commentTextarea = document.querySelector(`textarea[name="marks[${studentId}][${paperIndex}][comment]"]`);
+
+            const mark = markInput ? parseFloat(markInput.value) : null;
+            const comment = commentTextarea ? commentTextarea.value.trim() : '';
+
+            console.log('Checking auto-save:', {mark, comment, hasComment: comment.length > 0});
+
+            // Auto-save if mark is entered and comment exists
+            if (mark && comment) {
+                autoSaveMark(studentId, paperIndex, mark, markInput.dataset.totalMarks, comment);
+            }
+        }
+
+        function autoSaveMark(studentId, paperIndex, mark, totalMarks, comment) {
+            if (!currentAssessmentId || !currentPapers[paperIndex]) {
+                console.error('Missing assessment or paper data');
+                return;
+            }
+
+            const paper = currentPapers[paperIndex];
+            const data = {
+                assessment_id: currentAssessmentId,
+                student_id: studentId,
+                paper_name: paper.name,
+                paper_index: paperIndex,
+                mark: mark,
+                total_marks: totalMarks,
+                comment: comment
+            };
+
+            console.log('Auto-saving mark:', data);
+
+            // Show saving indicator
+            const markInput = document.querySelector(`input[name="marks[${studentId}][${paperIndex}][mark]"]`);
+            if (markInput) {
+                markInput.style.borderColor = '#FFA500';
+            }
+
+            fetch('{{ route("teacher.assessment.marks.save") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Save result:', result);
+                if (result.success) {
+                    // Show success indicator
+                    if (markInput) {
+                        markInput.style.borderColor = '#10B981';
+                        setTimeout(() => {
+                            markInput.style.borderColor = '';
+                        }, 2000);
+                    }
+                } else {
+                    console.error('Save failed:', result.message);
+                    if (markInput) {
+                        markInput.style.borderColor = '#EF4444';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Auto-save error:', error);
+                if (markInput) {
+                    markInput.style.borderColor = '#EF4444';
+                }
             });
         }
 

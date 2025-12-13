@@ -519,6 +519,207 @@ class TeacherController extends Controller
     }
 
     /**
+     * Save an individual assessment mark (auto-save).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function saveAssessmentMark(Request $request)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return response()->json(['success' => false, 'message' => 'Teacher profile not found.'], 403);
+        }
+
+        $validated = $request->validate([
+            'assessment_id' => 'required|exists:assessments,id',
+            'student_id' => 'required|exists:students,id',
+            'paper_name' => 'required|string|max:100',
+            'paper_index' => 'required|integer|min:0',
+            'mark' => 'required|numeric|min:0',
+            'total_marks' => 'required|numeric|min:0',
+            'comment' => 'nullable|string|max:500'
+        ]);
+
+        // Verify the assessment belongs to this teacher
+        $assessment = \App\Assessment::where('id', $request->assessment_id)
+            ->where('teacher_id', $teacher->id)
+            ->first();
+
+        if (!$assessment) {
+            return response()->json(['success' => false, 'message' => 'Assessment not found or access denied.'], 403);
+        }
+
+        // Create or update the assessment mark
+        $assessmentMark = \App\AssessmentMark::updateOrCreate(
+            [
+                'assessment_id' => $request->assessment_id,
+                'student_id' => $request->student_id,
+                'paper_index' => $request->paper_index
+            ],
+            [
+                'paper_name' => $request->paper_name,
+                'mark' => $request->mark,
+                'total_marks' => $request->total_marks,
+                'comment' => $request->comment
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mark saved successfully!',
+            'data' => $assessmentMark
+        ]);
+    }
+
+    /**
+     * View assessment details.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function viewAssessment($id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return response()->json(['success' => false, 'message' => 'Teacher profile not found.'], 403);
+        }
+
+        $assessment = \App\Assessment::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->with('subject')
+            ->first();
+
+        if (!$assessment) {
+            return response()->json(['success' => false, 'message' => 'Assessment not found.'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'assessment' => $assessment
+        ]);
+    }
+
+    /**
+     * Show form to edit an assessment.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function editAssessment($id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        $assessment = \App\Assessment::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->with('subject', 'class')
+            ->first();
+
+        if (!$assessment) {
+            return redirect()->route('teacher.assessment')->with('error', 'Assessment not found.');
+        }
+
+        $class = $assessment->class;
+        $subjects = $class->subjects;
+
+        return view('backend.teacher.assessment-edit', compact('assessment', 'class', 'subjects', 'teacher'));
+    }
+
+    /**
+     * Update an assessment.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function updateAssessment(Request $request, $id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        $assessment = \App\Assessment::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->first();
+
+        if (!$assessment) {
+            return redirect()->route('teacher.assessment')->with('error', 'Assessment not found.');
+        }
+
+        $validated = $request->validate([
+            'subject_id' => 'required|exists:subjects,id',
+            'topic' => 'required|string|min:3|max:255',
+            'assessment_type' => 'required|string|in:Quiz,Test,Assignment,Exam,Project',
+            'date' => 'required|date|before_or_equal:today',
+            'due_date' => 'required|date|after_or_equal:date',
+            'exam' => 'nullable|string|max:255',
+            'papers' => 'required|array|min:1|max:20',
+            'papers.*.name' => 'required|string|min:2|max:100',
+            'papers.*.total_marks' => 'required|integer|min:1|max:1000',
+            'papers.*.weight' => 'required|integer|min:1|max:100'
+        ]);
+
+        // Validate paper weights
+        $totalWeight = array_sum(array_column($request->papers, 'weight'));
+        if ($totalWeight != 100) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['papers' => "Paper weights must add up to 100%. Current total: {$totalWeight}%"]);
+        }
+
+        $assessment->update([
+            'subject_id' => $request->subject_id,
+            'topic' => trim($request->topic),
+            'assessment_type' => $request->assessment_type,
+            'date' => $request->date,
+            'due_date' => $request->due_date,
+            'exam' => $request->exam ? trim($request->exam) : null,
+            'papers' => $request->papers
+        ]);
+
+        return redirect()->route('teacher.assessment.list', $assessment->class_id)
+            ->with('success', 'Assessment updated successfully!');
+    }
+
+    /**
+     * Delete an assessment.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function deleteAssessment($id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return response()->json(['success' => false, 'message' => 'Teacher profile not found.'], 403);
+        }
+
+        $assessment = \App\Assessment::where('id', $id)
+            ->where('teacher_id', $teacher->id)
+            ->first();
+
+        if (!$assessment) {
+            return response()->json(['success' => false, 'message' => 'Assessment not found.'], 404);
+        }
+
+        $assessment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assessment deleted successfully!'
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Teacher  $teacher
