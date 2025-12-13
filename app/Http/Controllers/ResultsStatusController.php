@@ -41,10 +41,14 @@ class ResultsStatusController extends Controller
             return redirect()->back()->withErrors(['duplicate' => 'A record with the same year and result period already exists.']);
         }
     
+        // Calculate total fees
+        $totalFees = array_sum(array_column($validatedData['fees'], 'amount'));
+        
         // Create a new ResultsStatus record
         $resultsStatus = ResultsStatus::create([
             'year' => $validatedData['year'],
-            'result_period' => $validatedData['result_period']
+            'result_period' => $validatedData['result_period'],
+            'total_fees' => $totalFees
         ]);
         
         // Create term fees
@@ -56,7 +60,7 @@ class ResultsStatusController extends Controller
             ]);
         }
     
-        return redirect()->route('results_status.index')->with('success', 'Term and fees created successfully.');
+        return redirect()->route('results_status.index')->with('success', 'Term and fees created successfully. Total fees: $' . number_format($totalFees, 2));
     }
 
     public function destroy($id)

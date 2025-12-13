@@ -88,7 +88,20 @@
                         <div class="text-danger text-red-500 text-sm mt-2">{{ $message }}</div>
                     @enderror
                 </div>
-             
+
+                <!-- Total Fees Display -->
+                <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800">Total Term Fees</h4>
+                            <p class="text-sm text-gray-600">Sum of all fee types for this term</p>
+                        </div>
+                        <div class="text-right">
+                            <div id="totalFeesDisplay" class="text-3xl font-bold text-blue-600">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-2">
                     <a href="{{ route('results_status.index') }}" class="btn btn-secondary bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-6 rounded">Cancel</a>
                     <button type="submit" class="btn btn-primary bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded">Create Term</button>
@@ -102,8 +115,31 @@
 <script>
 let feeTypeIndex = 1;
 
+// Function to calculate and update total fees
+function updateTotalFees() {
+    const amountInputs = document.querySelectorAll('input[name*="[amount]"]');
+    let total = 0;
+    
+    amountInputs.forEach(input => {
+        const value = parseFloat(input.value) || 0;
+        total += value;
+    });
+    
+    document.getElementById('totalFeesDisplay').textContent = '$' + total.toFixed(2);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const feeTypesContainer = document.getElementById('feeTypesContainer');
+    
+    // Update total when amount changes
+    feeTypesContainer.addEventListener('input', function(e) {
+        if (e.target.name && e.target.name.includes('[amount]')) {
+            updateTotalFees();
+        }
+    });
+    
+    // Initial calculation
+    updateTotalFees();
     
     // Add new fee type row when '+' button is clicked
     feeTypesContainer.addEventListener('click', function(e) {
