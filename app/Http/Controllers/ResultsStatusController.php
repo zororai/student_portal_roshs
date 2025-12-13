@@ -17,7 +17,7 @@ class ResultsStatusController extends Controller
     }
     public function index()
     {
-        $resultsStatuses = ResultsStatus::all();
+        $resultsStatuses = ResultsStatus::with(['termFees.feeType'])->orderBy('year', 'desc')->orderBy('result_period', 'desc')->get();
         return view('results_status.index', compact('resultsStatuses'));
     }
     // Method to store a new record

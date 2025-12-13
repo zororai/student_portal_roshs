@@ -38,6 +38,12 @@
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 Result Period
                             </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Fee Breakdown
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Total Fees
+                            </th>
                             <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 Actions
                             </th>
@@ -54,7 +60,26 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-semibold text-gray-900">{{ $resultStatus->result_period }}</div>
+                                    <div class="text-sm font-semibold text-gray-900 capitalize">{{ $resultStatus->result_period }} Term</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($resultStatus->termFees && $resultStatus->termFees->count() > 0)
+                                        <div class="space-y-1">
+                                            @foreach($resultStatus->termFees as $termFee)
+                                                <div class="flex items-center justify-between text-xs">
+                                                    <span class="text-gray-600">{{ $termFee->feeType->name }}</span>
+                                                    <span class="font-semibold text-gray-900">${{ number_format($termFee->amount, 2) }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="text-xs text-gray-400 italic">No fees added</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <div class="text-lg font-bold text-blue-600">
+                                        ${{ number_format($resultStatus->total_fees, 2) }}
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-2">
@@ -77,7 +102,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="px-6 py-12 text-center">
+                                <td colspan="5" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center justify-center">
                                         <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
