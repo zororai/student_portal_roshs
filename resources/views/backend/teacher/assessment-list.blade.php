@@ -936,28 +936,98 @@
 
         // Delete assessment
         function deleteAssessment(assessmentId) {
-            if (confirm('Are you sure you want to delete this assessment? This action cannot be undone.')) {
-                fetch(`/teacher/assessment/${assessmentId}/delete`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Assessment deleted successfully!');
-                        location.reload();
-                    } else {
-                        alert('Failed to delete assessment: ' + (data.message || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the assessment');
-                });
+            showDeleteConfirmation(assessmentId);
+        }
+
+        function showDeleteConfirmation(assessmentId) {
+            const modalContent = `
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="deleteModal">
+                    <div class="relative top-20 mx-auto p-8 w-full max-w-md">
+                        <div class="bg-white rounded-2xl shadow-2xl">
+                            <div class="px-8 py-6">
+                                <div class="flex items-center justify-center mb-4">
+                                    <div class="bg-red-100 rounded-full p-3">
+                                        <svg class="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 text-center mb-2">Delete Assessment</h3>
+                                <p class="text-gray-600 text-center mb-6">Are you sure you want to delete this assessment? This action cannot be undone.</p>
+                                <div class="flex gap-3">
+                                    <button type="button" onclick="closeDeleteModal()" class="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors">
+                                        Cancel
+                                    </button>
+                                    <button type="button" onclick="confirmDelete(${assessmentId})" class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            if (modal) {
+                modal.remove();
             }
+        }
+
+        function confirmDelete(assessmentId) {
+            closeDeleteModal();
+            
+            // Show loading indicator
+            showNotification('Deleting assessment...', 'info');
+            
+            fetch(`/teacher/assessment/${assessmentId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Assessment deleted successfully!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showNotification('Failed to delete assessment: ' + (data.message || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('An error occurred while deleting the assessment', 'error');
+            });
+        }
+
+        function showNotification(message, type) {
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            const notification = `
+                <div id="notification" class="fixed top-4 right-4 ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg z-50 transform transition-all duration-300">
+                    <div class="flex items-center">
+                        <span>${message}</span>
+                    </div>
+                </div>
+            `;
+            
+            const existing = document.getElementById('notification');
+            if (existing) {
+                existing.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', notification);
+            
+            setTimeout(() => {
+                const notif = document.getElementById('notification');
+                if (notif) {
+                    notif.remove();
+                }
+            }, 3000);
         }
     </script>
 @endsection

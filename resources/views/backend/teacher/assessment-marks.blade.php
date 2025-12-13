@@ -74,13 +74,11 @@
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
-                            <tr>
+                            <tr id="tableHeaderRow">
                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sticky left-0 bg-gray-50">
                                     Student
                                 </th>
-                                <th scope="col" id="paperHeaders" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                    <!-- Paper columns will be dynamically added here -->
-                                </th>
+                                <!-- Paper columns will be dynamically added here -->
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="marksTableBody">
@@ -174,31 +172,29 @@
         }
 
         function buildPaperHeaders() {
-            const headerContainer = document.getElementById('paperHeaders');
-            let headersHTML = '';
+            const headerRow = document.getElementById('tableHeaderRow');
+            
+            // Remove any existing paper headers (keep only the Student header)
+            while (headerRow.children.length > 1) {
+                headerRow.removeChild(headerRow.lastChild);
+            }
 
+            // Add header for each paper
             currentPapers.forEach((paper, index) => {
-                headersHTML += `
-                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-l border-gray-200">
-                        <div class="space-y-1">
-                            <div class="font-bold text-blue-600">Paper: ${paper.name}</div>
-                            <div class="text-gray-500">Date: ${document.getElementById('assessmentDate').textContent}</div>
-                            <div class="text-gray-500">Out of: ${paper.total_marks}</div>
-                            <div class="text-gray-500">Weight: ${paper.weight}%</div>
-                            <div class="text-gray-700 mt-2">Mark | Comment</div>
-                        </div>
-                    </th>
+                const th = document.createElement('th');
+                th.scope = 'col';
+                th.className = 'px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-l border-gray-200';
+                th.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="font-bold text-blue-600">Paper: ${paper.name}</div>
+                        <div class="text-gray-500">Date: ${document.getElementById('assessmentDate').textContent}</div>
+                        <div class="text-gray-500">Out of: ${paper.total_marks}</div>
+                        <div class="text-gray-500">Weight: ${paper.weight}%</div>
+                        <div class="text-gray-700 mt-2">Mark | Comment</div>
+                    </div>
                 `;
+                headerRow.appendChild(th);
             });
-
-            // Replace the placeholder header
-            const thead = headerContainer.closest('tr');
-            thead.innerHTML = `
-                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sticky left-0 bg-gray-50">
-                    Student
-                </th>
-                ${headersHTML}
-            `;
         }
 
         function buildMarksInputs() {
@@ -206,36 +202,40 @@
 
             rows.forEach(row => {
                 const studentId = row.dataset.studentId;
+                
+                // Remove the placeholder td
                 const marksContainer = row.querySelector('.paper-marks-container');
-                let inputsHTML = '';
-
+                if (marksContainer) {
+                    marksContainer.remove();
+                }
+                
+                // Add individual td elements for each paper
                 currentPapers.forEach((paper, paperIndex) => {
-                    inputsHTML += `
-                        <td class="px-6 py-4 border-l border-gray-200">
-                            <div class="space-y-2">
-                                <input type="number" 
-                                       name="marks[${studentId}][${paperIndex}][mark]"
-                                       placeholder="Mark"
-                                       min="0"
-                                       max="${paper.total_marks}"
-                                       class="mark-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                       data-student="${studentId}"
-                                       data-paper="${paperIndex}"
-                                       data-total-marks="${paper.total_marks}"
-                                       onchange="autoPopulateComment(this)">
-                                <textarea name="marks[${studentId}][${paperIndex}][comment]"
-                                          placeholder="Comment (optional)"
-                                          rows="2"
-                                          maxlength="500"
-                                          class="comment-textarea w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
-                                          data-student="${studentId}"
-                                          data-paper="${paperIndex}"></textarea>
-                            </div>
-                        </td>
+                    const td = document.createElement('td');
+                    td.className = 'px-6 py-4 border-l border-gray-200';
+                    td.innerHTML = `
+                        <div class="space-y-2">
+                            <input type="number" 
+                                   name="marks[${studentId}][${paperIndex}][mark]"
+                                   placeholder="Mark"
+                                   min="0"
+                                   max="${paper.total_marks}"
+                                   class="mark-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                   data-student="${studentId}"
+                                   data-paper="${paperIndex}"
+                                   data-total-marks="${paper.total_marks}"
+                                   onchange="autoPopulateComment(this)">
+                            <textarea name="marks[${studentId}][${paperIndex}][comment]"
+                                      placeholder="Comment (optional)"
+                                      rows="2"
+                                      maxlength="500"
+                                      class="comment-textarea w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none"
+                                      data-student="${studentId}"
+                                      data-paper="${paperIndex}"></textarea>
+                        </div>
                     `;
+                    row.appendChild(td);
                 });
-
-                marksContainer.innerHTML = inputsHTML;
             });
         }
 
