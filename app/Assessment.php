@@ -38,4 +38,9 @@ class Assessment extends Model
     {
         return $this->belongsTo(Subject::class);
     }
+
+    public function marks()
+    {
+        return $this->hasMany(AssessmentMark::class);
+    }
 }

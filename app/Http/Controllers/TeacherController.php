@@ -738,6 +738,132 @@ class TeacherController extends Controller
     }
 
     /**
+     * Display marking scheme page with assessment marks.
+     *
+     * @param  int  $class_id
+     * @return \Illuminate\Http\Response
+     */
+    public function markingScheme($class_id)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        // Verify the class belongs to this teacher
+        $class = $teacher->classes()->findOrFail($class_id);
+
+        // Get assessments with marks for this class
+        $assessments = \App\Assessment::where('teacher_id', $teacher->id)
+            ->where('class_id', $class_id)
+            ->with('subject')
+            ->whereHas('marks')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        // Get students in the class
+        $students = $class->students()->with('user')->get();
+
+        return view('backend.teacher.marking-scheme', compact('class', 'assessments', 'students', 'teacher'));
+    }
+
+    /**
+     * Export marking scheme to Excel.
+     *
+     * @param  int  $class_id
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function exportMarkingScheme($class_id, Request $request)
+    {
+        $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        $assessmentId = $request->query('assessment_id');
+
+        if (!$assessmentId) {
+            return redirect()->back()->with('error', 'Please select an assessment to export.');
+        }
+
+        // Verify the class belongs to this teacher
+        $class = $teacher->classes()->findOrFail($class_id);
+
+        // Get the assessment
+        $assessment = \App\Assessment::where('id', $assessmentId)
+            ->where('teacher_id', $teacher->id)
+            ->where('class_id', $class_id)
+            ->with('subject')
+            ->firstOrFail();
+
+        // Get marks for this assessment
+        $marks = \App\AssessmentMark::where('assessment_id', $assessmentId)
+            ->with('student.user')
+            ->get();
+
+        // Group marks by student
+        $studentMarks = [];
+        foreach ($marks as $mark) {
+            $studentId = $mark->student_id;
+            if (!isset($studentMarks[$studentId])) {
+                $studentMarks[$studentId] = [
+                    'name' => $mark->student->user->name,
+                    'papers' => []
+                ];
+            }
+            $studentMarks[$studentId]['papers'][$mark->paper_index] = [
+                'paper_name' => $mark->paper_name,
+                'mark' => $mark->mark,
+                'total_marks' => $mark->total_marks,
+                'comment' => $mark->comment
+            ];
+        }
+
+        // Create Excel export
+        return \Excel::download(new \App\Exports\MarkingSchemeExport($assessment, $studentMarks), 
+            $assessment->subject->name . '_' . $assessment->topic . '_Marks.xlsx');
+    }
+
+    /**
+     * Get assessment marks via API.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function getAssessmentMarks($id)
+    {
+        $marks = \App\AssessmentMark::where('assessment_id', $id)
+            ->with('student.user')
+            ->get();
+
+        // Group marks by student
+        $studentMarks = [];
+        foreach ($marks as $mark) {
+            $studentId = $mark->student_id;
+            if (!isset($studentMarks[$studentId])) {
+                $studentMarks[$studentId] = [
+                    'student_name' => $mark->student->user->name,
+                    'papers' => []
+                ];
+            }
+            $studentMarks[$studentId]['papers'][$mark->paper_index] = [
+                'paper_name' => $mark->paper_name,
+                'mark' => $mark->mark,
+                'total_marks' => $mark->total_marks,
+                'comment' => $mark->comment
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'marks' => array_values($studentMarks)
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Teacher  $teacher

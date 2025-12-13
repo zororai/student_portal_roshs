@@ -38,6 +38,9 @@
                             <a href="{{ route('teacher.assessment.marks', $class->id) }}" class="block w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg text-center transition-colors">
                                 Add Assessment Marks
                             </a>
+                            <a href="{{ route('teacher.assessment.marking.scheme', $class->id) }}" class="block w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg text-center transition-colors">
+                                Assessment Marking Scheme
+                            </a>
                         </div>
                     </div>
                 </div>

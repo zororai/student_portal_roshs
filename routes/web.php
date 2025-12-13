@@ -179,6 +179,9 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::delete('/teacher/assessment/{id}/delete', 'TeacherController@deleteAssessment')->name('teacher.assessment.delete');
     Route::get('/teacher/assessment/marks/{class_id}', 'TeacherController@assessmentMarks')->name('teacher.assessment.marks');
     Route::post('/teacher/assessment/marks/save', 'TeacherController@saveAssessmentMark')->name('teacher.assessment.marks.save');
+    Route::get('/teacher/assessment/marking-scheme/{class_id}', 'TeacherController@markingScheme')->name('teacher.assessment.marking.scheme');
+    Route::get('/teacher/assessment/marking-scheme/{class_id}/export', 'TeacherController@exportMarkingScheme')->name('teacher.assessment.marking.export');
+    Route::get('/api/assessment/{id}/marks', 'TeacherController@getAssessmentMarks');
     Route::post('/teacher/assessment/comment/store', 'TeacherController@storeAssessmentComment')->name('teacher.assessment.comment.store');
     Route::delete('/teacher/assessment/comment/{id}', 'TeacherController@deleteAssessmentComment')->name('teacher.assessment.comment.delete');
 
