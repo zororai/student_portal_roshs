@@ -4,15 +4,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Newsletter;
+use App\Banner;
 
 class websiteController extends Controller
 {
     public function index()
     {
-
- 
-    
-     return view('website.index');
+        $banner = Banner::first();
+        
+        if (!$banner) {
+            // Create a default banner object with properties
+            $banner = (object) [
+                'image_path_1' => 'banners/default-banner.jpg',
+                'image_path_2' => 'banners/default-banner.jpg',
+                'image_path_3' => 'banners/default-banner.jpg'
+            ];
+        }
+        
+        return view('website.index', compact('banner'));
     }
 
     public function about()

@@ -20,6 +20,14 @@ Route::get('/logins','UserController@login')->name('login');
 
 Auth::routes();
 
+// Add GET logout route to avoid 419 error
+Route::get('/logout', function() {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->name('logout.get');
+
 // Parent self-registration routes (public access, no auth required)
 Route::get('/parent/register/{token}', 'ParentsController@showRegistrationForm')->name('parent.register.form');
 Route::post('/parent/register/{token}', 'ParentsController@completeRegistration')->name('parent.register.complete');
