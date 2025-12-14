@@ -234,6 +234,12 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/marking-scheme/assessment/{assessment_id}', 'AdminMarkingSchemeController@assessmentMarks')->name('admin.marking-scheme.marks');
     Route::get('/api/admin/assessment/{assessment_id}/marks', 'AdminMarkingSchemeController@getAssessmentMarks')->name('admin.marking-scheme.api.marks');
 
+    // Audit Trail Routes
+    Route::get('/admin/audit-trail', 'AuditTrailController@index')->name('admin.audit-trail.index');
+    Route::get('/admin/audit-trail/export', 'AuditTrailController@export')->name('admin.audit-trail.export');
+    Route::get('/admin/audit-trail/{id}', 'AuditTrailController@show')->name('admin.audit-trail.show');
+    Route::post('/admin/audit-trail/clear', 'AuditTrailController@clear')->name('admin.audit-trail.clear');
+
 });
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()

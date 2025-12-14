@@ -3,9 +3,11 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Auditable;
 
 class Result extends Model
 {
+    use Auditable;
     protected $fillable = [
         'class_id',
         'teacher_id',

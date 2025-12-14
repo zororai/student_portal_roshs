@@ -3,9 +3,11 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Auditable;
 
 class StudentPayment extends Model
 {
+    use Auditable;
     protected $fillable = [
         'student_id',
         'results_status_id',
