@@ -208,6 +208,15 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::delete('/finance/products/{id}', 'FinanceController@destroyProduct')->name('finance.product.destroy');
     Route::get('/finance/statements', 'FinanceController@financialStatements')->name('finance.statements');
 
+    // Admin Groceries Routes
+    Route::get('/admin/groceries', 'GroceryController@index')->name('admin.groceries.index');
+    Route::post('/admin/groceries', 'GroceryController@store')->name('admin.groceries.store');
+    Route::get('/admin/groceries/class/{classId}', 'GroceryController@showClass')->name('admin.groceries.class');
+    Route::get('/admin/groceries/response/{responseId}', 'GroceryController@viewResponse')->name('admin.groceries.response');
+    Route::put('/admin/groceries/{responseId}/acknowledge', 'GroceryController@acknowledge')->name('admin.groceries.acknowledge');
+    Route::put('/admin/groceries/{id}/close', 'GroceryController@close')->name('admin.groceries.close');
+    Route::delete('/admin/groceries/{id}', 'GroceryController@destroy')->name('admin.groceries.destroy');
+
     // Admin View Results Routes
     Route::get('/admin/view-results', 'ResultController@adminViewResults')->name('admin.view-results');
     Route::post('/admin/get-results', 'ResultController@getAdminResults')->name('admin.get-results');
@@ -303,6 +312,10 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
     Route::get('/viewstudentresults/viewstudentresults', 'ResultController@viewstudentshow')->name('parentviewresults.studentresults');
     Route::get('/studentviewresults/studentviewresults', 'AddsubjectController@studentviewsubject')->name('viewsubject.studentresults');
     Route::get('/parent/timetable', 'TimetableController@parentView')->name('parent.timetable');
+    
+    // Parent Groceries Routes
+    Route::get('/parent/groceries', 'GroceryController@parentIndex')->name('parent.groceries.index');
+    Route::post('/parent/groceries/submit', 'GroceryController@parentSubmit')->name('parent.groceries.submit');
 });
 
 Route::group(['middleware' => ['auth','role:Student']], function () {
