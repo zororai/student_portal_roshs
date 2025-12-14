@@ -11,6 +11,8 @@ class StudentApplication extends Model
         'previous_school',
         'first_name',
         'last_name',
+        'student_email',
+        'student_phone',
         'gender',
         'date_of_birth',
         'applying_for_form',

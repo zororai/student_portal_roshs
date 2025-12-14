@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\StudentApplication;
+use App\Mail\ApplicationStatusMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class AdminApplicantController extends Controller
 {
@@ -35,7 +38,35 @@ class AdminApplicantController extends Controller
 
         $application->update($validated);
 
-        return redirect()->back()->with('success', 'Application status updated successfully.');
+        // Send email notifications
+        $emailsSent = [];
+        
+        // Send to guardian email
+        if ($application->guardian_email) {
+            try {
+                Mail::to($application->guardian_email)->send(new ApplicationStatusMail($application, 'guardian'));
+                $emailsSent[] = 'guardian';
+            } catch (\Exception $e) {
+                Log::error('Failed to send email to guardian: ' . $e->getMessage());
+            }
+        }
+        
+        // Send to student email
+        if ($application->student_email) {
+            try {
+                Mail::to($application->student_email)->send(new ApplicationStatusMail($application, 'student'));
+                $emailsSent[] = 'student';
+            } catch (\Exception $e) {
+                Log::error('Failed to send email to student: ' . $e->getMessage());
+            }
+        }
+
+        $message = 'Application status updated successfully.';
+        if (!empty($emailsSent)) {
+            $message .= ' Email notifications sent to: ' . implode(', ', $emailsSent) . '.';
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function destroy($id)

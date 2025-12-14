@@ -114,6 +114,31 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::patch('admin/applicants/{id}/status', 'AdminApplicantController@updateStatus')->name('admin.applicants.updateStatus');
     Route::delete('admin/applicants/{id}', 'AdminApplicantController@destroy')->name('admin.applicants.destroy');
 
+    // School Staff Routes
+    Route::get('admin/staff', 'AdminStaffController@index')->name('admin.staff.index');
+    Route::get('admin/staff/create', 'AdminStaffController@create')->name('admin.staff.create');
+    Route::post('admin/staff', 'AdminStaffController@store')->name('admin.staff.store');
+    Route::get('admin/staff/{id}', 'AdminStaffController@show')->name('admin.staff.show');
+    Route::get('admin/staff/{id}/edit', 'AdminStaffController@edit')->name('admin.staff.edit');
+    Route::put('admin/staff/{id}', 'AdminStaffController@update')->name('admin.staff.update');
+    Route::delete('admin/staff/{id}', 'AdminStaffController@destroy')->name('admin.staff.destroy');
+
+    // Log Book Routes
+    Route::get('admin/logbook', 'AdminLogBookController@index')->name('admin.logbook.index');
+    Route::get('admin/logbook/create', 'AdminLogBookController@create')->name('admin.logbook.create');
+    Route::post('admin/logbook', 'AdminLogBookController@store')->name('admin.logbook.store');
+    Route::get('admin/logbook/{id}', 'AdminLogBookController@show')->name('admin.logbook.show');
+    Route::delete('admin/logbook/{id}', 'AdminLogBookController@destroy')->name('admin.logbook.destroy');
+
+    // Timetable Routes
+    Route::get('admin/timetable', 'AdminTimetableController@index')->name('admin.timetable.index');
+    Route::get('admin/timetable/create', 'AdminTimetableController@create')->name('admin.timetable.create');
+    Route::post('admin/timetable', 'AdminTimetableController@store')->name('admin.timetable.store');
+    Route::get('admin/timetable/{id}', 'AdminTimetableController@show')->name('admin.timetable.show');
+    Route::get('admin/timetable/{id}/edit', 'AdminTimetableController@edit')->name('admin.timetable.edit');
+    Route::put('admin/timetable/{id}', 'AdminTimetableController@update')->name('admin.timetable.update');
+    Route::delete('admin/timetable/{id}', 'AdminTimetableController@destroy')->name('admin.timetable.destroy');
+
     // Stepper route for creating student with parents
     Route::get('student-with-parents/create', 'StudentController@createWithParents')->name('student.create-with-parents');
     Route::post('student-with-parents', 'StudentController@storeWithParents')->name('student.store-with-parents');

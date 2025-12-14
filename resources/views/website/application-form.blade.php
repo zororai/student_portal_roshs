@@ -111,6 +111,14 @@
                             <input type="text" name="last_name" id="last_name" class="form-control" placeholder="Last Name" value="{{ old('last_name') }}" required>
                         </div>
                         <div class="col-md-6">
+                            <label for="student_email">Student Email</label>
+                            <input type="email" name="student_email" id="student_email" class="form-control" placeholder="Student Email" value="{{ old('student_email') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="student_phone">Student Phone Number</label>
+                            <input type="tel" name="student_phone" id="student_phone" class="form-control" placeholder="Student Phone Number" value="{{ old('student_phone') }}">
+                        </div>
+                        <div class="col-md-6">
                             <label for="gender">Gender <span class="text-danger">*</span></label>
                             <select name="gender" id="gender" class="form-control" required>
                                 <option value="">Select gender</option>
@@ -155,15 +163,144 @@
                             </select>
                         </div>
                         <div class="col-md-12">
-                            <label for="subjects_of_interest">Select Subjects of Interest</label>
-                            <select name="subjects_of_interest[]" id="subjects_of_interest" class="form-control" multiple style="height: 120px;">
-                                @if(isset($subjects))
-                                    @foreach($subjects as $subject)
-                                        <option value="{{ $subject->name }}">{{ $subject->name }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
-                            <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple subjects</small>
+                            <label>Select Subjects of Interest</label>
+                            <div style="height: 200px; overflow-y: auto; border: 1px solid #ced4da; border-radius: 4px; padding: 15px; background: #fff;">
+                                <!-- O LEVEL SUBJECTS -->
+                                <h6 class="text-success font-weight-bold mb-2">🇿🇼 ZIMSEC O LEVEL SUBJECTS</h6>
+                                
+                                <p class="mb-1"><strong>Core / Common Subjects</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="English Language" class="mr-1"> English Language</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Mathematics" class="mr-1"> Mathematics</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Combined Science" class="mr-1"> Combined Science</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Sciences</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Additional Mathematics" class="mr-1"> Additional Mathematics</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Biology" class="mr-1"> Biology</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Chemistry" class="mr-1"> Chemistry</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Physics" class="mr-1"> Physics</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Commercial / Business Studies</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Accounting" class="mr-1"> Accounting</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Business Studies" class="mr-1"> Business Studies</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Economics" class="mr-1"> Economics</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Commerce" class="mr-1"> Commerce</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Humanities / Arts</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="History" class="mr-1"> History</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Geography" class="mr-1"> Geography</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Family & Religious Studies" class="mr-1"> Family & Religious Studies</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Sociology" class="mr-1"> Sociology</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Heritage Studies" class="mr-1"> Heritage Studies</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Languages</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Shona" class="mr-1"> Shona</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Ndebele" class="mr-1"> Ndebele</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Tonga" class="mr-1"> Tonga</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Venda" class="mr-1"> Venda</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Kalanga" class="mr-1"> Kalanga</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Sotho" class="mr-1"> Sotho</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="French" class="mr-1"> French</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Portuguese" class="mr-1"> Portuguese</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Chinese" class="mr-1"> Chinese</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Practical / Technical Subjects</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Computer Science" class="mr-1"> Computer Science</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Computer Studies" class="mr-1"> Computer Studies</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Design & Technology" class="mr-1"> Design & Technology</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Wood Technology" class="mr-1"> Wood Technology</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Metal Technology" class="mr-1"> Metal Technology</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Building Studies" class="mr-1"> Building Studies</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Technical Drawing" class="mr-1"> Technical Drawing</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Electrical Technology" class="mr-1"> Electrical Technology</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Mechanical Technology" class="mr-1"> Mechanical Technology</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Automotive Technology" class="mr-1"> Automotive Technology</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Home & Creative Studies</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Fashion & Fabrics" class="mr-1"> Fashion & Fabrics</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Food & Nutrition" class="mr-1"> Food & Nutrition</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Home Management" class="mr-1"> Home Management</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Art & Design" class="mr-1"> Art & Design</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Music" class="mr-1"> Music</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Agricultural & Environmental</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Agriculture" class="mr-1"> Agriculture</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Environmental Science" class="mr-1"> Environmental Science</label></div>
+                                </div>
+
+                                <hr>
+
+                                <!-- A LEVEL SUBJECTS -->
+                                <h6 class="text-success font-weight-bold mb-2">🇿🇼 ZIMSEC A LEVEL SUBJECTS</h6>
+
+                                <p class="mb-1"><strong>Sciences</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Mathematics" class="mr-1"> Mathematics</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Pure Mathematics" class="mr-1"> Pure Mathematics</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Further Mathematics" class="mr-1"> Further Mathematics</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Biology" class="mr-1"> Biology</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Chemistry" class="mr-1"> Chemistry</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Physics" class="mr-1"> Physics</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Computer Science" class="mr-1"> Computer Science</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Commercial / Business</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Accounting" class="mr-1"> Accounting</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Business Studies" class="mr-1"> Business Studies</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Economics" class="mr-1"> Economics</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Management of Business" class="mr-1"> Management of Business (MoB)</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Humanities</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level History" class="mr-1"> History</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Geography" class="mr-1"> Geography</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Sociology" class="mr-1"> Sociology</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Family & Religious Studies" class="mr-1"> Family & Religious Studies</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Divinity" class="mr-1"> Divinity</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Languages</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level English Language" class="mr-1"> English Language</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Literature in English" class="mr-1"> Literature in English</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Shona" class="mr-1"> Shona</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Ndebele" class="mr-1"> Ndebele</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level French" class="mr-1"> French</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Portuguese" class="mr-1"> Portuguese</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Chinese" class="mr-1"> Chinese</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Agriculture & Applied Sciences</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Agriculture" class="mr-1"> Agriculture</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Environmental Management" class="mr-1"> Environmental Management</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Food Science" class="mr-1"> Food Science</label></div>
+                                </div>
+
+                                <p class="mb-1"><strong>Arts & Design</strong></p>
+                                <div class="row mb-2">
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Art" class="mr-1"> Art</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="A Level Music" class="mr-1"> Music</label></div>
+                                    <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="Theatre Arts" class="mr-1"> Theatre Arts</label></div>
+                                </div>
+                            </div>
+                            <small class="text-muted">Select all subjects you are interested in</small>
                         </div>
                     </div>
                 </div>
