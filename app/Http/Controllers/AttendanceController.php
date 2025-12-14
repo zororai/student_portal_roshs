@@ -122,11 +122,14 @@ class AttendanceController extends Controller
      * @param  \App\Attendance  $attendance
      * @return \Illuminate\Http\Response
      */
-    public function show(Attendance $attendance)
+    public function show($studentId)
     {
-        $attendances = Attendance::where('student_id',$attendance->id)->get();
-        dd($attendance);
-       // return view('backend.attendance.show', compact('attendances'));
+        $attendances = Attendance::with(['student.user', 'teacher.user', 'class'])
+            ->where('student_id', $studentId)
+            ->orderBy('attendence_date', 'desc')
+            ->get();
+        
+        return view('backend.attendance.show', compact('attendances'));
     }
 
     /**

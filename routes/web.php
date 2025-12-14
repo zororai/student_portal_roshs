@@ -123,12 +123,12 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('admin/staff/{id}', 'AdminStaffController@update')->name('admin.staff.update');
     Route::delete('admin/staff/{id}', 'AdminStaffController@destroy')->name('admin.staff.destroy');
 
-    // Log Book Routes
-    Route::get('admin/logbook', 'AdminLogBookController@index')->name('admin.logbook.index');
-    Route::get('admin/logbook/create', 'AdminLogBookController@create')->name('admin.logbook.create');
-    Route::post('admin/logbook', 'AdminLogBookController@store')->name('admin.logbook.store');
-    Route::get('admin/logbook/{id}', 'AdminLogBookController@show')->name('admin.logbook.show');
-    Route::delete('admin/logbook/{id}', 'AdminLogBookController@destroy')->name('admin.logbook.destroy');
+    // Log Book Routes (commented out - controller not yet created)
+    // Route::get('admin/logbook', 'AdminLogBookController@index')->name('admin.logbook.index');
+    // Route::get('admin/logbook/create', 'AdminLogBookController@create')->name('admin.logbook.create');
+    // Route::post('admin/logbook', 'AdminLogBookController@store')->name('admin.logbook.store');
+    // Route::get('admin/logbook/{id}', 'AdminLogBookController@show')->name('admin.logbook.show');
+    // Route::delete('admin/logbook/{id}', 'AdminLogBookController@destroy')->name('admin.logbook.destroy');
 
     // Timetable Routes
     Route::get('admin/timetable', 'AdminTimetableController@index')->name('admin.timetable.index');

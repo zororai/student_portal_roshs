@@ -8,6 +8,9 @@ use App\Student;
 use App\Teacher;
 use App\Subject;
 use App\Result;
+use App\Assessment;
+use App\AssessmentMark;
+use App\Attendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -103,9 +106,93 @@ class HomeController extends Controller
 
         } elseif ($user->hasRole('Parent')) {
             
-            $parents = Parents::with(['children'])->withCount('children')->findOrFail($user->parent->id); 
+            $parents = Parents::with(['children.user', 'children.class'])->withCount('children')->findOrFail($user->parent->id);
+            
+            // Get children IDs
+            $childrenIds = $parents->children->pluck('id')->toArray();
+            
+            // Get assessment marks for all children grouped by subject
+            $assessmentData = [];
+            $attendanceData = [];
+            $recentAssessments = [];
+            
+            foreach ($parents->children as $child) {
+                // Get assessment marks with subject info
+                $childAssessments = AssessmentMark::with(['assessment.subject', 'assessment.class'])
+                    ->where('student_id', $child->id)
+                    ->whereHas('assessment')
+                    ->get();
+                
+                // Group by subject for chart
+                $subjectMarks = [];
+                foreach ($childAssessments as $mark) {
+                    if ($mark->assessment && $mark->assessment->subject) {
+                        $subjectName = $mark->assessment->subject->name;
+                        if (!isset($subjectMarks[$subjectName])) {
+                            $subjectMarks[$subjectName] = [
+                                'total_marks' => 0,
+                                'obtained_marks' => 0,
+                                'count' => 0,
+                                'assessments' => []
+                            ];
+                        }
+                        $subjectMarks[$subjectName]['total_marks'] += $mark->total_marks ?? 0;
+                        $subjectMarks[$subjectName]['obtained_marks'] += $mark->mark ?? 0;
+                        $subjectMarks[$subjectName]['count']++;
+                        $subjectMarks[$subjectName]['assessments'][] = [
+                            'topic' => $mark->assessment->topic,
+                            'type' => $mark->assessment->assessment_type,
+                            'mark' => $mark->mark,
+                            'total' => $mark->total_marks,
+                            'comment' => $mark->comment,
+                            'date' => $mark->assessment->date
+                        ];
+                    }
+                }
+                
+                // Calculate percentages per subject
+                $subjectPercentages = [];
+                foreach ($subjectMarks as $subject => $data) {
+                    $percentage = $data['total_marks'] > 0 
+                        ? round(($data['obtained_marks'] / $data['total_marks']) * 100, 1) 
+                        : 0;
+                    $subjectPercentages[$subject] = $percentage;
+                }
+                
+                $assessmentData[$child->id] = [
+                    'student_name' => $child->user->name ?? 'Unknown',
+                    'class' => $child->class->class_name ?? 'N/A',
+                    'subject_marks' => $subjectMarks,
+                    'subject_percentages' => $subjectPercentages
+                ];
+                
+                // Get attendance data
+                $totalAttendance = Attendance::where('student_id', $child->id)->count();
+                $presentCount = Attendance::where('student_id', $child->id)->where('attendence_status', 'present')->count();
+                $absentCount = Attendance::where('student_id', $child->id)->where('attendence_status', 'absent')->count();
+                $lateCount = Attendance::where('student_id', $child->id)->where('attendence_status', 'late')->count();
+                
+                $attendanceData[$child->id] = [
+                    'student_name' => $child->user->name ?? 'Unknown',
+                    'total' => $totalAttendance,
+                    'present' => $presentCount,
+                    'absent' => $absentCount,
+                    'late' => $lateCount,
+                    'percentage' => $totalAttendance > 0 ? round(($presentCount / $totalAttendance) * 100, 1) : 0
+                ];
+                
+                // Get recent assessments
+                $recent = AssessmentMark::with(['assessment.subject'])
+                    ->where('student_id', $child->id)
+                    ->whereHas('assessment')
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get();
+                    
+                $recentAssessments[$child->id] = $recent;
+            }
 
-            return view('home', compact('parents'));
+            return view('home', compact('parents', 'assessmentData', 'attendanceData', 'recentAssessments'));
 
         } elseif ($user->hasRole('Student')) {
             
