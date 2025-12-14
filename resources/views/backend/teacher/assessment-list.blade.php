@@ -208,9 +208,14 @@
                                 <option value="">Assessment Type</option>
                                 <option value="Quiz">Quiz</option>
                                 <option value="Test">Test</option>
+                                <option value="In Class Test">In Class Test</option>
+                                <option value="Monthly Test">Monthly Test</option>
                                 <option value="Assignment">Assignment</option>
-                                <option value="Exam">Exam</option>
+                                <option value="Exercise">Exercise</option>
                                 <option value="Project">Project</option>
+                                <option value="Exam">Exam</option>
+                                <option value="Vacation Exam">Vacation Exam</option>
+                                <option value="National Exam">National Exam</option>
                             </select>
                         </div>
                     </div>

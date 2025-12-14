@@ -176,6 +176,46 @@
     </div>
 </div>
 
+<!-- Assessment Performance Chart -->
+@if(isset($assessmentStats))
+<div class="w-full block mt-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Assessment Performance by Type</h3>
+        <p class="text-sm text-gray-600 mb-6">School-wide average performance across all assessment types</p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-gray-50 rounded-lg p-4" style="height: 350px;">
+                <canvas id="assessmentPerformanceChart"></canvas>
+            </div>
+            <div>
+                <h5 class="text-sm font-semibold text-gray-700 mb-3">Assessment Summary</h5>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b bg-gray-50">
+                            <th class="text-left py-2 px-3">Type</th>
+                            <th class="text-center py-2 px-3">Given</th>
+                            <th class="text-center py-2 px-3">Avg Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($assessmentStats as $stat)
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-2 px-3 text-gray-700">{{ $stat['type'] }}</td>
+                            <td class="text-center py-2 px-3">{{ $stat['given'] }}</td>
+                            <td class="text-center py-2 px-3">
+                                <span class="px-2 py-1 rounded text-xs font-medium {{ $stat['performance'] >= 50 ? 'bg-green-100 text-green-700' : ($stat['performance'] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500') }}">
+                                    {{ $stat['performance'] > 0 ? $stat['performance'] . '%' : '--' }}
+                                </span>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -282,6 +322,53 @@
                 }
             }
         });
+        // Assessment Performance Chart
+        @if(isset($assessmentStats))
+        const assessmentCtx = document.getElementById('assessmentPerformanceChart');
+        if (assessmentCtx) {
+            new Chart(assessmentCtx, {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode(collect($assessmentStats)->pluck('type')) !!},
+                    datasets: [{
+                        label: 'Performance %',
+                        data: {!! json_encode(collect($assessmentStats)->pluck('performance')) !!},
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(139, 92, 246, 0.7)',
+                            'rgba(236, 72, 153, 0.7)',
+                            'rgba(20, 184, 166, 0.7)',
+                            'rgba(249, 115, 22, 0.7)',
+                            'rgba(99, 102, 241, 0.7)',
+                            'rgba(34, 197, 94, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Performance (%)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'School-Wide Assessment Performance'
+                        }
+                    }
+                }
+            });
+        }
+        @endif
     });
 </script>
 @endpush

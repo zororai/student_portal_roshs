@@ -56,4 +56,173 @@
 
         </div>
     </div>
+<!-- Subjects Taught Section with Assessment Stats -->
+<div class="w-full block mt-8">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Subjects Taught</h3>
+    
+    @if(isset($subjectAssessmentData) && count($subjectAssessmentData) > 0)
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        @foreach($subjectAssessmentData as $index => $subjectData)
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h4 class="text-lg font-semibold text-blue-600 mb-4">{{ $subjectData['subject'] }} - {{ $subjectData['class'] }}</h4>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Report on Work Given -->
+                <div>
+                    <h5 class="text-sm font-semibold text-gray-700 mb-3">Report on Work Given</h5>
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left py-1 text-gray-600">Assessment Type</th>
+                                <th class="text-center py-1 text-gray-600">Given</th>
+                                <th class="text-center py-1 text-gray-600">Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($subjectData['stats'] as $stat)
+                            <tr class="border-b border-gray-100">
+                                <td class="py-1 text-blue-600">{{ $stat['type'] }}</td>
+                                <td class="text-center py-1">{{ $stat['given'] }}</td>
+                                <td class="text-center py-1">{{ $stat['performance'] }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Student Performance Chart -->
+                <div>
+                    <h5 class="text-sm font-semibold text-gray-700 mb-3">Student Performance</h5>
+                    <canvas id="subjectChart{{ $index }}" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @else
+    <div class="bg-gray-100 rounded-lg p-6 text-center text-gray-500">
+        No assessment data available yet.
+    </div>
+    @endif
+</div>
+
+<!-- Overall Assessment Performance Chart -->
+<div class="w-full block mt-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Overall Assessment Performance</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+                <canvas id="teacherAssessmentChart" height="300"></canvas>
+            </div>
+            <div>
+                <h5 class="text-sm font-semibold text-gray-700 mb-3">Assessment Summary</h5>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b bg-gray-50">
+                            <th class="text-left py-2 px-3">Type</th>
+                            <th class="text-center py-2 px-3">Given</th>
+                            <th class="text-center py-2 px-3">Avg Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if(isset($teacherAssessmentStats))
+                        @foreach($teacherAssessmentStats as $stat)
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-2 px-3 text-gray-700">{{ $stat['type'] }}</td>
+                            <td class="text-center py-2 px-3">{{ $stat['given'] }}</td>
+                            <td class="text-center py-2 px-3">
+                                <span class="px-2 py-1 rounded text-xs font-medium {{ $stat['performance'] >= 50 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                    {{ $stat['performance'] }}%
+                                </span>
+                            </td>
+                        </tr>
+                        @endforeach
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 </div> <!-- ./END TEACHER -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Overall Assessment Chart
+    @if(isset($teacherAssessmentStats))
+    const teacherCtx = document.getElementById('teacherAssessmentChart');
+    if (teacherCtx) {
+        new Chart(teacherCtx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode(collect($teacherAssessmentStats)->pluck('type')) !!},
+                datasets: [{
+                    label: 'Performance %',
+                    data: {!! json_encode(collect($teacherAssessmentStats)->pluck('performance')) !!},
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(239, 68, 68, 0.7)',
+                        'rgba(139, 92, 246, 0.7)',
+                        'rgba(236, 72, 153, 0.7)',
+                        'rgba(20, 184, 166, 0.7)',
+                        'rgba(249, 115, 22, 0.7)',
+                        'rgba(99, 102, 241, 0.7)',
+                        'rgba(34, 197, 94, 0.7)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: { display: true, text: 'Performance (%)' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+    @endif
+    
+    // Subject-specific charts
+    @if(isset($subjectAssessmentData))
+    @foreach($subjectAssessmentData as $index => $subjectData)
+    const ctx{{ $index }} = document.getElementById('subjectChart{{ $index }}');
+    if (ctx{{ $index }}) {
+        new Chart(ctx{{ $index }}, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode(collect($subjectData['stats'])->pluck('type')) !!},
+                datasets: [{
+                    label: 'Performance',
+                    data: {!! json_encode(collect($subjectData['stats'])->map(function($s) { return floatval(str_replace(['%', '--'], ['', '0'], $s['performance'])); })) !!},
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, max: 100 }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+    @endforeach
+    @endif
+});
+</script>

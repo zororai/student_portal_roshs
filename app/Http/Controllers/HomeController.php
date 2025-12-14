@@ -96,13 +96,125 @@ class HomeController extends Controller
                     ];
                 });
 
-            return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation'));
+            // Get assessment statistics by type for admin
+            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+            $assessmentStats = [];
+            
+            foreach ($assessmentTypes as $type) {
+                $assessments = Assessment::where('assessment_type', $type)->get();
+                $totalGiven = $assessments->count();
+                
+                $totalMarks = 0;
+                $obtainedMarks = 0;
+                $marksCount = 0;
+                
+                foreach ($assessments as $assessment) {
+                    $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
+                    foreach ($marks as $mark) {
+                        if ($mark->mark !== null && $mark->total_marks > 0) {
+                            $totalMarks += $mark->total_marks;
+                            $obtainedMarks += $mark->mark;
+                            $marksCount++;
+                        }
+                    }
+                }
+                
+                $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
+                
+                $assessmentStats[] = [
+                    'type' => $type,
+                    'given' => $totalGiven,
+                    'performance' => $performance
+                ];
+            }
+
+            return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation','assessmentStats'));
 
         } elseif ($user->hasRole('Teacher')) {
 
             $teacher = Teacher::with(['user','subjects','classes','students'])->withCount('subjects','classes')->findOrFail($user->teacher->id);
 
-            return view('home', compact('teacher'));
+            // Get assessment statistics for teacher's subjects
+            $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+            $teacherClassIds = $teacher->classes->pluck('id')->toArray();
+            
+            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+            $teacherAssessmentStats = [];
+            
+            foreach ($assessmentTypes as $type) {
+                $assessments = Assessment::where('assessment_type', $type)
+                    ->whereIn('subject_id', $teacherSubjectIds)
+                    ->whereIn('class_id', $teacherClassIds)
+                    ->get();
+                    
+                $totalGiven = $assessments->count();
+                
+                $totalMarks = 0;
+                $obtainedMarks = 0;
+                
+                foreach ($assessments as $assessment) {
+                    $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
+                    foreach ($marks as $mark) {
+                        if ($mark->mark !== null && $mark->total_marks > 0) {
+                            $totalMarks += $mark->total_marks;
+                            $obtainedMarks += $mark->mark;
+                        }
+                    }
+                }
+                
+                $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
+                
+                $teacherAssessmentStats[] = [
+                    'type' => $type,
+                    'given' => $totalGiven,
+                    'performance' => $performance
+                ];
+            }
+            
+            // Get subject-wise assessment data for cards like in the image
+            $subjectAssessmentData = [];
+            foreach ($teacher->subjects as $subject) {
+                $subjectClasses = $teacher->classes;
+                foreach ($subjectClasses as $class) {
+                    $subjectStats = [];
+                    foreach ($assessmentTypes as $type) {
+                        $assessments = Assessment::where('assessment_type', $type)
+                            ->where('subject_id', $subject->id)
+                            ->where('class_id', $class->id)
+                            ->get();
+                            
+                        $given = $assessments->count();
+                        $totalMarks = 0;
+                        $obtainedMarks = 0;
+                        
+                        foreach ($assessments as $assessment) {
+                            $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
+                            foreach ($marks as $mark) {
+                                if ($mark->mark !== null && $mark->total_marks > 0) {
+                                    $totalMarks += $mark->total_marks;
+                                    $obtainedMarks += $mark->mark;
+                                }
+                            }
+                        }
+                        
+                        $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
+                        
+                        $subjectStats[] = [
+                            'type' => $type,
+                            'given' => $given,
+                            'performance' => $performance > 0 ? $performance . '%' : '--%'
+                        ];
+                    }
+                    
+                    $subjectAssessmentData[] = [
+                        'subject' => $subject->name,
+                        'class' => $class->class_name,
+                        'stats' => $subjectStats
+                    ];
+                }
+            }
+
+            return view('home', compact('teacher', 'teacherAssessmentStats', 'subjectAssessmentData'));
 
         } elseif ($user->hasRole('Parent')) {
             
