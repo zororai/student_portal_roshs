@@ -13,7 +13,8 @@ class DisciplinaryRecord extends Model
         'offense_type',
         'offense_status',
         'offense_date',
-        'description'
+        'description',
+        'judgement'
     ];
 
     protected $dates = ['offense_date'];

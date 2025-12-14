@@ -5,12 +5,14 @@
     <!-- Page Header -->
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Student Disciplinary Records</h1>
+        @role('Teacher')
         <button onclick="showAddRecordModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow">
             <svg class="inline h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
             Add Record
         </button>
+        @endrole
     </div>
 
     <!-- Success Message -->
@@ -31,6 +33,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judgement</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
@@ -61,8 +64,11 @@
                             {{ $record->offense_status }}
                         </span>
                     </td>
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                        {{ Str::limit($record->judgement ?? 'Pending', 30) }}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="showEditModal({{ $record->id }}, '{{ $record->offense_type }}', '{{ $record->offense_status }}', '{{ $record->offense_date instanceof \Carbon\Carbon ? $record->offense_date->format('Y-m-d') : $record->offense_date }}', '{{ addslashes($record->description) }}')"
+                        <button onclick="showEditModal({{ $record->id }}, '{{ $record->offense_type }}', '{{ $record->offense_status }}', '{{ $record->offense_date instanceof \Carbon\Carbon ? $record->offense_date->format('Y-m-d') : $record->offense_date }}', '{{ addslashes($record->description) }}', '{{ addslashes($record->judgement ?? '') }}')"
                             class="text-blue-600 hover:text-blue-900 mr-3">
                             Edit
                         </button>
@@ -73,7 +79,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="8" class="px-6 py-4 text-center text-gray-500">
                         No disciplinary records found.
                     </td>
                 </tr>
@@ -95,7 +101,7 @@
             </button>
         </div>
 
-        <form action="{{ route('teacher.disciplinary.store') }}" method="POST">
+        <form action="{{ Auth::user()->hasRole('Admin') ? route('admin.disciplinary.store') : route('teacher.disciplinary.store') }}" method="POST">
             @csrf
             <div class="space-y-4">
                 <!-- Select Class -->
@@ -165,6 +171,14 @@
                     <textarea name="description" rows="4" required
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Provide detailed description of the offense..."></textarea>
+                </div>
+
+                <!-- Judgement -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Judgement/Action Taken</label>
+                    <textarea name="judgement" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter the judgement or action taken (optional)..."></textarea>
                 </div>
 
                 <!-- Buttons -->
@@ -244,6 +258,14 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                 </div>
 
+                <!-- Judgement -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Judgement/Action Taken</label>
+                    <textarea name="judgement" id="edit_judgement" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter the judgement or action taken..."></textarea>
+                </div>
+
                 <!-- Buttons -->
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" onclick="closeEditModal()"
@@ -294,6 +316,10 @@
 </div>
 
 <script>
+// Determine base URL based on user role
+const isAdmin = {{ Auth::user()->hasRole('Admin') ? 'true' : 'false' }};
+const baseUrl = isAdmin ? '/admin/disciplinary-records' : '/teacher/disciplinary-records';
+
 // Show Add Record Modal
 function showAddRecordModal() {
     document.getElementById('addRecordModal').classList.remove('hidden');
@@ -318,7 +344,7 @@ function loadStudents() {
         return;
     }
 
-    fetch(`/teacher/disciplinary-records/class/${classId}/students`)
+    fetch(`${baseUrl}/class/${classId}/students`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -345,12 +371,13 @@ function loadStudents() {
 }
 
 // Show Edit Modal
-function showEditModal(id, offenseType, offenseStatus, offenseDate, description) {
-    document.getElementById('editForm').action = `/teacher/disciplinary-records/${id}`;
+function showEditModal(id, offenseType, offenseStatus, offenseDate, description, judgement) {
+    document.getElementById('editForm').action = `${baseUrl}/${id}`;
     document.getElementById('edit_offense_type').value = offenseType;
     document.getElementById('edit_offense_status').value = offenseStatus;
     document.getElementById('edit_offense_date').value = offenseDate;
     document.getElementById('edit_description').value = description;
+    document.getElementById('edit_judgement').value = judgement || '';
     document.getElementById('editRecordModal').classList.remove('hidden');
 }
 
@@ -361,7 +388,7 @@ function closeEditModal() {
 
 // Show Delete Modal
 function showDeleteModal(id) {
-    document.getElementById('deleteForm').action = `/teacher/disciplinary-records/${id}`;
+    document.getElementById('deleteForm').action = `${baseUrl}/${id}`;
     document.getElementById('deleteModal').classList.remove('hidden');
 }
 

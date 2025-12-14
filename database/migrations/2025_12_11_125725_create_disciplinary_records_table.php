@@ -22,6 +22,7 @@ class CreateDisciplinaryRecordsTable extends Migration
             $table->string('offense_status');
             $table->date('offense_date');
             $table->text('description');
+            $table->text('judgement')->nullable();
             $table->timestamps();
 
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');

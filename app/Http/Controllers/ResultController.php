@@ -435,7 +435,43 @@ public function adminshowResult(Request $request)
 
     }
 
+    /**
+     * Admin view results - Display class cards with view results button
+     */
+    public function adminViewResults()
+    {
+        $classes = Grade::withCount('students')->orderBy('class_name')->get();
+        $years = ResultsStatus::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
+        $terms = ResultsStatus::all();
+        
+        return view('backend.results.admin-view-results', compact('classes', 'years', 'terms'));
+    }
 
+    /**
+     * Get results for admin by class, year and term
+     */
+    public function getAdminResults(Request $request)
+    {
+        $classId = $request->class_id;
+        $year = $request->year;
+        $term = $request->term;
+
+        $class = Grade::with('students.user')->findOrFail($classId);
+        $studentIds = $class->students->pluck('id');
+
+        $results = Result::with(['student.user', 'subject'])
+            ->whereIn('student_id', $studentIds)
+            ->where('year', $year)
+            ->where('result_period', $term)
+            ->get()
+            ->groupBy('student_id');
+
+        return response()->json([
+            'class' => $class,
+            'results' => $results,
+            'students' => $class->students
+        ]);
+    }
 }
 
 

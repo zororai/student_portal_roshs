@@ -19,6 +19,20 @@ class FinanceController extends Controller
             ->orderBy('result_period', 'desc')
             ->first();
         
+        // Get ALL students for the Record Payment modal (unfiltered)
+        $allStudentsForModal = Student::with(['user', 'class', 'parent.user', 'payments.termFee.feeType'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Calculate total fees and amount paid for modal students
+        foreach ($allStudentsForModal as $student) {
+            $student->total_fees = $currentTerm ? floatval($currentTerm->total_fees) : 0;
+            $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)
+                ->sum('amount_paid'));
+            $student->balance = $student->total_fees - $student->amount_paid;
+        }
+        
+        // Build query for table (with filters)
         $query = Student::with(['user', 'class', 'parent.user', 'payments.termFee.feeType']);
         
         // Apply class filter if provided
@@ -26,25 +40,20 @@ class FinanceController extends Controller
             $query->where('class_id', $request->class_id);
         }
         
-        $allStudents = $query->orderBy('created_at', 'desc')->get();
+        $filteredStudents = $query->orderBy('created_at', 'desc')->get();
         
-        // Calculate total fees and amount paid for each student
-        foreach ($allStudents as $student) {
-            // Get total fees from current term
-            $student->total_fees = $currentTerm ? $currentTerm->total_fees : 0;
-            
-            // Calculate amount already paid by this student
-            $student->amount_paid = \App\StudentPayment::where('student_id', $student->id)
-                ->sum('amount_paid');
-            
-            // Calculate balance
+        // Calculate total fees and amount paid for filtered students
+        foreach ($filteredStudents as $student) {
+            $student->total_fees = $currentTerm ? floatval($currentTerm->total_fees) : 0;
+            $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)
+                ->sum('amount_paid'));
             $student->balance = $student->total_fees - $student->amount_paid;
         }
         
         // Apply status filter after calculating balances
         if ($request->has('status') && $request->status != '') {
             $status = $request->status;
-            $allStudents = $allStudents->filter(function($student) use ($status) {
+            $filteredStudents = $filteredStudents->filter(function($student) use ($status) {
                 $balance = $student->balance;
                 $totalFees = $student->total_fees;
                 $amountPaid = $student->amount_paid;
@@ -60,14 +69,14 @@ class FinanceController extends Controller
             });
         }
         
-        // Manual pagination
+        // Manual pagination for table
         $perPage = 20;
         $currentPage = $request->get('page', 1);
         $offset = ($currentPage - 1) * $perPage;
         
         $students = new \Illuminate\Pagination\LengthAwarePaginator(
-            $allStudents->slice($offset, $perPage)->values(),
-            $allStudents->count(),
+            $filteredStudents->slice($offset, $perPage)->values(),
+            $filteredStudents->count(),
             $perPage,
             $currentPage,
             ['path' => $request->url(), 'query' => $request->query()]
@@ -75,7 +84,13 @@ class FinanceController extends Controller
         
         $classes = \App\Grade::orderBy('class_name')->get();
         
-        return view('backend.finance.student-payments', compact('students', 'currentTerm', 'classes'));
+        // Get all available terms for the dropdown
+        $allTerms = \App\ResultsStatus::with('termFees.feeType')
+            ->orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->get();
+        
+        return view('backend.finance.student-payments', compact('students', 'currentTerm', 'classes', 'allTerms', 'allStudentsForModal'));
     }
 
     public function storePayment(Request $request)
@@ -133,31 +148,229 @@ class FinanceController extends Controller
             ->with('success', 'Payment of $' . number_format($totalPaid, 2) . ' recorded successfully! Remaining balance: $' . number_format($remainingBalance, 2));
     }
 
-    public function parentsArrears()
+    public function parentsArrears(Request $request)
     {
-        $parentsWithArrears = Parents::with(['user', 'students.user', 'students.class'])
+        // Get all terms for cumulative calculation
+        $allTerms = \App\ResultsStatus::with('termFees')->get();
+        
+        // Get classes for filter
+        $classes = \App\Grade::orderBy('class_name')->get();
+        
+        $parentsWithArrears = Parents::with(['user', 'students.user', 'students.class', 'students.payments.termFee.feeType', 'students.payments.resultsStatus'])
             ->get()
-            ->map(function($parent) {
-                $totalFees = $parent->students->sum(function($student) {
-                    return $student->total_fees ?? 0;
-                });
-                $totalPaid = $parent->students->sum(function($student) {
-                    return $student->amount_paid ?? 0;
-                });
+            ->map(function($parent) use ($allTerms, $request) {
+                // Filter students by class if provided
+                $students = $parent->students;
+                if ($request->has('class_id') && $request->class_id != '') {
+                    $students = $students->filter(function($student) use ($request) {
+                        return $student->class_id == $request->class_id;
+                    });
+                }
+                
+                // Calculate cumulative fees from ALL terms
+                $totalFees = 0;
+                foreach ($allTerms as $term) {
+                    $totalFees += floatval($term->total_fees) * $students->count();
+                }
+                
+                // Calculate total paid across all terms
+                $totalPaid = 0;
+                foreach ($students as $student) {
+                    $totalPaid += floatval(\App\StudentPayment::where('student_id', $student->id)->sum('amount_paid'));
+                }
+                
                 $arrears = $totalFees - $totalPaid;
                 
+                $parent->filtered_students = $students;
                 $parent->total_fees = $totalFees;
                 $parent->total_paid = $totalPaid;
                 $parent->arrears = $arrears;
                 
+                // Get arrears breakdown by term for each student
+                $arrearsBreakdown = [];
+                foreach ($students as $student) {
+                    $studentArrears = [];
+                    foreach ($allTerms as $term) {
+                        $termFees = floatval($term->total_fees);
+                        $termPaid = floatval(\App\StudentPayment::where('student_id', $student->id)
+                            ->where('results_status_id', $term->id)
+                            ->sum('amount_paid'));
+                        $termArrears = $termFees - $termPaid;
+                        
+                        if ($termArrears > 0) {
+                            $studentArrears[] = [
+                                'term' => ucfirst($term->result_period) . ' ' . $term->year,
+                                'term_id' => $term->id,
+                                'fees' => $termFees,
+                                'paid' => $termPaid,
+                                'arrears' => $termArrears
+                            ];
+                        }
+                    }
+                    if (!empty($studentArrears)) {
+                        $arrearsBreakdown[$student->id] = [
+                            'student_name' => $student->user->name ?? $student->name,
+                            'class' => $student->class->class_name ?? 'N/A',
+                            'terms' => $studentArrears,
+                            'total_arrears' => array_sum(array_column($studentArrears, 'arrears'))
+                        ];
+                    }
+                }
+                $parent->arrears_breakdown = $arrearsBreakdown;
+                
                 return $parent;
             })
             ->filter(function($parent) {
-                return $parent->arrears > 0;
+                return $parent->arrears > 0 && $parent->filtered_students->count() > 0;
             })
             ->sortByDesc('arrears');
         
-        return view('backend.finance.parents-arrears', compact('parentsWithArrears'));
+        return view('backend.finance.parents-arrears', compact('parentsWithArrears', 'classes'));
+    }
+
+    public function exportParentsArrears(Request $request)
+    {
+        $allTerms = \App\ResultsStatus::with('termFees')->get();
+        
+        $parentsWithArrears = Parents::with(['user', 'students.user', 'students.class'])
+            ->get()
+            ->map(function($parent) use ($allTerms, $request) {
+                $students = $parent->students;
+                if ($request->has('class_id') && $request->class_id != '') {
+                    $students = $students->filter(function($student) use ($request) {
+                        return $student->class_id == $request->class_id;
+                    });
+                }
+                
+                $totalFees = 0;
+                foreach ($allTerms as $term) {
+                    $totalFees += floatval($term->total_fees) * $students->count();
+                }
+                
+                $totalPaid = 0;
+                foreach ($students as $student) {
+                    $totalPaid += floatval(\App\StudentPayment::where('student_id', $student->id)->sum('amount_paid'));
+                }
+                
+                $parent->filtered_students = $students;
+                $parent->total_fees = $totalFees;
+                $parent->total_paid = $totalPaid;
+                $parent->arrears = $totalFees - $totalPaid;
+                
+                return $parent;
+            })
+            ->filter(function($parent) {
+                return $parent->arrears > 0 && $parent->filtered_students->count() > 0;
+            })
+            ->sortByDesc('arrears');
+
+        $filename = 'parents_arrears_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($parentsWithArrears) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Header
+            fputcsv($file, ['#', 'Parent Name', 'Email', 'Phone', 'Students', 'Total Fees', 'Amount Paid', 'Arrears']);
+            
+            $index = 1;
+            foreach ($parentsWithArrears as $parent) {
+                $studentNames = $parent->filtered_students->map(function($s) {
+                    return ($s->user->name ?? $s->name) . ' (' . ($s->class->class_name ?? 'N/A') . ')';
+                })->implode(', ');
+                
+                fputcsv($file, [
+                    $index++,
+                    $parent->user->name ?? 'N/A',
+                    $parent->user->email ?? 'N/A',
+                    $parent->phone ?? $parent->user->phone ?? 'N/A',
+                    $studentNames,
+                    number_format($parent->total_fees, 2),
+                    number_format($parent->total_paid, 2),
+                    number_format($parent->arrears, 2)
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportStudentPayments(Request $request)
+    {
+        $currentTerm = \App\ResultsStatus::with('termFees.feeType')
+            ->orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+        
+        $query = Student::with(['user', 'class', 'payments.termFee.feeType']);
+        
+        if ($request->has('class_id') && $request->class_id != '') {
+            $query->where('class_id', $request->class_id);
+        }
+        
+        $students = $query->orderBy('created_at', 'desc')->get();
+        
+        foreach ($students as $student) {
+            $student->total_fees = $currentTerm ? floatval($currentTerm->total_fees) : 0;
+            $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)->sum('amount_paid'));
+            $student->balance = $student->total_fees - $student->amount_paid;
+            
+            if ($student->balance == 0 && $student->total_fees > 0) {
+                $student->status = 'Fully Paid';
+            } elseif ($student->amount_paid > 0 && $student->balance > 0) {
+                $student->status = 'Partially Paid';
+            } else {
+                $student->status = 'Unpaid';
+            }
+        }
+        
+        if ($request->has('status') && $request->status != '') {
+            $status = $request->status;
+            $students = $students->filter(function($student) use ($status) {
+                if ($status === 'paid') return $student->status === 'Fully Paid';
+                if ($status === 'partial') return $student->status === 'Partially Paid';
+                if ($status === 'unpaid') return $student->status === 'Unpaid';
+                return true;
+            });
+        }
+
+        $filename = 'student_payments_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($students) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Header
+            fputcsv($file, ['#', 'Roll Number', 'Student Name', 'Class', 'Total Fees', 'Amount Paid', 'Balance', 'Status']);
+            
+            $index = 1;
+            foreach ($students as $student) {
+                fputcsv($file, [
+                    $index++,
+                    $student->roll_number,
+                    $student->user->name ?? $student->name,
+                    $student->class->class_name ?? 'N/A',
+                    number_format($student->total_fees, 2),
+                    number_format($student->amount_paid, 2),
+                    number_format($student->balance, 2),
+                    $student->status
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function schoolIncome()

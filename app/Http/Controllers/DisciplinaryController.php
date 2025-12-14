@@ -15,10 +15,8 @@ class DisciplinaryController extends Controller
      */
     public function index()
     {
-        $teacher = Auth::user()->teacher;
-
-        // Get all disciplinary records recorded by this teacher with relationships
-        $records = DisciplinaryRecord::with(['student', 'class', 'teacher'])
+        // Get all disciplinary records with relationships
+        $records = DisciplinaryRecord::with(['student.user', 'class', 'teacher'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -68,21 +66,32 @@ class DisciplinaryController extends Controller
             'offense_type' => 'required|string|max:255',
             'offense_status' => 'required|string|max:255',
             'offense_date' => 'required|date',
-            'description' => 'required|string'
+            'description' => 'required|string',
+            'judgement' => 'nullable|string'
         ]);
 
-        $teacher = Auth::user()->teacher;
+        // Get teacher ID if user is a teacher, otherwise use 0 or first teacher for Admin
+        $recordedBy = 1; // Default
+        if (Auth::user()->teacher) {
+            $recordedBy = Auth::user()->teacher->id;
+        }
 
         DisciplinaryRecord::create([
             'student_id' => $request->student_id,
             'class_id' => $request->class_id,
-            'recorded_by' => $teacher->id,
+            'recorded_by' => $recordedBy,
             'offense_type' => $request->offense_type,
             'offense_status' => $request->offense_status,
             'offense_date' => $request->offense_date,
-            'description' => $request->description
+            'description' => $request->description,
+            'judgement' => $request->judgement
         ]);
 
+        // Redirect based on user role
+        if (Auth::user()->hasRole('Admin')) {
+            return redirect()->route('admin.disciplinary.index')
+                ->with('success', 'Disciplinary record added successfully.');
+        }
         return redirect()->route('teacher.disciplinary.index')
             ->with('success', 'Disciplinary record added successfully.');
     }
@@ -96,7 +105,8 @@ class DisciplinaryController extends Controller
             'offense_type' => 'required|string|max:255',
             'offense_status' => 'required|string|max:255',
             'offense_date' => 'required|date',
-            'description' => 'required|string'
+            'description' => 'required|string',
+            'judgement' => 'nullable|string'
         ]);
 
         $record = DisciplinaryRecord::findOrFail($id);
@@ -105,9 +115,15 @@ class DisciplinaryController extends Controller
             'offense_type' => $request->offense_type,
             'offense_status' => $request->offense_status,
             'offense_date' => $request->offense_date,
-            'description' => $request->description
+            'description' => $request->description,
+            'judgement' => $request->judgement
         ]);
 
+        // Redirect based on user role
+        if (Auth::user()->hasRole('Admin')) {
+            return redirect()->route('admin.disciplinary.index')
+                ->with('success', 'Disciplinary record updated successfully.');
+        }
         return redirect()->route('teacher.disciplinary.index')
             ->with('success', 'Disciplinary record updated successfully.');
     }
@@ -120,6 +136,11 @@ class DisciplinaryController extends Controller
         $record = DisciplinaryRecord::findOrFail($id);
         $record->delete();
 
+        // Redirect based on user role
+        if (Auth::user()->hasRole('Admin')) {
+            return redirect()->route('admin.disciplinary.index')
+                ->with('success', 'Disciplinary record deleted successfully.');
+        }
         return redirect()->route('teacher.disciplinary.index')
             ->with('success', 'Disciplinary record deleted successfully.');
     }

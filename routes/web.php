@@ -154,10 +154,23 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/finance/student-payments', 'FinanceController@studentPayments')->name('finance.student-payments');
     Route::post('/finance/payments/store', 'FinanceController@storePayment')->name('finance.payments.store');
     Route::get('/finance/parents-arrears', 'FinanceController@parentsArrears')->name('finance.parents-arrears');
+    Route::get('/finance/parents-arrears/export', 'FinanceController@exportParentsArrears')->name('finance.parents-arrears.export');
+    Route::get('/finance/student-payments/export', 'FinanceController@exportStudentPayments')->name('finance.student-payments.export');
     Route::get('/finance/school-income', 'FinanceController@schoolIncome')->name('finance.school-income');
     Route::get('/finance/school-expenses', 'FinanceController@schoolExpenses')->name('finance.school-expenses');
     Route::get('/finance/products', 'FinanceController@products')->name('finance.products');
     Route::get('/finance/statements', 'FinanceController@financialStatements')->name('finance.statements');
+
+    // Admin View Results Routes
+    Route::get('/admin/view-results', 'ResultController@adminViewResults')->name('admin.view-results');
+    Route::post('/admin/get-results', 'ResultController@getAdminResults')->name('admin.get-results');
+
+    // Disciplinary Records Routes (Admin)
+    Route::get('/admin/disciplinary-records', 'DisciplinaryController@index')->name('admin.disciplinary.index');
+    Route::post('/admin/disciplinary-records', 'DisciplinaryController@store')->name('admin.disciplinary.store');
+    Route::get('/admin/disciplinary-records/class/{class_id}/students', 'DisciplinaryController@getStudentsByClass')->name('admin.disciplinary.students');
+    Route::put('/admin/disciplinary-records/{id}', 'DisciplinaryController@update')->name('admin.disciplinary.update');
+    Route::delete('/admin/disciplinary-records/{id}', 'DisciplinaryController@destroy')->name('admin.disciplinary.destroy');
 
 });
 

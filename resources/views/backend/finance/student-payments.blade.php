@@ -5,6 +5,12 @@
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Student Payments</h2>
         <div class="flex space-x-2">
+            <a href="{{ route('finance.student-payments.export', request()->query()) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Export to Excel
+            </a>
             <button onclick="openPaymentModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -137,8 +143,28 @@
                                 {{ $statusText }}
                             </span>
                         </td>
+                        @php
+                            $paymentHistory = $student->payments->map(function($p) {
+                                return [
+                                    'id' => $p->id,
+                                    'amount' => $p->amount_paid,
+                                    'date' => $p->payment_date->format('M d, Y'),
+                                    'method' => $p->payment_method,
+                                    'fee_type' => $p->termFee->feeType->name ?? 'N/A',
+                                    'reference' => $p->reference_number,
+                                    'term' => ($p->resultsStatus->result_period ?? '') . ' ' . ($p->resultsStatus->year ?? '')
+                                ];
+                            })->values()->toArray();
+                        @endphp
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
+                                <button type="button" 
+                                        onclick="showPaymentHistory({{ $student->id }}, '{{ addslashes($student->name) }}', {{ json_encode($paymentHistory) }})"
+                                        class="text-blue-600 hover:text-blue-900" title="Payment History">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </button>
                                 <a href="{{ route('student.show', $student->id) }}" class="text-gray-600 hover:text-gray-900" title="View Details">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -163,6 +189,80 @@
     <!-- Pagination -->
     <div class="mt-6">
         {{ $students->links() }}
+    </div>
+
+    <!-- Payment History Modal -->
+    <div id="paymentHistoryModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-10 mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-md bg-white mb-10 max-h-[90vh] overflow-y-auto">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">
+                        <svg class="w-6 h-6 inline-block mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Payment History
+                    </h3>
+                    <button onclick="closePaymentHistoryModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Student Name -->
+                <div class="mb-4 p-3 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-gray-600">Student</p>
+                    <p class="text-lg font-bold text-gray-900" id="history_student_name">-</p>
+                </div>
+
+                <!-- Payment History Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Term</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fee Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment_history_body" class="bg-white divide-y divide-gray-200">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                        <tfoot class="bg-gray-100">
+                            <tr>
+                                <td colspan="6" class="px-4 py-3 text-right text-sm font-bold text-gray-700">Total Paid:</td>
+                                <td class="px-4 py-3 text-right text-sm font-bold text-green-600" id="history_total_paid">$0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- No Payments Message -->
+                <div id="no_payments_message" class="hidden text-center py-8">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p class="text-gray-500">No payment records found for this student.</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-6 flex justify-between">
+                    <button onclick="printPaymentHistory()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        </svg>
+                        Print
+                    </button>
+                    <button onclick="closePaymentHistoryModal()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Payment Modal -->
@@ -228,10 +328,42 @@
 
                 <form id="paymentForm" method="POST" action="{{ route('finance.payments.store') }}">
                     @csrf
-                    <input type="hidden" name="results_status_id" id="modal_results_status_id" value="{{ $currentTerm->id ?? '' }}">
 
                     <!-- Step 1: Student Selection -->
                     <div class="step-content" id="step1" style="display: block;">
+                        <!-- Term/Year Selection -->
+                        <div class="mb-4 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Select Term & Year</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1">Year</label>
+                                    <select id="modal_year" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" onchange="updateTermOptions()">
+                                        <option value="">-- Select Year --</option>
+                                        @php
+                                            $years = $allTerms->pluck('year')->unique()->sortDesc();
+                                        @endphp
+                                        @foreach($years as $year)
+                                            <option value="{{ $year }}" {{ $currentTerm && $currentTerm->year == $year ? 'selected' : '' }}>{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1">Term</label>
+                                    <select name="results_status_id" id="modal_results_status_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" required onchange="updateFeeTypes()">
+                                        <option value="">-- Select Term --</option>
+                                        @foreach($allTerms as $term)
+                                            <option value="{{ $term->id }}" 
+                                                    data-year="{{ $term->year }}"
+                                                    data-fees='@json($term->termFees)'
+                                                    {{ $currentTerm && $currentTerm->id == $term->id ? 'selected' : '' }}>
+                                                {{ ucfirst($term->result_period) }} Term {{ $term->year }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mb-4 bg-gray-50 p-4 rounded-lg">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Find Student</label>
                         <div class="grid grid-cols-2 gap-3 mb-3">
@@ -240,9 +372,9 @@
                                 <select id="modal_class_filter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" onchange="filterStudents()">
                                     <option value="">All Classes</option>
                                     @php
-                                        $classes = $students->pluck('class')->unique()->filter();
+                                        $modalClasses = $allStudentsForModal->pluck('class')->unique()->filter();
                                     @endphp
-                                    @foreach($classes as $class)
+                                    @foreach($modalClasses as $class)
                                         @if($class)
                                             <option value="{{ $class->id }}">{{ $class->class_name }}</option>
                                         @endif
@@ -261,7 +393,7 @@
                             <label class="block text-xs text-gray-600 mb-1">Select Student</label>
                             <select name="student_id" id="modal_student_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required onchange="updateStudentBalance()">
                                 <option value="">-- Select a student --</option>
-                                @foreach($students as $student)
+                                @foreach($allStudentsForModal as $student)
                                     @php
                                         $totalFees = $student->total_fees ?? 0;
                                         $amountPaid = $student->amount_paid ?? 0;
@@ -279,7 +411,7 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <p class="text-xs text-gray-500 mt-1" id="student_count">{{ $students->count() }} students available</p>
+                            <p class="text-xs text-gray-500 mt-1" id="student_count">{{ $allStudentsForModal->count() }} students available</p>
                         </div>
                         </div>
                         <div class="flex justify-end mt-4">
@@ -311,7 +443,7 @@
                         <!-- Fee Types Selection -->
                         <div class="mb-4">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Select Fee Types to Pay</label>
-                        <div class="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto" id="feeTypesContainer">
+                        <div class="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto" id="fee_types_container">
                             @if(isset($currentTerm) && $currentTerm->termFees->count() > 0)
                                 @foreach($currentTerm->termFees as $termFee)
                                 <div class="py-3 border-b border-gray-200 last:border-0 fee-item">
@@ -342,6 +474,7 @@
                                                        max="{{ $termFee->amount }}"
                                                        step="0.01"
                                                        value="{{ $termFee->amount }}"
+                                                       disabled
                                                        oninput="updatePaymentCalculation()">
                                             </div>
                                             <button type="button" 
@@ -507,12 +640,241 @@
         document.getElementById('modal_alert').classList.add('hidden');
     }
 
+    function showPaymentHistory(studentId, studentName, payments) {
+        document.getElementById('history_student_name').textContent = studentName;
+        
+        const tbody = document.getElementById('payment_history_body');
+        const noPaymentsMsg = document.getElementById('no_payments_message');
+        const table = tbody.closest('table');
+        
+        tbody.innerHTML = '';
+        
+        if (!payments || payments.length === 0) {
+            table.classList.add('hidden');
+            noPaymentsMsg.classList.remove('hidden');
+            document.getElementById('history_total_paid').textContent = '$0.00';
+        } else {
+            table.classList.remove('hidden');
+            noPaymentsMsg.classList.add('hidden');
+            
+            let totalPaid = 0;
+            payments.forEach((payment, index) => {
+                totalPaid += parseFloat(payment.amount) || 0;
+                const row = `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm text-gray-500">${index + 1}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${payment.date}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${payment.term || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 font-medium">${payment.fee_type}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${payment.method || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">${payment.reference || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-green-600 font-semibold text-right">$${parseFloat(payment.amount).toFixed(2)}</td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+            
+            document.getElementById('history_total_paid').textContent = '$' + totalPaid.toFixed(2);
+        }
+        
+        document.getElementById('paymentHistoryModal').classList.remove('hidden');
+    }
+
+    function closePaymentHistoryModal() {
+        document.getElementById('paymentHistoryModal').classList.add('hidden');
+    }
+
+    function printPaymentHistory() {
+        const studentName = document.getElementById('history_student_name').textContent;
+        const tableContent = document.getElementById('payment_history_body').innerHTML;
+        const totalPaid = document.getElementById('history_total_paid').textContent;
+        
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Payment History - ${studentName}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .header h1 { margin: 0; color: #1f2937; font-size: 24px; }
+                    .header p { margin: 5px 0; color: #6b7280; }
+                    .student-info { background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                    .student-info p { margin: 0; }
+                    .student-info .name { font-size: 18px; font-weight: bold; color: #1f2937; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th { background: #f3f4f6; padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6b7280; border-bottom: 2px solid #e5e7eb; }
+                    td { padding: 12px 8px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+                    .amount { text-align: right; color: #059669; font-weight: 600; }
+                    .total-row { background: #f3f4f6; font-weight: bold; }
+                    .total-row td { border-top: 2px solid #e5e7eb; }
+                    .footer { margin-top: 30px; text-align: center; color: #9ca3af; font-size: 12px; }
+                    @media print { body { padding: 0; } }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Payment History Report</h1>
+                    <p>Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+                <div class="student-info">
+                    <p style="color: #6b7280; font-size: 12px;">Student</p>
+                    <p class="name">${studentName}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Term</th>
+                            <th>Fee Type</th>
+                            <th>Method</th>
+                            <th>Reference</th>
+                            <th style="text-align: right;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableContent}
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="6" style="text-align: right;">Total Paid:</td>
+                            <td class="amount">${totalPaid}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="footer">
+                    <p>This is a computer-generated document.</p>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
+    }
+
+    function updateTermOptions() {
+        const yearSelect = document.getElementById('modal_year');
+        const termSelect = document.getElementById('modal_results_status_id');
+        const selectedYear = yearSelect.value;
+        
+        // Show/hide term options based on selected year
+        Array.from(termSelect.options).forEach(option => {
+            if (option.value === '') {
+                option.style.display = '';
+            } else {
+                const optionYear = option.dataset.year;
+                option.style.display = (selectedYear === '' || optionYear === selectedYear) ? '' : 'none';
+            }
+        });
+        
+        // Reset term selection if current selection is hidden
+        if (termSelect.value && termSelect.options[termSelect.selectedIndex].style.display === 'none') {
+            termSelect.value = '';
+        }
+        
+        // Auto-select first visible term if year is selected
+        if (selectedYear && !termSelect.value) {
+            for (let option of termSelect.options) {
+                if (option.value && option.dataset.year === selectedYear && option.style.display !== 'none') {
+                    termSelect.value = option.value;
+                    break;
+                }
+            }
+        }
+        
+        updateFeeTypes();
+    }
+
+    function updateFeeTypes() {
+        const termSelect = document.getElementById('modal_results_status_id');
+        const selectedOption = termSelect.options[termSelect.selectedIndex];
+        const feeTypesContainer = document.getElementById('fee_types_container');
+        
+        if (!feeTypesContainer) return;
+        
+        if (selectedOption.value && selectedOption.dataset.fees) {
+            try {
+                const fees = JSON.parse(selectedOption.dataset.fees);
+                
+                // Clear existing fee checkboxes
+                feeTypesContainer.innerHTML = '';
+                
+                if (fees.length === 0) {
+                    feeTypesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No fee types available for selected term</p>';
+                    return;
+                }
+                
+                // Create new fee checkboxes
+                fees.forEach(fee => {
+                    const feeHtml = `
+                        <div class="bg-white border border-gray-200 rounded-lg p-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <input type="checkbox" 
+                                           id="fee_${fee.id}"
+                                           class="fee-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                           data-fee-id="${fee.id}"
+                                           data-full-amount="${fee.amount}"
+                                           onchange="toggleFeeAmount(${fee.id})">
+                                    <label for="fee_${fee.id}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
+                                        ${fee.fee_type ? fee.fee_type.name : 'Fee'}
+                                    </label>
+                                    <span class="text-sm font-semibold text-gray-600">Full: $${parseFloat(fee.amount).toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="ml-7 mt-2 hidden" id="amount_input_${fee.id}">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex-1">
+                                        <label class="block text-xs text-gray-600 mb-1">Amount to Pay</label>
+                                        <input type="number" 
+                                               name="fee_amounts[${fee.id}]"
+                                               id="amount_${fee.id}"
+                                               class="fee-amount-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                               placeholder="Enter amount"
+                                               min="0"
+                                               max="${fee.amount}"
+                                               step="0.01"
+                                               value="${fee.amount}"
+                                               disabled
+                                               oninput="updatePaymentCalculation()">
+                                    </div>
+                                    <button type="button" 
+                                            onclick="setFullAmount(${fee.id}, ${fee.amount})"
+                                            class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-xs font-medium mt-5">
+                                        Full Amount
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Maximum: $${parseFloat(fee.amount).toFixed(2)}</p>
+                            </div>
+                        </div>
+                    `;
+                    feeTypesContainer.insertAdjacentHTML('beforeend', feeHtml);
+                });
+            } catch (e) {
+                console.error('Error parsing fees:', e);
+            }
+        }
+        
+        updatePaymentCalculation();
+    }
+
     function nextStep(step) {
         // Hide any existing alerts
         hideAlert();
         
         // Validate current step before proceeding
         if (step === 1) {
+            const termId = document.getElementById('modal_results_status_id').value;
+            if (!termId) {
+                showAlert('Please select a term before proceeding.');
+                return;
+            }
             const studentId = document.getElementById('modal_student_id').value;
             if (!studentId) {
                 showAlert('Please select a student before proceeding.');
@@ -616,8 +978,13 @@
                 cb.checked = false;
                 const feeId = cb.dataset.feeId;
                 const amountInput = document.getElementById('amount_input_' + feeId);
+                const amountField = document.getElementById('amount_' + feeId);
                 if (amountInput) {
                     amountInput.classList.add('hidden');
+                }
+                if (amountField) {
+                    amountField.disabled = true;
+                    amountField.value = '';
                 }
             });
             updatePaymentCalculation();
@@ -630,15 +997,18 @@
     function toggleFeeAmount(feeId) {
         const checkbox = document.getElementById('fee_' + feeId);
         const amountInput = document.getElementById('amount_input_' + feeId);
+        const amountField = document.getElementById('amount_' + feeId);
         
         if (checkbox.checked) {
             amountInput.classList.remove('hidden');
+            amountField.disabled = false;
             // Set default to full amount
             const fullAmount = parseFloat(checkbox.dataset.fullAmount);
-            document.getElementById('amount_' + feeId).value = fullAmount;
+            amountField.value = fullAmount;
         } else {
             amountInput.classList.add('hidden');
-            document.getElementById('amount_' + feeId).value = '';
+            amountField.disabled = true;
+            amountField.value = '';
         }
         
         updatePaymentCalculation();
