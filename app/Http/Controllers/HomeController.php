@@ -302,6 +302,40 @@ class HomeController extends Controller
                     ->get();
                     
                 $recentAssessments[$child->id] = $recent;
+                
+                // Get assessment type stats for each child
+                $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+                $childAssessmentStats = [];
+                
+                foreach ($assessmentTypes as $type) {
+                    $typeMarks = AssessmentMark::where('student_id', $child->id)
+                        ->whereHas('assessment', function($q) use ($type) {
+                            $q->where('assessment_type', $type);
+                        })
+                        ->get();
+                    
+                    $totalMarks = 0;
+                    $obtainedMarks = 0;
+                    $count = 0;
+                    
+                    foreach ($typeMarks as $mark) {
+                        if ($mark->mark !== null && $mark->total_marks > 0) {
+                            $totalMarks += $mark->total_marks;
+                            $obtainedMarks += $mark->mark;
+                            $count++;
+                        }
+                    }
+                    
+                    $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
+                    
+                    $childAssessmentStats[] = [
+                        'type' => $type,
+                        'given' => $count,
+                        'performance' => $performance
+                    ];
+                }
+                
+                $assessmentData[$child->id]['assessment_stats'] = $childAssessmentStats;
             }
 
             return view('home', compact('parents', 'assessmentData', 'attendanceData', 'recentAssessments'));
@@ -310,7 +344,75 @@ class HomeController extends Controller
             
             $student = Student::with(['user','parent','class','attendances'])->findOrFail($user->student->id); 
 
-            return view('home', compact('student'));
+            // Get student's assessment performance by type
+            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+            $studentAssessmentStats = [];
+            
+            foreach ($assessmentTypes as $type) {
+                $marks = AssessmentMark::where('student_id', $student->id)
+                    ->whereHas('assessment', function($q) use ($type) {
+                        $q->where('assessment_type', $type);
+                    })
+                    ->get();
+                
+                $totalMarks = 0;
+                $obtainedMarks = 0;
+                $count = 0;
+                
+                foreach ($marks as $mark) {
+                    if ($mark->mark !== null && $mark->total_marks > 0) {
+                        $totalMarks += $mark->total_marks;
+                        $obtainedMarks += $mark->mark;
+                        $count++;
+                    }
+                }
+                
+                $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
+                
+                $studentAssessmentStats[] = [
+                    'type' => $type,
+                    'given' => $count,
+                    'performance' => $performance
+                ];
+            }
+            
+            // Get subject-wise performance for this student
+            $subjectPerformance = [];
+            $studentMarks = AssessmentMark::with(['assessment.subject'])
+                ->where('student_id', $student->id)
+                ->whereHas('assessment.subject')
+                ->get();
+            
+            foreach ($studentMarks as $mark) {
+                $subjectName = $mark->assessment->subject->name;
+                if (!isset($subjectPerformance[$subjectName])) {
+                    $subjectPerformance[$subjectName] = [
+                        'total_marks' => 0,
+                        'obtained_marks' => 0,
+                        'count' => 0
+                    ];
+                }
+                if ($mark->mark !== null && $mark->total_marks > 0) {
+                    $subjectPerformance[$subjectName]['total_marks'] += $mark->total_marks;
+                    $subjectPerformance[$subjectName]['obtained_marks'] += $mark->mark;
+                    $subjectPerformance[$subjectName]['count']++;
+                }
+            }
+            
+            // Calculate percentages
+            $subjectStats = [];
+            foreach ($subjectPerformance as $subject => $data) {
+                $percentage = $data['total_marks'] > 0 
+                    ? round(($data['obtained_marks'] / $data['total_marks']) * 100, 1) 
+                    : 0;
+                $subjectStats[] = [
+                    'subject' => $subject,
+                    'assessments' => $data['count'],
+                    'performance' => $percentage
+                ];
+            }
+
+            return view('home', compact('student', 'studentAssessmentStats', 'subjectStats'));
 
         } else {
             return 'NO ROLE ASSIGNED YET!';

@@ -42,6 +42,86 @@
     </div>
 </div>
 
+<!-- Arrears Breakdown Section -->
+@if($totalArrears > 0)
+<div class="w-full block mt-4">
+    <div class="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+        <div class="bg-red-600 text-white px-6 py-4">
+            <h3 class="text-lg font-bold flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Outstanding Fees Breakdown
+            </h3>
+        </div>
+        <div class="p-4">
+            @foreach ($parents->children as $child)
+                @php
+                    $childArrears = [];
+                    $childTotalArrears = 0;
+                    foreach ($allTerms as $term) {
+                        $termFees = floatval($term->total_fees);
+                        $termPaid = floatval(\App\StudentPayment::where('student_id', $child->id)
+                            ->where('results_status_id', $term->id)
+                            ->sum('amount_paid'));
+                        $termArrears = $termFees - $termPaid;
+                        if ($termArrears > 0) {
+                            $childArrears[] = [
+                                'term' => ucfirst($term->result_period) . ' ' . $term->year,
+                                'fees' => $termFees,
+                                'paid' => $termPaid,
+                                'arrears' => $termArrears
+                            ];
+                            $childTotalArrears += $termArrears;
+                        }
+                    }
+                @endphp
+                
+                @if($childTotalArrears > 0)
+                <div class="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
+                        <div>
+                            <span class="font-semibold text-gray-900">{{ $child->user->name }}</span>
+                            <span class="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">{{ $child->class->class_name ?? 'N/A' }}</span>
+                        </div>
+                        <span class="text-red-600 font-bold">${{ number_format($childTotalArrears, 2) }}</span>
+                    </div>
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Term</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Fees</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Paid</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Outstanding</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($childArrears as $arrear)
+                            <tr>
+                                <td class="px-4 py-2 text-sm text-gray-900">{{ $arrear['term'] }}</td>
+                                <td class="px-4 py-2 text-sm text-gray-600 text-right">${{ number_format($arrear['fees'], 2) }}</td>
+                                <td class="px-4 py-2 text-sm text-green-600 text-right">${{ number_format($arrear['paid'], 2) }}</td>
+                                <td class="px-4 py-2 text-sm text-red-600 font-semibold text-right">${{ number_format($arrear['arrears'], 2) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @endif
+            @endforeach
+            
+            <div class="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                <div class="flex justify-between items-center">
+                    <span class="text-lg font-bold text-gray-700">Total Outstanding:</span>
+                    <span class="text-2xl font-bold text-red-600">${{ number_format($totalArrears, 2) }}</span>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">Please settle outstanding fees at your earliest convenience.</p>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Student Assessment & Attendance Section -->
 @foreach ($parents->children as $child)
 <div class="w-full block mt-6">
@@ -130,6 +210,51 @@
                     @endif
                 </div>
             </div>
+            
+            <!-- Assessment Type Performance -->
+            @if(isset($assessmentData[$child->id]['assessment_stats']))
+            <div class="mt-6">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Performance by Assessment Type
+                </h4>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 rounded-lg p-4" style="height: 300px;">
+                        <canvas id="assessmentTypeChart{{ $child->id }}"></canvas>
+                    </div>
+                    <div>
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b bg-gray-50">
+                                    <th class="text-left py-2 px-3">Assessment Type</th>
+                                    <th class="text-center py-2 px-3">Taken</th>
+                                    <th class="text-center py-2 px-3">Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($assessmentData[$child->id]['assessment_stats'] as $stat)
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="py-2 px-3 text-gray-700">{{ $stat['type'] }}</td>
+                                    <td class="text-center py-2 px-3">{{ $stat['given'] }}</td>
+                                    <td class="text-center py-2 px-3">
+                                        @if($stat['given'] > 0)
+                                        <span class="px-2 py-1 rounded text-xs font-medium {{ $stat['performance'] >= 50 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                            {{ $stat['performance'] }}%
+                                        </span>
+                                        @else
+                                        <span class="text-gray-400">--</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            @endif
             
             <!-- Assessment Details Table -->
             @if(isset($assessmentData[$child->id]) && !empty($assessmentData[$child->id]['subject_marks']))
@@ -239,87 +364,56 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
-@endforeach
 
-<!-- Arrears Breakdown Section -->
-@if($totalArrears > 0)
-<div class="w-full block mt-4">
-    <div class="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
-        <div class="bg-red-600 text-white px-6 py-4">
-            <h3 class="text-lg font-bold flex items-center">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Outstanding Fees Breakdown
-            </h3>
-        </div>
-        <div class="p-4">
-            @foreach ($parents->children as $child)
-                @php
-                    $childArrears = [];
-                    $childTotalArrears = 0;
-                    foreach ($allTerms as $term) {
-                        $termFees = floatval($term->total_fees);
-                        $termPaid = floatval(\App\StudentPayment::where('student_id', $child->id)
-                            ->where('results_status_id', $term->id)
-                            ->sum('amount_paid'));
-                        $termArrears = $termFees - $termPaid;
-                        if ($termArrears > 0) {
-                            $childArrears[] = [
-                                'term' => ucfirst($term->result_period) . ' ' . $term->year,
-                                'fees' => $termFees,
-                                'paid' => $termPaid,
-                                'arrears' => $termArrears
-                            ];
-                            $childTotalArrears += $termArrears;
-                        }
+@if(isset($assessmentData[$child->id]['assessment_stats']))
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typeCtx = document.getElementById('assessmentTypeChart{{ $child->id }}');
+    if (typeCtx) {
+        new Chart(typeCtx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode(collect($assessmentData[$child->id]['assessment_stats'])->pluck('type')) !!},
+                datasets: [{
+                    label: 'Performance (%)',
+                    data: {!! json_encode(collect($assessmentData[$child->id]['assessment_stats'])->pluck('performance')) !!},
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)',
+                        'rgba(16, 185, 129, 0.7)',
+                        'rgba(245, 158, 11, 0.7)',
+                        'rgba(239, 68, 68, 0.7)',
+                        'rgba(139, 92, 246, 0.7)',
+                        'rgba(236, 72, 153, 0.7)',
+                        'rgba(20, 184, 166, 0.7)',
+                        'rgba(249, 115, 22, 0.7)',
+                        'rgba(99, 102, 241, 0.7)',
+                        'rgba(34, 197, 94, 0.7)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    title: { display: true, text: 'Performance by Assessment Type' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { callback: function(value) { return value + '%'; } }
                     }
-                @endphp
-                
-                @if($childTotalArrears > 0)
-                <div class="mb-4 border border-gray-200 rounded-lg overflow-hidden">
-                    <div class="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
-                        <div>
-                            <span class="font-semibold text-gray-900">{{ $child->user->name }}</span>
-                            <span class="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">{{ $child->class->class_name ?? 'N/A' }}</span>
-                        </div>
-                        <span class="text-red-600 font-bold">${{ number_format($childTotalArrears, 2) }}</span>
-                    </div>
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Term</th>
-                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Fees</th>
-                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Paid</th>
-                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Outstanding</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($childArrears as $arrear)
-                            <tr>
-                                <td class="px-4 py-2 text-sm text-gray-900">{{ $arrear['term'] }}</td>
-                                <td class="px-4 py-2 text-sm text-gray-600 text-right">${{ number_format($arrear['fees'], 2) }}</td>
-                                <td class="px-4 py-2 text-sm text-green-600 text-right">${{ number_format($arrear['paid'], 2) }}</td>
-                                <td class="px-4 py-2 text-sm text-red-600 font-semibold text-right">${{ number_format($arrear['arrears'], 2) }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                @endif
-            @endforeach
-            
-            <div class="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
-                <div class="flex justify-between items-center">
-                    <span class="text-lg font-bold text-gray-700">Total Outstanding:</span>
-                    <span class="text-2xl font-bold text-red-600">${{ number_format($totalArrears, 2) }}</span>
-                </div>
-                <p class="text-sm text-gray-500 mt-2">Please settle outstanding fees at your earliest convenience.</p>
-            </div>
-        </div>
-    </div>
-</div>
+                }
+            }
+        });
+    }
+});
+</script>
 @endif
+@endforeach
 
 <!-- Disciplinary Records Section -->
 @php
