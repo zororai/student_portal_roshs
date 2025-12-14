@@ -8,6 +8,7 @@ use App\Parents;
 use App\Subject;
 use App\ResultsStatus;
 use App\Teacher;
+use App\StudentPayment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -390,11 +391,25 @@ public function adminshowResult(Request $request)
 
     public function studentshow()
     {
-        $studentId = Auth::user()->id;
-
-
-
         $studentId = Student::where('user_id', Auth::user()->id)->value('id');
+        
+        // Check for outstanding fees
+        $allTerms = ResultsStatus::all();
+        $totalFees = 0;
+        foreach ($allTerms as $term) {
+            $totalFees += floatval($term->total_fees);
+        }
+        $totalPaid = floatval(StudentPayment::where('student_id', $studentId)->sum('amount_paid'));
+        $outstandingBalance = $totalFees - $totalPaid;
+        
+        // If student has outstanding fees, block results view
+        if ($outstandingBalance > 0) {
+            return view('reports.blocked', [
+                'message' => 'You cannot view your results due to outstanding fees.',
+                'outstanding' => $outstandingBalance
+            ]);
+        }
+        
         $paid = 'Paid';
         $lastRecord = ResultsStatus::latest()->first();
         $year = $lastRecord->year;
@@ -405,19 +420,33 @@ public function adminshowResult(Request $request)
         ->where('year', $year)
         ->with(['subject', 'teacher', 'class'])
         ->get();
-        //dd($results);
+        
         return view('reports.index', compact('results'));
-
     }
 
 
     public function viewstudentshow()
     {
-        $studentId = Auth::user()->id;
-
-        $parentId = Parents ::where('user_id', Auth::user()->id)->value('id');
-
-        $studentId = Student::where('parent_id',$parentId)->value('id');
+        $parentId = Parents::where('user_id', Auth::user()->id)->value('id');
+        $studentId = Student::where('parent_id', $parentId)->value('id');
+        
+        // Check for outstanding fees
+        $allTerms = ResultsStatus::all();
+        $totalFees = 0;
+        foreach ($allTerms as $term) {
+            $totalFees += floatval($term->total_fees);
+        }
+        $totalPaid = floatval(StudentPayment::where('student_id', $studentId)->sum('amount_paid'));
+        $outstandingBalance = $totalFees - $totalPaid;
+        
+        // If student has outstanding fees, block results view
+        if ($outstandingBalance > 0) {
+            return view('reports.blocked', [
+                'message' => 'You cannot view your child\'s results due to outstanding fees.',
+                'outstanding' => $outstandingBalance
+            ]);
+        }
+        
         $paid = 'Paid';
         $lastRecord = ResultsStatus::latest()->first();
         $year = $lastRecord->year;
@@ -429,10 +458,7 @@ public function adminshowResult(Request $request)
         ->with(['subject', 'teacher', 'class'])
         ->get();
 
-
-
         return view('reports.index', compact('results'));
-
     }
 
     /**

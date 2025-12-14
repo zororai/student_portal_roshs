@@ -23,26 +23,37 @@
             </div>
 
             <div class="w-full px-6 py-6">
+                @if($attendances->count() > 0)
                 <div class="flex items-center justify-between bg-gray-600 rounded-tl rounded-tr">
                     <div class="w-3/12 text-left text-white py-2 px-4 font-semibold">Date</div>
                     <div class="w-3/12 text-left text-white py-2 px-4 font-semibold">Teacher</div>
                     <div class="w-3/12 text-left text-white py-2 px-4 font-semibold">Class</div>
-                    <div class="w-3/12 text-right text-white py-2 px-4 font-semibold">Attendence</div>
+                    <div class="w-3/12 text-right text-white py-2 px-4 font-semibold">Attendance</div>
                 </div>
                 @foreach ($attendances as $attendance)
                     <div class="flex items-center justify-between border border-gray-200">
                         <div class="w-3/12 text-sm text-left text-gray-600 py-2 px-4 font-semibold">{{ $attendance->attendence_date }}</div>
-                        <div class="w-3/12 text-sm text-left text-gray-600 py-2 px-4 font-semibold">{{ $attendance->teacher->user->name }}</div>
-                        <div class="w-3/12 text-sm text-left text-gray-600 py-2 px-4 font-semibold">{{ $attendance->class->class_name }}</div>
+                        <div class="w-3/12 text-sm text-left text-gray-600 py-2 px-4 font-semibold">{{ $attendance->teacher->user->name ?? 'N/A' }}</div>
+                        <div class="w-3/12 text-sm text-left text-gray-600 py-2 px-4 font-semibold">{{ $attendance->class->class_name ?? 'N/A' }}</div>
                         <div class="w-3/12 text-xs text-right text-gray-600 py-2 px-4 font-semibold">
-                            @if ($attendance->attendence_status)
-                                <span class="bg-green-600 text-white px-2 py-1 rounded-custom">P</span>
+                            @if ($attendance->attendence_status == 'present')
+                                <span class="bg-green-600 text-white px-2 py-1 rounded">Present</span>
+                            @elseif ($attendance->attendence_status == 'late')
+                                <span class="bg-yellow-500 text-white px-2 py-1 rounded">Late</span>
                             @else
-                                <span class="bg-red-600 text-white px-2 py-1 rounded-custom">A</span>
+                                <span class="bg-red-600 text-white px-2 py-1 rounded">Absent</span>
                             @endif
                         </div>
                     </div>
                 @endforeach
+                @else
+                <div class="text-center py-8 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="mt-2">No attendance records found for this student.</p>
+                </div>
+                @endif
             </div>        
         </div><!-- Log on to codeastro.com for more projects -->
 

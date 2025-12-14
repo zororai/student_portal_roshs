@@ -397,6 +397,72 @@ class FinanceController extends Controller
         return view('backend.finance.products', compact('products', 'totalRevenue'));
     }
 
+    public function storeIncome(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'description' => 'required|string|max:255',
+            'category' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        SchoolIncome::create($validated);
+
+        return redirect()->route('finance.school-income')->with('success', 'Income recorded successfully!');
+    }
+
+    public function destroyIncome($id)
+    {
+        $income = SchoolIncome::findOrFail($id);
+        $income->delete();
+
+        return redirect()->route('finance.school-income')->with('success', 'Income record deleted!');
+    }
+
+    public function storeExpense(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'description' => 'required|string|max:255',
+            'category' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        SchoolExpense::create($validated);
+
+        return redirect()->route('finance.school-expenses')->with('success', 'Expense recorded successfully!');
+    }
+
+    public function destroyExpense($id)
+    {
+        $expense = SchoolExpense::findOrFail($id);
+        $expense->delete();
+
+        return redirect()->route('finance.school-expenses')->with('success', 'Expense record deleted!');
+    }
+
+    public function storeProduct(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'quantity_sold' => 'required|integer|min:0',
+        ]);
+
+        Product::create($validated);
+
+        return redirect()->route('finance.products')->with('success', 'Product added successfully!');
+    }
+
+    public function destroyProduct($id)
+    {
+        $product = Product::findOrFail($id);
+        $product->delete();
+
+        return redirect()->route('finance.products')->with('success', 'Product deleted!');
+    }
+
     public function financialStatements()
     {
         $totalIncome = SchoolIncome::sum('amount');

@@ -198,8 +198,14 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/finance/parents-arrears/export', 'FinanceController@exportParentsArrears')->name('finance.parents-arrears.export');
     Route::get('/finance/student-payments/export', 'FinanceController@exportStudentPayments')->name('finance.student-payments.export');
     Route::get('/finance/school-income', 'FinanceController@schoolIncome')->name('finance.school-income');
+    Route::post('/finance/school-income', 'FinanceController@storeIncome')->name('finance.income.store');
+    Route::delete('/finance/school-income/{id}', 'FinanceController@destroyIncome')->name('finance.income.destroy');
     Route::get('/finance/school-expenses', 'FinanceController@schoolExpenses')->name('finance.school-expenses');
+    Route::post('/finance/school-expenses', 'FinanceController@storeExpense')->name('finance.expense.store');
+    Route::delete('/finance/school-expenses/{id}', 'FinanceController@destroyExpense')->name('finance.expense.destroy');
     Route::get('/finance/products', 'FinanceController@products')->name('finance.products');
+    Route::post('/finance/products', 'FinanceController@storeProduct')->name('finance.product.store');
+    Route::delete('/finance/products/{id}', 'FinanceController@destroyProduct')->name('finance.product.destroy');
     Route::get('/finance/statements', 'FinanceController@financialStatements')->name('finance.statements');
 
     // Admin View Results Routes
