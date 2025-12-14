@@ -200,8 +200,47 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
+        <div class="p-6 text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Delete Grocery List</h3>
+            <p class="text-gray-600 mb-2">Are you sure you want to delete this grocery list?</p>
+            <p id="deleteListName" class="font-medium text-gray-800 mb-6"></p>
+            <p class="text-sm text-red-600 mb-6">This action cannot be undone. All items and responses will be permanently removed.</p>
+            
+            <form id="deleteForm" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="flex justify-center space-x-3">
+                    <button type="button" onclick="closeDeleteModal()" class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 let itemIndex = 1;
+let deleteListId = null;
+
+function openDeleteModal(listId, listName) {
+    deleteListId = listId;
+    document.getElementById('deleteListName').textContent = listName;
+    document.getElementById('deleteForm').action = '/admin/groceries/' + listId;
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    deleteListId = null;
+}
 
 function addGroceryItem() {
     const container = document.getElementById('groceryItems');
