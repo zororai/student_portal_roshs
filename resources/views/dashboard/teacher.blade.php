@@ -57,13 +57,42 @@
         </div>
     </div>
 <!-- Subjects Taught Section with Assessment Stats -->
-<div class="w-full block mt-8">
-    <h3 class="text-xl font-bold text-gray-800 mb-4">Subjects Taught</h3>
+<div class="w-full block mt-8" x-data="{ currentPage: 0, itemsPerPage: 2 }">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">Subjects Taught</h3>
+        @if(isset($subjectAssessmentData) && count($subjectAssessmentData) > 2)
+        <div class="flex items-center space-x-2">
+            <button @click="currentPage = Math.max(0, currentPage - 1)" 
+                    :disabled="currentPage === 0"
+                    :class="currentPage === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                    class="p-2 rounded-lg border border-gray-300 bg-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <span class="text-sm text-gray-600">
+                Page <span x-text="currentPage + 1"></span> of <span x-text="Math.ceil({{ count($subjectAssessmentData) }} / itemsPerPage)"></span>
+            </span>
+            <button @click="currentPage = Math.min(Math.ceil({{ count($subjectAssessmentData) }} / itemsPerPage) - 1, currentPage + 1)" 
+                    :disabled="currentPage >= Math.ceil({{ count($subjectAssessmentData) }} / itemsPerPage) - 1"
+                    :class="currentPage >= Math.ceil({{ count($subjectAssessmentData) }} / itemsPerPage) - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'"
+                    class="p-2 rounded-lg border border-gray-300 bg-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </div>
+        @endif
+    </div>
     
     @if(isset($subjectAssessmentData) && count($subjectAssessmentData) > 0)
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         @foreach($subjectAssessmentData as $index => $subjectData)
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+             x-show="Math.floor({{ $index }} / itemsPerPage) === currentPage"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform scale-95"
+             x-transition:enter-end="opacity-100 transform scale-100">
             <h4 class="text-lg font-semibold text-blue-600 mb-4">{{ $subjectData['subject'] }} - {{ $subjectData['class'] }}</h4>
             
             <div class="grid grid-cols-2 gap-4">
