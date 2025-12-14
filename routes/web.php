@@ -177,9 +177,13 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::resource('fee_categories', 'FeeCategoryController');
     Route::get('payments/receipt/download/{id}', 'PaymentController@downloadReceipt')->name('payments.receipt.download');
     Route::get('/reports', 'ReportController@index')->name('reports.index');
-     //nweb
+     //webcam and student ID
     Route::get('/webcam', 'WebcamController@index')->name('Webcam.index');
     Route::post('/webcam/upload', 'WebcamController@upload')->name('webcam.upload');
+    Route::get('/webcam/students/{classId}', 'WebcamController@getStudentsByClass')->name('webcam.students');
+    Route::get('/webcam/student/{id}', 'WebcamController@getStudent')->name('webcam.student');
+    Route::post('/webcam/capture', 'WebcamController@capturePhoto')->name('webcam.capture');
+    Route::get('/webcam/id-card/{studentId}', 'WebcamController@generateIdCard')->name('webcam.idcard');
     //news letters
     Route::resource('newsletters', 'NewsletterController')->except(['edit', 'update']);
     Route::post('newsletters/{id}/publish', 'NewsletterController@publish')->name('newsletters.publish');
@@ -283,8 +287,7 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
      Route::get('/results/edit/{result}', 'ResultController@edit')->name('results.edit');
      Route::get('/results/student/{id}', 'ResultController@show')->name('results.show');
      Route::get('/teacher/results/{class_id}','ResultController@listResults')->name('results.results');
-
-
+     Route::get('/teacher/timetable', 'TimetableController@teacherView')->name('teacher.timetable');
 
 });
 
@@ -293,7 +296,7 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
     Route::get('studentattendance/{attendance}', 'AttendanceController@show')->name('attendance.show');
     Route::get('/viewstudentresults/viewstudentresults', 'ResultController@viewstudentshow')->name('parentviewresults.studentresults');
     Route::get('/studentviewresults/studentviewresults', 'AddsubjectController@studentviewsubject')->name('viewsubject.studentresults');
-
+    Route::get('/parent/timetable', 'TimetableController@parentView')->name('parent.timetable');
 });
 
 Route::group(['middleware' => ['auth','role:Student']], function () {
@@ -303,6 +306,6 @@ Route::group(['middleware' => ['auth','role:Student']], function () {
    Route::get('/studentresults/studentresults', 'ResultController@studentshow')->name('viewresults.studentresults');
    Route::get('Reading/{id}','AddsubjectController@showread')->name('subject.viewreading');
    Route::get('/readings/download/{id}', 'AddsubjectController@download')->name('readings.download');
-
+   Route::get('/student/timetable', 'TimetableController@studentView')->name('student.timetable');
 
 });
