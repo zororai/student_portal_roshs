@@ -75,7 +75,7 @@ class ApplicationController extends Controller
             'status' => 'pending'
         ]);
 
-        return redirect()->route('website.application.success')->with('success', 'Your application has been submitted successfully!');
+        return redirect()->back()->with('success', 'Your application has been submitted successfully! We will review it and contact you shortly.');
     }
 
     public function success()
