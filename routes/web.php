@@ -39,6 +39,12 @@ Route::get('/courses', 'websiteController@courses')->name('website.courses');
 Route::get('/news', 'websiteController@news')->name('website.News');
 Route::get('/result', 'websiteController@results')->name('website.results');
 Route::get('/success', 'websiteController@success')->name('website.success');
+
+// Student Application Routes
+Route::get('/application', 'ApplicationController@index')->name('website.application');
+Route::post('/application', 'ApplicationController@store')->name('website.application.store');
+Route::get('/application/success', 'ApplicationController@success')->name('website.application.success');
+
 Route::get('/newsletter', 'NewsletterController@showNewsletters')->name('website.News');
 //Route::get('/newslettersshow/{id}','NewsletterController@show')->name('website.newsletter.show');
 Route::get('/newslettersshow/{id}','NewsletterController@show')->name('website.newsletter.show');
@@ -101,6 +107,12 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::resource('teacher', 'TeacherController')->except(['show']);
     Route::resource('parents', 'ParentsController');
     Route::resource('student', 'StudentController');
+
+    // Admin Applicants Routes
+    Route::get('admin/applicants', 'AdminApplicantController@index')->name('admin.applicants.index');
+    Route::get('admin/applicants/{id}', 'AdminApplicantController@show')->name('admin.applicants.show');
+    Route::patch('admin/applicants/{id}/status', 'AdminApplicantController@updateStatus')->name('admin.applicants.updateStatus');
+    Route::delete('admin/applicants/{id}', 'AdminApplicantController@destroy')->name('admin.applicants.destroy');
 
     // Stepper route for creating student with parents
     Route::get('student-with-parents/create', 'StudentController@createWithParents')->name('student.create-with-parents');
@@ -171,6 +183,12 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/disciplinary-records/class/{class_id}/students', 'DisciplinaryController@getStudentsByClass')->name('admin.disciplinary.students');
     Route::put('/admin/disciplinary-records/{id}', 'DisciplinaryController@update')->name('admin.disciplinary.update');
     Route::delete('/admin/disciplinary-records/{id}', 'DisciplinaryController@destroy')->name('admin.disciplinary.destroy');
+
+    // Admin Marking Scheme Routes
+    Route::get('/admin/marking-scheme', 'AdminMarkingSchemeController@index')->name('admin.marking-scheme.index');
+    Route::get('/admin/marking-scheme/class/{class_id}', 'AdminMarkingSchemeController@classAssessments')->name('admin.marking-scheme.assessments');
+    Route::get('/admin/marking-scheme/assessment/{assessment_id}', 'AdminMarkingSchemeController@assessmentMarks')->name('admin.marking-scheme.marks');
+    Route::get('/api/admin/assessment/{assessment_id}/marks', 'AdminMarkingSchemeController@getAssessmentMarks')->name('admin.marking-scheme.api.marks');
 
 });
 

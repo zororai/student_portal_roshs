@@ -7,9 +7,11 @@ use App\Parents;
 use App\Student;
 use App\Teacher;
 use App\Subject;
+use App\Result;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Str;
 
@@ -42,7 +44,56 @@ class HomeController extends Controller
             $subjects = Subject::latest()->get();
             $classes = Grade::latest()->get();
 
-            return view('home', compact('parents','teachers','students','subjects','classes'));
+            // Get pass/fail results by gender (pass = marks >= 50)
+            $resultsByGender = DB::table('results')
+                ->join('students', 'results.student_id', '=', 'students.id')
+                ->select(
+                    'students.gender',
+                    DB::raw('SUM(CASE WHEN results.marks >= 50 THEN 1 ELSE 0 END) as pass_count'),
+                    DB::raw('SUM(CASE WHEN results.marks < 50 THEN 1 ELSE 0 END) as fail_count'),
+                    DB::raw('COUNT(*) as total_count')
+                )
+                ->groupBy('students.gender')
+                ->get();
+
+            $malePass = 0;
+            $maleFail = 0;
+            $femalePass = 0;
+            $femaleFail = 0;
+
+            foreach ($resultsByGender as $row) {
+                if (strtolower($row->gender) === 'male') {
+                    $malePass = $row->pass_count;
+                    $maleFail = $row->fail_count;
+                } elseif (strtolower($row->gender) === 'female') {
+                    $femalePass = $row->pass_count;
+                    $femaleFail = $row->fail_count;
+                }
+            }
+
+            $genderStats = [
+                'malePass' => $malePass,
+                'maleFail' => $maleFail,
+                'femalePass' => $femalePass,
+                'femaleFail' => $femaleFail,
+            ];
+
+            // Get classroom population data with gender breakdown
+            $classroomPopulation = Grade::with(['students'])
+                ->orderBy('class_numeric')
+                ->get()
+                ->map(function($class) {
+                    $maleCount = $class->students->where('gender', 'Male')->count();
+                    $femaleCount = $class->students->where('gender', 'Female')->count();
+                    return [
+                        'name' => $class->class_name,
+                        'count' => $class->students->count(),
+                        'male' => $maleCount,
+                        'female' => $femaleCount
+                    ];
+                });
+
+            return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation'));
 
         } elseif ($user->hasRole('Teacher')) {
 

@@ -200,8 +200,10 @@
             </button>
             <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
                 <a href="{{ route('student.index') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Student Record</a>
+                <a href="{{ route('admin.applicants.index') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Applicants</a>
                 <a href="{{ route('admin.disciplinary.index') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Disciplinary Records</a>
                 <a href="{{ route('manageresults.index') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Results Management</a>
+                <a href="{{ route('admin.marking-scheme.index') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Marking Scheme</a>
                 <a href="{{ route('attendance.index') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Attendance Register</a>
             </div>
         </div>

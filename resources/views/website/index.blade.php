@@ -178,7 +178,7 @@
                             <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('admissionDropdown')">Admission</a>
                             <div class="dropdown-content" id="admissionDropdown">
                                 <a href="{{ route('website.courses') }}">Our Subjects</a>
-                                <a href="{{ route('website.index') }}">Application Form</a>
+                                <a href="{{ route('website.application') }}">Application Form</a>
                                 <a href="{{ route('website.index') }}">Online Application</a>
                             </div>
                         </li>
