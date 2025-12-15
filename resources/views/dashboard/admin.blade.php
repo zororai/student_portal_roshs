@@ -1,53 +1,4 @@
-<div class="w-full block mt-8">
-    <div class="flex flex-wrap sm:flex-no-wrap justify-between">
-        <div class="w-full bg-gray-200 text-center border border-gray-300 px-8 py-6 rounded">
-            <h3 class="text-gray-700 uppercase font-bold">
-            <svg class="fill-current float-left" style="width:39px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-            <path d="M319.4 320.6L224 416l-95.4-95.4C57.1 323.7 0 382.2 0 454.4v9.6c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-9.6c0-72.2-57.1-130.7-128.6-133.8zM13.6 79.8l6.4 1.5v58.4c-7 4.2-12 11.5-12 20.3 0 8.4 4.6 15.4 11.1 19.7L3.5 242c-1.7 6.9 2.1 14 7.6 14h41.8c5.5 0 9.3-7.1 7.6-14l-15.6-62.3C51.4 175.4 56 168.4 56 160c0-8.8-5-16.1-12-20.3V87.1l66 15.9c-8.6 17.2-14 36.4-14 57 0 70.7 57.3 128 128 128s128-57.3 128-128c0-20.6-5.3-39.8-14-57l96.3-23.2c18.2-4.4 18.2-27.1 0-31.5l-190.4-46c-13-3.1-26.7-3.1-39.7 0L13.6 48.2c-18.1 4.4-18.1 27.2 0 31.6z"/></svg>
-                <span class="text-4xl">{{ sprintf("%02d", count($students)) }}</span>
-                <span class="leading-tight">Students</span>
-            </h3>
-        </div>
-        <!-- Log on to codeastro.com for more projects -->
-        <div class="w-full bg-gray-200 text-center border border-gray-300 px-8 py-6 mx-0 sm:mx-6 my-4 sm:my-0 rounded">
-            <h3 class="text-gray-700 uppercase font-bold">
-            <svg class="fill-current float-left" style="width:39px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0S96 57.3 96 128s57.3 128 128 128zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/></svg>
-                <span class="text-4xl">{{ sprintf("%02d", count($teachers)) }}</span>
-                <span class="leading-tight">Teachers</span>
-            </h3>
-        </div>
-        <div class="w-full bg-gray-200 text-center border border-gray-300 px-8 py-6 rounded">
-            <h3 class="text-gray-700 uppercase font-bold">
-            <svg class="fill-current float-left" style="width:39px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224 0c70.7 0 128 57.3 128 128s-57.3 128-128 128s-128-57.3-128-128S153.3 0 224 0zM209.1 359.2l-18.6-31c-6.4-10.7 1.3-24.2 13.7-24.2H224h19.7c12.4 0 20.1 13.6 13.7 24.2l-18.6 31 33.4 123.9 39.5-161.2c77.2 12 136.3 78.8 136.3 159.4c0 17-13.8 30.7-30.7 30.7H265.1 182.9 30.7C13.8 512 0 498.2 0 481.3c0-80.6 59.1-147.4 136.3-159.4l39.5 161.2 33.4-123.9z"/></svg>
-                <span class="text-4xl">{{ sprintf("%02d", count($parents)) }}</span>
-                <span class="leading-tight">Parents</span>
-            </h3>
-        </div>
-        
-    </div>
-</div>
-
-<div class="w-full block mt-8">
-    <div class="flex flex-wrap sm:flex-no-wrap justify-between">
-        <div class="w-full bg-gray-200 text-center border border-gray-300 px-8 py-6 rounded">
-            <h3 class="text-gray-700 uppercase font-bold">
-            <svg class="fill-current float-left" style="width:39px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M96 0C43 0 0 43 0 96V416c0 53 43 96 96 96H384h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V384c17.7 0 32-14.3 32-32V32c0-17.7-14.3-32-32-32H384 96zm0 384H352v64H96c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16zm16 48H336c8.8 0 16 7.2 16 16s-7.2 16-16 16H144c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>
-                <span class="text-4xl">{{ sprintf("%02d", count($subjects)) }}</span>
-                <span class="leading-tight">Subjects</span>
-            </h3>
-        </div>
-        <div class="w-full bg-gray-200 text-center border border-gray-300 px-8 py-6 mx-0 sm:mx-6 my-4 sm:my-0 rounded">
-            <h3 class="text-gray-700 uppercase font-bold">
-            <svg class="fill-current float-left" style="width:39px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M40 48C26.7 48 16 58.7 16 72v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V72c0-13.3-10.7-24-24-24H40zM192 64c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zm0 160c-17.7 0-32 14.3-32 32s14.3 32 32 32H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H192zM16 232v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V232c0-13.3-10.7-24-24-24H40c-13.3 0-24 10.7-24 24zM40 368c-13.3 0-24 10.7-24 24v48c0 13.3 10.7 24 24 24H88c13.3 0 24-10.7 24-24V392c0-13.3-10.7-24-24-24H40z"/></svg>
-                <span class="text-4xl">{{ sprintf("%02d", count($classes)) }}</span>
-                <span class="leading-tight">Classes</span>
-            </h3>
-        </div>
-
-        
-        
-    </div>
-</div>
+@include('dashboard.partials.stats-cards')
 
 <!-- Pass/Fail Results by Gender Chart -->
 <div class="w-full block mt-8">
@@ -176,12 +127,36 @@
     </div>
 </div>
 
-<!-- Assessment Performance Chart -->
+<!-- Assessment Performance Chart with Filters -->
 @if(isset($assessmentStats))
 <div class="w-full block mt-8">
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 class="text-xl font-bold text-gray-900 mb-4">Assessment Performance by Type</h3>
-        <p class="text-sm text-gray-600 mb-6">School-wide average performance across all assessment types</p>
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+            <div class="mb-4 lg:mb-0">
+                <h3 class="text-xl font-bold text-gray-900 mb-1">Assessment Performance by Type</h3>
+                <p class="text-sm text-gray-600">Filter by class and subject to view specific performance</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Class</label>
+                    <select id="assessClassFilter" class="block w-full sm:w-40 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">All Classes</option>
+                        @foreach($classes as $class)
+                        <option value="{{ $class->id }}">{{ $class->class_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Subject</label>
+                    <select id="assessSubjectFilter" class="block w-full sm:w-40 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="all">All Subjects</option>
+                        @foreach($subjects as $subject)
+                        <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-gray-50 rounded-lg p-4" style="height: 350px;">
                 <canvas id="assessmentPerformanceChart"></canvas>
@@ -239,67 +214,30 @@
 </div>
 @endif
 
-<!-- Subject vs Assessment Type Matrix Table -->
+<!-- Expandable Subject Cards with Class Filter -->
 @if(isset($subjectAssessmentMatrix) && count($subjectAssessmentMatrix) > 0)
-<div class="w-full block mt-8">
+<div class="w-full block mt-8" x-data="{ selectedClass: 'all' }">
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 class="text-xl font-bold text-gray-900 mb-4">Subject × Assessment Type Performance Matrix</h3>
-        <p class="text-sm text-gray-600 mb-6">Performance breakdown for each subject by assessment type</p>
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="sticky left-0 bg-gray-100 text-left py-3 px-4 font-semibold text-gray-700 border-b border-r">Subject</th>
-                        <th class="text-center py-3 px-2 font-semibold text-gray-700 border-b">Overall</th>
-                        @foreach($assessmentTypes as $type)
-                        <th class="text-center py-3 px-2 font-semibold text-gray-700 border-b whitespace-nowrap">
-                            <span class="text-xs">{{ $type }}</span>
-                        </th>
-                        @endforeach
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($subjectAssessmentMatrix as $row)
-                    <tr class="hover:bg-gray-50 border-b">
-                        <td class="sticky left-0 bg-white py-3 px-4 font-medium text-gray-800 border-r whitespace-nowrap">{{ $row['subject'] }}</td>
-                        <td class="text-center py-3 px-2">
-                            <span class="inline-block px-2 py-1 rounded text-xs font-bold {{ $row['overall_performance'] >= 50 ? 'bg-green-100 text-green-700' : ($row['overall_performance'] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-400') }}">
-                                {{ $row['overall_performance'] > 0 ? $row['overall_performance'] . '%' : '--' }}
-                            </span>
-                        </td>
-                        @foreach($assessmentTypes as $type)
-                        @php $typeData = $row['types'][$type] ?? ['given' => 0, 'performance' => 0]; @endphp
-                        <td class="text-center py-3 px-2">
-                            @if($typeData['given'] > 0)
-                            <span class="inline-block px-2 py-1 rounded text-xs font-medium {{ $typeData['performance'] >= 50 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }}">{{ $typeData['performance'] }}%</span>
-                            @else
-                            <span class="text-gray-300">--</span>
-                            @endif
-                        </td>
-                        @endforeach
-                    </tr>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div>
+                <h3 class="text-xl font-bold text-gray-900 mb-1">Subject Performance Cards</h3>
+                <p class="text-sm text-gray-600">Click on a subject to expand and view detailed assessment breakdown</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Filter by Class</label>
+                <select x-model="selectedClass" class="block w-full sm:w-48 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="all">All Classes</option>
+                    @foreach($classes as $class)
+                    <option value="{{ $class->id }}">{{ $class->class_name }}</option>
                     @endforeach
-                </tbody>
-            </table>
+                </select>
+            </div>
         </div>
-        <div class="mt-4 flex items-center justify-end space-x-4 text-xs text-gray-500">
-            <span class="flex items-center"><span class="w-3 h-3 bg-green-100 rounded mr-1"></span> ≥50% (Pass)</span>
-            <span class="flex items-center"><span class="w-3 h-3 bg-red-100 rounded mr-1"></span> &lt;50%</span>
-            <span class="flex items-center"><span class="w-3 h-3 bg-gray-100 rounded mr-1"></span> No Data</span>
-        </div>
-    </div>
-</div>
-@endif
-
-<!-- Expandable Subject Cards -->
-@if(isset($subjectAssessmentMatrix) && count($subjectAssessmentMatrix) > 0)
-<div class="w-full block mt-8">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 class="text-xl font-bold text-gray-900 mb-4">Subject Performance Cards</h3>
-        <p class="text-sm text-gray-600 mb-6">Click on a subject to expand and view detailed assessment breakdown</p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($subjectAssessmentMatrix as $index => $subjectData)
-            <div x-data="{ expanded: false }" class="border rounded-xl overflow-hidden transition-all duration-300 {{ $subjectData['overall_performance'] >= 50 ? 'border-green-200' : ($subjectData['overall_performance'] > 0 ? 'border-red-200' : 'border-gray-200') }}">
+            <div x-data="{ expanded: false }" 
+                 x-show="selectedClass === 'all' || {{ json_encode($subjectData['class_ids'] ?? []) }}.includes(parseInt(selectedClass))"
+                 class="border rounded-xl overflow-hidden transition-all duration-300 {{ $subjectData['overall_performance'] >= 50 ? 'border-green-200' : ($subjectData['overall_performance'] > 0 ? 'border-red-200' : 'border-gray-200') }}">
                 <div @click="expanded = !expanded" class="cursor-pointer p-4 {{ $subjectData['overall_performance'] >= 50 ? 'bg-green-50 hover:bg-green-100' : ($subjectData['overall_performance'] > 0 ? 'bg-red-50 hover:bg-red-100' : 'bg-gray-50 hover:bg-gray-100') }} transition-colors">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
@@ -464,29 +402,33 @@
                 }
             }
         });
+        
         // Assessment Performance Chart
         @if(isset($assessmentStats))
+        let assessmentChart = null;
         const assessmentCtx = document.getElementById('assessmentPerformanceChart');
+        const chartColors = [
+            'rgba(59, 130, 246, 0.7)',
+            'rgba(16, 185, 129, 0.7)',
+            'rgba(245, 158, 11, 0.7)',
+            'rgba(239, 68, 68, 0.7)',
+            'rgba(139, 92, 246, 0.7)',
+            'rgba(236, 72, 153, 0.7)',
+            'rgba(20, 184, 166, 0.7)',
+            'rgba(249, 115, 22, 0.7)',
+            'rgba(99, 102, 241, 0.7)',
+            'rgba(34, 197, 94, 0.7)'
+        ];
+        
         if (assessmentCtx) {
-            new Chart(assessmentCtx, {
+            assessmentChart = new Chart(assessmentCtx, {
                 type: 'bar',
                 data: {
                     labels: {!! json_encode(collect($assessmentStats)->pluck('type')) !!},
                     datasets: [{
                         label: 'Performance %',
                         data: {!! json_encode(collect($assessmentStats)->pluck('performance')) !!},
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.7)',
-                            'rgba(16, 185, 129, 0.7)',
-                            'rgba(245, 158, 11, 0.7)',
-                            'rgba(239, 68, 68, 0.7)',
-                            'rgba(139, 92, 246, 0.7)',
-                            'rgba(236, 72, 153, 0.7)',
-                            'rgba(20, 184, 166, 0.7)',
-                            'rgba(249, 115, 22, 0.7)',
-                            'rgba(99, 102, 241, 0.7)',
-                            'rgba(34, 197, 94, 0.7)'
-                        ],
+                        backgroundColor: chartColors,
                         borderWidth: 1
                     }]
                 },
@@ -509,6 +451,49 @@
                     }
                 }
             });
+        }
+        
+        // Filter functionality for Assessment Performance
+        const classFilter = document.getElementById('assessClassFilter');
+        const subjectFilter = document.getElementById('assessSubjectFilter');
+        const summaryTable = document.querySelector('#assessmentPerformanceChart').closest('.grid').querySelector('tbody');
+        
+        function updateAssessmentStats() {
+            const classId = classFilter.value;
+            const subjectId = subjectFilter.value;
+            
+            fetch(`/api/assessment-stats?class_id=${classId}&subject_id=${subjectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update chart
+                        const performances = data.stats.map(s => s.performance);
+                        assessmentChart.data.datasets[0].data = performances;
+                        assessmentChart.update();
+                        
+                        // Update table
+                        summaryTable.innerHTML = '';
+                        data.stats.forEach(stat => {
+                            const perfClass = stat.performance >= 50 ? 'bg-green-100 text-green-700' : (stat.performance > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500');
+                            const perfText = stat.performance > 0 ? stat.performance + '%' : '--';
+                            summaryTable.innerHTML += `
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="py-2 px-3 text-gray-700">${stat.type}</td>
+                                    <td class="text-center py-2 px-3">${stat.given}</td>
+                                    <td class="text-center py-2 px-3">
+                                        <span class="px-2 py-1 rounded text-xs font-medium ${perfClass}">${perfText}</span>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching assessment stats:', error));
+        }
+        
+        if (classFilter && subjectFilter) {
+            classFilter.addEventListener('change', updateAssessmentStats);
+            subjectFilter.addEventListener('change', updateAssessmentStats);
         }
         @endif
 

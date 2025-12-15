@@ -57,6 +57,7 @@ Route::get('/image/{filename}', 'ImageController@showImage')->name('image.show')
 
 
 Route::get('/home', 'HomeController@index')->name('home');
+Route::get('/api/assessment-stats', 'HomeController@getFilteredAssessmentStats')->name('api.assessment.stats');
 Route::get('/profile', 'HomeController@profile')->name('profile');
 Route::get('/profile/edit', 'HomeController@profileEdit')->name('profile.edit');
 Route::put('/profile/update', 'HomeController@profileUpdate')->name('profile.update');

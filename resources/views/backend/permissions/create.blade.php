@@ -1,86 +1,149 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="permissions">
-
-        <div class="flex items-center justify-between mb-6">
-            <div><!-- Log on to codeastro.com for more projects -->
-                <h2 class="text-gray-700 uppercase font-bold">Create Permission</h2>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Create Permission</h1>
+                <p class="mt-2 text-sm text-gray-600">Define a new permission and assign it to roles</p>
             </div>
-            <div class="flex flex-wrap items-center">
-                <a href="{{ route('roles-permissions') }}" class="bg-gray-700 text-white text-sm uppercase py-2 px-4 mr-2 flex items-center rounded">
-                    <svg class="w-3 h-3 fill-current" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="long-arrow-alt-left" class="svg-inline--fa fa-long-arrow-alt-left fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M134.059 296H436c6.627 0 12-5.373 12-12v-56c0-6.627-5.373-12-12-12H134.059v-46.059c0-21.382-25.851-32.09-40.971-16.971L7.029 239.029c-9.373 9.373-9.373 24.569 0 33.941l86.059 86.059c15.119 15.119 40.971 4.411 40.971-16.971V296z"></path></svg>
-                    <span class="ml-2 text-xs font-semibold">Back</span>
+            <div class="flex items-center space-x-3">
+                <a href="{{ route('roles-permissions') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to List
                 </a>
-                <a href="{{ route('role.create') }}" class="bg-gray-200 text-gray-700 text-sm uppercase py-2 px-4 flex items-center rounded">
-                    <svg class="w-3 h-3 fill-current" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="plus" class="svg-inline--fa fa-plus fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"></path></svg>
-                    <span class="ml-2 text-xs font-semibold">Role</span>
+                <a href="{{ route('role.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Add Role
                 </a>
             </div>
         </div>
+    </div>
 
-        <div class="mt-8 bg-white rounded">
-            <form action="{{ route('permission.store') }}" method="POST" class="w-full max-w-lg px-6 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Create Form Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <form action="{{ route('permission.store') }}" method="POST">
                 @csrf
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" for="inline-full-name">
-                            Permission Name
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        <input name="name" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" id="inline-full-name" type="text">
+                
+                <!-- Permission Name Section -->
+                <div class="px-6 py-5 border-b border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mr-3">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                            </svg>
+                        </span>
+                        New Permission
+                    </h3>
+                </div>
+                
+                <div class="px-6 py-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Permission Name <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                </svg>
+                            </div>
+                            <input type="text" name="name" value="{{ old('name') }}"
+                                class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors @error('name') border-red-500 @enderror"
+                                placeholder="e.g. create-posts, edit-users">
+                        </div>
                         @error('name')
-                            <p class="text-red-500 text-xs italic">{{ $message }}</p>
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
-                <div class="md:flex mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" for="inline-full-name">
-                            Roles
-                        </label>
-                    </div>
-                    <div class="md:w-2/3 block text-gray-600 font-bold">
-                        @foreach ($roles as $role)
-                            <div class="flex items-center">
-                                <label>
-                                    <input name="selectedroles[]" class="mr-2 leading-tight" type="checkbox" value="{{ $role->name }}">
-                                    <span class="text-sm">
-                                        {{ $role->name }}
-                                    </span>
+
+                <!-- Roles Section -->
+                <div class="px-6 py-4 border-t border-b border-gray-100 bg-gray-50">
+                    <h4 class="text-sm font-semibold text-gray-700">Assign to Roles</h4>
+                    <p class="text-xs text-gray-500 mt-1">Select which roles should have this permission</p>
+                </div>
+                
+                <div class="px-6 py-5">
+                    @if(count($roles) > 0)
+                        <div class="space-y-2">
+                            @foreach ($roles as $role)
+                                <label class="relative flex items-center p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all group">
+                                    <input type="checkbox" name="selectedroles[]" value="{{ $role->name }}" 
+                                        class="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                                    <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-purple-700">{{ $role->name }}</span>
                                 </label>
-                            </div>
-                        @endforeach
-                    </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-4">
+                            <p class="text-gray-500 text-sm">No roles available</p>
+                        </div>
+                    @endif
                 </div>
-                <div class="md:flex md:items-center">
-                    <div class="md:w-1/3"></div>
-                    <div class="md:w-2/3">
-                        <button class="shadow bg-blue-500 hover:bg-blue-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
-                            Create Permission
-                        </button>
-                    </div><!-- Log on to codeastro.com for more projects -->
+
+                <!-- Submit Section -->
+                <div class="px-6 py-5 bg-gray-50 border-t border-gray-200 flex items-center justify-end space-x-3">
+                    <a href="{{ route('roles-permissions') }}" class="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Create Permission
+                    </button>
                 </div>
-            </form>        
+            </form>
         </div>
 
-        <div class="mt-8 bg-white rounded border-b-4 border-gray-300">
-            <div class="flex flex-wrap items-center uppercase text-sm font-semibold bg-gray-300 text-gray-600 rounded-tl rounded-tr">
-                <div class="w-8/12 px-4 py-3">Permission</div>
-                <div class="w-4/12 px-4 py-3 text-right">Edit</div>
+        <!-- Existing Permissions List -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <span class="w-8 h-8 bg-gray-100 text-gray-600 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                        </svg>
+                    </span>
+                    Existing Permissions
+                    <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">{{ count($permissions) }}</span>
+                </h3>
             </div>
-            @foreach ($permissions as $permission)
-                <div class="flex flex-wrap items-center text-gray-700 border-t-2 border-l-4 border-r-4 border-gray-300">
-                    <div class="w-8/12 px-4 py-3 text-sm font-semibold text-gray-600 tracking-tight">{{ $permission->name }}</div>
-                    <div class="w-4/12 flex justify-end px-3">
-                        <a href="{{ route('permission.edit',$permission->id) }}">
-                            <svg class="h-6 w-6 fill-current text-gray-600" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="pen-square" class="svg-inline--fa fa-pen-square fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M400 480H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v352c0 26.5-21.5 48-48 48zM238.1 177.9L102.4 313.6l-6.3 57.1c-.8 7.6 5.6 14.1 13.3 13.3l57.1-6.3L302.2 242c2.3-2.3 2.3-6.1 0-8.5L246.7 178c-2.5-2.4-6.3-2.4-8.6-.1zM345 165.1L314.9 135c-9.4-9.4-24.6-9.4-33.9 0l-23.1 23.1c-2.3 2.3-2.3 6.1 0 8.5l55.5 55.5c2.3 2.3 6.1 2.3 8.5 0L345 199c9.3-9.3 9.3-24.5 0-33.9z"></path></svg>
+            
+            <div class="max-h-96 overflow-y-auto">
+                @forelse ($permissions as $permission)
+                    <div class="flex items-center justify-between px-6 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center">
+                            <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                </svg>
+                            </span>
+                            <span class="text-sm font-medium text-gray-700">{{ $permission->name }}</span>
+                        </div>
+                        <a href="{{ route('permission.edit', $permission->id) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-lg transition-colors">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Edit
                         </a>
                     </div>
-                </div>
-            @endforeach
+                @empty
+                    <div class="px-6 py-12 text-center">
+                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                        </svg>
+                        <p class="text-gray-500">No permissions created yet</p>
+                    </div>
+                @endforelse
+            </div>
         </div>
-        <!-- Log on to codeastro.com for more projects -->
     </div>
+</div>
 @endsection

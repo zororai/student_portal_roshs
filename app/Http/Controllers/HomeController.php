@@ -140,6 +140,9 @@ class HomeController extends Controller
                 // Get all assessments for this subject
                 $subjectAssessments = Assessment::where('subject_id', $subject->id)->get();
                 
+                // Get unique class IDs for this subject
+                $subjectClassIds = $subjectAssessments->pluck('class_id')->unique()->filter()->toArray();
+                
                 foreach ($subjectAssessments as $assessment) {
                     $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                     foreach ($marks as $mark) {
@@ -158,7 +161,8 @@ class HomeController extends Controller
                     'subject_id' => $subject->id,
                     'assessments' => $subjectAssessments->count(),
                     'marks_count' => $subjectAssessmentCount,
-                    'performance' => $subjectPerformance
+                    'performance' => $subjectPerformance,
+                    'class_ids' => $subjectClassIds
                 ];
                 
                 // Build matrix: subject vs assessment types
@@ -194,7 +198,8 @@ class HomeController extends Controller
                     'subject' => $subject->name,
                     'subject_id' => $subject->id,
                     'overall_performance' => $subjectPerformance,
-                    'types' => $typeStats
+                    'types' => $typeStats,
+                    'class_ids' => $subjectClassIds
                 ];
             }
 
@@ -561,5 +566,58 @@ class HomeController extends Controller
 
         Auth::logout();
         return redirect()->route('login');
+    }
+
+    /**
+     * Get filtered assessment stats for AJAX requests
+     */
+    public function getFilteredAssessmentStats(Request $request)
+    {
+        $classId = $request->get('class_id');
+        $subjectId = $request->get('subject_id');
+        
+        $assessmentTypes = ['Homework', 'Quiz', 'Test', 'Midterm Exam', 'Final Exam', 'Project', 'Presentation', 'Lab Work', 'Assignment', 'Other'];
+        $assessmentStats = [];
+        
+        foreach ($assessmentTypes as $type) {
+            $query = Assessment::where('assessment_type', $type);
+            
+            if ($classId && $classId !== 'all') {
+                $query->where('class_id', $classId);
+            }
+            
+            if ($subjectId && $subjectId !== 'all') {
+                $query->where('subject_id', $subjectId);
+            }
+            
+            $assessments = $query->get();
+            $totalMarks = 0;
+            $obtainedMarks = 0;
+            $count = 0;
+            
+            foreach ($assessments as $assessment) {
+                $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
+                foreach ($marks as $mark) {
+                    if ($mark->mark !== null && $mark->total_marks > 0) {
+                        $totalMarks += $mark->total_marks;
+                        $obtainedMarks += $mark->mark;
+                        $count++;
+                    }
+                }
+            }
+            
+            $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
+            
+            $assessmentStats[] = [
+                'type' => $type,
+                'given' => $assessments->count(),
+                'performance' => $performance
+            ];
+        }
+        
+        return response()->json([
+            'success' => true,
+            'stats' => $assessmentStats
+        ]);
     }
 }
