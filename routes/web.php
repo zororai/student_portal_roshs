@@ -245,6 +245,14 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/student-upgrade/preview', 'StudentUpgradeController@preview')->name('admin.student-upgrade.preview');
     Route::post('/admin/student-upgrade/execute', 'StudentUpgradeController@execute')->name('admin.student-upgrade.execute');
 
+    // School Settings Routes
+    Route::get('/admin/settings/class-formats', 'SchoolSettingsController@classFormats')->name('admin.settings.class-formats');
+    Route::post('/admin/settings/class-formats', 'SchoolSettingsController@storeClassFormat')->name('admin.settings.class-formats.store');
+    Route::put('/admin/settings/class-formats/{id}', 'SchoolSettingsController@updateClassFormat')->name('admin.settings.class-formats.update');
+    Route::delete('/admin/settings/class-formats/{id}', 'SchoolSettingsController@deleteClassFormat')->name('admin.settings.class-formats.delete');
+    Route::get('/admin/settings/upgrade-direction', 'SchoolSettingsController@upgradeDirection')->name('admin.settings.upgrade-direction');
+    Route::put('/admin/settings/upgrade-direction', 'SchoolSettingsController@updateUpgradeDirection')->name('admin.settings.upgrade-direction.update');
+
 });
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()

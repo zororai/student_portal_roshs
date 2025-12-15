@@ -128,7 +128,77 @@ class HomeController extends Controller
                 ];
             }
 
-            return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation','assessmentStats'));
+            // Get subject-wise assessment performance for admin
+            $subjectPerformanceData = [];
+            $subjectAssessmentMatrix = [];
+            
+            foreach ($subjects as $subject) {
+                $subjectTotalMarks = 0;
+                $subjectObtainedMarks = 0;
+                $subjectAssessmentCount = 0;
+                
+                // Get all assessments for this subject
+                $subjectAssessments = Assessment::where('subject_id', $subject->id)->get();
+                
+                foreach ($subjectAssessments as $assessment) {
+                    $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
+                    foreach ($marks as $mark) {
+                        if ($mark->mark !== null && $mark->total_marks > 0) {
+                            $subjectTotalMarks += $mark->total_marks;
+                            $subjectObtainedMarks += $mark->mark;
+                            $subjectAssessmentCount++;
+                        }
+                    }
+                }
+                
+                $subjectPerformance = $subjectTotalMarks > 0 ? round(($subjectObtainedMarks / $subjectTotalMarks) * 100, 1) : 0;
+                
+                $subjectPerformanceData[] = [
+                    'subject' => $subject->name,
+                    'subject_id' => $subject->id,
+                    'assessments' => $subjectAssessments->count(),
+                    'marks_count' => $subjectAssessmentCount,
+                    'performance' => $subjectPerformance
+                ];
+                
+                // Build matrix: subject vs assessment types
+                $typeStats = [];
+                foreach ($assessmentTypes as $type) {
+                    $typeAssessments = Assessment::where('subject_id', $subject->id)
+                        ->where('assessment_type', $type)
+                        ->get();
+                    
+                    $typeTotalMarks = 0;
+                    $typeObtainedMarks = 0;
+                    $typeCount = $typeAssessments->count();
+                    
+                    foreach ($typeAssessments as $assessment) {
+                        $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
+                        foreach ($marks as $mark) {
+                            if ($mark->mark !== null && $mark->total_marks > 0) {
+                                $typeTotalMarks += $mark->total_marks;
+                                $typeObtainedMarks += $mark->mark;
+                            }
+                        }
+                    }
+                    
+                    $typePerformance = $typeTotalMarks > 0 ? round(($typeObtainedMarks / $typeTotalMarks) * 100, 1) : 0;
+                    
+                    $typeStats[$type] = [
+                        'given' => $typeCount,
+                        'performance' => $typePerformance
+                    ];
+                }
+                
+                $subjectAssessmentMatrix[] = [
+                    'subject' => $subject->name,
+                    'subject_id' => $subject->id,
+                    'overall_performance' => $subjectPerformance,
+                    'types' => $typeStats
+                ];
+            }
+
+            return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation','assessmentStats','subjectPerformanceData','subjectAssessmentMatrix','assessmentTypes'));
 
         } elseif ($user->hasRole('Teacher')) {
 

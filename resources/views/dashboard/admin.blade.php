@@ -190,7 +190,6 @@
                 <h5 class="text-sm font-semibold text-gray-700 mb-3">Assessment Summary</h5>
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b bg-gray-50">
                             <th class="text-left py-2 px-3">Type</th>
                             <th class="text-center py-2 px-3">Given</th>
                             <th class="text-center py-2 px-3">Avg Performance</th>
@@ -216,10 +215,154 @@
 </div>
 @endif
 
+<!-- Subject Performance Chart -->
+@if(isset($subjectPerformanceData) && count($subjectPerformanceData) > 0)
+<div class="w-full block mt-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Subject-Wise Performance</h3>
+        <p class="text-sm text-gray-600 mb-6">Average performance for each subject across all assessments</p>
+        <div class="bg-gray-50 rounded-lg p-4" style="height: 400px;">
+            <canvas id="subjectPerformanceChart"></canvas>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mt-6">
+            @foreach($subjectPerformanceData as $index => $subject)
+            <div class="bg-gray-50 rounded-lg p-3 text-center border {{ $subject['performance'] >= 50 ? 'border-green-200' : ($subject['performance'] > 0 ? 'border-red-200' : 'border-gray-200') }}">
+                <p class="text-xs font-medium text-gray-600 truncate" title="{{ $subject['subject'] }}">{{ Str::limit($subject['subject'], 12) }}</p>
+                <p class="text-lg font-bold {{ $subject['performance'] >= 50 ? 'text-green-600' : ($subject['performance'] > 0 ? 'text-red-600' : 'text-gray-400') }}">
+                    {{ $subject['performance'] > 0 ? $subject['performance'] . '%' : '--' }}
+                </p>
+                <p class="text-xs text-gray-500">{{ $subject['assessments'] }} assessments</p>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- Subject vs Assessment Type Matrix Table -->
+@if(isset($subjectAssessmentMatrix) && count($subjectAssessmentMatrix) > 0)
+<div class="w-full block mt-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Subject × Assessment Type Performance Matrix</h3>
+        <p class="text-sm text-gray-600 mb-6">Performance breakdown for each subject by assessment type</p>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="sticky left-0 bg-gray-100 text-left py-3 px-4 font-semibold text-gray-700 border-b border-r">Subject</th>
+                        <th class="text-center py-3 px-2 font-semibold text-gray-700 border-b">Overall</th>
+                        @foreach($assessmentTypes as $type)
+                        <th class="text-center py-3 px-2 font-semibold text-gray-700 border-b whitespace-nowrap">
+                            <span class="text-xs">{{ $type }}</span>
+                        </th>
+                        @endforeach
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($subjectAssessmentMatrix as $row)
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="sticky left-0 bg-white py-3 px-4 font-medium text-gray-800 border-r whitespace-nowrap">{{ $row['subject'] }}</td>
+                        <td class="text-center py-3 px-2">
+                            <span class="inline-block px-2 py-1 rounded text-xs font-bold {{ $row['overall_performance'] >= 50 ? 'bg-green-100 text-green-700' : ($row['overall_performance'] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-400') }}">
+                                {{ $row['overall_performance'] > 0 ? $row['overall_performance'] . '%' : '--' }}
+                            </span>
+                        </td>
+                        @foreach($assessmentTypes as $type)
+                        @php $typeData = $row['types'][$type] ?? ['given' => 0, 'performance' => 0]; @endphp
+                        <td class="text-center py-3 px-2">
+                            @if($typeData['given'] > 0)
+                            <span class="inline-block px-2 py-1 rounded text-xs font-medium {{ $typeData['performance'] >= 50 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }}">{{ $typeData['performance'] }}%</span>
+                            @else
+                            <span class="text-gray-300">--</span>
+                            @endif
+                        </td>
+                        @endforeach
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4 flex items-center justify-end space-x-4 text-xs text-gray-500">
+            <span class="flex items-center"><span class="w-3 h-3 bg-green-100 rounded mr-1"></span> ≥50% (Pass)</span>
+            <span class="flex items-center"><span class="w-3 h-3 bg-red-100 rounded mr-1"></span> &lt;50%</span>
+            <span class="flex items-center"><span class="w-3 h-3 bg-gray-100 rounded mr-1"></span> No Data</span>
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- Expandable Subject Cards -->
+@if(isset($subjectAssessmentMatrix) && count($subjectAssessmentMatrix) > 0)
+<div class="w-full block mt-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Subject Performance Cards</h3>
+        <p class="text-sm text-gray-600 mb-6">Click on a subject to expand and view detailed assessment breakdown</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @foreach($subjectAssessmentMatrix as $index => $subjectData)
+            <div x-data="{ expanded: false }" class="border rounded-xl overflow-hidden transition-all duration-300 {{ $subjectData['overall_performance'] >= 50 ? 'border-green-200' : ($subjectData['overall_performance'] > 0 ? 'border-red-200' : 'border-gray-200') }}">
+                <div @click="expanded = !expanded" class="cursor-pointer p-4 {{ $subjectData['overall_performance'] >= 50 ? 'bg-green-50 hover:bg-green-100' : ($subjectData['overall_performance'] > 0 ? 'bg-red-50 hover:bg-red-100' : 'bg-gray-50 hover:bg-gray-100') }} transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center {{ $subjectData['overall_performance'] >= 50 ? 'bg-green-500' : ($subjectData['overall_performance'] > 0 ? 'bg-red-500' : 'bg-gray-400') }}">
+                                <span class="text-white font-bold text-lg">{{ substr($subjectData['subject'], 0, 2) }}</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800">{{ $subjectData['subject'] }}</h4>
+                                <p class="text-xs text-gray-500">Click to expand</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-2xl font-bold {{ $subjectData['overall_performance'] >= 50 ? 'text-green-600' : ($subjectData['overall_performance'] > 0 ? 'text-red-600' : 'text-gray-400') }}">
+                                {{ $subjectData['overall_performance'] > 0 ? $subjectData['overall_performance'] . '%' : '--' }}
+                            </p>
+                            <p class="text-xs text-gray-500">Overall</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-center mt-2">
+                        <svg class="w-5 h-5 text-gray-400 transition-transform duration-300" :class="{ 'rotate-180': expanded }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </div>
+                </div>
+                <div x-show="expanded" x-collapse class="bg-white border-t p-4">
+                    <h5 class="text-sm font-semibold text-gray-700 mb-3">Assessment Type Breakdown</h5>
+                    <div class="space-y-2">
+                        @foreach($assessmentTypes as $type)
+                        @php $typeData = $subjectData['types'][$type] ?? ['given' => 0, 'performance' => 0]; @endphp
+                        <div class="flex items-center justify-between py-1 border-b border-gray-100 last:border-0">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-600">{{ $type }}</span>
+                                @if($typeData['given'] > 0)
+                                <span class="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{{ $typeData['given'] }}</span>
+                                @endif
+                            </div>
+                            <div>
+                                @if($typeData['given'] > 0)
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                                        <div class="h-2 rounded-full {{ $typeData['performance'] >= 50 ? 'bg-green-500' : 'bg-red-500' }}" style="width: {{ min($typeData['performance'], 100) }}%"></div>
+                                    </div>
+                                    <span class="text-sm font-medium {{ $typeData['performance'] >= 50 ? 'text-green-600' : 'text-red-600' }}">{{ $typeData['performance'] }}%</span>
+                                </div>
+                                @else
+                                <span class="text-sm text-gray-300">--</span>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Gender Results Chart
+        // ... rest of the script remains the same ...
         const ctx = document.getElementById('genderResultsChart').getContext('2d');
         new Chart(ctx, {
             type: 'bar',
@@ -362,6 +505,45 @@
                         title: {
                             display: true,
                             text: 'School-Wide Assessment Performance'
+                        }
+                    }
+                }
+            });
+        }
+        @endif
+
+        // Subject Performance Chart
+        @if(isset($subjectPerformanceData) && count($subjectPerformanceData) > 0)
+        const subjectCtx = document.getElementById('subjectPerformanceChart');
+        if (subjectCtx) {
+            new Chart(subjectCtx, {
+                type: 'bar',
+                data: {
+                    labels: {!! json_encode(collect($subjectPerformanceData)->pluck('subject')) !!},
+                    datasets: [{
+                        label: 'Performance %',
+                        data: {!! json_encode(collect($subjectPerformanceData)->pluck('performance')) !!},
+                        backgroundColor: {!! json_encode(collect($subjectPerformanceData)->map(function($s) { return $s['performance'] >= 50 ? 'rgba(34, 197, 94, 0.7)' : ($s['performance'] > 0 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(156, 163, 175, 0.7)'); })) !!},
+                        borderColor: {!! json_encode(collect($subjectPerformanceData)->map(function($s) { return $s['performance'] >= 50 ? 'rgba(34, 197, 94, 1)' : ($s['performance'] > 0 ? 'rgba(239, 68, 68, 1)' : 'rgba(156, 163, 175, 1)'); })) !!},
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Performance (%)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Subject-Wise Average Performance'
                         }
                     }
                 }

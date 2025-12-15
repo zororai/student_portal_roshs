@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Grade;
 use App\Subject;
 use App\Teacher;
+use App\ClassFormat;
 use Illuminate\Http\Request;
 
 class GradeController extends Controller
@@ -35,8 +36,9 @@ class GradeController extends Controller
     public function create()
     {
         $teachers = Teacher::latest()->get();
+        $classFormats = ClassFormat::active()->ordered()->get();
         
-        return view('backend.classes.create', compact('teachers'));
+        return view('backend.classes.create', compact('teachers', 'classFormats'));
     }
 
     /**
@@ -85,8 +87,9 @@ class GradeController extends Controller
     {
         $teachers = Teacher::latest()->get();
         $class = Grade::findOrFail($id);
+        $classFormats = ClassFormat::active()->ordered()->get();
 
-        return view('backend.classes.edit', compact('class','teachers'));
+        return view('backend.classes.edit', compact('class', 'teachers', 'classFormats'));
     }
 
     /**
