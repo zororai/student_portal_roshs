@@ -257,6 +257,10 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()
 {
+    // Teacher Password Change Routes (must be first for middleware to work)
+    Route::get('/teacher/change-password', 'TeacherController@showChangePasswordForm')->name('teacher.change-password');
+    Route::post('/teacher/update-password', 'TeacherController@updatePassword')->name('teacher.update-password');
+
     // Student Record Routes - must be defined early to avoid conflicts
     Route::get('/teacher/student-record', 'TeacherController@studentRecord')->name('teacher.studentrecord');
     Route::get('/teacher/student-record/{class_id}', 'TeacherController@classStudents')->name('teacher.class.students');

@@ -16,15 +16,32 @@ class CheckDefaultPassword
      */
     public function handle($request, Closure $next)
     {
-        // Only check for authenticated users with Student role
-        if (auth()->check() && auth()->user()->hasRole('Student')) {
-            // Check if user is still using default password
-            if (Hash::check('12345678', auth()->user()->password)) {
-                // Allow access to password change routes and logout
+        if (!auth()->check()) {
+            return $next($request);
+        }
+
+        $user = auth()->user();
+        $defaultPassword = '12345678';
+
+        // Check for Student role
+        if ($user->hasRole('Student')) {
+            if (Hash::check($defaultPassword, $user->password)) {
                 if (!$request->is('student/change-password') &&
                     !$request->is('student/update-password') &&
                     !$request->is('logout')) {
                     return redirect()->route('student.change-password');
+                }
+            }
+        }
+
+        // Check for Teacher role
+        if ($user->hasRole('Teacher')) {
+            if (Hash::check($defaultPassword, $user->password)) {
+                if (!$request->is('teacher/change-password') &&
+                    !$request->is('teacher/update-password') &&
+                    !$request->is('logout')) {
+                    return redirect()->route('teacher.change-password')
+                        ->with('warning', 'Please change your default password to continue.');
                 }
             }
         }

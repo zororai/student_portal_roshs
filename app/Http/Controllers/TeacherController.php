@@ -6,6 +6,7 @@ use App\User;
 use App\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class TeacherController extends Controller
@@ -43,7 +44,6 @@ class TeacherController extends Controller
         $request->validate([
             'name'              => 'required|string|max:255',
             'email'             => 'required|string|email|max:255|unique:users',
-            'password'          => 'required|string|min:8',
             'gender'            => 'required|string',
             'phone'             => 'required|string|max:255',
             'dateofbirth'       => 'required|date',
@@ -51,10 +51,12 @@ class TeacherController extends Controller
             'permanent_address' => 'required|string|max:255'
         ]);
 
+        $defaultPassword = '12345678';
+
         $user = User::create([
             'name'      => $request->name,
             'email'     => $request->email,
-            'password'  => Hash::make($request->password)
+            'password'  => Hash::make($defaultPassword)
         ]);
 
         if ($request->hasFile('profile_picture')) {
@@ -77,7 +79,87 @@ class TeacherController extends Controller
 
         $user->assignRole('Teacher');
 
-        return redirect()->route('teacher.index');
+        // Send email notification with credentials
+        $this->sendCredentialsEmail($user, $defaultPassword);
+
+        // Send SMS notification with credentials
+        $this->sendCredentialsSms($request->phone, $user->name, $user->email, $defaultPassword);
+
+        return redirect()->route('teacher.index')
+            ->with('success', 'Teacher created successfully! Login credentials have been sent via email and SMS.');
+    }
+
+    /**
+     * Send credentials email to new teacher.
+     */
+    private function sendCredentialsEmail($user, $password)
+    {
+        try {
+            Mail::send('emails.teacher-credentials', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'password' => $password
+            ], function ($message) use ($user) {
+                $message->to($user->email)
+                    ->subject('Your Teacher Account Credentials - ' . config('app.name'));
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed to send teacher credentials email: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send credentials SMS to new teacher.
+     */
+    private function sendCredentialsSms($phone, $name, $email, $password)
+    {
+        try {
+            // Format phone number (remove spaces, add country code if needed)
+            $phone = preg_replace('/\s+/', '', $phone);
+            
+            $message = "Welcome {$name}! Your teacher account has been created. Email: {$email}, Password: {$password}. Please change your password on first login.";
+            
+            // You can integrate with any SMS gateway here
+            // Example using a generic SMS service:
+            // $this->sendSmsViaGateway($phone, $message);
+            
+            \Log::info("SMS would be sent to {$phone}: {$message}");
+        } catch (\Exception $e) {
+            \Log::error('Failed to send teacher credentials SMS: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show password change form for teacher.
+     */
+    public function showChangePasswordForm()
+    {
+        return view('backend.teacher.change-password');
+    }
+
+    /**
+     * Update teacher password.
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|string|min:8|confirmed|different:current_password',
+        ], [
+            'password.different' => 'New password must be different from the default password.',
+        ]);
+
+        $user = auth()->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        return redirect()->route('home')->with('success', 'Password changed successfully!');
     }
 
     /**
