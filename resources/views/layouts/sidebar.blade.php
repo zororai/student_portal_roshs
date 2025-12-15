@@ -334,6 +334,7 @@
                 <a href="{{ route('roles-permissions') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Roles & Permissions</a>
                 <a href="{{ route('results_status.index') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Manage Term</a>
                 <a href="{{ route('admin.audit-trail.index') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Audit Trail</a>
+                <a href="{{ route('admin.student-upgrade.index') }}" class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">Student Class Upgrade</a>
             </div>
         </div>
         @endrole

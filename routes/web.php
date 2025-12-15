@@ -240,6 +240,11 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/audit-trail/{id}', 'AuditTrailController@show')->name('admin.audit-trail.show');
     Route::post('/admin/audit-trail/clear', 'AuditTrailController@clear')->name('admin.audit-trail.clear');
 
+    // Student Class Upgrade Routes
+    Route::get('/admin/student-upgrade', 'StudentUpgradeController@index')->name('admin.student-upgrade.index');
+    Route::get('/admin/student-upgrade/preview', 'StudentUpgradeController@preview')->name('admin.student-upgrade.preview');
+    Route::post('/admin/student-upgrade/execute', 'StudentUpgradeController@execute')->name('admin.student-upgrade.execute');
+
 });
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()
