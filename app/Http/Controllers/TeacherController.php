@@ -320,6 +320,53 @@ class TeacherController extends Controller
 
         // Get classes taught by this teacher with student count
         $classes = $teacher->classes()->withCount('students')->get();
+        $classIds = $classes->pluck('id')->toArray();
+
+        // Get subjects taught by this teacher
+        $subjects = $teacher->subjects()->get();
+
+        // Assessment types to track
+        $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+
+        // Build performance data per subject
+        $subjectPerformance = [];
+        foreach ($subjects as $subject) {
+            $typeStats = [];
+            foreach ($assessmentTypes as $type) {
+                $assessments = \App\Assessment::where('subject_id', $subject->id)
+                    ->where('teacher_id', $teacher->id)
+                    ->where('assessment_type', $type)
+                    ->whereIn('class_id', $classIds)
+                    ->get();
+
+                $taken = $assessments->count();
+                $totalMarks = 0;
+                $obtainedMarks = 0;
+
+                foreach ($assessments as $assessment) {
+                    $marks = \App\AssessmentMark::where('assessment_id', $assessment->id)->get();
+                    foreach ($marks as $mark) {
+                        if ($mark->mark !== null && $mark->total_marks > 0) {
+                            $totalMarks += $mark->total_marks;
+                            $obtainedMarks += $mark->mark;
+                        }
+                    }
+                }
+
+                $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
+
+                $typeStats[] = [
+                    'type' => $type,
+                    'taken' => $taken,
+                    'performance' => $performance
+                ];
+            }
+
+            $subjectPerformance[] = [
+                'subject' => $subject,
+                'stats' => $typeStats
+            ];
+        }
 
         // Get recent assessments for this teacher (last 10)
         $recentAssessments = \App\Assessment::where('teacher_id', $teacher->id)
@@ -328,7 +375,7 @@ class TeacherController extends Controller
             ->limit(10)
             ->get();
 
-        return view('backend.teacher.assessment', compact('classes', 'teacher', 'recentAssessments'));
+        return view('backend.teacher.assessment', compact('classes', 'teacher', 'recentAssessments', 'subjectPerformance', 'assessmentTypes'));
     }
 
     /**
