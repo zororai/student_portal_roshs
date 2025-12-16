@@ -1,4 +1,4 @@
-<div class="bg-blue-700 px-4 sm:px-6 py-3 flex items-center justify-between shadow h-16 fixed top-0 left-0 right-0 z-50">
+<header class="bg-gradient-to-r from-blue-600 to-blue-500 text-white h-16 flex items-center justify-between px-4 sm:px-6 shadow fixed top-0 left-0 right-0 z-50">
     <div class="flex items-center text-white">
         <!-- Mobile hamburger menu button -->
         <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 mr-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-white" aria-label="Toggle sidebar">
@@ -47,5 +47,5 @@
             </div>
         @endauth
     </div>
-</div>
+</header>
 <!-- Log on to codeastro.com for more projects -->

@@ -12,7 +12,7 @@
     
 </head>
 <!-- Log on to codeastro.com for more projects -->
-<body class="bg-gray-100 font-sans antialiased" x-data="{ sidebarOpen: false }">
+<body class="bg-slate-50 font-sans antialiased" x-data="{ sidebarOpen: false }">
     <div id="app">
 
         @include('layouts.navbar')
