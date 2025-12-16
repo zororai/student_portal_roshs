@@ -68,9 +68,6 @@ Route::post('/profile/changepassword', 'HomeController@changePassword')->name('p
 Route::get('/student/change-password', 'StudentController@showChangePasswordForm')->name('student.change-password');
 Route::post('/student/update-password', 'StudentController@updatePassword')->name('student.update-password');
 
-// Student timetable route (defined early to avoid conflicts with /student/{id} routes)
-Route::get('/my-timetable', 'TimetableController@studentView')->name('student.timetable')->middleware(['auth', 'role:Student']);
-
 // Parent timetable route
 Route::get('/child-timetable', 'TimetableController@parentView')->name('parent.timetable')->middleware(['auth', 'role:Parent']);
 
@@ -347,6 +344,7 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
 
 Route::group(['middleware' => ['auth','role:Student']], function () {
 
+    Route::get('/my-timetable', 'TimetableController@studentView')->name('student.timetable');
     Route::get('/studentviewresults/studentviewresults', 'AddsubjectController@studentviewsubject')->name('viewsubject.studentresults');
     Route::get('/studentattends/studentattends', 'AddsubjectController@studentattendance')->name('attendancy.studentattendance');
    Route::get('/studentresults/studentresults', 'ResultController@studentshow')->name('viewresults.studentresults');

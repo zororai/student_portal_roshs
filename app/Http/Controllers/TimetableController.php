@@ -24,14 +24,22 @@ class TimetableController extends Controller
         $student = Student::where('user_id', $user->id)->first();
         
         if (!$student) {
-            return redirect()->back()->with('error', 'Student record not found.');
+            $error = 'Student record not found. Please contact administrator.';
+            return view('backend.timetable.view', ['error' => $error, 'class' => null, 'settings' => null, 'timetable' => [], 'days' => []]);
         }
 
         $classId = $student->class_id;
+        
+        if (!$classId) {
+            $error = 'You have not been assigned to a class yet. Please contact administrator.';
+            return view('backend.timetable.view', ['error' => $error, 'class' => null, 'settings' => null, 'timetable' => [], 'days' => []]);
+        }
+        
         $class = Grade::find($classId);
         
         if (!$class) {
-            return redirect()->back()->with('error', 'Class not found.');
+            $error = 'Class not found. Please contact administrator.';
+            return view('backend.timetable.view', ['error' => $error, 'class' => null, 'settings' => null, 'timetable' => [], 'days' => []]);
         }
 
         $settings = TimetableSetting::where('class_id', $classId)->first();
