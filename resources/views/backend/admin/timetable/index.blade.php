@@ -85,17 +85,20 @@
                     <div class="flex gap-2">
                         @if($hasTimetable)
                             <a href="{{ route('admin.timetable.show', $class->id) }}" 
+                               title="View {{ $class->class_name }} Timetable"
                                class="flex-1 text-center py-2 px-4 bg-emerald-50 text-emerald-600 rounded-xl text-sm font-semibold hover:bg-emerald-100 transition-colors">
-                                View
+                                View Timetable
                             </a>
                             <a href="{{ route('admin.timetable.edit', $class->id) }}" 
+                               title="Edit {{ $class->class_name }} Timetable"
                                class="flex-1 text-center py-2 px-4 bg-amber-50 text-amber-600 rounded-xl text-sm font-semibold hover:bg-amber-100 transition-colors">
-                                Edit
+                                Edit Timetable
                             </a>
                         @else
                             <a href="{{ route('admin.timetable.create') }}?class_id={{ $class->id }}" 
+                               title="Generate Timetable for {{ $class->class_name }}"
                                class="flex-1 text-center py-2 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-sm font-semibold hover:shadow-md transition-all">
-                                Generate
+                                Generate Timetable
                             </a>
                         @endif
                     </div>

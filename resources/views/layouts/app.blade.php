@@ -12,16 +12,28 @@
     
 </head>
 <!-- Log on to codeastro.com for more projects -->
-<body class="bg-gray-100 font-sans antialiased">
+<body class="bg-gray-100 font-sans antialiased" x-data="{ sidebarOpen: false }">
     <div id="app">
 
         @include('layouts.navbar')
+        
+        <!-- Mobile sidebar overlay -->
+        <div x-show="sidebarOpen" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="sidebarOpen = false"
+             class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+             style="display: none;"></div>
         
         <div class="main flex flex-wrap justify-end mt-16">
             
             @include('layouts.sidebar')
 
-            <div class="content w-full sm:w-5/6">
+            <div class="content w-full lg:w-5/6 lg:ml-auto">
                 <div class="container mx-auto p-4 sm:p-6">
 
                     @yield('content')

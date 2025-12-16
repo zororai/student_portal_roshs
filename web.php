@@ -168,7 +168,7 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
     Route::get('studentattendance/{attendance}', 'AttendanceController@show')->name('attendance.show');
     Route::get('/viewstudentresults/viewstudentresults', 'ResultController@viewstudentshow')->name('parentviewresults.studentresults');
     Route::get('/studentviewresults/studentviewresults', 'AddsubjectController@studentviewsubject')->name('viewsubject.studentresults');
-
+    Route::get('/parent/timetable', 'TimetableController@parentView')->name('parent.timetable');
 });
 
 Route::group(['middleware' => ['auth','role:Student']], function () {
@@ -178,6 +178,6 @@ Route::group(['middleware' => ['auth','role:Student']], function () {
    Route::get('/studentresults/studentresults', 'ResultController@studentshow')->name('viewresults.studentresults');
    Route::get('Reading/{id}','AddsubjectController@showread')->name('subject.viewreading');
    Route::get('/readings/download/{id}', 'AddsubjectController@download')->name('readings.download');
-    
+   Route::get('/student/timetable', 'TimetableController@studentView')->name('student.timetable');
 
 });

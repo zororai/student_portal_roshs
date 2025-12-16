@@ -1,4 +1,6 @@
-<div x-data="{ collapsed: false }" :class="collapsed ? 'w-20' : 'w-64'" class="sidebar block bg-white h-screen shadow-lg fixed top-0 left-0 bottom-0 z-40 overflow-y-auto border-r border-gray-200 transition-all duration-300">
+<div x-data="{ collapsed: false }" 
+     :class="[collapsed ? 'w-20' : 'w-64', sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0']" 
+     class="sidebar bg-white h-screen shadow-lg fixed top-0 left-0 bottom-0 z-40 overflow-y-auto border-r border-gray-200 transition-all duration-300 transform">
     <!-- Header Section -->
     <div class="p-4 border-b border-gray-200">
         <div class="flex items-center justify-between">
