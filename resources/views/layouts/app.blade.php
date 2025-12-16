@@ -8,6 +8,8 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f172a">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     
 </head>
@@ -54,6 +56,18 @@
     </script>
 
     @stack('scripts')
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/serviceworker.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+    </script>
 
 </body>
 </html>

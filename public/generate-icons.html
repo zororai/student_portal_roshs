@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Icon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 2px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .instructions {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PWA Icon Generator</h1>
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>This tool will use the existing logo.png from your images folder</li>
+                <li>Click "Generate Icons" to create 192x192 and 512x512 versions</li>
+                <li>Download each icon and save them as:
+                    <ul>
+                        <li><code>icon-192x192.png</code></li>
+                        <li><code>icon-512x512.png</code></li>
+                    </ul>
+                </li>
+                <li>Place them in the <code>public/images/</code> directory</li>
+            </ol>
+        </div>
+
+        <button onclick="generateIcons()">Generate Icons</button>
+        
+        <div id="output"></div>
+    </div>
+
+    <script>
+        function generateIcons() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Generating icons...</p>';
+
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = '/images/logo.png';
+
+            img.onload = function() {
+                // Generate 192x192 icon
+                const canvas192 = document.createElement('canvas');
+                canvas192.width = 192;
+                canvas192.height = 192;
+                const ctx192 = canvas192.getContext('2d');
+                ctx192.fillStyle = '#0f172a';
+                ctx192.fillRect(0, 0, 192, 192);
+                
+                const scale192 = Math.min(192 / img.width, 192 / img.height) * 0.8;
+                const x192 = (192 - img.width * scale192) / 2;
+                const y192 = (192 - img.height * scale192) / 2;
+                ctx192.drawImage(img, x192, y192, img.width * scale192, img.height * scale192);
+
+                // Generate 512x512 icon
+                const canvas512 = document.createElement('canvas');
+                canvas512.width = 512;
+                canvas512.height = 512;
+                const ctx512 = canvas512.getContext('2d');
+                ctx512.fillStyle = '#0f172a';
+                ctx512.fillRect(0, 0, 512, 512);
+                
+                const scale512 = Math.min(512 / img.width, 512 / img.height) * 0.8;
+                const x512 = (512 - img.width * scale512) / 2;
+                const y512 = (512 - img.height * scale512) / 2;
+                ctx512.drawImage(img, x512, y512, img.width * scale512, img.height * scale512);
+
+                // Display canvases
+                output.innerHTML = '<h3>Generated Icons:</h3>';
+                
+                const div192 = document.createElement('div');
+                div192.innerHTML = '<h4>192x192 Icon:</h4>';
+                div192.appendChild(canvas192);
+                const btn192 = document.createElement('button');
+                btn192.textContent = 'Download 192x192';
+                btn192.onclick = () => downloadCanvas(canvas192, 'icon-192x192.png');
+                div192.appendChild(btn192);
+                output.appendChild(div192);
+
+                const div512 = document.createElement('div');
+                div512.innerHTML = '<h4>512x512 Icon:</h4>';
+                div512.appendChild(canvas512);
+                const btn512 = document.createElement('button');
+                btn512.textContent = 'Download 512x512';
+                btn512.onclick = () => downloadCanvas(canvas512, 'icon-512x512.png');
+                div512.appendChild(btn512);
+                output.appendChild(div512);
+            };
+
+            img.onerror = function() {
+                output.innerHTML = '<p style="color: red;">Error loading logo.png. Make sure the file exists in /images/logo.png</p>';
+            };
+        }
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
