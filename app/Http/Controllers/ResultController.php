@@ -428,15 +428,38 @@ public function adminshowResult(Request $request)
     public function viewstudentshow()
     {
         $parentId = Parents::where('user_id', Auth::user()->id)->value('id');
-        $studentId = Student::where('parent_id', $parentId)->value('id');
         
-        // Check for outstanding fees
+        // Check if parent record exists
+        if (!$parentId) {
+            return view('reports.index', [
+                'students' => collect(),
+                'results' => collect(),
+                'error' => 'Parent record not found. Please contact administrator.'
+            ]);
+        }
+        
+        // Get ALL students for this parent
+        $students = Student::where('parent_id', $parentId)->with('user', 'class')->get();
+        
+        if ($students->isEmpty()) {
+            return view('reports.index', [
+                'students' => collect(),
+                'results' => collect(),
+                'error' => 'No students linked to this parent account.'
+            ]);
+        }
+        
+        $studentIds = $students->pluck('id');
+        
+        // Check for outstanding fees for any student (only if ResultsStatus records exist)
         $allTerms = ResultsStatus::all();
         $totalFees = 0;
-        foreach ($allTerms as $term) {
-            $totalFees += floatval($term->total_fees);
+        if ($allTerms->isNotEmpty()) {
+            foreach ($allTerms as $term) {
+                $totalFees += floatval($term->total_fees ?? 0);
+            }
         }
-        $totalPaid = floatval(StudentPayment::where('student_id', $studentId)->sum('amount_paid'));
+        $totalPaid = floatval(StudentPayment::whereIn('student_id', $studentIds)->sum('amount_paid'));
         $outstandingBalance = $totalFees - $totalPaid;
         
         // If student has outstanding fees, block results view
@@ -447,18 +470,15 @@ public function adminshowResult(Request $request)
             ]);
         }
         
-        $paid = 'Paid';
-        $lastRecord = ResultsStatus::latest()->first();
-        $year = $lastRecord->year;
-        $period = $lastRecord->result_period;
-        $results = Result::where('student_id', $studentId)
-        ->where('result_period',$period)
-        ->where('status',$paid)
-        ->where('year', $year)
-        ->with(['subject', 'teacher', 'class'])
-        ->get();
+        // Get ALL results for all students (all terms, all years)
+        $results = Result::whereIn('student_id', $studentIds)
+            ->with(['subject', 'teacher', 'class', 'student.user'])
+            ->orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->orderBy('student_id')
+            ->get();
 
-        return view('reports.index', compact('results'));
+        return view('reports.index', compact('results', 'students'));
     }
 
     /**
