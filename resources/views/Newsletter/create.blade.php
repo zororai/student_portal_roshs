@@ -1,79 +1,111 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="roles">
-    <div class="flex items-center justify-between mb-6">
-        <h2 class="text-gray-700 uppercase font-bold">Create Newsletter</h2>
-        <div class="flex flex-wrap items-center">
-            <a href="{{ route('newsletters.index') }}" class="bg-gray-700 text-white text-sm uppercase py-2 px-4 flex items-center rounded">
-                <svg class="w-3 h-3 fill-current" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="long-arrow-alt-left" class="svg-inline--fa fa-long-arrow-alt-left fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M134.059 296H436c6.627 0 12-5.373 12-12v-56c0-6.627-5.373-12-12-12H134.059v-46.059c0-21.382-25.851-32.09-40.971-16.971L7.029 239.029c-9.373 9.373-9.373 24.569 0 33.941l86.059 86.059c15.119 15.119 40.971 4.411 40.971-16.971V296z"></path></svg>
-                <span class="ml-2 text-xs font-semibold">Back</span>
-            </a>
-        </div>
-    </div>
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <div class="table w-full mt-8 bg-white rounded">
-        <form action="{{ route('newsletters.store') }}" method="POST" enctype="multipart/form-data" class="w-full max-w-xl px-6 py-12">
-            @csrf
-
-            <div class="md:flex md:items-center mb-6">
-                <div class="md:w-1/3">
-                    <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                        Title
-                    </label>
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Create Newsletter</h1>
+                    <p class="mt-1 text-sm text-gray-500">Compose and publish a new newsletter for parents and students</p>
                 </div>
-                <div class="md:w-2/3">
-                    <input name="title" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" type="text" value="{{ old('title') }}" required>
-                    @error('title')
-                        <p class="text-red-500 text-xs italic">{{ $message }}</p>
-                    @enderror
-                </div>
+                <a href="{{ route('newsletters.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Newsletters
+                </a>
             </div>
 
-            <div class="md:flex md:items-center mb-6">
-                <div class="md:w-1/3">
-                    <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                        Content
-                    </label>
-                </div>
-                <div class="md:w-2/3">
-                    <textarea name="content" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500" rows="4" required>{{ old('content') }}</textarea>
-                    @error('content')
-                        <p class="text-red-500 text-xs italic">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
+            <form action="{{ route('newsletters.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
 
-            <div class="md:flex md:items-center mb-6">
-                <div class="md:w-1/3">
-                    <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                        Image
-                    </label>
-                </div>
-                <div class="md:w-2/3">
-                    <input type="file" name="image" class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-blue-500">
-                </div>
-            </div>
+                <!-- Newsletter Content Card -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-cyan-500 to-blue-600">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                            </svg>
+                            Newsletter Content
+                        </h3>
+                    </div>
+                    <div class="px-6 py-6 space-y-6">
+                        <!-- Title -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Newsletter Title</label>
+                            <input name="title" type="text" value="{{ old('title') }}" required
+                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors duration-200"
+                                   placeholder="Enter an engaging title for your newsletter">
+                            @error('title')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
 
-            <div class="md:flex md:items-center mb-6">
-                <div class="md:w-1/3"></div>
-                <div class="md:w-2/3 block text-gray-600 font-bold">
-                    <label class="inline-flex items-center">
-                        <input type="checkbox" name="is_published" class="form-checkbox">
-                        <span class="ml-2 text-sm">Publish Now</span>
-                    </label>
-                </div>
-            </div>
+                        <!-- Content -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Content</label>
+                            <textarea name="content" rows="6" required
+                                      class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors duration-200"
+                                      placeholder="Write your newsletter content here...">{{ old('content') }}</textarea>
+                            @error('content')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
 
-            <div class="md:flex md:items-center">
-                <div class="md:w-1/3"></div>
-                <div class="md:w-2/3">
-                    <button class="shadow bg-blue-500 hover:bg-blue-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
-                        Create
+                        <!-- Image Upload -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Featured Image (Optional)</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-cyan-400 transition-colors duration-200">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="image" class="relative cursor-pointer bg-white rounded-md font-medium text-cyan-600 hover:text-cyan-500 focus-within:outline-none">
+                                            <span>Upload a file</span>
+                                            <input id="image" name="image" type="file" class="sr-only" accept="image/*">
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Publishing Options Card -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Publishing Options
+                        </h3>
+                    </div>
+                    <div class="px-6 py-6">
+                        <label class="flex items-center p-4 rounded-xl border-2 border-gray-200 hover:border-cyan-300 hover:bg-cyan-50 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="is_published" class="w-5 h-5 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500">
+                            <div class="ml-4">
+                                <p class="text-sm font-semibold text-gray-900">Publish Immediately</p>
+                                <p class="text-xs text-gray-500">Newsletter will be visible to all users right away</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex items-center justify-end space-x-4">
+                    <a href="{{ route('newsletters.index') }}" class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-8 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold shadow-lg hover:from-cyan-600 hover:to-blue-700 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                        Create Newsletter
                     </button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 @endsection

@@ -19,7 +19,7 @@
     <link rel="apple-touch-icon" href="#" />
 
 
-    
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}?v={{ time() }}" />
     <!-- Pogo Slider CSS -->
@@ -30,7 +30,7 @@
     <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ time() }}" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}?v={{ time() }}" />
-    
+
     <!-- Navigation Spacing Fix -->
     <style>
         .navbar-nav.equal-spacing {
@@ -46,7 +46,7 @@
         .navbar-nav.equal-spacing .logo-center {
             margin: 0 50px !important;
         }
-        
+
         /* Mobile Navigation Fixes */
         @media (max-width: 991px) {
             .navbar-nav.equal-spacing {
@@ -57,13 +57,13 @@
                 margin-top: 10px;
                 box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             }
-            
+
             .navbar-nav.equal-spacing li {
                 width: 100% !important;
                 margin: 5px 0 !important;
                 text-align: center;
             }
-            
+
             .navbar-nav.equal-spacing .logo-center {
                 order: -1 !important;
                 margin: 15px 0 25px 0 !important;
@@ -73,13 +73,13 @@
                 width: 100% !important;
                 background: transparent !important;
             }
-            
+
             .navbar-nav.equal-spacing .logo-center .navbar-brand {
                 display: block !important;
                 padding: 0 !important;
                 margin: 0 !important;
             }
-            
+
             .navbar-nav.equal-spacing .logo-center img {
                 width: 90px !important;
                 height: 90px !important;
@@ -89,7 +89,7 @@
                 box-shadow: 0 6px 12px rgba(45, 80, 22, 0.3) !important;
                 border: 3px solid #2d5016 !important;
             }
-            
+
             .navbar-nav.equal-spacing .nav-link {
                 padding: 12px 20px !important;
                 border-radius: 8px;
@@ -99,13 +99,13 @@
                 font-weight: 500;
                 transition: all 0.3s ease;
             }
-            
+
             .navbar-nav.equal-spacing .nav-link:hover,
             .navbar-nav.equal-spacing .nav-link.active {
                 background: #2d5016 !important;
                 color: white !important;
             }
-            
+
             .dropdown-content {
                 position: static !important;
                 display: block !important;
@@ -115,7 +115,7 @@
                 margin-top: 5px !important;
                 padding: 10px !important;
             }
-            
+
             .dropdown-content a {
                 padding: 8px 15px !important;
                 margin: 2px 0 !important;
@@ -123,7 +123,7 @@
                 background: white !important;
                 color: #333 !important;
             }
-            
+
             .dropdown-content a:hover {
                 background: #2d5016 !important;
                 color: white !important;
@@ -145,42 +145,22 @@
 
     <!-- Start header -->
      <!-- Start header -->
-     <header class="top-header">
+    <header class="top-header">
         <nav class="navbar header-nav navbar-expand-lg">
-            <div class="container">
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd" aria-controls="navbar-wd" aria-expanded="false" aria-label="Toggle navigation">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{{ route('website.index') }}">
+                    <img style="height:80px; width:100px" src="images/logo.png" alt="image">
+                    <b>Rose Of Sharon High School</b>
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd">
+                    <span></span><span></span><span></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbar-wd">
-                    <ul class="navbar-nav equal-spacing">
+                <div class="collapse navbar-collapse justify-content-end" id="navbar-wd">
+                    <ul class="navbar-nav">
                         <li><a class="nav-link" href="{{ route('website.index') }}">Home</a></li>
-                        <li><a class="nav-link active" href="{{ route('website.about') }}">About</a></li>
-                        <li class="navbar">
-                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('studentParentDropdown')">Parent/Student Portal</a>
-                            <div class="dropdown-content" id="studentParentDropdown">
-                                <a href="{{route('website.results') }}">Our Results</a>
-                                <a href="{{ url('/logins') }}">Student Portal</a>
-                            </div>
-                        </li>
-                        
-                        <!-- Center Logo -->
-                        <li class="nav-item d-flex align-items-center">
-                            <a class="navbar-brand logo-center" href="{{ route('website.index') }}">
-                                <img style="height:80px; width:100px;" src="{{ asset('images/logo.png') }}" alt="Rose of Sharon High School">
-                            </a>
-                        </li>
-                        
-                        <li class="navbar">
-                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('admissionDropdown')">Admission</a>
-                            <div class="dropdown-content" id="admissionDropdown">
-                                <a href="{{ route('website.courses') }}">Our Subjects</a>
-                                <a href="{{ route('website.index') }}">Application Form</a>
-                                <a href="{{ route('website.index') }}">Online Application</a>
-                            </div>
-                        </li>
-                        <li><a class="nav-link" href="{{ route('website.News') }}">News Letter</a></li>
+                        <li><a class="nav-link" href="{{ route('website.about') }}">About</a></li>
+                        <li><a class="nav-link" href="{{ route('website.courses') }}">Our Subjects</a></li>
+                        <li><a class="nav-link active" href="{{ route('website.application') }}">Application Form</a></li>
                         <li><a class="nav-link" href="{{ route('website.contact') }}">Contact Us</a></li>
                     </ul>
                 </div>
@@ -190,7 +170,7 @@
     <!-- End header -->
 
 	<!-- section -->
-	
+
 	<section class="inner_banner">
 	  <div class="container">
 	      <div class="row">
@@ -202,9 +182,9 @@
 		  </div>
 	  </div>
 	</section>
-	
+
 	<!-- end section -->
-   
+
 	<!-- section -->
     <div class="section margin-top_50">
         <div class="container">
@@ -218,7 +198,7 @@
 						<div class="full">
 						  <p>Dr. Fatima Maruta is a holder of several accounting qualifications that include a Bachelor’s Degree in Accountancy from the University of Zimbabwe and Masters Degree in Business Adminstration from Bloomsburg University, PA USA. In year 2014, she was conferred with an Honorary Doctorate Degree in Humane Letters, DHL, from the International Institute of Philanthropy IIP in recognition of practical application of expertise in Humanities. In 2016 she was conferred with an Honorary Doctor of Arts Degree and an Honorary Master of Business Leadership Degree from International Women’s University in recognition of practical application of expertise in Humanities. In the same year, she was conferred an award as Zimbabwe Top female academic leader by the Zimbabwe Leadership Awards.In 2017 she was conferred with the Christian Leadership Excellence Lifetime Achievement Award by the Christian Business and Leadership Awards. In 2018 was conferred with award Organisation of the year special recognition in Academic Leadership Excellence</p>
 						</div>
-						
+
                     </div>
                 </div>
 				<div class="col-md-6">
@@ -229,7 +209,7 @@
             </div>
                  <div class="row">
                     <div class="col-lg-6 order-1 order-lg-2 mb-4 mb-lg-0">
-                        <img src="images/award.png" alt="Image" style="height: 300px; border-radius: 20px" class="img-fluid"> 
+                        <img src="images/award.png" alt="Image" style="height: 300px; border-radius: 20px" class="img-fluid">
                         <p style="margin-top: 20px"> In 2021 I was conferred with the Honorary Commissionership with the Honour and Status of Commissioner. In 2021 I was conferred with the Honorary Doctorate of Diplomacy and International Relations Degree of a Doctor of Diplomacy and International Relations, Hon. DIR</p>
                     </div>
                     <div class="col-lg-5 mr-auto align-self-center order-2 order-lg-1">
@@ -255,7 +235,7 @@
                 </div>
 				<div class="col-md-4">
                     <div class="full blog_img_popular">
-                       <img class="img-responsive" src="images/p1.png" alt="#" /> 
+                       <img class="img-responsive" src="images/p1.png" alt="#" />
 					   <h4>Our 'A' level</h4>
                     </div>
                 </div>
@@ -294,9 +274,9 @@
  <!-- Start Footer -->
     <footer class="footer-box">
         <div class="container">
-		
+
 		   <div class="row">
-		   
+
 		      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			     <div class="footer_blog">
 				    <div class="full margin-bottom_30">
@@ -308,11 +288,11 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 					 </div>
 				 </div>
 			  </div>
-			  
+
 			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			       <div class="footer_blog footer_menu white_fonts">
 						    <h3>Quick links</h3>
-						    <ul> 
+						    <ul>
 							  <li><a href="#">> Join Us</a></li>
 							  <li><a href="#">> Maintenance</a></li>
 							  <li><a href="#">> Language Packs</a></li>
@@ -321,11 +301,11 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 							</ul>
 						 </div>
 				 </div>
-				 
+
 				 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 				 <div class="footer_blog full white_fonts">
 						     <h3>Newsletter</h3>
-					
+
 							 <div class="newsletter_form">
 							    <form action="index.html">
 								   <input type="email" placeholder="Your Email" name="#" required />
@@ -333,8 +313,8 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 								</form>
 							 </div>
 						 </div>
-					</div>	 
-			  
+					</div>
+
 			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 				 <div class="footer_blog full white_fonts">
 						     <h3>Contact us</h3>
@@ -344,10 +324,10 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 							   <li><img src="images/i7.png"><span>+263 772 490 478</span></li>
 							 </ul>
 						 </div>
-					</div>	 
-			  
+					</div>
+
 		   </div>
-		
+
         </div>
     </footer>
     <!-- End Footer -->
@@ -389,7 +369,7 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 (function ($) {
 	$.fn.countTo = function (options) {
 		options = options || {};
-		
+
 		return $(this).each(function () {
 			// set options for current element
 			var settings = $.extend({}, $.fn.countTo.defaults, {
@@ -399,58 +379,58 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 				refreshInterval: $(this).data('refresh-interval'),
 				decimals:        $(this).data('decimals')
 			}, options);
-			
+
 			// how many times to update the value, and how much to increment the value on each update
 			var loops = Math.ceil(settings.speed / settings.refreshInterval),
 				increment = (settings.to - settings.from) / loops;
-			
+
 			// references & variables that will change with each update
 			var self = this,
 				$self = $(this),
 				loopCount = 0,
 				value = settings.from,
 				data = $self.data('countTo') || {};
-			
+
 			$self.data('countTo', data);
-			
+
 			// if an existing interval can be found, clear it first
 			if (data.interval) {
 				clearInterval(data.interval);
 			}
 			data.interval = setInterval(updateTimer, settings.refreshInterval);
-			
+
 			// initialize the element with the starting value
 			render(value);
-			
+
 			function updateTimer() {
 				value += increment;
 				loopCount++;
-				
+
 				render(value);
-				
+
 				if (typeof(settings.onUpdate) == 'function') {
 					settings.onUpdate.call(self, value);
 				}
-				
+
 				if (loopCount >= loops) {
 					// remove the interval
 					$self.removeData('countTo');
 					clearInterval(data.interval);
 					value = settings.to;
-					
+
 					if (typeof(settings.onComplete) == 'function') {
 						settings.onComplete.call(self, value);
 					}
 				}
 			}
-			
+
 			function render(value) {
 				var formattedValue = settings.formatter.call(self, value, settings);
 				$self.html(formattedValue);
 			}
 		});
 	};
-	
+
 	$.fn.countTo.defaults = {
 		from: 0,               // the number the element should start at
 		to: 0,                 // the number the element should end at
@@ -461,7 +441,7 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 		onUpdate: null,        // callback method for every time the element is updated
 		onComplete: null       // callback method for when the element finishes updating
 	};
-	
+
 	function formatter(value, settings) {
 		return value.toFixed(settings.decimals);
 	}
@@ -474,10 +454,10 @@ jQuery(function ($) {
 	  return value.toFixed(options.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g, ',');
 	}
   });
-  
+
   // start all the timers
-  $('.timer').each(count);  
-  
+  $('.timer').each(count);
+
   function count(options) {
 	var $this = $(this);
 	options = $.extend({}, options || {}, $this.data('countToOptions') || {});
@@ -489,7 +469,7 @@ jQuery(function ($) {
         function toggleDropdown() {
             document.getElementById("myDropdown").classList.toggle("show");
         }
-    
+
         // Close the dropdown if the user clicks outside of it
         window.onclick = function(event) {
             if (!event.target.matches('.nav-link')) {
@@ -507,7 +487,7 @@ jQuery(function ($) {
         function toggleDropdown(dropdownId) {
             document.getElementById(dropdownId).classList.toggle("show");
         }
-    
+
         // Close the dropdown if the user clicks outside of it
         window.onclick = function(event) {
             if (!event.target.matches('.nav-link')) {
@@ -583,12 +563,12 @@ jQuery(function ($) {
         right: 20px;
         font-size: 25px;
     }
-    
+
     .whatsapp-btn {
         width: 50px;
         height: 50px;
     }
-    
+
     .whatsapp-btn i {
         font-size: 24px;
         line-height: 50px;

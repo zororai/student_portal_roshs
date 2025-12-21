@@ -1,198 +1,237 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="roles">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <h2 class="text-gray-700 uppercase font-bold">Student Details</h2>
-            </div>
-            <div class="flex flex-wrap items-center">
-                <a href="{{ route('student.index') }}" class="bg-gray-700 text-white text-sm uppercase py-2 px-4 flex items-center rounded">
-                    <svg class="w-3 h-3 fill-current" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="long-arrow-alt-left" class="svg-inline--fa fa-long-arrow-alt-left fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M134.059 296H436c6.627 0 12-5.373 12-12v-56c0-6.627-5.373-12-12-12H134.059v-46.059c0-21.382-25.851-32.09-40.971-16.971L7.029 239.029c-9.373 9.373-9.373 24.569 0 33.941l86.059 86.059c15.119 15.119 40.971 4.411 40.971-16.971V296z"></path></svg>
-                    <span class="ml-2 text-xs font-semibold">Back</span>
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Student Profile</h1>
+                    <p class="mt-1 text-sm text-gray-500">View complete student information and enrolled subjects</p>
+                </div>
+                <a href="{{ route('student.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Students
                 </a>
             </div>
-        </div>
-        <!-- Log on to codeastro.com for more projects -->
 
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-
-        <div class="mt-8 bg-white rounded">
-           <div class="flex flex-wrap sm:flex-no-wrap justify-between">
-
-            <div class="w-full sm:w-1/2 mr-2 mb-6">
-
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3"></div>
-                    <div class="md:w-2/3">
-                        <img class="w-20 h-20 sm:w-32 sm:h-32 rounded" src="{{ asset('images/profile/' .$student->user->profile_picture) }}" alt="avatar">
-                    </div>
-                </div>
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Name :
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        <span class="block text-gray-600 font-bold">{{ $student->user->name }}</span>
-                    </div>
-                </div>
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Email :
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        <span class="text-gray-600 font-bold">{{ $student->user->email }}</span>
-                    </div>
-                </div>
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Roll :
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        <span class="text-gray-600 font-bold">{{ $student->roll_number }}</span>
-                    </div>
-                </div>
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Phone :
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        <span class="text-gray-600 font-bold">{{ $student->phone }}</span>
-                    </div>
-                </div>
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Gender :
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        <span class="text-gray-600 font-bold">{{ $student->gender }}</span>
-                    </div>
-                </div>
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Date of Birth :
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        <span class="text-gray-600 font-bold">{{ $student->dateofbirth }}</span>
-                    </div>
-                </div>
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Current Address :
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        <span class="text-gray-600 font-bold">{{ $student->current_address }}</span>
-                    </div>
-                </div>
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Permanent Address :
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        <span class="text-gray-600 font-bold">{{ $student->permanent_address }}</span>
-                    </div>
-                </div>
-                <div class="md:flex md:items-center mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Class :
-                        </label>
-                    </div>
-                    <div class="md:w-2/3 block text-gray-600 font-bold">
-                        <span class="text-gray-600 font-bold">{{ $student->class->class_name }}</span>
-                    </div>
-                </div>
-                <!-- Log on to codeastro.com for more projects -->
-
-                <!-- Parents Information Section -->
-                <div class="md:flex md:items-start mb-6">
-                    <div class="md:w-1/3">
-                        <label class="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4">
-                            Parents:
-                        </label>
-                    </div>
-                    <div class="md:w-2/3">
-                        @if($student->parents->count() > 0)
-                            @foreach($student->parents as $index => $parent)
-                                <div class="mb-4 p-4 border-2 rounded-lg {{ $parent->registration_completed ? 'border-green-300 bg-green-50' : 'border-yellow-300 bg-yellow-50' }}">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h4 class="font-bold text-gray-700">Parent #{{ $index + 1 }}: {{ $parent->user->name }}</h4>
-                                        @if($parent->registration_completed)
-                                            <span class="bg-green-500 text-white text-xs px-3 py-1 rounded-full flex items-center">
-                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                                </svg>
-                                                Verified
-                                            </span>
-                                        @else
-                                            <span class="bg-yellow-500 text-white text-xs px-3 py-1 rounded-full flex items-center">
-                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                                                </svg>
-                                                Pending
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <div class="text-sm space-y-1">
-                                        <p><strong>Email:</strong> {{ $parent->user->email }}</p>
-                                        <p><strong>Phone:</strong> {{ $parent->phone }}</p>
-                                        @if($parent->registration_completed)
-                                            <p><strong>Gender:</strong> {{ ucfirst($parent->gender) }}</p>
-                                            <p><strong>Address:</strong> {{ $parent->current_address }}</p>
-                                        @else
-                                            <p class="text-yellow-700 italic">
-                                                <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                                                </svg>
-                                                Awaiting registration completion via SMS link
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        @else
-                            <p class="text-gray-600">No parents linked to this student.</p>
-                        @endif
-                    </div>
-                </div>
-
-            </div>
-
-
-
-            <div class="w-full sm:w-1/2 mr-2 mb-6">
-                    <div class="flex items-center bg-gray-600">
-                        <div class="w-1/3 text-left text-white py-2 px-4 font-semibold">Code</div>
-                        <div class="w-1/3 text-left text-white py-2 px-4 font-semibold">Subject</div>
-                        <div class="w-1/3 text-right text-white py-2 px-4 font-semibold">Teacher</div>
-                    </div>
-                    @foreach ($class->subjects as $subject)
-                        <div class="flex items-center justify-between border border-gray-200 mb-px">
-                            <div class="w-1/3 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->subject_code }}</div>
-                            <div class="w-1/3 text-left text-gray-600 py-2 px-4 font-medium">{{ $subject->name }}</div>
-                            <div class="w-1/3 text-right text-gray-600 py-2 px-4 font-medium">{{ $subject->teacher->user->name }}</div>
+                <!-- Profile Card -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                        <!-- Profile Header with Gradient -->
+                        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8">
+                            <div class="flex flex-col items-center">
+                                <img class="w-28 h-28 rounded-full border-4 border-white shadow-lg object-cover" 
+                                     src="{{ asset('images/profile/' . $student->user->profile_picture) }}" 
+                                     alt="{{ $student->user->name }}">
+                                <h2 class="mt-4 text-xl font-bold text-white">{{ $student->user->name }}</h2>
+                                <span class="mt-1 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                                    {{ $student->roll_number }}
+                                </span>
+                            </div>
                         </div>
-                    @endforeach
+                        
+                        <!-- Quick Info -->
+                        <div class="px-6 py-5">
+                            <div class="space-y-4">
+                                <div class="flex items-center text-gray-600">
+                                    <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span class="text-sm">{{ $student->user->email }}</span>
+                                </div>
+                                <div class="flex items-center text-gray-600">
+                                    <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                    </svg>
+                                    <span class="text-sm">{{ $student->phone }}</span>
+                                </div>
+                                <div class="flex items-center text-gray-600">
+                                    <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                    </svg>
+                                    <span class="text-sm font-medium">{{ $student->class->class_name ?? 'No class assigned' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details Section -->
+                <div class="lg:col-span-2 space-y-6">
+
+                    <!-- Personal Information Card -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                Personal Information
+                            </h3>
+                        </div>
+                        <div class="px-6 py-5">
+                            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                                <div class="bg-gray-50 rounded-lg px-4 py-3">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</dt>
+                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ ucfirst($student->gender) }}</dd>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg px-4 py-3">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</dt>
+                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ \Carbon\Carbon::parse($student->dateofbirth)->format('M d, Y') }}</dd>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg px-4 py-3 sm:col-span-2">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Current Address</dt>
+                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $student->current_address }}</dd>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg px-4 py-3 sm:col-span-2">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Permanent Address</dt>
+                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $student->permanent_address }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Parents/Guardians Card -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                Parents / Guardians
+                            </h3>
+                        </div>
+                        <div class="px-6 py-5">
+                            @if($student->parents->count() > 0)
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    @foreach($student->parents as $index => $parent)
+                                        <div class="relative rounded-xl border-2 p-5 transition-all duration-200 hover:shadow-md {{ $parent->registration_completed ? 'border-green-200 bg-gradient-to-br from-green-50 to-emerald-50' : 'border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50' }}">
+                                            <!-- Status Badge -->
+                                            <div class="absolute -top-2 -right-2">
+                                                @if($parent->registration_completed)
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500 text-white shadow-sm">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        Verified
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500 text-white shadow-sm">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        Pending
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            
+                                            <div class="flex items-center mb-3">
+                                                <div class="w-10 h-10 rounded-full bg-gradient-to-br {{ $parent->registration_completed ? 'from-green-400 to-emerald-500' : 'from-amber-400 to-yellow-500' }} flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                                                    {{ strtoupper(substr($parent->user->name, 0, 1)) }}
+                                                </div>
+                                                <div class="ml-3">
+                                                    <h4 class="font-semibold text-gray-900">{{ $parent->user->name }}</h4>
+                                                    <p class="text-xs text-gray-500">Parent #{{ $index + 1 }}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="space-y-2 text-sm">
+                                                <div class="flex items-center text-gray-600">
+                                                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                                    </svg>
+                                                    {{ $parent->phone }}
+                                                </div>
+                                                @if($parent->registration_completed)
+                                                    <div class="flex items-center text-gray-600">
+                                                        <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                                        </svg>
+                                                        {{ $parent->user->email }}
+                                                    </div>
+                                                @else
+                                                    <div class="flex items-start text-amber-700 bg-amber-100 rounded-lg p-2 mt-2">
+                                                        <svg class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        <span class="text-xs">Awaiting registration via SMS</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-center py-8">
+                                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">No parents linked to this student</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Subjects Card -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                </svg>
+                                Enrolled Subjects
+                            </h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            @if(($class->subjects ?? collect())->count() > 0)
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Code</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Teacher</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-100">
+                                        @foreach ($class->subjects ?? [] as $subject)
+                                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                        {{ $subject->subject_code }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $subject->name }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                                                            {{ strtoupper(substr($subject->teacher->user->name ?? 'N', 0, 1)) }}
+                                                        </div>
+                                                        <span class="ml-3 text-sm text-gray-600">{{ $subject->teacher->user->name ?? 'Not assigned' }}</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @else
+                                <div class="text-center py-12">
+                                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">No subjects assigned to this class</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
-        <!-- Log on to codeastro.com for more projects -->
     </div>
 @endsection
