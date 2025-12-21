@@ -19,7 +19,7 @@
     <link rel="apple-touch-icon" href="#" />
 
 
-    
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}?v={{ time() }}" />
     <!-- Pogo Slider CSS -->
@@ -30,7 +30,7 @@
     <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ time() }}" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}?v={{ time() }}" />
-    
+
     <!-- Navigation Spacing Fix -->
     <style>
         .navbar-nav.equal-spacing {
@@ -46,7 +46,7 @@
         .navbar-nav.equal-spacing .logo-center {
             margin: 0 50px !important;
         }
-        
+
         /* Mobile Navigation Fixes */
         @media (max-width: 991px) {
             .navbar-nav.equal-spacing {
@@ -57,13 +57,13 @@
                 margin-top: 10px;
                 box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             }
-            
+
             .navbar-nav.equal-spacing li {
                 width: 100% !important;
                 margin: 5px 0 !important;
                 text-align: center;
             }
-            
+
             .navbar-nav.equal-spacing .logo-center {
                 order: -1 !important;
                 margin: 15px 0 25px 0 !important;
@@ -73,13 +73,13 @@
                 width: 100% !important;
                 background: transparent !important;
             }
-            
+
             .navbar-nav.equal-spacing .logo-center .navbar-brand {
                 display: block !important;
                 padding: 0 !important;
                 margin: 0 !important;
             }
-            
+
             .navbar-nav.equal-spacing .logo-center img {
                 width: 90px !important;
                 height: 90px !important;
@@ -89,7 +89,7 @@
                 box-shadow: 0 6px 12px rgba(45, 80, 22, 0.3) !important;
                 border: 3px solid #2d5016 !important;
             }
-            
+
             .navbar-nav.equal-spacing .nav-link {
                 padding: 12px 20px !important;
                 border-radius: 8px;
@@ -99,13 +99,13 @@
                 font-weight: 500;
                 transition: all 0.3s ease;
             }
-            
+
             .navbar-nav.equal-spacing .nav-link:hover,
             .navbar-nav.equal-spacing .nav-link.active {
                 background: #2d5016 !important;
                 color: white !important;
             }
-            
+
             .dropdown-content {
                 position: static !important;
                 display: block !important;
@@ -115,7 +115,7 @@
                 margin-top: 5px !important;
                 padding: 10px !important;
             }
-            
+
             .dropdown-content a {
                 padding: 8px 15px !important;
                 margin: 2px 0 !important;
@@ -123,7 +123,7 @@
                 background: white !important;
                 color: #333 !important;
             }
-            
+
             .dropdown-content a:hover {
                 background: #2d5016 !important;
                 color: white !important;
@@ -161,6 +161,11 @@
 			</button>
 			<div class="collapse navbar-collapse" id="navbar-wd">
 				<ul class="navbar-nav equal-spacing">
+                    <li class="nav-item d-flex align-items-center">
+						<a class="navbar-brand logo-center" href="{{ route('website.index') }}">
+							<img style="height:80px; width:100px;" src="{{ asset('images/logo.png') }}" alt="Rose of Sharon High School">
+						</a>
+					</li>
 					<li><a class="nav-link" href="{{ route('website.index') }}">Home</a></li>
 					<li><a class="nav-link" href="{{ route('website.about') }}">About</a></li>
 					<li class="navbar">
@@ -170,14 +175,10 @@
 							<a href="{{ url('/logins') }}">Student Portal</a>
 						</div>
 					</li>
-					
+
 					<!-- Center Logo -->
-					<li class="nav-item d-flex align-items-center">
-						<a class="navbar-brand logo-center" href="{{ route('website.index') }}">
-							<img style="height:80px; width:100px;" src="{{ asset('images/logo.png') }}" alt="Rose of Sharon High School">
-						</a>
-					</li>
-					
+
+
 					<li class="navbar">
 						<a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('admissionDropdown')">Admission</a>
 						<div class="dropdown-content" id="admissionDropdown">
@@ -195,7 +196,7 @@
 </header>
 
 	<!-- section -->
-	
+
 	<section class="inner_banner">
 	  <div class="container">
 	      <div class="row">
@@ -207,9 +208,9 @@
 		  </div>
 	  </div>
 	</section>
-	
+
 	<!-- end section -->
-   
+
 	<!-- section -->
         <div class="mapouter" style="width: 100%">
                         <div class="gmap_canvas"><iframe src="https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d4515.816915409724!2d31.202839870903507!3d-17.869817353786058!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e0!4m5!1s0x1931bb337929b3d1%3A0xc6894d62e71864aa!2sMutare%20Road%2C%20Harare!3m2!1d-17.8330168!2d31.0855879!4m5!1s0x1931bf68fdd1b0c9%3A0x67b5e2964c70f8d0!2srose%20of%20sharon%20high%20school!3m2!1d-17.8710646!2d31.2099704!5e0!3m2!1sen!2szw!4v1673445468975!5m2!1sen!2szw" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
@@ -219,9 +220,9 @@
  <!-- Start Footer -->
     <footer class="footer-box">
         <div class="container">
-		
+
 		   <div class="row">
-		   
+
 		      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			     <div class="footer_blog">
 				    <div class="full margin-bottom_30">
@@ -233,11 +234,11 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 					 </div>
 				 </div>
 			  </div>
-			  
+
 			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			       <div class="footer_blog footer_menu white_fonts">
 						    <h3>Quick links</h3>
-						    <ul> 
+						    <ul>
 							  <li><a href="#">> Join Us</a></li>
 							  <li><a href="#">> Maintenance</a></li>
 							  <li><a href="#">> Language Packs</a></li>
@@ -246,11 +247,11 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 							</ul>
 						 </div>
 				 </div>
-				 
+
 				 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 				 <div class="footer_blog full white_fonts">
 						     <h3>Newsletter</h3>
-					
+
 							 <div class="newsletter_form">
 							    <form action="index.html">
 								   <input type="email" placeholder="Your Email" name="#" required />
@@ -258,8 +259,8 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 								</form>
 							 </div>
 						 </div>
-					</div>	 
-			  
+					</div>
+
 			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 				 <div class="footer_blog full white_fonts">
 						     <h3>Contact us</h3>
@@ -269,10 +270,10 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 							   <li><img src="images/i7.png"><span>+263 772 490 478</span></li>
 							 </ul>
 						 </div>
-					</div>	 
-			  
+					</div>
+
 		   </div>
-		
+
         </div>
     </footer>
     <!-- End Footer -->
@@ -314,7 +315,7 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 (function ($) {
 	$.fn.countTo = function (options) {
 		options = options || {};
-		
+
 		return $(this).each(function () {
 			// set options for current element
 			var settings = $.extend({}, $.fn.countTo.defaults, {
@@ -324,58 +325,58 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 				refreshInterval: $(this).data('refresh-interval'),
 				decimals:        $(this).data('decimals')
 			}, options);
-			
+
 			// how many times to update the value, and how much to increment the value on each update
 			var loops = Math.ceil(settings.speed / settings.refreshInterval),
 				increment = (settings.to - settings.from) / loops;
-			
+
 			// references & variables that will change with each update
 			var self = this,
 				$self = $(this),
 				loopCount = 0,
 				value = settings.from,
 				data = $self.data('countTo') || {};
-			
+
 			$self.data('countTo', data);
-			
+
 			// if an existing interval can be found, clear it first
 			if (data.interval) {
 				clearInterval(data.interval);
 			}
 			data.interval = setInterval(updateTimer, settings.refreshInterval);
-			
+
 			// initialize the element with the starting value
 			render(value);
-			
+
 			function updateTimer() {
 				value += increment;
 				loopCount++;
-				
+
 				render(value);
-				
+
 				if (typeof(settings.onUpdate) == 'function') {
 					settings.onUpdate.call(self, value);
 				}
-				
+
 				if (loopCount >= loops) {
 					// remove the interval
 					$self.removeData('countTo');
 					clearInterval(data.interval);
 					value = settings.to;
-					
+
 					if (typeof(settings.onComplete) == 'function') {
 						settings.onComplete.call(self, value);
 					}
 				}
 			}
-			
+
 			function render(value) {
 				var formattedValue = settings.formatter.call(self, value, settings);
 				$self.html(formattedValue);
 			}
 		});
 	};
-	
+
 	$.fn.countTo.defaults = {
 		from: 0,               // the number the element should start at
 		to: 0,                 // the number the element should end at
@@ -386,7 +387,7 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 		onUpdate: null,        // callback method for every time the element is updated
 		onComplete: null       // callback method for when the element finishes updating
 	};
-	
+
 	function formatter(value, settings) {
 		return value.toFixed(settings.decimals);
 	}
@@ -399,10 +400,10 @@ jQuery(function ($) {
 	  return value.toFixed(options.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g, ',');
 	}
   });
-  
+
   // start all the timers
-  $('.timer').each(count);  
-  
+  $('.timer').each(count);
+
   function count(options) {
 	var $this = $(this);
 	options = $.extend({}, options || {}, $this.data('countToOptions') || {});
@@ -414,7 +415,7 @@ jQuery(function ($) {
 		function toggleDropdown() {
 			document.getElementById("myDropdown").classList.toggle("show");
 		}
-	
+
 		// Close the dropdown if the user clicks outside of it
 		window.onclick = function(event) {
 			if (!event.target.matches('.nav-link')) {
@@ -432,7 +433,7 @@ jQuery(function ($) {
 		function toggleDropdown(dropdownId) {
 			document.getElementById(dropdownId).classList.toggle("show");
 		}
-	
+
 		// Close the dropdown if the user clicks outside of it
 		window.onclick = function(event) {
 			if (!event.target.matches('.nav-link')) {
@@ -508,12 +509,12 @@ jQuery(function ($) {
         right: 20px;
         font-size: 25px;
     }
-    
+
     .whatsapp-btn {
         width: 50px;
         height: 50px;
     }
-    
+
     .whatsapp-btn i {
         font-size: 24px;
         line-height: 50px;

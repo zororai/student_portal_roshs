@@ -21,7 +21,7 @@
     <link rel="apple-touch-icon" href="#" />
 
 
-    
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
     <!-- Pogo Slider CSS -->
@@ -58,7 +58,7 @@
 		<div class="container-fluid">
 			<a class="navbar-brand" href="index.html">
 				<img style="height:80px; width:100px" src="images/logo.png" alt="image">
-				<b>Rose Of Sharon High School</b>
+
 			</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd" aria-controls="navbar-wd" aria-expanded="false" aria-label="Toggle navigation">
 				<span></span>
@@ -87,7 +87,7 @@
 							<a href="Comin.html">Online Application</a>
 						</div>
 					</li>
-					
+
 					<li><a class="nav-link" href="News.html">News Letter</a></li>
 					<li><a class="nav-link" href="contact.html">Contact Us</a></li>
 				</ul>
@@ -98,7 +98,7 @@
     <!-- End header -->
 
 	<!-- section -->
-	
+
 	<section class="inner_banner">
 	  <div class="container">
 	      <div class="row">
@@ -110,7 +110,7 @@
 		  </div>
 	  </div>
 	</section>
-	
+
 	<!-- end section -->
    <br>
    <br>
@@ -128,9 +128,9 @@
  <!-- Start Footer -->
     <footer class="footer-box">
         <div class="container">
-		
+
 		   <div class="row">
-		   
+
 		      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			     <div class="footer_blog">
 				    <div class="full margin-bottom_30">
@@ -142,11 +142,11 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 					 </div>
 				 </div>
 			  </div>
-			  
+
 			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			       <div class="footer_blog footer_menu white_fonts">
 						    <h3>Quick links</h3>
-						    <ul> 
+						    <ul>
 							  <li><a href="#">> Join Us</a></li>
 							  <li><a href="#">> Maintenance</a></li>
 							  <li><a href="#">> Language Packs</a></li>
@@ -155,11 +155,11 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 							</ul>
 						 </div>
 				 </div>
-				 
+
 				 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 				 <div class="footer_blog full white_fonts">
 						     <h3>Newsletter</h3>
-					
+
 							 <div class="newsletter_form">
 							    <form action="index.html">
 								   <input type="email" placeholder="Your Email" name="#" required />
@@ -167,8 +167,8 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 								</form>
 							 </div>
 						 </div>
-					</div>	 
-			  
+					</div>
+
 			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 				 <div class="footer_blog full white_fonts">
 						     <h3>Contact us</h3>
@@ -178,10 +178,10 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 							   <li><img src="images/i7.png"><span>+263 772 490 478</span></li>
 							 </ul>
 						 </div>
-					</div>	 
-			  
+					</div>
+
 		   </div>
-		
+
         </div>
     </footer>
     <!-- End Footer -->
@@ -223,7 +223,7 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 (function ($) {
 	$.fn.countTo = function (options) {
 		options = options || {};
-		
+
 		return $(this).each(function () {
 			// set options for current element
 			var settings = $.extend({}, $.fn.countTo.defaults, {
@@ -233,58 +233,58 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 				refreshInterval: $(this).data('refresh-interval'),
 				decimals:        $(this).data('decimals')
 			}, options);
-			
+
 			// how many times to update the value, and how much to increment the value on each update
 			var loops = Math.ceil(settings.speed / settings.refreshInterval),
 				increment = (settings.to - settings.from) / loops;
-			
+
 			// references & variables that will change with each update
 			var self = this,
 				$self = $(this),
 				loopCount = 0,
 				value = settings.from,
 				data = $self.data('countTo') || {};
-			
+
 			$self.data('countTo', data);
-			
+
 			// if an existing interval can be found, clear it first
 			if (data.interval) {
 				clearInterval(data.interval);
 			}
 			data.interval = setInterval(updateTimer, settings.refreshInterval);
-			
+
 			// initialize the element with the starting value
 			render(value);
-			
+
 			function updateTimer() {
 				value += increment;
 				loopCount++;
-				
+
 				render(value);
-				
+
 				if (typeof(settings.onUpdate) == 'function') {
 					settings.onUpdate.call(self, value);
 				}
-				
+
 				if (loopCount >= loops) {
 					// remove the interval
 					$self.removeData('countTo');
 					clearInterval(data.interval);
 					value = settings.to;
-					
+
 					if (typeof(settings.onComplete) == 'function') {
 						settings.onComplete.call(self, value);
 					}
 				}
 			}
-			
+
 			function render(value) {
 				var formattedValue = settings.formatter.call(self, value, settings);
 				$self.html(formattedValue);
 			}
 		});
 	};
-	
+
 	$.fn.countTo.defaults = {
 		from: 0,               // the number the element should start at
 		to: 0,                 // the number the element should end at
@@ -295,7 +295,7 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 		onUpdate: null,        // callback method for every time the element is updated
 		onComplete: null       // callback method for when the element finishes updating
 	};
-	
+
 	function formatter(value, settings) {
 		return value.toFixed(settings.decimals);
 	}
@@ -308,10 +308,10 @@ jQuery(function ($) {
 	  return value.toFixed(options.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g, ',');
 	}
   });
-  
+
   // start all the timers
-  $('.timer').each(count);  
-  
+  $('.timer').each(count);
+
   function count(options) {
 	var $this = $(this);
 	options = $.extend({}, options || {}, $this.data('countToOptions') || {});

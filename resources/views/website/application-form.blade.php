@@ -28,7 +28,7 @@
             <div class="container-fluid">
                 <a class="navbar-brand" href="{{ route('website.index') }}">
                     <img style="height:80px; width:100px" src="images/logo.png" alt="image">
-                    <b>Rose Of Sharon High School</b>
+
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd">
                     <span></span><span></span><span></span>
@@ -79,7 +79,7 @@
 
             <form action="{{ route('website.application.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                
+
                 <!-- School Information -->
                 <div class="form-section">
                     <h4>School You Wish to Apply For</h4>
@@ -167,7 +167,7 @@
                             <div style="height: 200px; overflow-y: auto; border: 1px solid #ced4da; border-radius: 4px; padding: 15px; background: #fff;">
                                 <!-- O LEVEL SUBJECTS -->
                                 <h6 class="text-success font-weight-bold mb-2">🇿🇼 ZIMSEC O LEVEL SUBJECTS</h6>
-                                
+
                                 <p class="mb-1"><strong>Core / Common Subjects</strong></p>
                                 <div class="row mb-2">
                                     <div class="col-md-4"><label class="form-check-label"><input type="checkbox" name="subjects_of_interest[]" value="English Language" class="mr-1"> English Language</label></div>

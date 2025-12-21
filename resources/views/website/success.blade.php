@@ -20,7 +20,7 @@
     <link rel="apple-touch-icon" href="#" />
 
 
-    
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
     <!-- Pogo Slider CSS -->
@@ -65,6 +65,11 @@
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbar-wd">
                 <ul class="navbar-nav">
+                    <li class="nav-item d-flex align-items-center">
+						<a class="navbar-brand logo-center" href="{{ route('website.index') }}">
+							<img style="height:80px; width:100px;" src="{{ asset('images/logo.png') }}" alt="Rose of Sharon High School">
+						</a>
+					</li>
                     <li><a class="nav-link active" href="{{ route('website.index') }}">Home</a></li>
                     <li><a class="nav-link" href="{{ route('website.about') }}">About</a></li>
 
@@ -85,7 +90,7 @@
                             <a href="{{ route('website.index') }}">Online Application</a>
                         </div>
                     </li>
-                    
+
                     <li><a class="nav-link" href="{{ route('website.News') }}">News Letter</a></li>
                     <li><a class="nav-link" href="{{ route('website.contact') }}">Contact Us</a></li>
                 </ul>
@@ -95,7 +100,7 @@
 </header>
 
 	<!-- section -->
-	
+
 	<section class="inner_banner">
 	  <div class="container">
 	      <div class="row">
@@ -108,28 +113,28 @@ Investing in tomorrow's leader's</h3>
 		  </div>
 	  </div>
 	</section>
-	
+
 	<!-- end section -->
 	<br>
     <div class="site-section">
         <div class="container">
             <div class="row mb-5">
                 <div class="col-lg-6 mb-lg-0 mb-4">
-                    <img src="images/suc.png" style="border-radius: 20px" alt="Image" class="img-fluid"> 
+                    <img src="images/suc.png" style="border-radius: 20px" alt="Image" class="img-fluid">
                 </div>
                 <div class="col-lg-5 ml-auto align-self-center">
-                  
+
                     <p>Bestman Mhlanga attained 14 points at A-Level and he enrolled for the LLBS degree at the University of Zimbabwe. He completed his studies in year 2021. He is currently practicing at one of the reputable LAW Firms in Zimbabwe</p>
                 </div>
             </div>
 
             <div class="row">
                     <div class="col-lg-6 order-1 order-lg-2 mb-4 mb-lg-0">
-                        <img src="images/suc2.png" alt="Image" style=" border-radius: 20px" class="img-fluid"> 
-                       
+                        <img src="images/suc2.png" alt="Image" style=" border-radius: 20px" class="img-fluid">
+
                     </div>
                     <div class="col-lg-5 mr-auto align-self-center order-2 order-lg-1">
-                        
+
                         <p>After doing three years at Rose of Sharon High School, I went on to finish my high school at Christ Presbyterian Academy, a Christian school in Nashville TN, USA. I went on to do my undergraduate studies at Trevecca Nazarene University, finishing with a Bachelor of Science Cum Laude in Non-profit Congregational Leadership</p>
                     </div>
                 </div>
@@ -149,7 +154,7 @@ Investing in tomorrow's leader's</h3>
     <br><br> <div class="section layout_padding padding_bottom-0">
         <div class="container">
             <div class="row">
-              
+
 			  </div>
                <div class="row">
                 <div class="col-lg-12">
@@ -162,13 +167,13 @@ Investing in tomorrow's leader's</h3>
                                     <div class="col-lg-6 col-md-6 col-sm-12">
 									   <div class="full blog_img_popular">
                                           <img class="img-responsive" src="images/1 (1).jpg" alt="#" />
-									
+
 										</div>
                                     </div>
                                     <div class="col-lg-6 col-md-6 col-sm-12">
                                         <div class="full blog_img_popular">
                                           <img class="img-responsive" src="images/1 (2).jpg" alt="#" />
-									
+
 										</div>
                                     </div>
                                 </div>
@@ -178,13 +183,13 @@ Investing in tomorrow's leader's</h3>
                                     <div class="col-lg-6 col-md-6 col-sm-12">
 									   <div class="full blog_img_popular">
                                           <img class="img-responsive" src="images/1 (3).jpg" alt="#" />
-										
+
 										</div>
                                     </div>
                                     <div class="col-lg-6 col-md-6 col-sm-12">
                                         <div class="full blog_img_popular">
                                           <img class="img-responsive" src="images/1 (4).jpg" alt="#" />
-										
+
 										</div>
                                     </div>
                                 </div>
@@ -194,13 +199,13 @@ Investing in tomorrow's leader's</h3>
                                     <div class="col-lg-6 col-md-6 col-sm-12">
 									   <div class="full blog_img_popular">
                                           <img class="img-responsive" src="images/1 (5).jpg" alt="#" />
-										
+
 										</div>
                                     </div>
                                     <div class="col-lg-6 col-md-6 col-sm-12">
                                         <div class="full blog_img_popular">
                                           <img class="img-responsive" src="images/1 (2).jpg" alt="#" />
-										
+
 										</div>
                                     </div>
                                 </div>
@@ -218,14 +223,14 @@ Investing in tomorrow's leader's</h3>
                     </div>
                 </div>
 
-            </div>			  
+            </div>
            </div>
         </div>
     <footer class="footer-box">
         <div class="container">
-		
+
 		   <div class="row">
-		   
+
 		      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			     <div class="footer_blog">
 				    <div class="full margin-bottom_30">
@@ -237,11 +242,11 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 					 </div>
 				 </div>
 			  </div>
-			  
+
 			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			       <div class="footer_blog footer_menu white_fonts">
 						    <h3>Quick links</h3>
-						    <ul> 
+						    <ul>
 							  <li><a href="#">> Join Us</a></li>
 							  <li><a href="#">> Maintenance</a></li>
 							  <li><a href="#">> Language Packs</a></li>
@@ -250,11 +255,11 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 							</ul>
 						 </div>
 				 </div>
-				 
+
 				 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 				 <div class="footer_blog full white_fonts">
 						     <h3>Newsletter</h3>
-					
+
 							 <div class="newsletter_form">
 							    <form action="index.html">
 								   <input type="email" placeholder="Your Email" name="#" required />
@@ -262,8 +267,8 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 								</form>
 							 </div>
 						 </div>
-					</div>	 
-			  
+					</div>
+
 			  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 				 <div class="footer_blog full white_fonts">
 						     <h3>Contact us</h3>
@@ -273,10 +278,10 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 							   <li><img src="images/i7.png"><span>+263 772 490 478</span></li>
 							 </ul>
 						 </div>
-					</div>	 
-			  
+					</div>
+
 		   </div>
-		
+
         </div>
     </footer>
     <!-- End Footer -->
@@ -318,7 +323,7 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 (function ($) {
 	$.fn.countTo = function (options) {
 		options = options || {};
-		
+
 		return $(this).each(function () {
 			// set options for current element
 			var settings = $.extend({}, $.fn.countTo.defaults, {
@@ -328,58 +333,58 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 				refreshInterval: $(this).data('refresh-interval'),
 				decimals:        $(this).data('decimals')
 			}, options);
-			
+
 			// how many times to update the value, and how much to increment the value on each update
 			var loops = Math.ceil(settings.speed / settings.refreshInterval),
 				increment = (settings.to - settings.from) / loops;
-			
+
 			// references & variables that will change with each update
 			var self = this,
 				$self = $(this),
 				loopCount = 0,
 				value = settings.from,
 				data = $self.data('countTo') || {};
-			
+
 			$self.data('countTo', data);
-			
+
 			// if an existing interval can be found, clear it first
 			if (data.interval) {
 				clearInterval(data.interval);
 			}
 			data.interval = setInterval(updateTimer, settings.refreshInterval);
-			
+
 			// initialize the element with the starting value
 			render(value);
-			
+
 			function updateTimer() {
 				value += increment;
 				loopCount++;
-				
+
 				render(value);
-				
+
 				if (typeof(settings.onUpdate) == 'function') {
 					settings.onUpdate.call(self, value);
 				}
-				
+
 				if (loopCount >= loops) {
 					// remove the interval
 					$self.removeData('countTo');
 					clearInterval(data.interval);
 					value = settings.to;
-					
+
 					if (typeof(settings.onComplete) == 'function') {
 						settings.onComplete.call(self, value);
 					}
 				}
 			}
-			
+
 			function render(value) {
 				var formattedValue = settings.formatter.call(self, value, settings);
 				$self.html(formattedValue);
 			}
 		});
 	};
-	
+
 	$.fn.countTo.defaults = {
 		from: 0,               // the number the element should start at
 		to: 0,                 // the number the element should end at
@@ -390,7 +395,7 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 		onUpdate: null,        // callback method for every time the element is updated
 		onComplete: null       // callback method for when the element finishes updating
 	};
-	
+
 	function formatter(value, settings) {
 		return value.toFixed(settings.decimals);
 	}
@@ -403,10 +408,10 @@ jQuery(function ($) {
 	  return value.toFixed(options.decimals).replace(/\B(?=(?:\d{3})+(?!\d))/g, ',');
 	}
   });
-  
+
   // start all the timers
-  $('.timer').each(count);  
-  
+  $('.timer').each(count);
+
   function count(options) {
 	var $this = $(this);
 	options = $.extend({}, options || {}, $this.data('countToOptions') || {});
@@ -418,7 +423,7 @@ jQuery(function ($) {
         function toggleDropdown() {
             document.getElementById("myDropdown").classList.toggle("show");
         }
-    
+
         // Close the dropdown if the user clicks outside of it
         window.onclick = function(event) {
             if (!event.target.matches('.nav-link')) {
@@ -436,7 +441,7 @@ jQuery(function ($) {
         function toggleDropdown(dropdownId) {
             document.getElementById(dropdownId).classList.toggle("show");
         }
-    
+
         // Close the dropdown if the user clicks outside of it
         window.onclick = function(event) {
             if (!event.target.matches('.nav-link')) {

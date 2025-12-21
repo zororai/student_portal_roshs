@@ -150,7 +150,7 @@
             <div class="container-fluid">
                 <a class="navbar-brand" href="{{ route('website.index') }}">
                     <img style="height:80px; width:100px" src="images/logo.png" alt="image">
-                    <b>Rose Of Sharon High School</b>
+
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd">
                     <span></span><span></span><span></span>

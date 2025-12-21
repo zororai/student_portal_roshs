@@ -21,7 +21,7 @@
             <div class="container-fluid">
                 <a class="navbar-brand" href="{{ route('website.index') }}">
                     <img style="height:80px; width:100px" src="images/logo.png" alt="image">
-                    <b>Rose Of Sharon High School</b>
+
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd">
                     <span></span><span></span><span></span>
@@ -65,13 +65,13 @@
                             <h2 class="text-success mb-3">Thank You!</h2>
                             <h4 class="mb-4">Your Application Has Been Submitted Successfully</h4>
                             <p class="text-muted mb-4">
-                                We have received your application and will review it shortly. 
+                                We have received your application and will review it shortly.
                                 You will be contacted via phone or email regarding the status of your application.
                             </p>
                             <hr>
                             <p class="mb-4">
                                 <strong>What happens next?</strong><br>
-                                Our admissions team will review your application and documents. 
+                                Our admissions team will review your application and documents.
                                 You may receive a call or text message regarding your application status.
                             </p>
                             <a href="{{ route('website.index') }}" class="btn btn-primary btn-lg px-5">Back to Home</a>
