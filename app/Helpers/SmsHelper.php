@@ -13,94 +13,119 @@ class SmsHelper
      * @param string $messageText The SMS message content
      * @return array Response with 'success' boolean and 'message' string
      */
-    public static function sendSms($destination, $messageText)
+    public static function sendSms($destination, $messageText, $maxRetries = 3)
     {
-        $apiUrl = 'https://api.inboxiq.co.zw/api/v1/send-sms';
-        $username = env('INBOXIQ_USERNAME', 'username');
-        $password = env('INBOXIQ_PASSWORD', 'password');
-        $apiKey = env('INBOXIQ_API_KEY', 'YOUR_API_KEY');
+        if (! preg_match('/^\+\d{10,15}$/', $destination)) {
+            return ['success' => false, 'message' => 'Invalid phone number'];
+        }
 
-        // Prepare authorization header
-        $authToken = base64_encode($username . ':' . $password);
+        $apiUrl  = 'https://api.inboxiq.co.zw/api/v1/send-sms';
+        $username = env('INBOXIQ_USERNAME');
+        $password = env('INBOXIQ_PASSWORD');
+        $apiKey   = env('INBOXIQ_API_KEY');
 
-        // Prepare data
+        if (! $username || ! $password || ! $apiKey) {
+            Log::error('InboxIQ credentials missing');
+            return ['success' => false, 'message' => 'SMS configuration error'];
+        }
+
+        $authToken = base64_encode("$username:$password");
+
         $data = [
             'destination' => $destination,
             'messageText' => $messageText
         ];
 
-        try {
-            // Initialize cURL
-            $ch = curl_init($apiUrl);
+        $lastHttpCode = 0;
+        $lastResponse = null;
 
-            // Set cURL options
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: Basic ' . $authToken,
-                'key: ' . $apiKey,
-                'Content-Type: application/json'
+        // Retry logic for intermittent API failures
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            $ch = curl_init($apiUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => json_encode($data),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_HTTPHEADER => [
+                    'Authorization: Basic ' . $authToken,
+                    'key: ' . $apiKey,
+                    'Content-Type: application/json'
+                ]
             ]);
 
-            // Execute request
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-            // Check for cURL errors
             if (curl_errno($ch)) {
-                $error = curl_error($ch);
+                Log::error('SMS cURL error', ['error' => curl_error($ch), 'attempt' => $attempt]);
                 curl_close($ch);
-
-                Log::error('SMS sending failed (cURL error)', [
-                    'error' => $error,
-                    'destination' => $destination
-                ]);
-
-                return [
-                    'success' => false,
-                    'message' => 'Failed to send SMS: ' . $error
-                ];
+                if ($attempt < $maxRetries) {
+                    sleep(1); // Wait 1 second before retry
+                    continue;
+                }
+                return ['success' => false, 'message' => 'SMS sending failed after ' . $maxRetries . ' attempts'];
             }
 
             curl_close($ch);
+            $lastHttpCode = $httpCode;
+            $lastResponse = $response;
 
-            // Check HTTP response code
+            // Success - exit retry loop
             if ($httpCode >= 200 && $httpCode < 300) {
-                Log::info('SMS sent successfully', [
-                    'destination' => $destination,
-                    'response' => $response
-                ]);
-
-                return [
-                    'success' => true,
-                    'message' => 'SMS sent successfully',
-                    'response' => json_decode($response, true)
-                ];
-            } else {
-                Log::error('SMS sending failed (HTTP error)', [
-                    'http_code' => $httpCode,
-                    'response' => $response,
-                    'destination' => $destination
-                ]);
-
-                return [
-                    'success' => false,
-                    'message' => 'Failed to send SMS. HTTP Code: ' . $httpCode,
-                    'response' => json_decode($response, true)
-                ];
+                break;
             }
 
-        } catch (\Exception $e) {
-            Log::error('SMS sending exception', [
-                'exception' => $e->getMessage(),
-                'destination' => $destination
-            ]);
+            // Server error (500) - retry
+            if ($httpCode >= 500 && $attempt < $maxRetries) {
+                Log::warning('SMS API returned 500, retrying...', ['attempt' => $attempt, 'destination' => $destination]);
+                sleep(1); // Wait 1 second before retry
+                continue;
+            }
 
+            // Client error (4xx) or final attempt - don't retry
+            break;
+        }
+
+        $httpCode = $lastHttpCode;
+        $response = $lastResponse;
+
+        $responseData = json_decode($response, true) ?? $response;
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            Log::info('SMS sent', compact('destination', 'httpCode'));
             return [
-                'success' => false,
-                'message' => 'Exception occurred: ' . $e->getMessage()
+                'success' => true, 
+                'message' => 'SMS sent successfully',
+                'http_code' => $httpCode,
+                'response' => $responseData
             ];
         }
+
+        // Map HTTP status codes to user-friendly messages
+        $errorMessages = [
+            400 => 'Bad Request - Invalid request parameters or missing required fields',
+            401 => 'Unauthorized - Missing or invalid authentication credentials',
+            403 => 'Forbidden - Insufficient permissions for this operation',
+            404 => 'Not Found - Requested resource doesn\'t exist',
+            429 => 'Too Many Requests - Rate limit exceeded',
+            500 => 'Internal Server Error - Server error, please try again later',
+        ];
+
+        $errorMessage = $errorMessages[$httpCode] ?? "HTTP Error {$httpCode} - Unknown error occurred";
+
+        Log::error('SMS HTTP error', [
+            'http_code' => $httpCode,
+            'error_message' => $errorMessage,
+            'destination' => $destination,
+            'response' => $response
+        ]);
+
+        return [
+            'success' => false, 
+            'message' => $errorMessage,
+            'http_code' => $httpCode,
+            'response' => $responseData
+        ];
     }
 }

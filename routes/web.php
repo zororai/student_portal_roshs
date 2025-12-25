@@ -146,6 +146,10 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('student-with-parents', 'StudentController@storeWithParents')->name('student.store-with-parents');
     Route::post('student/{student}/resend-parent-sms', 'StudentController@resendParentSms')->name('student.resend-parent-sms');
 
+    // SMS Test Routes
+    Route::get('sms-test', 'SmsTestController@index')->name('sms-test.index');
+    Route::post('sms-test/send', 'SmsTestController@send')->name('sms-test.send');
+
     Route::get('attendance', 'AttendanceController@index')->name('attendance.index');
     ///banner
     Route::get('/banner', 'BannerController@index')->name('banner.index');

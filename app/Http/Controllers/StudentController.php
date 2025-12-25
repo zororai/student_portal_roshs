@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade as PDF;
+use App\Helpers\SmsHelper;
 
 class StudentController extends Controller
 {
@@ -387,24 +388,36 @@ class StudentController extends Controller
         $studentUser->assignRole('Student');
 
         // Send SMS to all parents with registration link and student roll number
+        $smsSentCount = 0;
+        $smsFailedCount = 0;
+        
         foreach ($request->parents as $index => $parentData) {
             $parent = \App\Parents::where('phone', $parentData['phone'])->latest()->first();
 
             if ($parent && $parent->registration_token) {
                 $registrationUrl = url('/parent/register/' . $parent->registration_token);
 
-                $message = "Welcome! Your child {$request->student_name} (Roll No: {$rollNumber}) has been registered at RSH School. " .
-                          "Please complete your parent registration by clicking: {$registrationUrl} " .
-                          "(Link expires in 7 days)";
+                // Shorter message to avoid InboxIQ HTTP 500 error
+                $message = "RSH School: {$request->student_name} registered. Complete parent registration: {$registrationUrl}";
 
-                // Send SMS using the helper
-                $smsResult = \App\Helpers\SmsHelper::sendSms($parentData['phone'], $message);
-
-                // Log the result (optional)
-                if (!$smsResult['success']) {
+                // Send SMS directly using SmsHelper (same as test page)
+                $smsResult = SmsHelper::sendSms($parentData['phone'], $message);
+                
+                if ($smsResult['success']) {
+                    $smsSentCount++;
+                    \Log::info('SMS sent successfully to parent', [
+                        'phone' => $parentData['phone'],
+                        'parent_id' => $parent->id,
+                        'student_id' => $student->id,
+                        'response' => $smsResult['response'] ?? null
+                    ]);
+                } else {
+                    $smsFailedCount++;
                     \Log::warning('Failed to send SMS to parent', [
                         'phone' => $parentData['phone'],
-                        'error' => $smsResult['message']
+                        'parent_id' => $parent->id,
+                        'student_id' => $student->id,
+                        'error' => $smsResult['message'] ?? 'Unknown error'
                     ]);
                 }
             }
@@ -474,6 +487,7 @@ class StudentController extends Controller
         try {
             $sentCount = 0;
             $failedCount = 0;
+            $skippedCount = 0;
             
             // Get all pending parents for this student
             $pendingParents = $student->parents()->where('registration_completed', false)->get();
@@ -486,31 +500,31 @@ class StudentController extends Controller
                 if ($parent->registration_token && $parent->token_expires_at && $parent->token_expires_at->isFuture()) {
                     $registrationUrl = url('/parent/register/' . $parent->registration_token);
                     
-                    $message = "Welcome! Your child {$student->user->name} (Roll No: {$student->roll_number}) has been registered at RSH School. " .
-                              "Please complete your parent registration by clicking: {$registrationUrl} " .
-                              "(Link expires in 7 days)";
+                    // Shorter message to avoid InboxIQ HTTP 500 error
+                    $message = "RSH School: {$student->user->name} registered. Complete parent registration: {$registrationUrl}";
                     
-                    // Send SMS using the helper
-                    $smsResult = \App\Helpers\SmsHelper::sendSms($parent->phone, $message);
+                    // Send SMS directly using SmsHelper (same as test page)
+                    $result = SmsHelper::sendSms($parent->phone, $message);
                     
-                    if ($smsResult['success']) {
+                    if ($result['success']) {
                         $sentCount++;
-                        \Log::info('SMS resent successfully to parent', [
+                        \Log::info('SMS sent successfully to parent', [
                             'phone' => $parent->phone,
                             'student_id' => $student->id,
-                            'parent_id' => $parent->id
+                            'parent_id' => $parent->id,
+                            'response' => $result['response'] ?? null
                         ]);
                     } else {
                         $failedCount++;
-                        \Log::warning('Failed to resend SMS to parent', [
+                        \Log::warning('Failed to send SMS to parent', [
                             'phone' => $parent->phone,
-                            'error' => $smsResult['message'],
                             'student_id' => $student->id,
-                            'parent_id' => $parent->id
+                            'parent_id' => $parent->id,
+                            'error' => $result['message'] ?? 'Unknown error'
                         ]);
                     }
                 } else {
-                    $failedCount++;
+                    $skippedCount++;
                     \Log::warning('Cannot resend SMS - token expired or missing', [
                         'parent_id' => $parent->id,
                         'token_expires_at' => $parent->token_expires_at,
@@ -519,12 +533,14 @@ class StudentController extends Controller
                 }
             }
             
-            if ($sentCount > 0 && $failedCount == 0) {
+            if ($sentCount > 0 && $failedCount == 0 && $skippedCount == 0) {
                 return redirect()->back()->with('success', "SMS sent successfully to {$sentCount} parent(s)!");
-            } elseif ($sentCount > 0 && $failedCount > 0) {
-                return redirect()->back()->with('warning', "SMS sent to {$sentCount} parent(s), but failed to send to {$failedCount} parent(s). Check logs for details.");
+            } elseif ($sentCount > 0 && ($failedCount > 0 || $skippedCount > 0)) {
+                return redirect()->back()->with('warning', "SMS sent to {$sentCount} parent(s), failed: {$failedCount}, skipped: {$skippedCount}.");
+            } elseif ($failedCount > 0) {
+                return redirect()->back()->with('error', "Failed to send SMS to {$failedCount} parent(s). Check logs for details.");
             } else {
-                return redirect()->back()->with('error', "Failed to send SMS to all parents. Check logs for details.");
+                return redirect()->back()->with('error', "No SMS sent - all parent tokens are expired or missing.");
             }
             
         } catch (\Exception $e) {
@@ -533,7 +549,7 @@ class StudentController extends Controller
                 'student_id' => $student->id
             ]);
             
-            return redirect()->back()->with('error', 'Failed to resend SMS: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to send SMS: ' . $e->getMessage());
         }
     }
 }
