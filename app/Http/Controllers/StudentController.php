@@ -464,4 +464,76 @@ class StudentController extends Controller
         $user->save();
 
         return redirect()->route('home')->with('success', 'Password changed successfully!');
-    }}
+    }
+
+    /**
+     * Resend SMS to pending parents
+     */
+    public function resendParentSms(Student $student)
+    {
+        try {
+            $sentCount = 0;
+            $failedCount = 0;
+            
+            // Get all pending parents for this student
+            $pendingParents = $student->parents()->where('registration_completed', false)->get();
+            
+            if ($pendingParents->count() == 0) {
+                return redirect()->back()->with('warning', 'No pending parent registrations found for this student.');
+            }
+            
+            foreach ($pendingParents as $parent) {
+                if ($parent->registration_token && $parent->token_expires_at && $parent->token_expires_at->isFuture()) {
+                    $registrationUrl = url('/parent/register/' . $parent->registration_token);
+                    
+                    $message = "Welcome! Your child {$student->user->name} (Roll No: {$student->roll_number}) has been registered at RSH School. " .
+                              "Please complete your parent registration by clicking: {$registrationUrl} " .
+                              "(Link expires in 7 days)";
+                    
+                    // Send SMS using the helper
+                    $smsResult = \App\Helpers\SmsHelper::sendSms($parent->phone, $message);
+                    
+                    if ($smsResult['success']) {
+                        $sentCount++;
+                        \Log::info('SMS resent successfully to parent', [
+                            'phone' => $parent->phone,
+                            'student_id' => $student->id,
+                            'parent_id' => $parent->id
+                        ]);
+                    } else {
+                        $failedCount++;
+                        \Log::warning('Failed to resend SMS to parent', [
+                            'phone' => $parent->phone,
+                            'error' => $smsResult['message'],
+                            'student_id' => $student->id,
+                            'parent_id' => $parent->id
+                        ]);
+                    }
+                } else {
+                    $failedCount++;
+                    \Log::warning('Cannot resend SMS - token expired or missing', [
+                        'parent_id' => $parent->id,
+                        'token_expires_at' => $parent->token_expires_at,
+                        'has_token' => !empty($parent->registration_token)
+                    ]);
+                }
+            }
+            
+            if ($sentCount > 0 && $failedCount == 0) {
+                return redirect()->back()->with('success', "SMS sent successfully to {$sentCount} parent(s)!");
+            } elseif ($sentCount > 0 && $failedCount > 0) {
+                return redirect()->back()->with('warning', "SMS sent to {$sentCount} parent(s), but failed to send to {$failedCount} parent(s). Check logs for details.");
+            } else {
+                return redirect()->back()->with('error', "Failed to send SMS to all parents. Check logs for details.");
+            }
+            
+        } catch (\Exception $e) {
+            \Log::error('Error in resendParentSms:', [
+                'message' => $e->getMessage(),
+                'student_id' => $student->id
+            ]);
+            
+            return redirect()->back()->with('error', 'Failed to resend SMS: ' . $e->getMessage());
+        }
+    }
+}

@@ -19,6 +19,11 @@ class Parents extends Model
         'registration_completed',
     ];
 
+    protected $casts = [
+        'token_expires_at' => 'datetime',
+        'registration_completed' => 'boolean',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

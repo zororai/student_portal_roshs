@@ -144,6 +144,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     // Stepper route for creating student with parents
     Route::get('student-with-parents/create', 'StudentController@createWithParents')->name('student.create-with-parents');
     Route::post('student-with-parents', 'StudentController@storeWithParents')->name('student.store-with-parents');
+    Route::post('student/{student}/resend-parent-sms', 'StudentController@resendParentSms')->name('student.resend-parent-sms');
 
     Route::get('attendance', 'AttendanceController@index')->name('attendance.index');
     ///banner
