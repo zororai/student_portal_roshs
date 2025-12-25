@@ -150,6 +150,46 @@
         </div>
 
         @include('backend.modals.delete',['name' => 'student'])
+
+        <!-- SMS Success Modal -->
+        @if(session('success') || session('warning') || session('error'))
+        <div id="smsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+                <div class="p-6">
+                    @if(session('success'))
+                    <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center text-gray-900 mb-2">Success!</h3>
+                    <p class="text-center text-gray-600">{{ session('success') }}</p>
+                    @elseif(session('warning'))
+                    <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-yellow-100 rounded-full">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center text-gray-900 mb-2">Warning</h3>
+                    <p class="text-center text-gray-600">{{ session('warning') }}</p>
+                    @elseif(session('error'))
+                    <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-center text-gray-900 mb-2">Error</h3>
+                    <p class="text-center text-gray-600">{{ session('error') }}</p>
+                    @endif
+                </div>
+                <div class="px-6 pb-6">
+                    <button onclick="document.getElementById('smsModal').classList.add('hidden')" class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 @endsection
 

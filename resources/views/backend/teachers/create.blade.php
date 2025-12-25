@@ -125,30 +125,30 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-3">Gender <span class="text-red-500">*</span></label>
                     <div class="flex flex-wrap gap-4">
-                        <label class="relative flex items-center p-3 rounded-lg border border-gray-300 cursor-pointer hover:border-blue-400 transition-colors">
-                            <input type="radio" name="gender" value="male" class="sr-only peer" {{ old('gender') == 'male' ? 'checked' : '' }}>
-                            <div class="w-5 h-5 border-2 border-gray-300 rounded-full mr-3 peer-checked:border-blue-500 peer-checked:bg-blue-500 flex items-center justify-center">
-                                <div class="w-2 h-2 bg-white rounded-full hidden peer-checked:block"></div>
+                        <label class="gender-option relative flex items-center p-3 rounded-lg border-2 border-gray-300 cursor-pointer hover:border-blue-400 transition-colors">
+                            <input type="radio" name="gender" value="male" class="hidden" {{ old('gender') == 'male' ? 'checked' : '' }}>
+                            <div class="radio-indicator w-5 h-5 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full hidden"></div>
                             </div>
                             <svg class="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
                             </svg>
                             <span class="text-sm font-medium text-gray-700">Male</span>
                         </label>
-                        <label class="relative flex items-center p-3 rounded-lg border border-gray-300 cursor-pointer hover:border-pink-400 transition-colors">
-                            <input type="radio" name="gender" value="female" class="sr-only peer" {{ old('gender') == 'female' ? 'checked' : '' }}>
-                            <div class="w-5 h-5 border-2 border-gray-300 rounded-full mr-3 peer-checked:border-pink-500 peer-checked:bg-pink-500 flex items-center justify-center">
-                                <div class="w-2 h-2 bg-white rounded-full hidden peer-checked:block"></div>
+                        <label class="gender-option relative flex items-center p-3 rounded-lg border-2 border-gray-300 cursor-pointer hover:border-pink-400 transition-colors">
+                            <input type="radio" name="gender" value="female" class="hidden" {{ old('gender') == 'female' ? 'checked' : '' }}>
+                            <div class="radio-indicator w-5 h-5 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center">
+                                <div class="w-2 h-2 bg-pink-500 rounded-full hidden"></div>
                             </div>
                             <svg class="w-5 h-5 text-pink-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
                             </svg>
                             <span class="text-sm font-medium text-gray-700">Female</span>
                         </label>
-                        <label class="relative flex items-center p-3 rounded-lg border border-gray-300 cursor-pointer hover:border-purple-400 transition-colors">
-                            <input type="radio" name="gender" value="other" class="sr-only peer" {{ old('gender') == 'other' ? 'checked' : '' }}>
-                            <div class="w-5 h-5 border-2 border-gray-300 rounded-full mr-3 peer-checked:border-purple-500 peer-checked:bg-purple-500 flex items-center justify-center">
-                                <div class="w-2 h-2 bg-white rounded-full hidden peer-checked:block"></div>
+                        <label class="gender-option relative flex items-center p-3 rounded-lg border-2 border-gray-300 cursor-pointer hover:border-purple-400 transition-colors">
+                            <input type="radio" name="gender" value="other" class="hidden" {{ old('gender') == 'other' ? 'checked' : '' }}>
+                            <div class="radio-indicator w-5 h-5 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center">
+                                <div class="w-2 h-2 bg-purple-500 rounded-full hidden"></div>
                             </div>
                             <svg class="w-5 h-5 text-purple-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
@@ -212,15 +212,16 @@
             
             <div class="px-8 py-6">
                 <div class="flex items-center justify-center w-full">
-                    <label class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <label id="imageUploadLabel" class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <div id="uploadPlaceholder" class="flex flex-col items-center justify-center pt-5 pb-6">
                             <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                             </svg>
                             <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
                             <p class="text-xs text-gray-500">PNG, JPG or GIF (MAX. 2MB)</p>
                         </div>
-                        <input type="file" name="profile_picture" class="hidden" accept="image/*" />
+                        <img id="imagePreview" class="hidden w-full h-40 object-cover rounded-xl" alt="Preview" />
+                        <input type="file" id="profilePictureInput" name="profile_picture" class="hidden" accept="image/*" />
                     </label>
                 </div>
             </div>
@@ -246,6 +247,44 @@
 <script>
     $(function() {       
         $("#datepicker-tc").datepicker({ dateFormat: 'yy-mm-dd' });
+
+        // Image preview functionality
+        $('#profilePictureInput').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imagePreview').attr('src', e.target.result).removeClass('hidden');
+                    $('#uploadPlaceholder').addClass('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Gender radio button functionality
+        $('.gender-option').on('click', function() {
+            // Remove active state from all options
+            $('.gender-option').removeClass('border-blue-500 border-pink-500 border-purple-500').addClass('border-gray-300');
+            $('.radio-indicator div').addClass('hidden');
+            
+            // Add active state to clicked option
+            const $input = $(this).find('input[type="radio"]');
+            $input.prop('checked', true);
+            
+            const value = $input.val();
+            if (value === 'male') {
+                $(this).removeClass('border-gray-300').addClass('border-blue-500');
+            } else if (value === 'female') {
+                $(this).removeClass('border-gray-300').addClass('border-pink-500');
+            } else {
+                $(this).removeClass('border-gray-300').addClass('border-purple-500');
+            }
+            
+            $(this).find('.radio-indicator div').removeClass('hidden');
+        });
+
+        // Set initial state if there's an old value
+        $('input[name="gender"]:checked').closest('.gender-option').trigger('click');
     })
 </script>
 @endpush

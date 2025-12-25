@@ -114,16 +114,29 @@ class TeacherController extends Controller
     private function sendCredentialsSms($phone, $name, $email, $password)
     {
         try {
-            // Format phone number (remove spaces, add country code if needed)
+            // Format phone number (ensure it has country code)
             $phone = preg_replace('/\s+/', '', $phone);
+            if (!preg_match('/^\+/', $phone)) {
+                $phone = '+263' . ltrim($phone, '0');
+            }
             
-            $message = "Welcome {$name}! Your teacher account has been created. Email: {$email}, Password: {$password}. Please change your password on first login.";
+            // Shorter message to avoid InboxIQ HTTP 500 error
+            $message = "RSH School: Teacher account created. Email: {$email}, Password: {$password}. Change password on first login.";
             
-            // You can integrate with any SMS gateway here
-            // Example using a generic SMS service:
-            // $this->sendSmsViaGateway($phone, $message);
+            // Send SMS using SmsHelper
+            $result = \App\Helpers\SmsHelper::sendSms($phone, $message);
             
-            \Log::info("SMS would be sent to {$phone}: {$message}");
+            if ($result['success']) {
+                \Log::info('Teacher credentials SMS sent successfully', [
+                    'phone' => $phone,
+                    'teacher_name' => $name
+                ]);
+            } else {
+                \Log::warning('Failed to send teacher credentials SMS', [
+                    'phone' => $phone,
+                    'error' => $result['message'] ?? 'Unknown error'
+                ]);
+            }
         } catch (\Exception $e) {
             \Log::error('Failed to send teacher credentials SMS: ' . $e->getMessage());
         }
