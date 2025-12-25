@@ -13,9 +13,11 @@ class AddJudgementToDisciplinaryRecordsTable extends Migration
      */
     public function up()
     {
-        Schema::table('disciplinary_records', function (Blueprint $table) {
-            $table->text('judgement')->nullable()->after('description');
-        });
+        if (!Schema::hasColumn('disciplinary_records', 'judgement')) {
+            Schema::table('disciplinary_records', function (Blueprint $table) {
+                $table->text('judgement')->nullable()->after('description');
+            });
+        }
     }
 
     /**
@@ -25,8 +27,10 @@ class AddJudgementToDisciplinaryRecordsTable extends Migration
      */
     public function down()
     {
-        Schema::table('disciplinary_records', function (Blueprint $table) {
-            $table->dropColumn('judgement');
-        });
+        if (Schema::hasColumn('disciplinary_records', 'judgement')) {
+            Schema::table('disciplinary_records', function (Blueprint $table) {
+                $table->dropColumn('judgement');
+            });
+        }
     }
 }
