@@ -270,9 +270,12 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-start mt-8">
+                    <div class="flex justify-between mt-8">
                         <button type="button" class="prev-btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded">
                             ← Previous
+                        </button>
+                        <button type="button" class="next-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
+                            Next Step →
                         </button>
                     </div>
                 </div>

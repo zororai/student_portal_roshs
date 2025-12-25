@@ -13,9 +13,11 @@ class AddTotalFeesToResultsStatusesTable extends Migration
      */
     public function up()
     {
-        Schema::table('results_statuses', function (Blueprint $table) {
-            $table->decimal('total_fees', 10, 2)->default(0)->after('result_period');
-        });
+        if (!Schema::hasColumn('results_statuses', 'total_fees')) {
+            Schema::table('results_statuses', function (Blueprint $table) {
+                $table->decimal('total_fees', 10, 2)->default(0)->after('result_period');
+            });
+        }
     }
 
     /**
@@ -25,8 +27,10 @@ class AddTotalFeesToResultsStatusesTable extends Migration
      */
     public function down()
     {
-        Schema::table('results_statuses', function (Blueprint $table) {
-            $table->dropColumn('total_fees');
-        });
+        if (Schema::hasColumn('results_statuses', 'total_fees')) {
+            Schema::table('results_statuses', function (Blueprint $table) {
+                $table->dropColumn('total_fees');
+            });
+        }
     }
 }

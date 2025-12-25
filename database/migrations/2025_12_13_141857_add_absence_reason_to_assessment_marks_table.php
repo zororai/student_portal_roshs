@@ -13,9 +13,11 @@ class AddAbsenceReasonToAssessmentMarksTable extends Migration
      */
     public function up()
     {
-        Schema::table('assessment_marks', function (Blueprint $table) {
-            $table->string('absence_reason')->nullable()->after('comment');
-        });
+        if (!Schema::hasColumn('assessment_marks', 'absence_reason')) {
+            Schema::table('assessment_marks', function (Blueprint $table) {
+                $table->string('absence_reason')->nullable()->after('comment');
+            });
+        }
     }
 
     /**
@@ -25,8 +27,10 @@ class AddAbsenceReasonToAssessmentMarksTable extends Migration
      */
     public function down()
     {
-        Schema::table('assessment_marks', function (Blueprint $table) {
-            $table->dropColumn('absence_reason');
-        });
+        if (Schema::hasColumn('assessment_marks', 'absence_reason')) {
+            Schema::table('assessment_marks', function (Blueprint $table) {
+                $table->dropColumn('absence_reason');
+            });
+        }
     }
 }

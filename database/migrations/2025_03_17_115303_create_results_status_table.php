@@ -8,19 +8,21 @@ class CreateResultsStatusTable extends Migration
 {
     public function up()
     {
-        Schema::create('results_statuses', function (Blueprint $table) {
-            $table->id();
-        
-          
-            $table->year('year');
-            $table->enum('result_period', ['first', 'second', 'third']); // To track the three periods
+        if (!Schema::hasTable('results_statuses')) {
+            Schema::create('results_statuses', function (Blueprint $table) {
+                $table->id();
+            
+              
+                $table->year('year');
+                $table->enum('result_period', ['first', 'second', 'third']); // To track the three periods
 
-            $table->timestamps();
-        });
+                $table->timestamps();
+            });
+        }
     }
 
     public function down()
     {
-        Schema::dropIfExists('results_status');
+        Schema::dropIfExists('results_statuses');
     }
 }
