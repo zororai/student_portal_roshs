@@ -82,6 +82,8 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('/permission-store', 'RolePermissionController@storePermission')->name('permission.store');
     Route::get('/permission-edit/{id}', 'RolePermissionController@editPermission')->name('permission.edit');
     Route::put('/permission-update/{id}', 'RolePermissionController@updatePermission')->name('permission.update');
+    Route::get('/sidebar-permissions', 'RolePermissionController@manageSidebarPermissions')->name('sidebar.permissions');
+    Route::post('/sidebar-permissions/update', 'RolePermissionController@updateUserSidebarPermissions')->name('sidebar.permissions.update');
     Route::get('assign-subject-to-class/{id}', 'GradeController@assignSubject')->name('class.assign.subject');
     Route::post('assign-subject-to-class/{id}', 'GradeController@storeAssignedSubject')->name('store.class.assign.subject');
     Route::resource('assignrole', 'RoleAssign');

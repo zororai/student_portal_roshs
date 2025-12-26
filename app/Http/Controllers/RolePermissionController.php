@@ -105,4 +105,87 @@ class RolePermissionController extends Controller
 
         return redirect()->route('roles-permissions');
     }
+
+    /**
+     * SIDEBAR PERMISSIONS MANAGEMENT
+     */
+    public function manageSidebarPermissions()
+    {
+        // Define all available sidebar items
+        $sidebarItems = [
+            'sidebar-home' => 'Home/Dashboard',
+            'sidebar-notifications' => 'Notifications',
+            'sidebar-onboard' => 'OnBoard Section',
+            'sidebar-teachers' => 'Teachers',
+            'sidebar-students' => 'Students',
+            'sidebar-subjects' => 'Subjects',
+            'sidebar-classes' => 'Classes',
+            'sidebar-parents' => 'Parents',
+            'sidebar-student-section' => 'Student Section',
+            'sidebar-student-record' => 'Student Record',
+            'sidebar-applicants' => 'Applicants',
+            'sidebar-disciplinary' => 'Disciplinary Records',
+            'sidebar-results-management' => 'Results Management',
+            'sidebar-marking-scheme' => 'Marking Scheme',
+            'sidebar-attendance' => 'Attendance Register',
+            'sidebar-school-staff' => 'School Staff Section',
+            'sidebar-staff-members' => 'Staff Members',
+            'sidebar-timetable' => 'Timetable',
+            'sidebar-webcam' => 'Webcam',
+            'sidebar-website' => 'Website Section',
+            'sidebar-banner' => 'Banner',
+            'sidebar-newsletter' => 'Newsletter',
+            'sidebar-events' => 'Events',
+            'sidebar-finance' => 'Finance & Accounting',
+            'sidebar-student-payments' => 'Student Payments',
+            'sidebar-parents-arrears' => 'Parents with Arrears',
+            'sidebar-school-income' => 'School Income',
+            'sidebar-school-expenses' => 'School Expenses',
+        ];
+
+        // Get all existing permissions
+        $existingPermissions = Permission::whereIn('name', array_keys($sidebarItems))->pluck('name')->toArray();
+        
+        // Create missing sidebar permissions
+        foreach ($sidebarItems as $permissionName => $displayName) {
+            if (!in_array($permissionName, $existingPermissions)) {
+                Permission::create(['name' => $permissionName, 'guard_name' => 'web']);
+            }
+        }
+
+        // Get all users with roles
+        $users = \App\User::with('permissions', 'roles.permissions')->get();
+        
+        return view('backend.permissions.sidebar', compact('sidebarItems', 'users'));
+    }
+
+    public function updateUserSidebarPermissions(Request $request)
+    {
+        $userId = $request->user_id;
+        $permissions = $request->permissions ?? [];
+        
+        $user = \App\User::findOrFail($userId);
+        
+        // Define all sidebar permissions
+        $sidebarPermissions = [
+            'sidebar-home', 'sidebar-notifications', 'sidebar-onboard', 'sidebar-teachers',
+            'sidebar-students', 'sidebar-subjects', 'sidebar-classes', 'sidebar-parents',
+            'sidebar-student-section', 'sidebar-student-record', 'sidebar-applicants',
+            'sidebar-disciplinary', 'sidebar-results-management', 'sidebar-marking-scheme',
+            'sidebar-attendance', 'sidebar-school-staff', 'sidebar-staff-members',
+            'sidebar-timetable', 'sidebar-webcam', 'sidebar-website', 'sidebar-banner',
+            'sidebar-newsletter', 'sidebar-events', 'sidebar-finance', 'sidebar-student-payments',
+            'sidebar-parents-arrears', 'sidebar-school-income', 'sidebar-school-expenses'
+        ];
+        
+        // Remove all existing sidebar permissions from user
+        $user->revokePermissionTo($sidebarPermissions);
+        
+        // Give selected permissions to user
+        if (!empty($permissions)) {
+            $user->givePermissionTo($permissions);
+        }
+        
+        return redirect()->back()->with('success', 'Sidebar permissions updated successfully!');
+    }
 }

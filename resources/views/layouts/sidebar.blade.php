@@ -34,6 +34,7 @@
         </button>
         
         <!-- Notifications -->
+        @can('sidebar-notifications')
         <a href="#" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'" :title="collapsed ? 'Notifications' : ''">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,8 +43,10 @@
                 <span class="font-medium" x-show="!collapsed">Notifications</span>
             </div>
         </a>
+        @endcan
 
         <!-- Home/Dashboard -->
+        @can('sidebar-home')
         <a href="{{ route('home') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'" :title="collapsed ? 'Home' : ''">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,6 +55,7 @@
                 <span class="font-medium" x-show="!collapsed">Home</span>
             </div>
         </a>
+        @endcan
 
         @role('Parent')
         <!-- Parent Section -->
@@ -201,6 +205,7 @@
         <!-- Admin Section -->
         
         <!-- Board Section with Submenu -->
+        @can('sidebar-onboard')
         <div x-data="{ open: false }" class="mt-1" x-show="!collapsed">
             <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg transition-colors" :class="open ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700'">
                 <div class="flex items-center space-x-3">
@@ -214,12 +219,15 @@
                 </svg>
             </button>
             <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                @can('sidebar-teachers')
                 <a href="{{ route('teacher.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
                     Teachers
                 </a>
+                @endcan
+                @can('sidebar-students')
                 <a href="{{ route('student.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M12 14l9-5-9-5-9 5 9 5z"/>
@@ -227,28 +235,37 @@
                     </svg>
                     Students
                 </a>
+                @endcan
+                @can('sidebar-subjects')
                 <a href="{{ route('admin.subjects.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                     Subjects
                 </a>
+                @endcan
+                @can('sidebar-classes')
                 <a href="{{ route('classes.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                     Classes
                 </a>
+                @endcan
+                @can('sidebar-parents')
                 <a href="{{ route('parents.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
                     Parents
                 </a>
+                @endcan
             </div>
         </div>
+        @endcan
         
         <!-- Student Section with Submenu -->
+        @can('sidebar-student-section')
         <div x-data="{ open: false }" class="mt-1" x-show="!collapsed">
             <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg transition-colors" :class="open ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700'">
                 <div class="flex items-center space-x-3">
@@ -263,46 +280,60 @@
                 </svg>
             </button>
             <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                @can('sidebar-student-record')
                 <a href="{{ route('student.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     Student Record
                 </a>
+                @endcan
+                @can('sidebar-applicants')
                 <a href="{{ route('admin.applicants.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                     </svg>
                     Applicants
                 </a>
+                @endcan
+                @can('sidebar-disciplinary')
                 <a href="{{ route('admin.disciplinary.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                     </svg>
                     Disciplinary Records
                 </a>
+                @endcan
+                @can('sidebar-results-management')
                 <a href="{{ route('manageresults.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     Results Management
                 </a>
+                @endcan
+                @can('sidebar-marking-scheme')
                 <a href="{{ route('admin.marking-scheme.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
                     Marking Scheme
                 </a>
+                @endcan
+                @can('sidebar-attendance')
                 <a href="{{ route('attendance.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                     </svg>
                     Attendance Register
                 </a>
+                @endcan
             </div>
         </div>
+        @endcan
         
         <!-- School Staff Section with Submenu -->
+        @can('sidebar-school-staff')
         <div x-data="{ open: false }" class="mt-1" x-show="!collapsed">
             <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg transition-colors" :class="open ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700'">
                 <div class="flex items-center space-x-3">
@@ -316,26 +347,33 @@
                 </svg>
             </button>
             <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                @can('sidebar-staff-members')
                 <a href="{{ route('admin.staff.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
                     Staff Members
                 </a>
+                @endcan
+                @can('sidebar-timetable')
                 <a href="{{ route('admin.timetable.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     Timetable
                 </a>
+                @endcan
+                @can('sidebar-webcam')
                 <a href="{{ route('Webcam.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                     </svg>
                     Webcam
                 </a>
+                @endcan
             </div>
         </div>
+        @endcan
         
         <a href="{{ route('attendance.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'" style="display: none;">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
@@ -346,6 +384,7 @@
             </div>
         </a>
 
+        @can('sidebar-website')
         <div x-data="{ open: false }" class="mt-1" x-show="!collapsed">
             <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg transition-colors" :class="open ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700'">
                 <div class="flex items-center space-x-3">
@@ -359,28 +398,36 @@
                 </svg>
             </button>
             <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                @can('sidebar-banner')
                 <a href="{{ route('banner.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     Banner
                 </a>
+                @endcan
+                @can('sidebar-newsletter')
                 <a href="{{ route('newsletters.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
                     </svg>
                     Newsletter
                 </a>
+                @endcan
+                @can('sidebar-events')
                 <a href="" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     Events
                 </a>
+                @endcan
             </div>
         </div>
+        @endcan
 
         <!-- Finance & Accounting Section -->
+        @can('sidebar-finance')
         <div x-data="{ open: false }" class="mt-1" x-show="!collapsed">
             <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg transition-colors" :class="open ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700'">
                 <div class="flex items-center space-x-3">
@@ -394,30 +441,38 @@
                 </svg>
             </button>
             <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                @can('sidebar-student-payments')
                 <a href="{{ route('finance.student-payments') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
                     Student Payments
                 </a>
+                @endcan
+                @can('sidebar-parents-arrears')
                 <a href="{{ route('finance.parents-arrears') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     Parents with Arrears
                 </a>
+                @endcan
+                @can('sidebar-school-income')
                 <a href="{{ route('finance.school-income') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/>
                     </svg>
                     School Income
                 </a>
+                @endcan
+                @can('sidebar-school-expenses')
                 <a href="{{ route('finance.school-expenses') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"/>
                     </svg>
                     School Expenses
                 </a>
+                @endcan
                 <a href="{{ route('finance.products') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
@@ -438,6 +493,7 @@
                 </a>
             </div>
         </div>
+        @endcan
 
         <!-- Settings Section with Submenu -->
         <div x-data="{ open: false }" class="mt-1" x-show="!collapsed">
@@ -459,6 +515,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
                     Roles & Permissions
+                </a>
+                <a href="{{ route('sidebar.permissions') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                    </svg>
+                    Sidebar Permissions
                 </a>
                 <a href="{{ route('results_status.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

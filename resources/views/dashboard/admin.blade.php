@@ -190,25 +190,91 @@
 </div>
 @endif
 
-<!-- Subject Performance Chart -->
+<!-- Subject Performance Chart with Pagination -->
 @if(isset($subjectPerformanceData) && count($subjectPerformanceData) > 0)
-<div class="w-full block mt-8">
+<div class="w-full block mt-8" x-data="subjectPerformance()">
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 class="text-xl font-bold text-gray-900 mb-4">Subject-Wise Performance</h3>
-        <p class="text-sm text-gray-600 mb-6">Average performance for each subject across all assessments</p>
-        <div class="bg-gray-50 rounded-lg p-4" style="height: 400px;">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+            <div class="mb-4 lg:mb-0">
+                <h3 class="text-xl font-bold text-gray-900 mb-1">Subject-Wise Performance</h3>
+                <p class="text-sm text-gray-600">Average performance for each subject across all assessments</p>
+                <p class="text-xs text-gray-500 mt-1">Showing <span x-text="visibleSubjects.length"></span> of {{ count($subjectPerformanceData) }} subjects</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input x-model="searchTerm" @input="filterSubjects()" type="text" placeholder="Search subjects..." class="block w-full sm:w-48 pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <select x-model="sortBy" @change="sortSubjects()" class="block w-full sm:w-40 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="name">Sort by Name</option>
+                    <option value="performance">Sort by Performance</option>
+                    <option value="assessments">Sort by Assessments</option>
+                </select>
+                <select x-model="itemsPerPage" @change="updatePagination()" class="block w-full sm:w-28 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="20">20 per page</option>
+                    <option value="50">50 per page</option>
+                    <option value="100">100 per page</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Chart for visible subjects -->
+        <div x-show="visibleSubjects.length > 0" class="bg-gray-50 rounded-lg p-4 mb-6" style="height: 400px;">
             <canvas id="subjectPerformanceChart"></canvas>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mt-6">
-            @foreach($subjectPerformanceData as $index => $subject)
-            <div class="bg-gray-50 rounded-lg p-3 text-center border {{ $subject['performance'] >= 50 ? 'border-green-200' : ($subject['performance'] > 0 ? 'border-red-200' : 'border-gray-200') }}">
-                <p class="text-xs font-medium text-gray-600 truncate" title="{{ $subject['subject'] }}">{{ Str::limit($subject['subject'], 12) }}</p>
-                <p class="text-lg font-bold {{ $subject['performance'] >= 50 ? 'text-green-600' : ($subject['performance'] > 0 ? 'text-red-600' : 'text-gray-400') }}">
-                    {{ $subject['performance'] > 0 ? $subject['performance'] . '%' : '--' }}
-                </p>
-                <p class="text-xs text-gray-500">{{ $subject['assessments'] }} assessments</p>
+        
+        <!-- No results message -->
+        <div x-show="visibleSubjects.length === 0" class="text-center py-12">
+            <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="text-gray-500">No subjects found matching your search</p>
+        </div>
+        
+        <!-- Subject Cards Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+            <template x-for="subject in paginatedSubjects" :key="subject.subject">
+                <div class="bg-gray-50 rounded-lg p-3 text-center border transition-all hover:shadow-md" :class="{
+                    'border-green-200 hover:border-green-300': subject.performance >= 50,
+                    'border-red-200 hover:border-red-300': subject.performance > 0 && subject.performance < 50,
+                    'border-gray-200 hover:border-gray-300': subject.performance === 0
+                }">
+                    <p class="text-xs font-medium text-gray-600 truncate" :title="subject.subject" x-text="subject.subject.length > 12 ? subject.subject.substring(0, 12) + '...' : subject.subject"></p>
+                    <p class="text-lg font-bold" :class="{
+                        'text-green-600': subject.performance >= 50,
+                        'text-red-600': subject.performance > 0 && subject.performance < 50,
+                        'text-gray-400': subject.performance === 0
+                    }" x-text="subject.performance > 0 ? subject.performance + '%' : '--'"></p>
+                    <p class="text-xs text-gray-500" x-text="subject.assessments + ' assessments'"></p>
+                </div>
+            </template>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div x-show="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-sm text-gray-600">
+                Showing <span x-text="((currentPage - 1) * itemsPerPage) + 1"></span> to 
+                <span x-text="Math.min(currentPage * itemsPerPage, visibleSubjects.length)"></span> of 
+                <span x-text="visibleSubjects.length"></span> subjects
             </div>
-            @endforeach
+            <div class="flex items-center space-x-2">
+                <button @click="currentPage > 1 && changePage(currentPage - 1)" :disabled="currentPage === 1" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    Previous
+                </button>
+                <template x-for="page in pageNumbers" :key="page">
+                    <button @click="changePage(page)" :class="{
+                        'bg-blue-600 text-white border-blue-600': page === currentPage,
+                        'bg-white text-gray-700 border-gray-300 hover:bg-gray-50': page !== currentPage
+                    }" class="px-3 py-2 text-sm border rounded-lg transition-colors" x-text="page"></button>
+                </template>
+                <button @click="currentPage < totalPages && changePage(currentPage + 1)" :disabled="currentPage === totalPages" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    Next
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -405,135 +471,252 @@
         
         // Assessment Performance Chart
         @if(isset($assessmentStats))
-        let assessmentChart = null;
-        const assessmentCtx = document.getElementById('assessmentPerformanceChart');
-        const chartColors = [
-            'rgba(59, 130, 246, 0.7)',
-            'rgba(16, 185, 129, 0.7)',
-            'rgba(245, 158, 11, 0.7)',
-            'rgba(239, 68, 68, 0.7)',
-            'rgba(139, 92, 246, 0.7)',
-            'rgba(236, 72, 153, 0.7)',
-            'rgba(20, 184, 166, 0.7)',
-            'rgba(249, 115, 22, 0.7)',
-            'rgba(99, 102, 241, 0.7)',
-            'rgba(34, 197, 94, 0.7)'
-        ];
-        
-        if (assessmentCtx) {
-            assessmentChart = new Chart(assessmentCtx, {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode(collect($assessmentStats)->pluck('type')) !!},
-                    datasets: [{
-                        label: 'Performance %',
-                        data: {!! json_encode(collect($assessmentStats)->pluck('performance')) !!},
-                        backgroundColor: chartColors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: { display: true, text: 'Performance (%)' }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'School-Wide Assessment Performance'
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Filter functionality for Assessment Performance
-        const classFilter = document.getElementById('assessClassFilter');
-        const subjectFilter = document.getElementById('assessSubjectFilter');
-        const summaryTable = document.querySelector('#assessmentPerformanceChart').closest('.grid').querySelector('tbody');
-        
-        function updateAssessmentStats() {
-            const classId = classFilter.value;
-            const subjectId = subjectFilter.value;
+            let assessmentChart = null;
+            const assessmentCtx = document.getElementById('assessmentPerformanceChart');
+            const chartColors = [
+                'rgba(59, 130, 246, 0.7)',
+                'rgba(16, 185, 129, 0.7)',
+                'rgba(245, 158, 11, 0.7)',
+                'rgba(239, 68, 68, 0.7)',
+                'rgba(139, 92, 246, 0.7)',
+                'rgba(236, 72, 153, 0.7)',
+                'rgba(20, 184, 166, 0.7)',
+                'rgba(249, 115, 22, 0.7)',
+                'rgba(99, 102, 241, 0.7)',
+                'rgba(34, 197, 94, 0.7)'
+            ];
             
-            fetch(`/api/assessment-stats?class_id=${classId}&subject_id=${subjectId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update chart
-                        const performances = data.stats.map(s => s.performance);
-                        assessmentChart.data.datasets[0].data = performances;
-                        assessmentChart.update();
-                        
-                        // Update table
-                        summaryTable.innerHTML = '';
-                        data.stats.forEach(stat => {
-                            const perfClass = stat.performance >= 50 ? 'bg-green-100 text-green-700' : (stat.performance > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500');
-                            const perfText = stat.performance > 0 ? stat.performance + '%' : '--';
-                            summaryTable.innerHTML += `
-                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                    <td class="py-2 px-3 text-gray-700">${stat.type}</td>
-                                    <td class="text-center py-2 px-3">${stat.given}</td>
-                                    <td class="text-center py-2 px-3">
-                                        <span class="px-2 py-1 rounded text-xs font-medium ${perfClass}">${perfText}</span>
-                                    </td>
-                                </tr>
-                            `;
-                        });
+            if (assessmentCtx) {
+                assessmentChart = new Chart(assessmentCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: {!! json_encode(collect($assessmentStats)->pluck('type')) !!},
+                        datasets: [{
+                            label: 'Performance %',
+                            data: {!! json_encode(collect($assessmentStats)->pluck('performance')) !!},
+                            backgroundColor: chartColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: { display: true, text: 'Performance (%)' }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            title: {
+                                display: true,
+                                text: 'School-Wide Assessment Performance'
+                            }
+                        }
                     }
-                })
-                .catch(error => console.error('Error fetching assessment stats:', error));
-        }
-        
-        if (classFilter && subjectFilter) {
-            classFilter.addEventListener('change', updateAssessmentStats);
-            subjectFilter.addEventListener('change', updateAssessmentStats);
-        }
+                });
+            }
+            
+            // Filter functionality for Assessment Performance
+            const classFilter = document.getElementById('assessClassFilter');
+            const subjectFilter = document.getElementById('assessSubjectFilter');
+            const summaryTable = document.querySelector('#assessmentPerformanceChart').closest('.grid').querySelector('tbody');
+            
+            function updateAssessmentStats() {
+                const classId = classFilter.value;
+                const subjectId = subjectFilter.value;
+                
+                fetch(`/api/assessment-stats?class_id=${classId}&subject_id=${subjectId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update chart
+                            const performances = data.stats.map(s => s.performance);
+                            assessmentChart.data.datasets[0].data = performances;
+                            assessmentChart.update();
+                            
+                            // Update table
+                            summaryTable.innerHTML = '';
+                            data.stats.forEach(stat => {
+                                const perfClass = stat.performance >= 50 ? 'bg-green-100 text-green-700' : (stat.performance > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500');
+                                const perfText = stat.performance > 0 ? stat.performance + '%' : '--';
+                                summaryTable.innerHTML += `
+                                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                        <td class="py-2 px-3 text-gray-700">${stat.type}</td>
+                                        <td class="text-center py-2 px-3">${stat.given}</td>
+                                        <td class="text-center py-2 px-3">
+                                            <span class="px-2 py-1 rounded text-xs font-medium ${perfClass}">${perfText}</span>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error fetching assessment stats:', error));
+            }
+            
+            if (classFilter && subjectFilter) {
+                classFilter.addEventListener('change', updateAssessmentStats);
+                subjectFilter.addEventListener('change', updateAssessmentStats);
+            }
         @endif
 
-        // Subject Performance Chart
+        // Subject Performance Chart with Pagination Support
         @if(isset($subjectPerformanceData) && count($subjectPerformanceData) > 0)
-        const subjectCtx = document.getElementById('subjectPerformanceChart');
-        if (subjectCtx) {
-            new Chart(subjectCtx, {
-                type: 'bar',
-                data: {
-                    labels: {!! json_encode(collect($subjectPerformanceData)->pluck('subject')) !!},
-                    datasets: [{
-                        label: 'Performance %',
-                        data: {!! json_encode(collect($subjectPerformanceData)->pluck('performance')) !!},
-                        backgroundColor: {!! json_encode(collect($subjectPerformanceData)->map(function($s) { return $s['performance'] >= 50 ? 'rgba(34, 197, 94, 0.7)' : ($s['performance'] > 0 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(156, 163, 175, 0.7)'); })) !!},
-                        borderColor: {!! json_encode(collect($subjectPerformanceData)->map(function($s) { return $s['performance'] >= 50 ? 'rgba(34, 197, 94, 1)' : ($s['performance'] > 0 ? 'rgba(239, 68, 68, 1)' : 'rgba(156, 163, 175, 1)'); })) !!},
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: { display: true, text: 'Performance (%)' }
+            let subjectChart = null;
+            const subjectCtx = document.getElementById('subjectPerformanceChart');
+            
+            function createSubjectChart(subjects) {
+                if (subjectChart) {
+                    subjectChart.destroy();
+                }
+                
+                if (subjectCtx && subjects.length > 0) {
+                    const labels = subjects.map(s => s.subject.length > 15 ? s.subject.substring(0, 15) + '...' : s.subject);
+                    const data = subjects.map(s => s.performance);
+                    const backgroundColors = subjects.map(s => 
+                        s.performance >= 50 ? 'rgba(34, 197, 94, 0.7)' : 
+                        (s.performance > 0 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(156, 163, 175, 0.7)')
+                    );
+                    const borderColors = subjects.map(s => 
+                        s.performance >= 50 ? 'rgba(34, 197, 94, 1)' : 
+                        (s.performance > 0 ? 'rgba(239, 68, 68, 1)' : 'rgba(156, 163, 175, 1)')
+                    );
+                    
+                    const axisConfig = subjects.length > 10 ? 'y' : 'x';
+                    const scalesConfig = {};
+                    scalesConfig[subjects.length > 10 ? 'x' : 'y'] = {
+                        beginAtZero: true,
+                        max: 100,
+                        title: { display: true, text: 'Performance (%)' }
+                    };
+                    
+                    subjectChart = new Chart(subjectCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Performance %',
+                                data: data,
+                                backgroundColor: backgroundColors,
+                                borderColor: borderColors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: subjects.length > 10 ? 'y' : 'x',
+                            scales: scalesConfig,
+                            plugins: {
+                                legend: { display: false },
+                                title: {
+                                    display: true,
+                                    text: 'Subject Performance (' + subjects.length + ' subjects)'
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Alpine.js component for subject performance
+            window.subjectPerformance = function() {
+                return {
+                    allSubjects: @json($subjectPerformanceData),
+                    visibleSubjects: @json($subjectPerformanceData),
+                    paginatedSubjects: [],
+                    searchTerm: '',
+                    sortBy: 'name',
+                    itemsPerPage: 20,
+                    currentPage: 1,
+                    totalPages: 1,
+                    pageNumbers: [],
+                    
+                    init() {
+                        this.updatePagination();
+                    },
+                    
+                    filterSubjects() {
+                        this.visibleSubjects = this.allSubjects.filter(subject => 
+                            subject.subject.toLowerCase().includes(this.searchTerm.toLowerCase())
+                        );
+                        this.sortSubjects();
+                        this.currentPage = 1;
+                        this.updatePagination();
+                    },
+                    
+                    sortSubjects() {
+                        this.visibleSubjects.sort((a, b) => {
+                            switch(this.sortBy) {
+                                case 'performance':
+                                    return b.performance - a.performance;
+                                case 'assessments':
+                                    return b.assessments - a.assessments;
+                                default:
+                                    return a.subject.localeCompare(b.subject);
+                            }
+                        });
+                        this.updatePagination();
+                    },
+                    
+                    updatePagination() {
+                        this.totalPages = Math.ceil(this.visibleSubjects.length / this.itemsPerPage);
+                        this.currentPage = Math.min(this.currentPage, this.totalPages || 1);
+                        
+                        const start = (this.currentPage - 1) * this.itemsPerPage;
+                        const end = start + parseInt(this.itemsPerPage);
+                        this.paginatedSubjects = this.visibleSubjects.slice(start, end);
+                        
+                        this.updatePageNumbers();
+                        this.updateChart();
+                    },
+                    
+                    updatePageNumbers() {
+                        const delta = 2;
+                        const range = [];
+                        const rangeWithDots = [];
+                        
+                        for (let i = Math.max(2, this.currentPage - delta); 
+                             i <= Math.min(this.totalPages - 1, this.currentPage + delta); 
+                             i++) {
+                            range.push(i);
+                        }
+                        
+                        if (this.currentPage - delta > 2) {
+                            rangeWithDots.push(1, '...');
+                        } else {
+                            rangeWithDots.push(1);
+                        }
+                        
+                        rangeWithDots.push(...range);
+                        
+                        if (this.currentPage + delta < this.totalPages - 1) {
+                            rangeWithDots.push('...', this.totalPages);
+                        } else if (this.totalPages > 1) {
+                            rangeWithDots.push(this.totalPages);
+                        }
+                        
+                        this.pageNumbers = rangeWithDots.filter((item, index, array) => array.indexOf(item) === index);
+                    },
+                    
+                    changePage(page) {
+                        if (page !== '...' && page >= 1 && page <= this.totalPages) {
+                            this.currentPage = page;
+                            this.updatePagination();
                         }
                     },
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Subject-Wise Average Performance'
-                        }
+                    
+                    updateChart() {
+                        const self = this;
+                        setTimeout(() => {
+                            createSubjectChart(self.paginatedSubjects);
+                        }, 100);
                     }
-                }
-            });
-        }
+                };
+            };
         @endif
     });
 </script>

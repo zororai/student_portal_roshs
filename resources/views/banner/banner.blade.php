@@ -171,42 +171,45 @@
                     <!-- Upload 1 -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Banner Image 1</label>
-                        <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <label id="uploadLabel1" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <div id="uploadPlaceholder1" class="flex flex-col items-center justify-center pt-5 pb-6">
                                 <svg class="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                 </svg>
                                 <p class="text-xs text-gray-500"><span class="font-semibold">Click to upload</span></p>
                             </div>
-                            <input type="file" name="image_path_1" class="hidden" accept="image/*" />
+                            <img id="imagePreview1" class="hidden w-full h-32 object-cover rounded-xl" alt="Preview" />
+                            <input type="file" id="bannerInput1" name="image_path_1" class="hidden" accept="image/*" />
                         </label>
                     </div>
 
                     <!-- Upload 2 -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Banner Image 2</label>
-                        <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <label id="uploadLabel2" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <div id="uploadPlaceholder2" class="flex flex-col items-center justify-center pt-5 pb-6">
                                 <svg class="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                 </svg>
                                 <p class="text-xs text-gray-500"><span class="font-semibold">Click to upload</span></p>
                             </div>
-                            <input type="file" name="image_path_2" class="hidden" accept="image/*" />
+                            <img id="imagePreview2" class="hidden w-full h-32 object-cover rounded-xl" alt="Preview" />
+                            <input type="file" id="bannerInput2" name="image_path_2" class="hidden" accept="image/*" />
                         </label>
                     </div>
 
                     <!-- Upload 3 -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Banner Image 3</label>
-                        <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <label id="uploadLabel3" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <div id="uploadPlaceholder3" class="flex flex-col items-center justify-center pt-5 pb-6">
                                 <svg class="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                 </svg>
                                 <p class="text-xs text-gray-500"><span class="font-semibold">Click to upload</span></p>
                             </div>
-                            <input type="file" name="image_path_3" class="hidden" accept="image/*" />
+                            <img id="imagePreview3" class="hidden w-full h-32 object-cover rounded-xl" alt="Preview" />
+                            <input type="file" id="bannerInput3" name="image_path_3" class="hidden" accept="image/*" />
                         </label>
                     </div>
                 </div>
@@ -226,3 +229,48 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(function() {
+        // Image preview for banner 1
+        $('#bannerInput1').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imagePreview1').attr('src', e.target.result).removeClass('hidden');
+                    $('#uploadPlaceholder1').addClass('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Image preview for banner 2
+        $('#bannerInput2').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imagePreview2').attr('src', e.target.result).removeClass('hidden');
+                    $('#uploadPlaceholder2').addClass('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Image preview for banner 3
+        $('#bannerInput3').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imagePreview3').attr('src', e.target.result).removeClass('hidden');
+                    $('#uploadPlaceholder3').addClass('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+</script>
+@endpush
