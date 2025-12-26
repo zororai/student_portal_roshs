@@ -97,3 +97,4 @@ mix-manifest.json
 # Deployment
 .deployer/
 deploy.php
+deploy.sh
