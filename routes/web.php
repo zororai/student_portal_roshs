@@ -187,6 +187,54 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('admin/finance/ledger/entries', 'LedgerController@storeEntry')->name('admin.finance.ledger.store-entry');
     Route::get('admin/finance/ledger/trial-balance', 'LedgerController@trialBalance')->name('admin.finance.ledger.trial-balance');
 
+    // Finance - Dashboard & Reports
+    Route::get('admin/finance/dashboard', 'FinanceDashboardController@index')->name('admin.finance.dashboard');
+    Route::get('admin/finance/reports/income-statement', 'FinanceDashboardController@incomeStatement')->name('admin.finance.reports.income-statement');
+    Route::get('admin/finance/reports/balance-sheet', 'FinanceDashboardController@balanceSheet')->name('admin.finance.reports.balance-sheet');
+    Route::get('admin/finance/reports/expense-report', 'FinanceDashboardController@expenseReport')->name('admin.finance.reports.expense-report');
+    Route::get('admin/finance/reports/fee-report', 'FinanceDashboardController@feeReport')->name('admin.finance.reports.fee-report');
+
+    // Finance - Expenses
+    Route::get('admin/finance/expenses', 'ExpenseController@index')->name('admin.finance.expenses.index');
+    Route::get('admin/finance/expenses/create', 'ExpenseController@create')->name('admin.finance.expenses.create');
+    Route::post('admin/finance/expenses', 'ExpenseController@store')->name('admin.finance.expenses.store');
+    Route::get('admin/finance/expenses/categories', 'ExpenseController@categories')->name('admin.finance.expenses.categories');
+    Route::post('admin/finance/expenses/categories', 'ExpenseController@storeCategory')->name('admin.finance.expenses.store-category');
+    Route::get('admin/finance/expenses/report', 'ExpenseController@report')->name('admin.finance.expenses.report');
+    Route::get('admin/finance/expenses/{id}', 'ExpenseController@show')->name('admin.finance.expenses.show');
+    Route::get('admin/finance/expenses/{id}/edit', 'ExpenseController@edit')->name('admin.finance.expenses.edit');
+    Route::put('admin/finance/expenses/{id}', 'ExpenseController@update')->name('admin.finance.expenses.update');
+    Route::post('admin/finance/expenses/{id}/approve', 'ExpenseController@approve')->name('admin.finance.expenses.approve');
+
+    // Finance - Purchase Orders
+    Route::get('admin/finance/purchase-orders', 'PurchaseOrderController@index')->name('admin.finance.purchase-orders.index');
+    Route::get('admin/finance/purchase-orders/create', 'PurchaseOrderController@create')->name('admin.finance.purchase-orders.create');
+    Route::post('admin/finance/purchase-orders', 'PurchaseOrderController@store')->name('admin.finance.purchase-orders.store');
+    Route::get('admin/finance/purchase-orders/suppliers', 'PurchaseOrderController@suppliers')->name('admin.finance.purchase-orders.suppliers');
+    Route::post('admin/finance/purchase-orders/suppliers', 'PurchaseOrderController@storeSupplier')->name('admin.finance.purchase-orders.store-supplier');
+    Route::get('admin/finance/purchase-orders/{id}', 'PurchaseOrderController@show')->name('admin.finance.purchase-orders.show');
+    Route::post('admin/finance/purchase-orders/{id}/approve', 'PurchaseOrderController@approve')->name('admin.finance.purchase-orders.approve');
+    Route::post('admin/finance/purchase-orders/{id}/mark-ordered', 'PurchaseOrderController@markOrdered')->name('admin.finance.purchase-orders.mark-ordered');
+    Route::post('admin/finance/purchase-orders/{id}/mark-received', 'PurchaseOrderController@markReceived')->name('admin.finance.purchase-orders.mark-received');
+
+    // Finance - Budgets
+    Route::get('admin/finance/budgets', 'BudgetController@index')->name('admin.finance.budgets.index');
+    Route::get('admin/finance/budgets/create', 'BudgetController@create')->name('admin.finance.budgets.create');
+    Route::post('admin/finance/budgets', 'BudgetController@store')->name('admin.finance.budgets.store');
+    Route::get('admin/finance/budgets/{id}', 'BudgetController@show')->name('admin.finance.budgets.show');
+    Route::post('admin/finance/budgets/{id}/add-item', 'BudgetController@addItem')->name('admin.finance.budgets.add-item');
+    Route::post('admin/finance/budgets/{id}/activate', 'BudgetController@activate')->name('admin.finance.budgets.activate');
+    Route::post('admin/finance/budgets/{id}/close', 'BudgetController@close')->name('admin.finance.budgets.close');
+    Route::get('admin/finance/budgets/{id}/comparison', 'BudgetController@comparison')->name('admin.finance.budgets.comparison');
+
+    // Finance - Bank Reconciliation
+    Route::get('admin/finance/reconciliation', 'BankReconciliationController@index')->name('admin.finance.reconciliation.index');
+    Route::get('admin/finance/reconciliation/accounts', 'BankReconciliationController@accounts')->name('admin.finance.reconciliation.accounts');
+    Route::post('admin/finance/reconciliation/accounts', 'BankReconciliationController@storeAccount')->name('admin.finance.reconciliation.store-account');
+    Route::get('admin/finance/reconciliation/{accountId}/transactions', 'BankReconciliationController@transactions')->name('admin.finance.reconciliation.transactions');
+    Route::get('admin/finance/reconciliation/{accountId}/reconcile', 'BankReconciliationController@reconcile')->name('admin.finance.reconciliation.reconcile');
+    Route::post('admin/finance/reconciliation/match', 'BankReconciliationController@matchTransactions')->name('admin.finance.reconciliation.match');
+
     // Timetable Routes
     Route::get('admin/timetable', 'AdminTimetableController@index')->name('admin.timetable.index');
     Route::get('admin/timetable/create', 'AdminTimetableController@create')->name('admin.timetable.create');
