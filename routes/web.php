@@ -151,6 +151,42 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('admin/leave/{id}/reject', 'AdminLeaveController@reject')->name('admin.leave.reject');
     Route::get('admin/leave/calendar/data', 'AdminLeaveController@calendar')->name('admin.leave.calendar');
 
+    // Finance - Payroll Routes
+    Route::get('admin/finance/payroll', 'PayrollController@index')->name('admin.finance.payroll.index');
+    Route::get('admin/finance/payroll/salaries', 'PayrollController@salaries')->name('admin.finance.payroll.salaries');
+    Route::get('admin/finance/payroll/salaries/create', 'PayrollController@createSalary')->name('admin.finance.payroll.create-salary');
+    Route::post('admin/finance/payroll/salaries', 'PayrollController@storeSalary')->name('admin.finance.payroll.store-salary');
+    Route::get('admin/finance/payroll/salaries/{id}/edit', 'PayrollController@editSalary')->name('admin.finance.payroll.edit-salary');
+    Route::put('admin/finance/payroll/salaries/{id}', 'PayrollController@updateSalary')->name('admin.finance.payroll.update-salary');
+    Route::get('admin/finance/payroll/generate', 'PayrollController@generate')->name('admin.finance.payroll.generate');
+    Route::post('admin/finance/payroll/generate', 'PayrollController@processGenerate')->name('admin.finance.payroll.process-generate');
+    Route::get('admin/finance/payroll/{id}', 'PayrollController@show')->name('admin.finance.payroll.show');
+    Route::post('admin/finance/payroll/{id}/approve', 'PayrollController@approve')->name('admin.finance.payroll.approve');
+    Route::post('admin/finance/payroll/{id}/mark-paid', 'PayrollController@markPaid')->name('admin.finance.payroll.mark-paid');
+    Route::get('admin/finance/payroll/{id}/payslip', 'PayrollController@payslip')->name('admin.finance.payroll.payslip');
+
+    // Finance - Cash Book Routes
+    Route::get('admin/finance/cashbook', 'CashBookController@index')->name('admin.finance.cashbook.index');
+    Route::get('admin/finance/cashbook/create', 'CashBookController@create')->name('admin.finance.cashbook.create');
+    Route::post('admin/finance/cashbook', 'CashBookController@store')->name('admin.finance.cashbook.store');
+    Route::get('admin/finance/cashbook/report', 'CashBookController@report')->name('admin.finance.cashbook.report');
+    Route::get('admin/finance/cashbook/{id}', 'CashBookController@show')->name('admin.finance.cashbook.show');
+    Route::get('admin/finance/cashbook/{id}/edit', 'CashBookController@edit')->name('admin.finance.cashbook.edit');
+    Route::put('admin/finance/cashbook/{id}', 'CashBookController@update')->name('admin.finance.cashbook.update');
+    Route::delete('admin/finance/cashbook/{id}', 'CashBookController@destroy')->name('admin.finance.cashbook.destroy');
+
+    // Finance - Ledger Routes
+    Route::get('admin/finance/ledger', 'LedgerController@index')->name('admin.finance.ledger.index');
+    Route::get('admin/finance/ledger/accounts/create', 'LedgerController@createAccount')->name('admin.finance.ledger.create-account');
+    Route::post('admin/finance/ledger/accounts', 'LedgerController@storeAccount')->name('admin.finance.ledger.store-account');
+    Route::get('admin/finance/ledger/accounts/{id}', 'LedgerController@showAccount')->name('admin.finance.ledger.show-account');
+    Route::get('admin/finance/ledger/accounts/{id}/edit', 'LedgerController@editAccount')->name('admin.finance.ledger.edit-account');
+    Route::put('admin/finance/ledger/accounts/{id}', 'LedgerController@updateAccount')->name('admin.finance.ledger.update-account');
+    Route::get('admin/finance/ledger/entries', 'LedgerController@entries')->name('admin.finance.ledger.entries');
+    Route::get('admin/finance/ledger/entries/create', 'LedgerController@createEntry')->name('admin.finance.ledger.create-entry');
+    Route::post('admin/finance/ledger/entries', 'LedgerController@storeEntry')->name('admin.finance.ledger.store-entry');
+    Route::get('admin/finance/ledger/trial-balance', 'LedgerController@trialBalance')->name('admin.finance.ledger.trial-balance');
+
     // Timetable Routes
     Route::get('admin/timetable', 'AdminTimetableController@index')->name('admin.timetable.index');
     Route::get('admin/timetable/create', 'AdminTimetableController@create')->name('admin.timetable.create');
