@@ -86,8 +86,8 @@ class HomeController extends Controller
                 ->orderBy('class_numeric')
                 ->get()
                 ->map(function($class) {
-                    $maleCount = $class->students->where('gender', 'Male')->count();
-                    $femaleCount = $class->students->where('gender', 'Female')->count();
+                    $maleCount = $class->students->whereIn('gender', ['Male', 'male', 'M', 'm'])->count();
+                    $femaleCount = $class->students->whereIn('gender', ['Female', 'female', 'F', 'f'])->count();
                     return [
                         'name' => $class->class_name,
                         'count' => $class->students->count(),
