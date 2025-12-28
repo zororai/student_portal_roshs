@@ -20,9 +20,37 @@ class RolePermissionController extends Controller
 
     public function createRole()
     {
-        $permissions = Permission::latest()->get();
+        // Auto-sync sidebar permissions before showing the form
+        $this->syncSidebarPermissions();
+        
+        $permissions = Permission::orderBy('name')->get();
 
         return view('backend.roles.create', compact('permissions'));
+    }
+    
+    /**
+     * Automatically scan sidebar and create missing permissions
+     */
+    private function syncSidebarPermissions()
+    {
+        $sidebarPath = resource_path('views/layouts/sidebar.blade.php');
+        
+        if (!file_exists($sidebarPath)) {
+            return;
+        }
+
+        $content = file_get_contents($sidebarPath);
+        
+        // Find all @can('permission-name') directives
+        preg_match_all("/@can\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/", $content, $matches);
+        
+        $permissions = array_unique($matches[1]);
+
+        foreach ($permissions as $permissionName) {
+            if (!Permission::where('name', $permissionName)->exists()) {
+                Permission::create(['name' => $permissionName, 'guard_name' => 'web']);
+            }
+        }
     }
 
     public function storeRole(Request $request)
@@ -40,8 +68,11 @@ class RolePermissionController extends Controller
 
     public function editRole($id)
     {
+        // Auto-sync sidebar permissions before showing the form
+        $this->syncSidebarPermissions();
+        
         $role = Role::with('permissions')->find($id);
-        $permissions = Permission::latest()->get();
+        $permissions = Permission::orderBy('name')->get();
 
         return view('backend.roles.edit', compact('role','permissions'));
     }

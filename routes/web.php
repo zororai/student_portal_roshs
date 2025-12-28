@@ -127,12 +127,20 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('admin/staff/{id}', 'AdminStaffController@update')->name('admin.staff.update');
     Route::delete('admin/staff/{id}', 'AdminStaffController@destroy')->name('admin.staff.destroy');
 
-    // Log Book Routes (commented out - controller not yet created)
-    // Route::get('admin/logbook', 'AdminLogBookController@index')->name('admin.logbook.index');
-    // Route::get('admin/logbook/create', 'AdminLogBookController@create')->name('admin.logbook.create');
-    // Route::post('admin/logbook', 'AdminLogBookController@store')->name('admin.logbook.store');
-    // Route::get('admin/logbook/{id}', 'AdminLogBookController@show')->name('admin.logbook.show');
-    // Route::delete('admin/logbook/{id}', 'AdminLogBookController@destroy')->name('admin.logbook.destroy');
+    // Log Book Routes
+    Route::get('admin/logbook', 'AdminLogBookController@index')->name('admin.logbook.index');
+    Route::post('admin/logbook/scan', 'AdminLogBookController@scan')->name('admin.logbook.scan');
+    Route::get('admin/logbook/availability', 'AdminLogBookController@availability')->name('admin.logbook.availability');
+    Route::get('admin/logbook/teacher/{teacherId}/history', 'AdminLogBookController@teacherHistory')->name('admin.logbook.teacher.history');
+    Route::post('admin/logbook/teacher/{teacherId}/generate-qr', 'AdminLogBookController@generateQrCode')->name('admin.logbook.generate.qr');
+    Route::get('admin/logbook/teacher/{teacherId}/qr', 'AdminLogBookController@getQrCode')->name('admin.logbook.get.qr');
+
+    // Leave Management Routes
+    Route::get('admin/leave', 'AdminLeaveController@index')->name('admin.leave.index');
+    Route::get('admin/leave/{id}', 'AdminLeaveController@show')->name('admin.leave.show');
+    Route::post('admin/leave/{id}/approve', 'AdminLeaveController@approve')->name('admin.leave.approve');
+    Route::post('admin/leave/{id}/reject', 'AdminLeaveController@reject')->name('admin.leave.reject');
+    Route::get('admin/leave/calendar/data', 'AdminLeaveController@calendar')->name('admin.leave.calendar');
 
     // Timetable Routes
     Route::get('admin/timetable', 'AdminTimetableController@index')->name('admin.timetable.index');
@@ -262,10 +270,31 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/settings/upgrade-direction', 'SchoolSettingsController@upgradeDirection')->name('admin.settings.upgrade-direction');
     Route::put('/admin/settings/upgrade-direction', 'SchoolSettingsController@updateUpgradeDirection')->name('admin.settings.upgrade-direction.update');
 
+    // School Geolocation Settings Routes
+    Route::get('/admin/settings/geolocation', 'SchoolGeolocationController@index')->name('admin.settings.geolocation');
+    Route::post('/admin/settings/geolocation', 'SchoolGeolocationController@store')->name('admin.settings.geolocation.store');
+    Route::put('/admin/settings/geolocation/{id}', 'SchoolGeolocationController@update')->name('admin.settings.geolocation.update');
+    Route::delete('/admin/settings/geolocation/{id}', 'SchoolGeolocationController@destroy')->name('admin.settings.geolocation.destroy');
+    Route::post('/admin/settings/geolocation/{id}/set-active', 'SchoolGeolocationController@setActive')->name('admin.settings.geolocation.set-active');
+    Route::get('/api/school-geolocation', 'SchoolGeolocationController@getActive')->name('api.school-geolocation');
+    Route::post('/api/school-geolocation/check-point', 'SchoolGeolocationController@checkPoint')->name('api.school-geolocation.check-point');
+
 });
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()
 {
+    // Teacher Attendance Routes
+    Route::get('/teacher/attendance', 'TeacherAttendanceController@index')->name('teacher.attendance.index');
+    Route::post('/teacher/attendance/mark', 'TeacherAttendanceController@markAttendance')->name('teacher.attendance.mark');
+    Route::get('/teacher/attendance/boundary', 'TeacherAttendanceController@getSchoolBoundary')->name('teacher.attendance.boundary');
+
+    // Teacher Leave Application Routes
+    Route::get('/teacher/leave', 'TeacherLeaveController@index')->name('teacher.leave.index');
+    Route::get('/teacher/leave/create', 'TeacherLeaveController@create')->name('teacher.leave.create');
+    Route::post('/teacher/leave', 'TeacherLeaveController@store')->name('teacher.leave.store');
+    Route::get('/teacher/leave/{id}', 'TeacherLeaveController@show')->name('teacher.leave.show');
+    Route::delete('/teacher/leave/{id}', 'TeacherLeaveController@destroy')->name('teacher.leave.destroy');
+
     // Teacher Password Change Routes (must be first for middleware to work)
     Route::get('/teacher/change-password', 'TeacherController@showChangePasswordForm')->name('teacher.change-password');
     Route::post('/teacher/update-password', 'TeacherController@updatePassword')->name('teacher.update-password');

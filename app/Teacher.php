@@ -15,6 +15,8 @@ class Teacher extends Model
         'dateofbirth',
         'current_address',
         'permanent_address',
+        'qr_code',
+        'qr_code_token',
     ];
 
     public function user()
@@ -35,5 +37,27 @@ class Teacher extends Model
     public function students() 
     {
         return $this->classes()->withCount('students');
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(TeacherLog::class);
+    }
+
+    /**
+     * Get today's log entry
+     */
+    public function todayLog()
+    {
+        return $this->logs()->where('log_date', today())->first();
+    }
+
+    /**
+     * Check if teacher is currently clocked in today
+     */
+    public function isClockedInToday()
+    {
+        $log = $this->todayLog();
+        return $log && $log->isClockedIn();
     }
 }
