@@ -127,6 +127,15 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('admin/staff/{id}', 'AdminStaffController@update')->name('admin.staff.update');
     Route::delete('admin/staff/{id}', 'AdminStaffController@destroy')->name('admin.staff.destroy');
 
+    // Admin User Management Routes
+    Route::get('admin/users', 'AdminUserController@index')->name('admin.users.index');
+    Route::get('admin/users/create', 'AdminUserController@create')->name('admin.users.create');
+    Route::post('admin/users', 'AdminUserController@store')->name('admin.users.store');
+    Route::get('admin/users/{id}', 'AdminUserController@show')->name('admin.users.show');
+    Route::get('admin/users/{id}/edit', 'AdminUserController@edit')->name('admin.users.edit');
+    Route::put('admin/users/{id}', 'AdminUserController@update')->name('admin.users.update');
+    Route::delete('admin/users/{id}', 'AdminUserController@destroy')->name('admin.users.destroy');
+
     // Log Book Routes
     Route::get('admin/logbook', 'AdminLogBookController@index')->name('admin.logbook.index');
     Route::post('admin/logbook/scan', 'AdminLogBookController@scan')->name('admin.logbook.scan');
