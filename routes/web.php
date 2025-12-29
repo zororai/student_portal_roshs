@@ -372,6 +372,16 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/api/school-geolocation', 'SchoolGeolocationController@getActive')->name('api.school-geolocation');
     Route::post('/api/school-geolocation/check-point', 'SchoolGeolocationController@checkPoint')->name('api.school-geolocation.check-point');
 
+    // Website Settings Routes
+    Route::get('/admin/website', 'WebsiteSettingController@index')->name('admin.website.index');
+    Route::get('/admin/website/general', 'WebsiteSettingController@general')->name('admin.website.general');
+    Route::get('/admin/website/colors', 'WebsiteSettingController@colors')->name('admin.website.colors');
+    Route::get('/admin/website/images', 'WebsiteSettingController@images')->name('admin.website.images');
+    Route::get('/admin/website/text', 'WebsiteSettingController@text')->name('admin.website.text');
+    Route::put('/admin/website/update', 'WebsiteSettingController@update')->name('admin.website.update');
+    Route::get('/admin/website/banners', 'WebsiteSettingController@banners')->name('admin.website.banners');
+    Route::put('/admin/website/banners', 'WebsiteSettingController@updateBanners')->name('admin.website.banners.update');
+
 });
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()

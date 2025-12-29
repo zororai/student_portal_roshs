@@ -31,6 +31,21 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}?v={{ time() }}" />
 
+    <!-- Dynamic Theme Colors -->
+    @php
+        $primaryColor = \App\WebsiteSetting::get('primary_color', '#2d5016');
+        $secondaryColor = \App\WebsiteSetting::get('secondary_color', '#1a365d');
+        $footerBgColor = \App\WebsiteSetting::get('footer_bg_color', '#1a202c');
+    @endphp
+    <style>
+        :root { --primary-color: {{ $primaryColor }}; --secondary-color: {{ $secondaryColor }}; --footer-bg-color: {{ $footerBgColor }}; }
+        .btn-primary, .button-theme, .bg-theme, .main-btn { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; }
+        .btn-primary:hover, .button-theme:hover { background-color: var(--secondary-color) !important; }
+        .text-primary, .text-theme { color: var(--primary-color) !important; }
+        .bg-primary { background-color: var(--primary-color) !important; }
+        .footer, footer, .footer-section { background-color: var(--footer-bg-color) !important; }
+    </style>
+
     <!-- Navigation Spacing Fix -->
     <style>
         .navbar-nav.equal-spacing {
