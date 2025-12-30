@@ -12,6 +12,24 @@
             @csrf
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Year *</label>
+                        <select name="year" class="w-full border rounded-lg px-3 py-2" required>
+                            @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+                                <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Term *</label>
+                        <select name="term" class="w-full border rounded-lg px-3 py-2" required>
+                            <option value="first">First Term</option>
+                            <option value="second">Second Term</option>
+                            <option value="third">Third Term</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-sm font-medium text-gray-700 mb-1">Date *</label><input type="date" name="expense_date" value="{{ old('expense_date', date('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2" required></div>
                     <div><label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
                         <select name="category_id" class="w-full border rounded-lg px-3 py-2" required>

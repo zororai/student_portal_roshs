@@ -10,6 +10,8 @@ class CashBookEntry extends Model
 {
     protected $fillable = [
         'entry_date',
+        'term',
+        'year',
         'reference_number',
         'transaction_type',
         'category',

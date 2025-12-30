@@ -19,11 +19,6 @@ class ExpenseController extends Controller
         // Year and term filter setup
         $years = range(date('Y'), date('Y') - 5);
         $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
-        $termDateRanges = [
-            'first' => ['01-01', '04-30'],
-            'second' => ['05-01', '08-31'],
-            'third' => ['09-01', '12-31'],
-        ];
         
         $selectedYear = $request->year;
         $selectedTerm = $request->term;
@@ -37,13 +32,12 @@ class ExpenseController extends Controller
             $query->where('payment_status', $request->status);
         }
         
-        // Apply year/term filter
-        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
-            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
-            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
-            $query->whereBetween('expense_date', [$dateFrom, $dateTo]);
-        } elseif ($selectedYear) {
-            $query->whereYear('expense_date', $selectedYear);
+        // Apply year/term filter using term/year fields
+        if ($selectedYear) {
+            $query->where('year', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $query->where('term', $selectedTerm);
         }
 
         $expenses = $query->orderBy('expense_date', 'desc')->paginate(20)->appends($request->query());
@@ -51,12 +45,11 @@ class ExpenseController extends Controller
         
         // Calculate stats based on filtered query
         $statsQuery = Expense::query();
-        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
-            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
-            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
-            $statsQuery->whereBetween('expense_date', [$dateFrom, $dateTo]);
-        } elseif ($selectedYear) {
-            $statsQuery->whereYear('expense_date', $selectedYear);
+        if ($selectedYear) {
+            $statsQuery->where('year', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $statsQuery->where('term', $selectedTerm);
         }
         
         $stats = [
@@ -78,6 +71,8 @@ class ExpenseController extends Controller
     {
         $request->validate([
             'expense_date' => 'required|date',
+            'term' => 'required|string|in:first,second,third',
+            'year' => 'required|integer',
             'category_id' => 'required|exists:expense_categories,id',
             'description' => 'required|string',
             'amount' => 'required|numeric|min:0.01',
@@ -87,6 +82,8 @@ class ExpenseController extends Controller
         $expense = Expense::create([
             'expense_number' => Expense::generateExpenseNumber(),
             'expense_date' => $request->expense_date,
+            'term' => $request->term,
+            'year' => $request->year,
             'category_id' => $request->category_id,
             'vendor_name' => $request->vendor_name,
             'description' => $request->description,
@@ -107,6 +104,8 @@ class ExpenseController extends Controller
             $category = ExpenseCategory::find($request->category_id);
             $cashEntry = CashBookEntry::create([
                 'entry_date' => $request->expense_date,
+                'term' => $request->term,
+                'year' => $request->year,
                 'reference_number' => CashBookEntry::generateReferenceNumber(),
                 'transaction_type' => 'payment',
                 'category' => 'other_expense',

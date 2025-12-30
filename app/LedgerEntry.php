@@ -8,6 +8,8 @@ class LedgerEntry extends Model
 {
     protected $fillable = [
         'entry_date',
+        'term',
+        'year',
         'reference_number',
         'account_id',
         'entry_type',

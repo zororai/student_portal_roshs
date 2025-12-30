@@ -10,6 +10,8 @@ class Expense extends Model
     protected $fillable = [
         'expense_number',
         'expense_date',
+        'term',
+        'year',
         'category_id',
         'vendor_name',
         'description',

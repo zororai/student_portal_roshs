@@ -15,6 +15,24 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Year *</label>
+                    <select name="year" class="w-full border rounded-lg px-3 py-2" required>
+                        @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+                            <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Term *</label>
+                    <select name="term" class="w-full border rounded-lg px-3 py-2" required>
+                        <option value="first">First Term</option>
+                        <option value="second">Second Term</option>
+                        <option value="third">Third Term</option>
+                    </select>
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Entry Date *</label>
                     <input type="date" name="entry_date" value="{{ old('entry_date', date('Y-m-d')) }}" class="w-full border rounded-lg px-3 py-2" required>
                 </div>

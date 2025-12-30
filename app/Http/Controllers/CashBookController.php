@@ -18,24 +18,18 @@ class CashBookController extends Controller
         // Year and term filter setup
         $years = range(date('Y'), date('Y') - 5);
         $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
-        $termDateRanges = [
-            'first' => ['01-01', '04-30'],
-            'second' => ['05-01', '08-31'],
-            'third' => ['09-01', '12-31'],
-        ];
         
         $selectedYear = $request->year;
         $selectedTerm = $request->term;
         
         $query = CashBookEntry::with(['creator', 'payroll']);
 
-        // Apply year/term filter
-        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
-            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
-            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
-            $query->whereBetween('entry_date', [$dateFrom, $dateTo]);
-        } elseif ($selectedYear) {
-            $query->whereYear('entry_date', $selectedYear);
+        // Apply year/term filter using term/year fields
+        if ($selectedYear) {
+            $query->where('year', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $query->where('term', $selectedTerm);
         }
 
         if ($request->filled('transaction_type')) {
@@ -53,12 +47,11 @@ class CashBookController extends Controller
 
         // Calculate totals based on filter
         $statsQuery = CashBookEntry::query();
-        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
-            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
-            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
-            $statsQuery->whereBetween('entry_date', [$dateFrom, $dateTo]);
-        } elseif ($selectedYear) {
-            $statsQuery->whereYear('entry_date', $selectedYear);
+        if ($selectedYear) {
+            $statsQuery->where('year', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $statsQuery->where('term', $selectedTerm);
         }
         
         $totalReceipts = (clone $statsQuery)->where('transaction_type', 'receipt')->sum('amount');
@@ -92,6 +85,8 @@ class CashBookController extends Controller
     {
         $request->validate([
             'entry_date' => 'required|date',
+            'term' => 'required|string|in:first,second,third',
+            'year' => 'required|integer',
             'transaction_type' => 'required|in:receipt,payment',
             'category' => 'required|string',
             'description' => 'required|string|max:500',
@@ -113,6 +108,8 @@ class CashBookController extends Controller
 
         $entry = CashBookEntry::create([
             'entry_date' => $request->entry_date,
+            'term' => $request->term,
+            'year' => $request->year,
             'reference_number' => CashBookEntry::generateReferenceNumber(),
             'transaction_type' => $request->transaction_type,
             'category' => $request->category,

@@ -110,24 +110,18 @@ class LedgerController extends Controller
         // Year and term filter setup
         $years = range(date('Y'), date('Y') - 5);
         $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
-        $termDateRanges = [
-            'first' => ['01-01', '04-30'],
-            'second' => ['05-01', '08-31'],
-            'third' => ['09-01', '12-31'],
-        ];
         
         $selectedYear = $request->year;
         $selectedTerm = $request->term;
         
         $query = LedgerEntry::with(['account', 'creator']);
 
-        // Apply year/term filter
-        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
-            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
-            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
-            $query->whereBetween('entry_date', [$dateFrom, $dateTo]);
-        } elseif ($selectedYear) {
-            $query->whereYear('entry_date', $selectedYear);
+        // Apply year/term filter using term/year fields
+        if ($selectedYear) {
+            $query->where('year', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $query->where('term', $selectedTerm);
         }
 
         if ($request->filled('account_id')) {

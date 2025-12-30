@@ -16,7 +16,9 @@ class Product extends Model
         'quantity_in_stock',
         'quantity_sold',
         'category',
-        'supplier'
+        'supplier',
+        'term',
+        'year'
     ];
 
     protected $casts = [

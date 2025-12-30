@@ -10,6 +10,8 @@ class SchoolIncome extends Model
 
     protected $fillable = [
         'date',
+        'term',
+        'year',
         'category',
         'description',
         'amount',

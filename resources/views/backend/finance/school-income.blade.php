@@ -139,6 +139,24 @@
         </div>
         <form action="{{ route('finance.income.store') }}" method="POST" class="p-6 space-y-4">
             @csrf
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                    <select name="year" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+                            <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Term</label>
+                    <select name="term" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <option value="first">First Term</option>
+                        <option value="second">Second Term</option>
+                        <option value="third">Third Term</option>
+                    </select>
+                </div>
+            </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
                 <input type="date" name="date" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" value="{{ date('Y-m-d') }}">

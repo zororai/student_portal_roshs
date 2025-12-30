@@ -420,31 +420,16 @@ class FinanceController extends Controller
         $years = range(date('Y'), date('Y') - 5);
         $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
         
-        // Term date ranges
-        $termDateRanges = [
-            'first' => ['01-01', '04-30'],
-            'second' => ['05-01', '08-31'],
-            'third' => ['09-01', '12-31'],
-        ];
-        
         $selectedYear = $request->year;
         $selectedTerm = $request->term;
         
-        // Build date range filter
-        $dateFrom = null;
-        $dateTo = null;
-        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
-            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
-            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
-        } elseif ($selectedYear) {
-            $dateFrom = $selectedYear . '-01-01';
-            $dateTo = $selectedYear . '-12-31';
-        }
-        
-        // Get manual income records
+        // Get manual income records - filter by term/year fields
         $manualQuery = SchoolIncome::orderBy('date', 'desc');
-        if ($dateFrom && $dateTo) {
-            $manualQuery->whereBetween('date', [$dateFrom, $dateTo]);
+        if ($selectedYear) {
+            $manualQuery->where('year', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $manualQuery->where('term', $selectedTerm);
         }
         $manualIncomes = $manualQuery->get()->map(function($income) {
             return [
@@ -458,12 +443,9 @@ class FinanceController extends Controller
             ];
         });
 
-        // Get student payments as income
-        $paymentQuery = StudentPayment::with('student')->orderBy('payment_date', 'desc');
-        if ($dateFrom && $dateTo) {
-            $paymentQuery->whereBetween('payment_date', [$dateFrom, $dateTo]);
-        }
-        $studentPayments = $paymentQuery->get()->map(function($payment) {
+        // Get student payments as income (student payments don't have term/year fields yet, show all)
+        $studentPayments = StudentPayment::with('student')->orderBy('payment_date', 'desc')
+            ->get()->map(function($payment) {
                 $studentName = $payment->student ? $payment->student->name . ' ' . $payment->student->surname : 'Unknown Student';
                 return [
                     'id' => 'sp_' . $payment->id,
@@ -476,10 +458,13 @@ class FinanceController extends Controller
                 ];
             });
 
-        // Get product sales as income
+        // Get product sales as income - filter by term/year fields
         $productQuery = Product::where('quantity_sold', '>', 0);
-        if ($dateFrom && $dateTo) {
-            $productQuery->whereBetween('updated_at', [$dateFrom, $dateTo]);
+        if ($selectedYear) {
+            $productQuery->where('year', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $productQuery->where('term', $selectedTerm);
         }
         $productSales = $productQuery->get()->map(function($product) {
                 return [
@@ -561,6 +546,8 @@ class FinanceController extends Controller
     {
         $validated = $request->validate([
             'date' => 'required|date',
+            'term' => 'required|string|in:first,second,third',
+            'year' => 'required|integer',
             'description' => 'required|string|max:255',
             'category' => 'required|string',
             'amount' => 'required|numeric|min:0',
@@ -575,6 +562,8 @@ class FinanceController extends Controller
 
         $cashEntry = CashBookEntry::create([
             'entry_date' => $validated['date'],
+            'term' => $validated['term'],
+            'year' => $validated['year'],
             'reference_number' => CashBookEntry::generateReferenceNumber(),
             'transaction_type' => 'receipt',
             'category' => 'other_income',
@@ -653,6 +642,8 @@ class FinanceController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'term' => 'required|string|in:first,second,third',
+            'year' => 'required|integer',
             'category' => 'required|string',
             'price' => 'required|numeric|min:0',
             'quantity_sold' => 'required|integer|min:0',
@@ -666,6 +657,8 @@ class FinanceController extends Controller
             // Create School Income record
             $income = SchoolIncome::create([
                 'date' => now()->format('Y-m-d'),
+                'term' => $validated['term'],
+                'year' => $validated['year'],
                 'category' => 'Products Sold',
                 'description' => 'Product Sale: ' . $validated['name'] . ' (' . $validated['quantity_sold'] . ' units @ $' . number_format($validated['price'], 2) . ')',
                 'amount' => $totalSale,
@@ -678,6 +671,8 @@ class FinanceController extends Controller
 
             $cashEntry = CashBookEntry::create([
                 'entry_date' => now()->format('Y-m-d'),
+                'term' => $validated['term'],
+                'year' => $validated['year'],
                 'reference_number' => CashBookEntry::generateReferenceNumber(),
                 'transaction_type' => 'receipt',
                 'category' => 'other_income',
