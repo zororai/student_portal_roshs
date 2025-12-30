@@ -183,7 +183,7 @@
 				<ul class="navbar-nav equal-spacing">
                     <li class="nav-item d-flex align-items-center">
 						<a class="navbar-brand logo-center" href="{{ route('website.index') }}">
-							<img style="height:80px; width:100px;" src="{{ asset('images/logo.png') }}" alt="Rose of Sharon High School">
+							<img style="height:80px; width:100px;" src="{{ asset($siteLogo) }}" alt="Rose of Sharon High School">
 						</a>
 					</li>
 					<li><a class="nav-link" href="{{ route('website.index') }}">Home</a></li>
@@ -246,7 +246,7 @@
 		      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			     <div class="footer_blog">
 				    <div class="full margin-bottom_30">
-					 <img style="height:80px;width :100px" src="{{ asset($footerLogo) }}" alt="image">
+					 <img style="height:80px;width :100px" src="images/logo.png" alt="image">
 					 </div>
 					 <div class="full white_fonts">
 					    <p>Our Vision

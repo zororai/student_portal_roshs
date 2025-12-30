@@ -46,14 +46,24 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-        <form method="GET" class="flex flex-wrap gap-4">
+        <form method="GET" class="flex flex-wrap gap-4 items-end">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}" class="border rounded-lg px-3 py-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                <select name="year" class="border rounded-lg px-3 py-2">
+                    <option value="">All Years</option>
+                    @foreach($years as $year)
+                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                    @endforeach
+                </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
-                <input type="date" name="date_to" value="{{ request('date_to') }}" class="border rounded-lg px-3 py-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Term</label>
+                <select name="term" class="border rounded-lg px-3 py-2">
+                    <option value="">All Terms</option>
+                    @foreach($terms as $key => $label)
+                    <option value="{{ $key }}" {{ $selectedTerm == $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>

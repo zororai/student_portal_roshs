@@ -15,10 +15,52 @@
         </button>
     </div>
 
-    <!-- Summary Card -->
-    <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 mb-6 text-white">
-        <p class="text-green-100 text-sm uppercase tracking-wide">Total Income</p>
-        <p class="text-4xl font-bold mt-1">${{ number_format($totalIncome, 2) }}</p>
+    <!-- Filter Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <form action="{{ route('finance.school-income') }}" method="GET" class="flex flex-wrap items-end gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                <select name="year" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                    <option value="">All Years</option>
+                    @foreach($years as $year)
+                        <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Term</label>
+                <select name="term" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                    <option value="">All Terms</option>
+                    @foreach($terms as $key => $label)
+                        <option value="{{ $key }}" {{ $selectedTerm == $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Filter</button>
+                <a href="{{ route('finance.school-income') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+            <p class="text-green-100 text-sm uppercase tracking-wide">Total Income</p>
+            <p class="text-3xl font-bold mt-1">${{ number_format($totalIncome, 2) }}</p>
+        </div>
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
+            <p class="text-blue-100 text-sm uppercase tracking-wide">Student Fees</p>
+            <p class="text-3xl font-bold mt-1">${{ number_format($totalStudentPayments ?? 0, 2) }}</p>
+        </div>
+        <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
+            <p class="text-purple-100 text-sm uppercase tracking-wide">Products Sold</p>
+            <p class="text-3xl font-bold mt-1">${{ number_format($totalProductSales ?? 0, 2) }}</p>
+        </div>
+        <div class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white">
+            <p class="text-orange-100 text-sm uppercase tracking-wide">Manual Income</p>
+            <p class="text-3xl font-bold mt-1">${{ number_format($totalManualIncome ?? 0, 2) }}</p>
+        </div>
     </div>
 
     <!-- Income Table -->
@@ -36,16 +78,28 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($incomes as $index => $income)
+                @php
+                    $incomeData = is_array($income) ? $income : $income->toArray();
+                    $source = $incomeData['source'] ?? 'manual';
+                    if ($source == 'student_payment') {
+                        $categoryClass = 'bg-blue-100 text-blue-700';
+                    } elseif ($source == 'product') {
+                        $categoryClass = 'bg-purple-100 text-purple-700';
+                    } else {
+                        $categoryClass = 'bg-green-100 text-green-700';
+                    }
+                @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 text-sm text-gray-600">{{ $incomes->firstItem() + $index }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-800">{{ \Carbon\Carbon::parse($income->date)->format('M d, Y') }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-800">{{ $income->description }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-800">{{ \Carbon\Carbon::parse($incomeData['date'])->format('M d, Y') }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-800">{{ $incomeData['description'] }}</td>
                     <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">{{ $income->category ?? 'General' }}</span>
+                        <span class="px-2 py-1 text-xs font-medium {{ $categoryClass }} rounded-full">{{ $incomeData['category'] }}</span>
                     </td>
-                    <td class="px-6 py-4 text-sm text-right font-semibold text-green-600">${{ number_format($income->amount, 2) }}</td>
+                    <td class="px-6 py-4 text-sm text-right font-semibold text-green-600">${{ number_format($incomeData['amount'], 2) }}</td>
                     <td class="px-6 py-4 text-center">
-                        <form action="{{ route('finance.income.destroy', $income->id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this income record?')">
+                        @if($incomeData['deletable'] ?? false)
+                        <form action="{{ route('finance.income.destroy', $incomeData['id']) }}" method="POST" class="inline" onsubmit="return confirm('Delete this income record?')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-red-500 hover:text-red-700">
@@ -54,6 +108,9 @@
                                 </svg>
                             </button>
                         </form>
+                        @else
+                        <span class="text-gray-400 text-xs">Auto</span>
+                        @endif
                     </td>
                 </tr>
                 @empty

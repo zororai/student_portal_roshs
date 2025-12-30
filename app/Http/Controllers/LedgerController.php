@@ -107,18 +107,31 @@ class LedgerController extends Controller
 
     public function entries(Request $request)
     {
+        // Year and term filter setup
+        $years = range(date('Y'), date('Y') - 5);
+        $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
+        $termDateRanges = [
+            'first' => ['01-01', '04-30'],
+            'second' => ['05-01', '08-31'],
+            'third' => ['09-01', '12-31'],
+        ];
+        
+        $selectedYear = $request->year;
+        $selectedTerm = $request->term;
+        
         $query = LedgerEntry::with(['account', 'creator']);
+
+        // Apply year/term filter
+        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
+            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
+            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
+            $query->whereBetween('entry_date', [$dateFrom, $dateTo]);
+        } elseif ($selectedYear) {
+            $query->whereYear('entry_date', $selectedYear);
+        }
 
         if ($request->filled('account_id')) {
             $query->where('account_id', $request->account_id);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('entry_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('entry_date', '<=', $request->date_to);
         }
 
         if ($request->filled('entry_type')) {
@@ -127,13 +140,14 @@ class LedgerController extends Controller
 
         $entries = $query->orderBy('entry_date', 'desc')
             ->orderBy('id', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->appends($request->query());
 
         $accounts = LedgerAccount::where('is_active', true)
             ->orderBy('account_code')
             ->get();
 
-        return view('backend.admin.finance.ledger.entries', compact('entries', 'accounts'));
+        return view('backend.admin.finance.ledger.entries', compact('entries', 'accounts', 'years', 'terms', 'selectedYear', 'selectedTerm'));
     }
 
     public function createEntry()

@@ -43,7 +43,8 @@ class FinanceDashboardController extends Controller
             ->sum('amount');
 
         // Current Balance
-        $currentBalance = CashBookEntry::orderBy('id', 'desc')->first()->balance ?? 0;
+        $lastEntry = CashBookEntry::orderBy('id', 'desc')->first();
+        $currentBalance = $lastEntry ? $lastEntry->balance : 0;
 
         // Pending Payroll
         $pendingPayroll = Payroll::where('status', 'pending')->sum('net_salary');

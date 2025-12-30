@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Expense;
 use App\ExpenseCategory;
+use App\CashBookEntry;
 
 class ExpenseController extends Controller
 {
@@ -15,6 +16,18 @@ class ExpenseController extends Controller
 
     public function index(Request $request)
     {
+        // Year and term filter setup
+        $years = range(date('Y'), date('Y') - 5);
+        $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
+        $termDateRanges = [
+            'first' => ['01-01', '04-30'],
+            'second' => ['05-01', '08-31'],
+            'third' => ['09-01', '12-31'],
+        ];
+        
+        $selectedYear = $request->year;
+        $selectedTerm = $request->term;
+        
         $query = Expense::with(['category', 'creator']);
         
         if ($request->category_id) {
@@ -23,23 +36,36 @@ class ExpenseController extends Controller
         if ($request->status) {
             $query->where('payment_status', $request->status);
         }
-        if ($request->from_date) {
-            $query->whereDate('expense_date', '>=', $request->from_date);
-        }
-        if ($request->to_date) {
-            $query->whereDate('expense_date', '<=', $request->to_date);
+        
+        // Apply year/term filter
+        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
+            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
+            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
+            $query->whereBetween('expense_date', [$dateFrom, $dateTo]);
+        } elseif ($selectedYear) {
+            $query->whereYear('expense_date', $selectedYear);
         }
 
-        $expenses = $query->orderBy('expense_date', 'desc')->paginate(20);
+        $expenses = $query->orderBy('expense_date', 'desc')->paginate(20)->appends($request->query());
         $categories = ExpenseCategory::where('is_active', true)->get();
         
+        // Calculate stats based on filtered query
+        $statsQuery = Expense::query();
+        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
+            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
+            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
+            $statsQuery->whereBetween('expense_date', [$dateFrom, $dateTo]);
+        } elseif ($selectedYear) {
+            $statsQuery->whereYear('expense_date', $selectedYear);
+        }
+        
         $stats = [
-            'total' => Expense::sum('amount'),
-            'pending' => Expense::where('payment_status', 'pending')->sum('amount'),
-            'paid' => Expense::where('payment_status', 'paid')->sum('amount'),
+            'total' => (clone $statsQuery)->sum('amount'),
+            'pending' => (clone $statsQuery)->where('payment_status', 'pending')->sum('amount'),
+            'paid' => (clone $statsQuery)->where('payment_status', 'paid')->sum('amount'),
         ];
 
-        return view('backend.admin.finance.expenses.index', compact('expenses', 'categories', 'stats'));
+        return view('backend.admin.finance.expenses.index', compact('expenses', 'categories', 'stats', 'years', 'terms', 'selectedYear', 'selectedTerm'));
     }
 
     public function create()
@@ -58,7 +84,7 @@ class ExpenseController extends Controller
             'payment_status' => 'required|in:pending,paid,partial',
         ]);
 
-        Expense::create([
+        $expense = Expense::create([
             'expense_number' => Expense::generateExpenseNumber(),
             'expense_date' => $request->expense_date,
             'category_id' => $request->category_id,
@@ -71,6 +97,29 @@ class ExpenseController extends Controller
             'notes' => $request->notes,
             'created_by' => auth()->id(),
         ]);
+
+        // Auto-create CashBookEntry if expense is paid
+        if ($request->payment_status === 'paid') {
+            $lastEntry = CashBookEntry::orderBy('id', 'desc')->first();
+            $currentBalance = $lastEntry ? $lastEntry->balance : 0;
+            $newBalance = $currentBalance - $request->amount;
+
+            $category = ExpenseCategory::find($request->category_id);
+            $cashEntry = CashBookEntry::create([
+                'entry_date' => $request->expense_date,
+                'reference_number' => CashBookEntry::generateReferenceNumber(),
+                'transaction_type' => 'payment',
+                'category' => 'other_expense',
+                'description' => '[Expense] ' . $request->description,
+                'amount' => $request->amount,
+                'balance' => $newBalance,
+                'payment_method' => $request->payment_method ?? 'cash',
+                'payer_payee' => $request->vendor_name ?? ($category ? $category->name : 'Expense'),
+                'created_by' => auth()->id(),
+                'notes' => 'Auto-generated from Expense #' . $expense->id,
+            ]);
+            $cashEntry->postToLedger();
+        }
 
         return redirect()->route('admin.finance.expenses.index')
             ->with('success', 'Expense recorded successfully.');
@@ -92,6 +141,7 @@ class ExpenseController extends Controller
     public function update(Request $request, $id)
     {
         $expense = Expense::findOrFail($id);
+        $oldStatus = $expense->payment_status;
         
         $request->validate([
             'expense_date' => 'required|date',
@@ -104,6 +154,32 @@ class ExpenseController extends Controller
             'expense_date', 'category_id', 'vendor_name', 'description',
             'amount', 'payment_status', 'payment_method', 'receipt_number', 'notes'
         ]));
+
+        // Auto-create CashBookEntry if status changed to paid and no entry exists
+        if ($request->payment_status === 'paid' && $oldStatus !== 'paid') {
+            $existingEntry = CashBookEntry::where('notes', 'Auto-generated from Expense #' . $id)->first();
+            if (!$existingEntry) {
+                $lastEntry = CashBookEntry::orderBy('id', 'desc')->first();
+                $currentBalance = $lastEntry ? $lastEntry->balance : 0;
+                $newBalance = $currentBalance - $request->amount;
+
+                $category = ExpenseCategory::find($request->category_id);
+                $cashEntry = CashBookEntry::create([
+                    'entry_date' => $request->expense_date,
+                    'reference_number' => CashBookEntry::generateReferenceNumber(),
+                    'transaction_type' => 'payment',
+                    'category' => 'other_expense',
+                    'description' => '[Expense] ' . $request->description,
+                    'amount' => $request->amount,
+                    'balance' => $newBalance,
+                    'payment_method' => $request->payment_method ?? 'cash',
+                    'payer_payee' => $request->vendor_name ?? ($category ? $category->name : 'Expense'),
+                    'created_by' => auth()->id(),
+                    'notes' => 'Auto-generated from Expense #' . $expense->id,
+                ]);
+                $cashEntry->postToLedger();
+            }
+        }
 
         return redirect()->route('admin.finance.expenses.index')
             ->with('success', 'Expense updated successfully.');

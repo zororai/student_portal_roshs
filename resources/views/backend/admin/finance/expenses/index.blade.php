@@ -28,21 +28,46 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-        <form method="GET" class="flex flex-wrap gap-4">
-            <select name="category_id" class="border rounded-lg px-3 py-2">
-                <option value="">All Categories</option>
-                @foreach($categories as $cat)
-                <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                @endforeach
-            </select>
-            <select name="status" class="border rounded-lg px-3 py-2">
-                <option value="">All Status</option>
-                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
-            </select>
-            <input type="date" name="from_date" value="{{ request('from_date') }}" class="border rounded-lg px-3 py-2">
-            <input type="date" name="to_date" value="{{ request('to_date') }}" class="border rounded-lg px-3 py-2">
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Filter</button>
+        <form method="GET" class="flex flex-wrap gap-4 items-end">
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Year</label>
+                <select name="year" class="border rounded-lg px-3 py-2">
+                    <option value="">All Years</option>
+                    @foreach($years as $year)
+                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Term</label>
+                <select name="term" class="border rounded-lg px-3 py-2">
+                    <option value="">All Terms</option>
+                    @foreach($terms as $key => $label)
+                    <option value="{{ $key }}" {{ $selectedTerm == $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Category</label>
+                <select name="category_id" class="border rounded-lg px-3 py-2">
+                    <option value="">All Categories</option>
+                    @foreach($categories as $cat)
+                    <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Status</label>
+                <select name="status" class="border rounded-lg px-3 py-2">
+                    <option value="">All Status</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Filter</button>
+                <a href="{{ route('admin.finance.expenses.index') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg">Reset</a>
+            </div>
         </form>
     </div>
 

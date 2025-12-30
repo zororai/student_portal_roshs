@@ -14,6 +14,34 @@
         </div>
     </div>
 
+    <!-- Filter Form -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <form action="{{ route('finance.statements') }}" method="GET" class="flex flex-wrap items-end gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                <select name="year" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Years</option>
+                    @foreach($years as $year)
+                        <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Term</label>
+                <select name="term" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Terms</option>
+                    @foreach($terms as $key => $label)
+                        <option value="{{ $key }}" {{ $selectedTerm == $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Filter</button>
+                <a href="{{ route('finance.statements') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Reset</a>
+            </div>
+        </form>
+    </div>
+
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="bg-white rounded-lg shadow p-6">
@@ -72,7 +100,7 @@
                     <span class="font-semibold text-green-600">${{ number_format($income->total, 2) }}</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-green-600 h-2 rounded-full" style="width: {{ ($income->total / $totalIncome) * 100 }}%"></div>
+                    <div class="bg-green-600 h-2 rounded-full" style="width: {{ $totalIncome > 0 ? ($income->total / $totalIncome) * 100 : 0 }}%"></div>
                 </div>
                 @empty
                 <p class="text-gray-500 text-center py-4">No income data available</p>
@@ -90,7 +118,7 @@
                     <span class="font-semibold text-red-600">${{ number_format($expense->total, 2) }}</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-red-600 h-2 rounded-full" style="width: {{ ($expense->total / $totalExpenses) * 100 }}%"></div>
+                    <div class="bg-red-600 h-2 rounded-full" style="width: {{ $totalExpenses > 0 ? ($expense->total / $totalExpenses) * 100 : 0 }}%"></div>
                 </div>
                 @empty
                 <p class="text-gray-500 text-center py-4">No expense data available</p>

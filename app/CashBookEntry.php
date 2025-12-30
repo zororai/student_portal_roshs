@@ -3,6 +3,8 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\LedgerAccount;
+use App\LedgerEntry;
 
 class CashBookEntry extends Model
 {
@@ -92,5 +94,127 @@ class CashBookEntry extends Model
                 'other_expense' => 'Other Expenses',
             ],
         ];
+    }
+
+    /**
+     * Auto-post this cash book entry to the General Ledger
+     * Creates double-entry: Cash account + corresponding Income/Expense account
+     */
+    public function postToLedger()
+    {
+        // Find or create Cash account
+        $cashAccount = LedgerAccount::firstOrCreate(
+            ['account_code' => '1001'],
+            [
+                'account_name' => 'Cash',
+                'account_type' => 'asset',
+                'category' => 'Current Assets',
+                'description' => 'Cash on hand and in bank',
+                'opening_balance' => 0,
+                'current_balance' => 0,
+            ]
+        );
+
+        // Map categories to ledger accounts
+        $accountMappings = [
+            'receipt' => [
+                'school_fees' => ['code' => '4001', 'name' => 'School Fees Income', 'type' => 'income'],
+                'registration' => ['code' => '4002', 'name' => 'Registration Fees Income', 'type' => 'income'],
+                'exam_fees' => ['code' => '4003', 'name' => 'Exam Fees Income', 'type' => 'income'],
+                'uniform' => ['code' => '4004', 'name' => 'Uniform Sales Income', 'type' => 'income'],
+                'donations' => ['code' => '4005', 'name' => 'Donations Income', 'type' => 'income'],
+                'grants' => ['code' => '4006', 'name' => 'Government Grants Income', 'type' => 'income'],
+                'other_income' => ['code' => '4099', 'name' => 'Other Income', 'type' => 'income'],
+            ],
+            'payment' => [
+                'salaries' => ['code' => '5001', 'name' => 'Salaries & Wages Expense', 'type' => 'expense'],
+                'utilities' => ['code' => '5002', 'name' => 'Utilities Expense', 'type' => 'expense'],
+                'supplies' => ['code' => '5003', 'name' => 'Office Supplies Expense', 'type' => 'expense'],
+                'maintenance' => ['code' => '5004', 'name' => 'Maintenance & Repairs Expense', 'type' => 'expense'],
+                'transport' => ['code' => '5005', 'name' => 'Transport Expense', 'type' => 'expense'],
+                'communication' => ['code' => '5006', 'name' => 'Communication Expense', 'type' => 'expense'],
+                'equipment' => ['code' => '5007', 'name' => 'Equipment Expense', 'type' => 'expense'],
+                'other_expense' => ['code' => '5099', 'name' => 'Other Expenses', 'type' => 'expense'],
+            ],
+        ];
+
+        // Get the corresponding account for this category
+        $mapping = $accountMappings[$this->transaction_type][$this->category] ?? null;
+        if (!$mapping) {
+            // Default to other income/expense
+            $mapping = $this->transaction_type === 'receipt' 
+                ? $accountMappings['receipt']['other_income']
+                : $accountMappings['payment']['other_expense'];
+        }
+
+        // Find or create the corresponding account
+        $correspondingAccount = LedgerAccount::firstOrCreate(
+            ['account_code' => $mapping['code']],
+            [
+                'account_name' => $mapping['name'],
+                'account_type' => $mapping['type'],
+                'category' => ucfirst($mapping['type']),
+                'description' => $mapping['name'],
+                'opening_balance' => 0,
+                'current_balance' => 0,
+            ]
+        );
+
+        // Create ledger entries based on transaction type
+        if ($this->transaction_type === 'receipt') {
+            // Receipt: Debit Cash, Credit Income
+            LedgerEntry::create([
+                'entry_date' => $this->entry_date,
+                'reference_number' => LedgerEntry::generateReferenceNumber(),
+                'account_id' => $cashAccount->id,
+                'entry_type' => 'debit',
+                'amount' => $this->amount,
+                'description' => $this->description,
+                'cash_book_entry_id' => $this->id,
+                'created_by' => $this->created_by,
+                'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
+            ]);
+
+            LedgerEntry::create([
+                'entry_date' => $this->entry_date,
+                'reference_number' => LedgerEntry::generateReferenceNumber(),
+                'account_id' => $correspondingAccount->id,
+                'entry_type' => 'credit',
+                'amount' => $this->amount,
+                'description' => $this->description,
+                'cash_book_entry_id' => $this->id,
+                'created_by' => $this->created_by,
+                'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
+            ]);
+        } else {
+            // Payment: Credit Cash, Debit Expense
+            LedgerEntry::create([
+                'entry_date' => $this->entry_date,
+                'reference_number' => LedgerEntry::generateReferenceNumber(),
+                'account_id' => $cashAccount->id,
+                'entry_type' => 'credit',
+                'amount' => $this->amount,
+                'description' => $this->description,
+                'cash_book_entry_id' => $this->id,
+                'created_by' => $this->created_by,
+                'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
+            ]);
+
+            LedgerEntry::create([
+                'entry_date' => $this->entry_date,
+                'reference_number' => LedgerEntry::generateReferenceNumber(),
+                'account_id' => $correspondingAccount->id,
+                'entry_type' => 'debit',
+                'amount' => $this->amount,
+                'description' => $this->description,
+                'cash_book_entry_id' => $this->id,
+                'created_by' => $this->created_by,
+                'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
+            ]);
+        }
+
+        // Update account balances
+        $cashAccount->updateBalance();
+        $correspondingAccount->updateBalance();
     }
 }

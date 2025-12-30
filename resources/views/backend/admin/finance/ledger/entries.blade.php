@@ -11,12 +11,46 @@
     </div>
 
     <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
-        <form method="GET" class="flex flex-wrap gap-4">
-            <div><label class="block text-sm font-medium text-gray-700 mb-1">Account</label>
-                <select name="account_id" class="border rounded-lg px-3 py-2"><option value="">All Accounts</option>@foreach($accounts as $acc)<option value="{{ $acc->id }}" {{ request('account_id') == $acc->id ? 'selected' : '' }}>{{ $acc->account_code }} - {{ $acc->account_name }}</option>@endforeach</select></div>
-            <div><label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <select name="entry_type" class="border rounded-lg px-3 py-2"><option value="">All</option><option value="debit" {{ request('entry_type') == 'debit' ? 'selected' : '' }}>Debit</option><option value="credit" {{ request('entry_type') == 'credit' ? 'selected' : '' }}>Credit</option></select></div>
-            <div class="flex items-end"><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Filter</button></div>
+        <form method="GET" class="flex flex-wrap gap-4 items-end">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                <select name="year" class="border rounded-lg px-3 py-2">
+                    <option value="">All Years</option>
+                    @foreach($years as $year)
+                    <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Term</label>
+                <select name="term" class="border rounded-lg px-3 py-2">
+                    <option value="">All Terms</option>
+                    @foreach($terms as $key => $label)
+                    <option value="{{ $key }}" {{ $selectedTerm == $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Account</label>
+                <select name="account_id" class="border rounded-lg px-3 py-2">
+                    <option value="">All Accounts</option>
+                    @foreach($accounts as $acc)
+                    <option value="{{ $acc->id }}" {{ request('account_id') == $acc->id ? 'selected' : '' }}>{{ $acc->account_code }} - {{ $acc->account_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select name="entry_type" class="border rounded-lg px-3 py-2">
+                    <option value="">All</option>
+                    <option value="debit" {{ request('entry_type') == 'debit' ? 'selected' : '' }}>Debit</option>
+                    <option value="credit" {{ request('entry_type') == 'credit' ? 'selected' : '' }}>Credit</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Filter</button>
+                <a href="{{ route('admin.finance.ledger.entries') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200">Reset</a>
+            </div>
         </form>
     </div>
 

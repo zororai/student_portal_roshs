@@ -15,14 +15,27 @@ class CashBookController extends Controller
 
     public function index(Request $request)
     {
+        // Year and term filter setup
+        $years = range(date('Y'), date('Y') - 5);
+        $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
+        $termDateRanges = [
+            'first' => ['01-01', '04-30'],
+            'second' => ['05-01', '08-31'],
+            'third' => ['09-01', '12-31'],
+        ];
+        
+        $selectedYear = $request->year;
+        $selectedTerm = $request->term;
+        
         $query = CashBookEntry::with(['creator', 'payroll']);
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('entry_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('entry_date', '<=', $request->date_to);
+        // Apply year/term filter
+        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
+            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
+            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
+            $query->whereBetween('entry_date', [$dateFrom, $dateTo]);
+        } elseif ($selectedYear) {
+            $query->whereYear('entry_date', $selectedYear);
         }
 
         if ($request->filled('transaction_type')) {
@@ -35,11 +48,21 @@ class CashBookController extends Controller
 
         $entries = $query->orderBy('entry_date', 'desc')
             ->orderBy('id', 'desc')
-            ->paginate(20);
+            ->paginate(20)
+            ->appends($request->query());
 
-        // Calculate totals
-        $totalReceipts = CashBookEntry::where('transaction_type', 'receipt')->sum('amount');
-        $totalPayments = CashBookEntry::where('transaction_type', 'payment')->sum('amount');
+        // Calculate totals based on filter
+        $statsQuery = CashBookEntry::query();
+        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
+            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
+            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
+            $statsQuery->whereBetween('entry_date', [$dateFrom, $dateTo]);
+        } elseif ($selectedYear) {
+            $statsQuery->whereYear('entry_date', $selectedYear);
+        }
+        
+        $totalReceipts = (clone $statsQuery)->where('transaction_type', 'receipt')->sum('amount');
+        $totalPayments = (clone $statsQuery)->where('transaction_type', 'payment')->sum('amount');
         $balance = $totalReceipts - $totalPayments;
 
         // Today's summary
@@ -54,7 +77,8 @@ class CashBookController extends Controller
 
         return view('backend.admin.finance.cashbook.index', compact(
             'entries', 'totalReceipts', 'totalPayments', 'balance',
-            'todayReceipts', 'todayPayments', 'categories'
+            'todayReceipts', 'todayPayments', 'categories',
+            'years', 'terms', 'selectedYear', 'selectedTerm'
         ));
     }
 
@@ -87,7 +111,7 @@ class CashBookController extends Controller
             $newBalance = $previousBalance - $request->amount;
         }
 
-        CashBookEntry::create([
+        $entry = CashBookEntry::create([
             'entry_date' => $request->entry_date,
             'reference_number' => CashBookEntry::generateReferenceNumber(),
             'transaction_type' => $request->transaction_type,
@@ -100,6 +124,9 @@ class CashBookController extends Controller
             'created_by' => auth()->id(),
             'notes' => $request->notes,
         ]);
+
+        // Auto-post to General Ledger
+        $entry->postToLedger();
 
         return redirect()->route('admin.finance.cashbook.index')
             ->with('success', 'Cash book entry created successfully.');

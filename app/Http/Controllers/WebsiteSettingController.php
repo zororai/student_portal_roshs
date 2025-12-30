@@ -178,8 +178,7 @@ class WebsiteSettingController extends Controller
             $fieldName = "image_path_{$i}";
             if ($request->hasFile($fieldName)) {
                 $file = $request->file($fieldName);
-                $filename = 'banner_' . $i . '_' . time() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('banners', $filename, 'public');
+                $path = $file->store('uploads', 'public');
                 $banner->$fieldName = $path;
             }
         }
