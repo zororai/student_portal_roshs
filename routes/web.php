@@ -191,6 +191,11 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('finance/inventory', 'ProductController@inventory')->name('finance.inventory.index');
     Route::get('finance/inventory/movements', 'ProductController@stockMovements')->name('finance.inventory.movements');
 
+    // Finance - Product Categories
+    Route::get('finance/categories', 'ProductController@categories')->name('finance.categories.index');
+    Route::post('finance/categories', 'ProductController@storeCategory')->name('finance.categories.store');
+    Route::delete('finance/categories/{id}', 'ProductController@deleteCategory')->name('finance.categories.delete');
+
     // Finance - Products & Sales
     Route::get('finance/products', 'ProductController@index')->name('finance.products');
     Route::get('finance/products/create', 'ProductController@create')->name('finance.products.create');
@@ -490,6 +495,10 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
      Route::get('/results/student/{id}', 'ResultController@show')->name('results.show');
      Route::get('/teacher/results/{class_id}','ResultController@listResults')->name('results.results');
      Route::get('/teacher/timetable', 'TimetableController@teacherView')->name('teacher.timetable');
+
+     // Teacher Logbook
+     Route::get('/teacher/logbook', 'TeacherLogBookController@index')->name('teacher.logbook.index');
+     Route::post('/teacher/logbook/scan', 'TeacherLogBookController@scan')->name('teacher.logbook.scan');
 
 });
 

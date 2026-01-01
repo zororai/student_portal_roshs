@@ -8,6 +8,7 @@
             <p class="text-gray-600">Track and manage product stock levels</p>
         </div>
         <div class="flex gap-2">
+            <a href="{{ route('finance.categories.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Manage Categories</a>
             <a href="{{ route('finance.products.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>

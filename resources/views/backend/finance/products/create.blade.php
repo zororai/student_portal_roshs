@@ -39,17 +39,15 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                        <input type="text" name="category" value="{{ old('category') }}" list="categories" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Select or type category">
-                        <datalist id="categories">
+                        <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select a category</option>
                             @foreach($categories as $cat)
-                            <option value="{{ $cat }}">
+                            <option value="{{ $cat }}" {{ old('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                             @endforeach
-                            <option value="Uniform">
-                            <option value="Books">
-                            <option value="Stationery">
-                            <option value="Food">
-                            <option value="Other">
-                        </datalist>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <a href="{{ route('finance.categories.index') }}" class="text-blue-600 hover:underline">Manage Categories</a>
+                        </p>
                     </div>
 
                     <div>

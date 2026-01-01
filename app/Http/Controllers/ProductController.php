@@ -9,6 +9,7 @@ use App\ProductSaleItem;
 use App\StockMovement;
 use App\SchoolIncome;
 use App\CashBookEntry;
+use App\ProductCategory;
 
 class ProductController extends Controller
 {
@@ -47,7 +48,7 @@ class ProductController extends Controller
 
     public function create()
     {
-        $categories = Product::distinct()->whereNotNull('category')->pluck('category');
+        $categories = ProductCategory::where('is_active', true)->orderBy('name')->pluck('name');
         return view('backend.finance.products.create', compact('categories'));
     }
 
@@ -434,5 +435,37 @@ class ProductController extends Controller
         $products = Product::orderBy('name')->get();
 
         return view('backend.finance.products.stock-movements', compact('movements', 'products'));
+    }
+
+    public function categories()
+    {
+        $categories = ProductCategory::withCount('products')->orderBy('name')->get();
+        return view('backend.finance.products.categories', compact('categories'));
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:product_categories,name',
+            'description' => 'nullable|string|max:500',
+        ]);
+
+        ProductCategory::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('finance.categories.index')
+            ->with('success', 'Category created successfully.');
+    }
+
+    public function deleteCategory($id)
+    {
+        $category = ProductCategory::findOrFail($id);
+        $category->delete();
+
+        return redirect()->route('finance.categories.index')
+            ->with('success', 'Category deleted successfully.');
     }
 }

@@ -67,11 +67,14 @@
 
             <!-- Location Status -->
             <div id="locationStatus" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    </svg>
-                    <span class="text-blue-700">Detecting your location...</span>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        </svg>
+                        <span class="text-blue-700">Detecting your location...</span>
+                    </div>
+                    <button type="button" onclick="retryLocation()" class="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Retry</button>
                 </div>
             </div>
 
@@ -209,10 +212,29 @@
     var currentLng = null;
     var schoolBoundary = @json($schoolBoundary);
 
+    var locationFailed = false;
+
     window.onload = function() {
         initMap();
         getLocation();
     };
+
+    function retryLocation() {
+        var statusEl = document.getElementById('locationStatus');
+        statusEl.innerHTML = '<div class="flex items-center justify-between"><div class="flex items-center"><svg class="w-5 h-5 text-blue-500 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg><span class="text-blue-700">Retrying location detection...</span></div><button type="button" onclick="retryLocation()" class="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Retry</button></div>';
+        statusEl.className = 'bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6';
+        locationFailed = false;
+        getLocation();
+    }
+
+    function skipLocation() {
+        var statusEl = document.getElementById('locationStatus');
+        statusEl.innerHTML = '<div class="flex items-center text-yellow-700"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>Location skipped - attendance will be recorded without location verification</div>';
+        statusEl.className = 'bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6';
+        currentLat = 0;
+        currentLng = 0;
+        locationFailed = false;
+    }
 
     function initMap() {
         map = L.map('attendanceMap').setView([-17.8292, 31.0522], 15);
@@ -310,13 +332,14 @@
                 }
             },
             function(error) {
+                locationFailed = true;
                 var message = 'Location error: ';
                 switch(error.code) {
-                    case error.PERMISSION_DENIED: message += 'Permission denied'; break;
-                    case error.POSITION_UNAVAILABLE: message += 'Position unavailable'; break;
-                    case error.TIMEOUT: message += 'Request timed out'; break;
+                    case error.PERMISSION_DENIED: message += 'Permission denied. Please allow location access in your browser.'; break;
+                    case error.POSITION_UNAVAILABLE: message += 'Position unavailable. Try moving to a different location.'; break;
+                    case error.TIMEOUT: message += 'Request timed out. Please retry.'; break;
                 }
-                statusEl.innerHTML = '<div class="flex items-center text-red-700"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' + message + '</div>';
+                statusEl.innerHTML = '<div class="flex items-center justify-between"><div class="flex items-center text-red-700"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' + message + '</div><div class="flex gap-2"><button type="button" onclick="retryLocation()" class="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Retry</button><button type="button" onclick="skipLocation()" class="text-sm px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">Skip</button></div></div>';
                 statusEl.className = 'bg-red-50 border border-red-200 rounded-lg p-4 mb-6';
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -349,10 +372,14 @@
     }
 
     function markAttendance(action) {
-        if (!currentLat || !currentLng) {
-            showMessage('Please wait for your location to be detected.', 'error');
+        if ((currentLat === null || currentLng === null) && !locationFailed) {
+            showMessage('Please wait for your location to be detected, or click "Skip" to proceed without location.', 'error');
             return;
         }
+        
+        // Use 0,0 if location was skipped
+        var lat = currentLat !== null ? currentLat : 0;
+        var lng = currentLng !== null ? currentLng : 0;
 
         var btn = document.getElementById(action === 'check_in' ? 'checkInBtn' : (action === 'check_out' ? 'checkOutBtn' : 'absentBtn'));
         if (btn) {
@@ -367,8 +394,8 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({
-                latitude: currentLat,
-                longitude: currentLng,
+                latitude: lat,
+                longitude: lng,
                 action: action
             })
         })
