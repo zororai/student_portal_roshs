@@ -504,6 +504,9 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
     Route::get('/parent/medical-reports/create', 'MedicalReportController@parentCreate')->name('parent.medical-reports.create');
     Route::post('/parent/medical-reports', 'MedicalReportController@parentStore')->name('parent.medical-reports.store');
     Route::get('/parent/medical-reports/{id}', 'MedicalReportController@parentShow')->name('parent.medical-reports.show');
+    
+    // Parent Disciplinary Records Routes
+    Route::get('/parent/disciplinary-records', 'DisciplinaryController@parentIndex')->name('parent.disciplinary.index');
 });
 
 Route::group(['middleware' => ['auth','role:Student']], function () {

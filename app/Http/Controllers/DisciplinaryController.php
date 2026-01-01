@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DisciplinaryRecord;
 use App\Student;
 use App\Grade;
+use App\Parents;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -143,5 +144,40 @@ class DisciplinaryController extends Controller
         }
         return redirect()->route('teacher.disciplinary.index')
             ->with('success', 'Disciplinary record deleted successfully.');
+    }
+
+    /**
+     * Parent: Display disciplinary records for their children
+     */
+    public function parentIndex()
+    {
+        $parent = Parents::where('user_id', Auth::id())->first();
+        
+        if (!$parent) {
+            return view('backend.parent.disciplinary-records', [
+                'records' => collect(),
+                'students' => collect(),
+                'error' => 'Parent record not found.'
+            ]);
+        }
+
+        $students = Student::where('parent_id', $parent->id)->with('user', 'class')->get();
+        
+        if ($students->isEmpty()) {
+            return view('backend.parent.disciplinary-records', [
+                'records' => collect(),
+                'students' => collect(),
+                'error' => 'No students linked to this parent account.'
+            ]);
+        }
+
+        $studentIds = $students->pluck('id');
+
+        $records = DisciplinaryRecord::whereIn('student_id', $studentIds)
+            ->with(['student.user', 'class', 'teacher.user'])
+            ->orderBy('offense_date', 'desc')
+            ->get();
+
+        return view('backend.parent.disciplinary-records', compact('records', 'students'));
     }
 }
