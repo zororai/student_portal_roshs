@@ -222,15 +222,16 @@ class ProductController extends Controller
 
     public function processSale(Request $request)
     {
-        $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'amount_paid' => 'required|numeric|min:0',
-            'payment_method' => 'required|string',
-        ]);
+        try {
+            $request->validate([
+                'items' => 'required|array|min:1',
+                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.quantity' => 'required|integer|min:1',
+                'amount_paid' => 'required|numeric|min:0',
+                'payment_method' => 'required|string',
+            ]);
 
-        $totalAmount = 0;
+            $totalAmount = 0;
         $itemsData = [];
 
         foreach ($request->items as $item) {
@@ -269,6 +270,7 @@ class ProductController extends Controller
             'change_given' => $request->amount_paid - $totalAmount,
             'payment_method' => $request->payment_method,
             'customer_name' => $request->customer_name,
+            'customer_phone' => $request->customer_phone,
             'notes' => $request->notes,
             'sold_by' => auth()->id(),
         ]);
@@ -336,6 +338,12 @@ class ProductController extends Controller
                 'change_given' => $sale->change_given,
             ]
         ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function salesHistory(Request $request)

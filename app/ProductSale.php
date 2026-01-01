@@ -15,6 +15,7 @@ class ProductSale extends Model
         'change_given',
         'payment_method',
         'customer_name',
+        'customer_phone',
         'notes',
         'sold_by',
     ];

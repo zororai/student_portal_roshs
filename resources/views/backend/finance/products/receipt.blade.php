@@ -31,6 +31,9 @@
         @if($sale->customer_name)
         <div>Customer: {{ $sale->customer_name }}</div>
         @endif
+        @if($sale->customer_phone)
+        <div>Phone: {{ $sale->customer_phone }}</div>
+        @endif
     </div>
 
     <div class="items">

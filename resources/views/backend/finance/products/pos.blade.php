@@ -288,18 +288,22 @@ function processSale() {
             lastSaleNumber = data.sale.sale_number;
             document.getElementById('saleDetails').innerHTML = `
                 Sale #${data.sale.sale_number}<br>
-                Total: $${data.sale.total_amount.toFixed(2)}<br>
-                Change: $${data.sale.change_given.toFixed(2)}
+                Total: $${parseFloat(data.sale.total_amount).toFixed(2)}<br>
+                Change: $${parseFloat(data.sale.change_given).toFixed(2)}
             `;
             document.getElementById('successModal').classList.remove('hidden');
             clearCart();
             document.getElementById('amountPaid').value = '';
             document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';
         } else {
-            alert(data.message);
+            alert(data.message || 'Sale failed');
         }
     })
-    .catch(err => alert('Error processing sale'));
+    .catch(err => {
+        console.error('Sale error:', err);
+        alert('Error processing sale: ' + (err.message || 'Unknown error'));
+    });
 }
 
 function closeModal() {
