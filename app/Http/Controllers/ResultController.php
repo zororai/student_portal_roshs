@@ -9,6 +9,8 @@ use App\Subject;
 use App\ResultsStatus;
 use App\Teacher;
 use App\StudentPayment;
+use App\Assessment;
+use App\AssessmentMark;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -517,6 +519,46 @@ public function adminshowResult(Request $request)
             'results' => $results,
             'students' => $class->students
         ]);
+    }
+
+    /**
+     * Parent view student assessments
+     */
+    public function parentAssessments()
+    {
+        $parentId = Parents::where('user_id', Auth::user()->id)->value('id');
+        
+        if (!$parentId) {
+            return view('backend.parent.assessments', [
+                'students' => collect(),
+                'assessments' => collect(),
+                'error' => 'Parent record not found. Please contact administrator.'
+            ]);
+        }
+        
+        // Get ALL students for this parent
+        $students = Student::where('parent_id', $parentId)->with('user', 'class')->get();
+        
+        if ($students->isEmpty()) {
+            return view('backend.parent.assessments', [
+                'students' => collect(),
+                'assessments' => collect(),
+                'error' => 'No students linked to this parent account.'
+            ]);
+        }
+        
+        $studentIds = $students->pluck('id');
+        
+        // Get assessment marks for all students
+        $assessmentMarks = AssessmentMark::whereIn('student_id', $studentIds)
+            ->with(['assessment.subject', 'assessment.class', 'assessment.teacher.user', 'student.user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Group by assessment for better display
+        $groupedAssessments = $assessmentMarks->groupBy('assessment_id');
+        
+        return view('backend.parent.assessments', compact('students', 'assessmentMarks', 'groupedAssessments'));
     }
 }
 

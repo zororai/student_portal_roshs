@@ -298,6 +298,15 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     //news letters
     Route::resource('newsletters', 'NewsletterController')->except(['edit', 'update']);
     Route::post('newsletters/{id}/publish', 'NewsletterController@publish')->name('newsletters.publish');
+    
+    // Events
+    Route::get('events', 'EventController@index')->name('events.index');
+    Route::get('events/create', 'EventController@create')->name('events.create');
+    Route::post('events', 'EventController@store')->name('events.store');
+    Route::get('events/{event}/edit', 'EventController@edit')->name('events.edit');
+    Route::put('events/{event}', 'EventController@update')->name('events.update');
+    Route::delete('events/{event}', 'EventController@destroy')->name('events.destroy');
+    
     //studentid
     Route::get('/student/{id}/id-card', 'StudentController@showid')->name('student.id_card');
     Route::get('/student/{id}/id-card/download', 'StudentController@downloadIdCard')->name('student.download_id_card');
@@ -338,6 +347,12 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/disciplinary-records/class/{class_id}/students', 'DisciplinaryController@getStudentsByClass')->name('admin.disciplinary.students');
     Route::put('/admin/disciplinary-records/{id}', 'DisciplinaryController@update')->name('admin.disciplinary.update');
     Route::delete('/admin/disciplinary-records/{id}', 'DisciplinaryController@destroy')->name('admin.disciplinary.destroy');
+
+    // Admin Medical Reports Routes
+    Route::get('/admin/medical-reports', 'MedicalReportController@adminIndex')->name('admin.medical-reports.index');
+    Route::get('/admin/medical-reports/{id}', 'MedicalReportController@adminShow')->name('admin.medical-reports.show');
+    Route::post('/admin/medical-reports/{id}/acknowledge', 'MedicalReportController@adminAcknowledge')->name('admin.medical-reports.acknowledge');
+    Route::post('/admin/medical-reports/{id}/review', 'MedicalReportController@adminReview')->name('admin.medical-reports.review');
 
     // Admin Marking Scheme Routes
     Route::get('/admin/marking-scheme', 'AdminMarkingSchemeController@index')->name('admin.marking-scheme.index');
@@ -477,9 +492,18 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
     Route::get('/viewstudentresults/viewstudentresults', 'ResultController@viewstudentshow')->name('parentviewresults.studentresults');
     Route::get('/studentviewresults/studentviewresults', 'AddsubjectController@studentviewsubject')->name('viewsubject.studentresults');
     
+    // Parent Assessments Route
+    Route::get('/parent/assessments', 'ResultController@parentAssessments')->name('parent.assessments');
+    
     // Parent Groceries Routes
     Route::get('/parent/groceries', 'GroceryController@parentIndex')->name('parent.groceries.index');
     Route::post('/parent/groceries/submit', 'GroceryController@parentSubmit')->name('parent.groceries.submit');
+    
+    // Parent Medical Reports Routes
+    Route::get('/parent/medical-reports', 'MedicalReportController@parentIndex')->name('parent.medical-reports.index');
+    Route::get('/parent/medical-reports/create', 'MedicalReportController@parentCreate')->name('parent.medical-reports.create');
+    Route::post('/parent/medical-reports', 'MedicalReportController@parentStore')->name('parent.medical-reports.store');
+    Route::get('/parent/medical-reports/{id}', 'MedicalReportController@parentShow')->name('parent.medical-reports.show');
 });
 
 Route::group(['middleware' => ['auth','role:Student']], function () {

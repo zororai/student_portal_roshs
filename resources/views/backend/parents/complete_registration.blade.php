@@ -103,9 +103,14 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2">
                                 Password <span class="text-red-500">*</span>
                             </label>
-                            <input name="password" type="password" required
-                                   class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400"
-                                   placeholder="Create a strong password">
+                            <div class="relative">
+                                <input name="password" id="password" type="password" required
+                                       class="w-full px-4 py-3 pr-12 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400"
+                                       placeholder="Create a strong password">
+                                <button type="button" onclick="togglePassword('password', 'togglePasswordIcon')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-500">
+                                    <i id="togglePasswordIcon" class="fas fa-eye"></i>
+                                </button>
+                            </div>
                             @error('password')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -115,9 +120,14 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2">
                                 Confirm Password <span class="text-red-500">*</span>
                             </label>
-                            <input name="password_confirmation" type="password" required
-                                   class="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400"
-                                   placeholder="Confirm your password">
+                            <div class="relative">
+                                <input name="password_confirmation" id="password_confirmation" type="password" required
+                                       class="w-full px-4 py-3 pr-12 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400"
+                                       placeholder="Confirm your password">
+                                <button type="button" onclick="togglePassword('password_confirmation', 'toggleConfirmIcon')" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-500">
+                                    <i id="toggleConfirmIcon" class="fas fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -220,6 +230,21 @@
         </div>
     </div>
     <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
         function previewImage(input) {
             const previewContainer = document.getElementById('imagePreviewContainer');
             const preview = document.getElementById('imagePreview');

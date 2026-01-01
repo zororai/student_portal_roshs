@@ -53,7 +53,7 @@ class TestUsersSeeder extends Seeder
         $studentUser->assignRole('Student');
 
         // Create student record with parent_id
-        Student::updateOrCreate(
+        $student = Student::updateOrCreate(
             ['user_id' => $studentUser->id],
             [
                 'parent_id' => $parent->id,
@@ -66,6 +66,11 @@ class TestUsersSeeder extends Seeder
                 'permanent_address' => 'Test Address',
             ]
         );
+
+        // Link parent to student via pivot table (many-to-many)
+        if (!$parent->students()->where('student_id', $student->id)->exists()) {
+            $parent->students()->attach($student->id);
+        }
 
         $this->command->info('Test users created successfully!');
         $this->command->info('Student: student@test.com / password123');
