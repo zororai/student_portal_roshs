@@ -57,18 +57,18 @@
     </form>
 
     <!-- Pending Payment Verifications from Parents -->
-    @if(isset($pendingVerifications) && $pendingVerifications->count() > 0)
     <div class="bg-yellow-50 border border-yellow-200 rounded-lg shadow mb-6">
         <div class="px-4 py-3 border-b border-yellow-200 flex items-center justify-between">
             <div class="flex items-center">
                 <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <h3 class="text-lg font-semibold text-yellow-800">Pending Payment Verifications ({{ $pendingVerifications->count() }})</h3>
+                <h3 class="text-lg font-semibold text-yellow-800">Pending Payment Verifications ({{ isset($pendingVerifications) ? $pendingVerifications->count() : 0 }})</h3>
             </div>
-            <span class="text-sm text-yellow-600">Parents have submitted these receipts for verification</span>
+            <a href="{{ route('admin.payment-verification.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">View All →</a>
         </div>
         <div class="p-4">
+            @if(isset($pendingVerifications) && $pendingVerifications->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($pendingVerifications as $verification)
                 <div class="bg-white rounded-lg border border-yellow-300 p-4 shadow-sm">
@@ -101,9 +101,17 @@
                 </div>
                 @endforeach
             </div>
+            @else
+            <div class="text-center py-6">
+                <svg class="w-12 h-12 text-yellow-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-yellow-700 font-medium">No pending payment verifications</p>
+                <p class="text-yellow-600 text-sm mt-1">When parents submit payment proofs, they will appear here for review</p>
+            </div>
+            @endif
         </div>
     </div>
-    @endif
 
     <!-- Students Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
