@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\PurchaseOrder;
 use App\PurchaseOrderItem;
 use App\Supplier;
+use App\SchoolExpense;
+use App\CashBookEntry;
 
 class PurchaseOrderController extends Controller
 {
@@ -130,5 +132,94 @@ class PurchaseOrderController extends Controller
 
         return redirect()->route('admin.finance.purchase-orders.suppliers')
             ->with('success', 'Supplier created successfully.');
+    }
+
+    /**
+     * Record invoice for a purchase order
+     */
+    public function recordInvoice(Request $request, $id)
+    {
+        $request->validate([
+            'invoice_number' => 'required|string|max:100',
+            'invoice_date' => 'required|date',
+        ]);
+
+        $order = PurchaseOrder::findOrFail($id);
+        
+        $order->update([
+            'invoice_number' => $request->invoice_number,
+            'invoice_date' => $request->invoice_date,
+        ]);
+
+        return back()->with('success', 'Invoice recorded successfully.');
+    }
+
+    /**
+     * Record payment for a purchase order - auto-creates expense and cashbook entry
+     */
+    public function recordPayment(Request $request, $id)
+    {
+        $request->validate([
+            'payment_date' => 'required|date',
+            'payment_method' => 'required|string',
+            'amount_paid' => 'required|numeric|min:0.01',
+        ]);
+
+        $order = PurchaseOrder::with('supplier')->findOrFail($id);
+        
+        // Calculate payment status
+        $totalPaid = floatval($order->amount_paid) + floatval($request->amount_paid);
+        $totalAmount = floatval($order->total_amount);
+        
+        if ($totalPaid >= $totalAmount) {
+            $paymentStatus = 'paid';
+        } elseif ($totalPaid > 0) {
+            $paymentStatus = 'partial';
+        } else {
+            $paymentStatus = 'unpaid';
+        }
+
+        // Create expense record
+        $expense = SchoolExpense::create([
+            'date' => $request->payment_date,
+            'category' => 'Purchase Order',
+            'description' => 'PO #' . $order->po_number . ' - ' . $order->supplier->name . ' - ' . ($order->invoice_number ? 'Invoice: ' . $order->invoice_number : 'No Invoice'),
+            'amount' => $request->amount_paid,
+            'payment_method' => $request->payment_method,
+            'reference_number' => $order->invoice_number ?? $order->po_number,
+            'paid_to' => $order->supplier->name,
+            'approved_by' => auth()->user()->name,
+        ]);
+
+        // Create cash book entry
+        $lastEntry = CashBookEntry::orderBy('id', 'desc')->first();
+        $currentBalance = $lastEntry ? floatval($lastEntry->balance) : 0;
+        $newBalance = $currentBalance - floatval($request->amount_paid);
+
+        $cashEntry = CashBookEntry::create([
+            'entry_date' => $request->payment_date,
+            'reference_number' => CashBookEntry::generateReferenceNumber(),
+            'transaction_type' => 'payment',
+            'category' => 'supplies',
+            'description' => '[Purchase Order] ' . $order->po_number . ' - ' . $order->supplier->name,
+            'amount' => $request->amount_paid,
+            'balance' => $newBalance,
+            'payment_method' => $request->payment_method,
+            'payer_payee' => $order->supplier->name,
+            'created_by' => auth()->id(),
+            'notes' => 'Auto-generated from Purchase Order Payment - Invoice: ' . ($order->invoice_number ?? 'N/A'),
+        ]);
+
+        // Update purchase order
+        $order->update([
+            'payment_status' => $paymentStatus,
+            'payment_date' => $request->payment_date,
+            'payment_method' => $request->payment_method,
+            'amount_paid' => $totalPaid,
+            'expense_id' => $expense->id,
+            'cashbook_entry_id' => $cashEntry->id,
+        ]);
+
+        return back()->with('success', 'Payment of $' . number_format($request->amount_paid, 2) . ' recorded successfully. Expense and Cash Book entry created automatically.');
     }
 }

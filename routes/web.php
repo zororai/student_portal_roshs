@@ -180,24 +180,30 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('admin/finance/cashbook/{id}', 'CashBookController@update')->name('admin.finance.cashbook.update');
     Route::delete('admin/finance/cashbook/{id}', 'CashBookController@destroy')->name('admin.finance.cashbook.destroy');
 
-    // Finance - Ledger Routes
-    Route::get('admin/finance/ledger', 'LedgerController@index')->name('admin.finance.ledger.index');
-    Route::get('admin/finance/ledger/accounts/create', 'LedgerController@createAccount')->name('admin.finance.ledger.create-account');
-    Route::post('admin/finance/ledger/accounts', 'LedgerController@storeAccount')->name('admin.finance.ledger.store-account');
-    Route::get('admin/finance/ledger/accounts/{id}', 'LedgerController@showAccount')->name('admin.finance.ledger.show-account');
-    Route::get('admin/finance/ledger/accounts/{id}/edit', 'LedgerController@editAccount')->name('admin.finance.ledger.edit-account');
-    Route::put('admin/finance/ledger/accounts/{id}', 'LedgerController@updateAccount')->name('admin.finance.ledger.update-account');
-    Route::get('admin/finance/ledger/entries', 'LedgerController@entries')->name('admin.finance.ledger.entries');
-    Route::get('admin/finance/ledger/entries/create', 'LedgerController@createEntry')->name('admin.finance.ledger.create-entry');
-    Route::post('admin/finance/ledger/entries', 'LedgerController@storeEntry')->name('admin.finance.ledger.store-entry');
-    Route::get('admin/finance/ledger/trial-balance', 'LedgerController@trialBalance')->name('admin.finance.ledger.trial-balance');
-
     // Finance - Dashboard & Reports
     Route::get('admin/finance/dashboard', 'FinanceDashboardController@index')->name('admin.finance.dashboard');
     Route::get('admin/finance/reports/income-statement', 'FinanceDashboardController@incomeStatement')->name('admin.finance.reports.income-statement');
     Route::get('admin/finance/reports/balance-sheet', 'FinanceDashboardController@balanceSheet')->name('admin.finance.reports.balance-sheet');
     Route::get('admin/finance/reports/expense-report', 'FinanceDashboardController@expenseReport')->name('admin.finance.reports.expense-report');
     Route::get('admin/finance/reports/fee-report', 'FinanceDashboardController@feeReport')->name('admin.finance.reports.fee-report');
+
+    // Finance - Inventory Management
+    Route::get('finance/inventory', 'ProductController@inventory')->name('finance.inventory.index');
+    Route::get('finance/inventory/movements', 'ProductController@stockMovements')->name('finance.inventory.movements');
+
+    // Finance - Products & Sales
+    Route::get('finance/products', 'ProductController@index')->name('finance.products');
+    Route::get('finance/products/create', 'ProductController@create')->name('finance.products.create');
+    Route::post('finance/products/store', 'ProductController@store')->name('finance.products.store');
+    Route::get('finance/products/pos', 'ProductController@pos')->name('finance.products.pos');
+    Route::get('finance/products/find-by-barcode', 'ProductController@findByBarcode')->name('finance.products.find-by-barcode');
+    Route::post('finance/products/process-sale', 'ProductController@processSale')->name('finance.products.process-sale');
+    Route::get('finance/products/sales-history', 'ProductController@salesHistory')->name('finance.products.sales-history');
+    Route::get('finance/products/sales/{id}/receipt', 'ProductController@saleReceipt')->name('finance.products.sale-receipt');
+    Route::get('finance/products/{id}', 'ProductController@show')->name('finance.products.show');
+    Route::get('finance/products/{id}/edit', 'ProductController@edit')->name('finance.products.edit');
+    Route::put('finance/products/{id}', 'ProductController@update')->name('finance.products.update');
+    Route::post('finance/products/{id}/adjust-stock', 'ProductController@adjustStock')->name('finance.products.adjust-stock');
 
     // Finance - Expenses
     Route::get('admin/finance/expenses', 'ExpenseController@index')->name('admin.finance.expenses.index');
@@ -221,24 +227,8 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('admin/finance/purchase-orders/{id}/approve', 'PurchaseOrderController@approve')->name('admin.finance.purchase-orders.approve');
     Route::post('admin/finance/purchase-orders/{id}/mark-ordered', 'PurchaseOrderController@markOrdered')->name('admin.finance.purchase-orders.mark-ordered');
     Route::post('admin/finance/purchase-orders/{id}/mark-received', 'PurchaseOrderController@markReceived')->name('admin.finance.purchase-orders.mark-received');
-
-    // Finance - Budgets
-    Route::get('admin/finance/budgets', 'BudgetController@index')->name('admin.finance.budgets.index');
-    Route::get('admin/finance/budgets/create', 'BudgetController@create')->name('admin.finance.budgets.create');
-    Route::post('admin/finance/budgets', 'BudgetController@store')->name('admin.finance.budgets.store');
-    Route::get('admin/finance/budgets/{id}', 'BudgetController@show')->name('admin.finance.budgets.show');
-    Route::post('admin/finance/budgets/{id}/add-item', 'BudgetController@addItem')->name('admin.finance.budgets.add-item');
-    Route::post('admin/finance/budgets/{id}/activate', 'BudgetController@activate')->name('admin.finance.budgets.activate');
-    Route::post('admin/finance/budgets/{id}/close', 'BudgetController@close')->name('admin.finance.budgets.close');
-    Route::get('admin/finance/budgets/{id}/comparison', 'BudgetController@comparison')->name('admin.finance.budgets.comparison');
-
-    // Finance - Bank Reconciliation
-    Route::get('admin/finance/reconciliation', 'BankReconciliationController@index')->name('admin.finance.reconciliation.index');
-    Route::get('admin/finance/reconciliation/accounts', 'BankReconciliationController@accounts')->name('admin.finance.reconciliation.accounts');
-    Route::post('admin/finance/reconciliation/accounts', 'BankReconciliationController@storeAccount')->name('admin.finance.reconciliation.store-account');
-    Route::get('admin/finance/reconciliation/{accountId}/transactions', 'BankReconciliationController@transactions')->name('admin.finance.reconciliation.transactions');
-    Route::get('admin/finance/reconciliation/{accountId}/reconcile', 'BankReconciliationController@reconcile')->name('admin.finance.reconciliation.reconcile');
-    Route::post('admin/finance/reconciliation/match', 'BankReconciliationController@matchTransactions')->name('admin.finance.reconciliation.match');
+    Route::post('admin/finance/purchase-orders/{id}/record-invoice', 'PurchaseOrderController@recordInvoice')->name('admin.finance.purchase-orders.record-invoice');
+    Route::post('admin/finance/purchase-orders/{id}/record-payment', 'PurchaseOrderController@recordPayment')->name('admin.finance.purchase-orders.record-payment');
 
     // Timetable Routes
     Route::get('admin/timetable', 'AdminTimetableController@index')->name('admin.timetable.index');
@@ -340,9 +330,9 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/finance/school-expenses', 'FinanceController@schoolExpenses')->name('finance.school-expenses');
     Route::post('/finance/school-expenses', 'FinanceController@storeExpense')->name('finance.expense.store');
     Route::delete('/finance/school-expenses/{id}', 'FinanceController@destroyExpense')->name('finance.expense.destroy');
-    Route::get('/finance/products', 'FinanceController@products')->name('finance.products');
-    Route::post('/finance/products', 'FinanceController@storeProduct')->name('finance.product.store');
-    Route::delete('/finance/products/{id}', 'FinanceController@destroyProduct')->name('finance.product.destroy');
+    Route::get('/finance/products-legacy', 'FinanceController@products')->name('finance.products.legacy');
+    Route::post('/finance/products-legacy', 'FinanceController@storeProduct')->name('finance.product.store.legacy');
+    Route::delete('/finance/products-legacy/{id}', 'FinanceController@destroyProduct')->name('finance.product.destroy.legacy');
     Route::get('/finance/statements', 'FinanceController@financialStatements')->name('finance.statements');
 
     // Admin Groceries Routes
