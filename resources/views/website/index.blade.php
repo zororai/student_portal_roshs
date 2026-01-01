@@ -250,48 +250,61 @@
 
     <!-- Start Banner -->
     @php
-    $banner = App\Banner::first(); // Get the first banner entry
-@endphp
+        $banner = App\Banner::first(); // Get the first banner entry
+    @endphp
 
     <div class="ulockd-home-slider">
         <div class="container-fluid">
             <div class="row">
                 <div class="pogoSlider" id="js-main-slider">
+                    @if($banner && $banner->image_path_1)
                     <div class="pogoSlider-slide" style="background-image: url('{{ asset('storage/' . $banner->image_path_1) }}');">
                         <div class="container">
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="slide_text">
-
-
-
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    @endif
+                    @if($banner && $banner->image_path_2)
                     <div class="pogoSlider-slide" style="background-image: url('{{ asset('storage/' . $banner->image_path_2) }}');">
                         <div class="container">
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="slide_text">
-
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    @endif
+                    @if($banner && $banner->image_path_3)
                     <div class="pogoSlider-slide" style="background-image: url('{{ asset('storage/' . $banner->image_path_3) }}');">
                         <div class="container">
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="slide_text">
-
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    @endif
+                    @if(!$banner || (!$banner->image_path_1 && !$banner->image_path_2 && !$banner->image_path_3))
+                    <div class="pogoSlider-slide" style="background-image: url('{{ asset('images/slider-01.jpg') }}'); background-color: #1e3a5f;">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="slide_text">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
                 <!-- .pogoSlider -->
             </div>

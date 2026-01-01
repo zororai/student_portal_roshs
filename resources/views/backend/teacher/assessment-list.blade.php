@@ -186,7 +186,7 @@
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                         </div>
                         <div>
-                            <input type="date" name="date" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}"
+                            <input type="date" name="date" value="{{ date('Y-m-d') }}"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                         </div>
                     </div>
@@ -235,23 +235,25 @@
                         
                         <div id="papersContainer">
                             <!-- Initial Paper Row -->
-                            <div class="paper-row flex items-center gap-3 mb-3">
-                                <input type="text" name="papers[0][name]" placeholder="Paper Name (min 2 chars)" maxlength="100"
-                                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <input type="number" name="papers[0][total_marks]" placeholder="Total Marks" max="1000" oninput="validatePaperMarks(this)"
-                                    class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <input type="number" name="papers[0][weight]" placeholder="Weight(%)" max="100" oninput="updateTotalWeight()"
-                                    class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <button type="button" onclick="addPaper()" class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
-                                        <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
-                                    </svg>
-                                </button>
-                                <button type="button" onclick="removePaper(this)" class="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
-                                        <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
-                                    </svg>
-                                </button>
+                            <div class="paper-row mb-3">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" name="papers[0][name]" placeholder="Paper Name" maxlength="100"
+                                        class="w-32 px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="number" name="papers[0][total_marks]" placeholder="Marks" max="1000" oninput="validatePaperMarks(this)"
+                                        class="w-40 px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="number" name="papers[0][weight]" placeholder="Weight%" max="100" oninput="updateTotalWeight()"
+                                        class="w-40 px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <button type="button" onclick="addPaper()" class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0" title="Add Paper">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
+                                            <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
+                                        </svg>
+                                    </button>
+                                    <button type="button" onclick="removePaper(this)" class="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex-shrink-0" title="Remove Paper">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
+                                            <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -352,14 +354,6 @@
                             <!-- Initial Subject and Grade Row -->
                             <div class="grade-entry-row flex items-center gap-3 mb-3">
                                 <div class="flex-1">
-                                    <input type="text" name="entries[0][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
-                                        maxlength="500" oninput="updateCharCount(this)"
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                    <div class="text-xs text-gray-500 mt-1">
-                                        <span class="char-count">0</span>/500 characters
-                                    </div>
-                                </div>
-                                <div class="flex-1">
                                     <select name="entries[0][subject_id]"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                                         <option value="">Select Subject</option>
@@ -367,6 +361,11 @@
                                             <option value="{{ $subject->id }}">{{ $subject->name }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+                                <div class="flex-1">
+                                    <input type="text" name="entries[0][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
+                                        maxlength="500"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                                 </div>
                                 <div class="flex-1">
                                     <select name="entries[0][grade]"
@@ -444,24 +443,26 @@
             }
             
             const newRow = document.createElement('div');
-            newRow.className = 'paper-row flex items-center gap-3 mb-3';
+            newRow.className = 'paper-row mb-3';
             newRow.innerHTML = `
-                <input type="text" name="papers[${paperCount}][name]" placeholder="Paper Name (min 2 chars)" maxlength="100"
-                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <input type="number" name="papers[${paperCount}][total_marks]" placeholder="Total Marks" max="1000" oninput="validatePaperMarks(this)"
-                    class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <input type="number" name="papers[${paperCount}][weight]" placeholder="Weight(%)" max="100" oninput="updateTotalWeight()"
-                    class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <button type="button" onclick="addPaper()" class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
-                        <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
-                    </svg>
-                </button>
-                <button type="button" onclick="removePaper(this)" class="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
-                        <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
-                    </svg>
-                </button>
+                <div class="flex items-center gap-2">
+                    <input type="text" name="papers[${paperCount}][name]" placeholder="Paper Name" maxlength="100"
+                        class="w-32 px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="number" name="papers[${paperCount}][total_marks]" placeholder="Marks" max="1000" oninput="validatePaperMarks(this)"
+                        class="w-40 px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="number" name="papers[${paperCount}][weight]" placeholder="Weight%" max="100" oninput="updateTotalWeight()"
+                        class="w-40 px-2 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <button type="button" onclick="addPaper()" class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex-shrink-0" title="Add Paper">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
+                            <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
+                        </svg>
+                    </button>
+                    <button type="button" onclick="removePaper(this)" class="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex-shrink-0" title="Remove Paper">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
+                            <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
+                        </svg>
+                    </button>
+                </div>
             `;
             container.appendChild(newRow);
             paperCount++;
@@ -534,13 +535,6 @@
             const date = document.querySelector('input[name="date"]');
             if (!date.value) {
                 errors.push('Assessment date is required.');
-            } else {
-                const selectedDate = new Date(date.value);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                if (selectedDate > today) {
-                    errors.push('Assessment date cannot be in the future.');
-                }
             }
             
             // Validate subject
@@ -671,19 +665,16 @@
             newRow.className = 'grade-entry-row flex items-center gap-3 mb-3';
             newRow.innerHTML = `
                 <div class="flex-1">
-                    <input type="text" name="entries[${gradeEntryCount}][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
-                        maxlength="500" oninput="updateCharCount(this)"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                    <div class="text-xs text-gray-500 mt-1">
-                        <span class="char-count">0</span>/500 characters
-                    </div>
-                </div>
-                <div class="flex-1">
                     <select name="entries[${gradeEntryCount}][subject_id]"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                         <option value="">Select Subject</option>
                         ${subjectOptions}
                     </select>
+                </div>
+                <div class="flex-1">
+                    <input type="text" name="entries[${gradeEntryCount}][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
+                        maxlength="500"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                 </div>
                 <div class="flex-1">
                     <select name="entries[${gradeEntryCount}][grade]"

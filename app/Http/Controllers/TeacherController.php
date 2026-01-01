@@ -405,8 +405,8 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
-        // Verify the class belongs to this teacher
-        $class = $teacher->classes()->findOrFail($class_id);
+        // Verify the class belongs to this teacher and load subjects
+        $class = $teacher->classes()->with('subjects')->findOrFail($class_id);
 
         // Get assessments for this class and teacher
         $assessments = \App\Assessment::where('teacher_id', $teacher->id)
@@ -466,8 +466,8 @@ class TeacherController extends Controller
             'class_id' => 'required|exists:grades,id',
             'subject_id' => 'required|exists:subjects,id',
             'topic' => 'required|string|min:3|max:255',
-            'assessment_type' => 'required|string|in:Quiz,Test,Assignment,Exam,Project',
-            'date' => 'required|date|before_or_equal:today',
+            'assessment_type' => 'required|string|in:Quiz,Test,In Class Test,Monthly Test,Assignment,Exercise,Project,Exam,Vacation Exam,National Exam',
+            'date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:date',
             'exam' => 'nullable|string|max:255',
             'papers' => 'required|array|min:1|max:20',
@@ -820,8 +820,8 @@ class TeacherController extends Controller
         $validated = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
             'topic' => 'required|string|min:3|max:255',
-            'assessment_type' => 'required|string|in:Quiz,Test,Assignment,Exam,Project',
-            'date' => 'required|date|before_or_equal:today',
+            'assessment_type' => 'required|string|in:Quiz,Test,In Class Test,Monthly Test,Assignment,Exercise,Project,Exam,Vacation Exam,National Exam',
+            'date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:date',
             'exam' => 'nullable|string|max:255',
             'papers' => 'required|array|min:1|max:20',

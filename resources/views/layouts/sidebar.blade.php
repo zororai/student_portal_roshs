@@ -107,7 +107,6 @@
             </div>
         </a>
 
-        @can('sidebar-teacher-attendance')
         <a href="{{ route('teacher.attendance.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,9 +115,7 @@
                 <span class="font-medium" x-show="!collapsed">My Attendance</span>
             </div>
         </a>
-        @endcan
 
-        @can('sidebar-teacher-leave')
         <a href="{{ route('teacher.leave.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +124,6 @@
                 <span class="font-medium" x-show="!collapsed">Leave Applications</span>
             </div>
         </a>
-        @endcan
 
         <a href="{{ route('teacher.studentrecord') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">

@@ -18,9 +18,9 @@
             </div>
         </div>
 
-        @if(session('success'))
+        @if(session('success') || request('success'))
             <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
+                <span class="block sm:inline">{{ session('success') ?? request('success') }}</span>
             </div>
         @endif
 
@@ -37,7 +37,7 @@
                 <option value="">Choose an assessment...</option>
                 @foreach($assessments as $assessment)
                     <option value="{{ $assessment->id }}" 
-                            data-papers='@json($assessment->papers)'
+                            data-papers="{{ htmlspecialchars(json_encode($assessment->papers ?? []), ENT_QUOTES, 'UTF-8') }}"
                             data-subject="{{ $assessment->subject->name ?? 'N/A' }}"
                             data-subject-id="{{ $assessment->subject_id }}"
                             data-topic="{{ $assessment->topic }}"
@@ -143,12 +143,24 @@
             currentAssessmentId = selectedOption.value;
             
             // Parse papers data - handle HTML entities
-            const papersData = selectedOption.dataset.papers;
+            let papersData = selectedOption.dataset.papers;
             console.log('Raw papers data:', papersData);
+            
+            // Decode HTML entities
+            const textArea = document.createElement('textarea');
+            textArea.innerHTML = papersData;
+            papersData = textArea.value;
             
             try {
                 currentPapers = JSON.parse(papersData);
                 console.log('Parsed papers:', currentPapers);
+                
+                // Ensure papers have numeric values
+                currentPapers = currentPapers.map(paper => ({
+                    ...paper,
+                    total_marks: parseInt(paper.total_marks) || 0,
+                    weight: parseInt(paper.weight) || 0
+                }));
             } catch (e) {
                 console.error('Error parsing papers:', e);
                 currentPapers = [];
@@ -414,7 +426,7 @@
             });
         }
 
-        function saveMarks() {
+        async function saveMarks() {
             if (!currentAssessmentId) {
                 showErrorDialog('Please select an assessment first.');
                 return;
@@ -425,28 +437,23 @@
 
             rows.forEach(row => {
                 const studentId = row.dataset.studentId;
-                const studentMarks = {
-                    student_id: studentId,
-                    papers: []
-                };
 
                 currentPapers.forEach((paper, paperIndex) => {
                     const markInput = row.querySelector(`input[name="marks[${studentId}][${paperIndex}][mark]"]`);
                     const commentTextarea = row.querySelector(`textarea[name="marks[${studentId}][${paperIndex}][comment]"]`);
 
                     if (markInput && markInput.value) {
-                        studentMarks.papers.push({
+                        marksData.push({
+                            assessment_id: currentAssessmentId,
+                            student_id: studentId,
                             paper_index: paperIndex,
                             paper_name: paper.name,
                             mark: parseFloat(markInput.value),
-                            comment: commentTextarea.value
+                            total_marks: paper.total_marks,
+                            comment: commentTextarea ? commentTextarea.value : ''
                         });
                     }
                 });
-
-                if (studentMarks.papers.length > 0) {
-                    marksData.push(studentMarks);
-                }
             });
 
             if (marksData.length === 0) {
@@ -454,14 +461,53 @@
                 return;
             }
 
-            // Here you would send the data to the server
-            console.log('Saving marks:', {
-                assessment_id: currentAssessmentId,
-                marks: marksData
-            });
+            // Show saving indicator
+            const saveButton = document.querySelector('button[onclick="saveMarks()"]');
+            const originalText = saveButton.innerHTML;
+            saveButton.innerHTML = '<svg class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Saving...';
+            saveButton.disabled = true;
 
-            // For now, just show a success message
-            showSuccessDialog('Marks saved successfully!', 'Note: Backend integration pending');
+            let successCount = 0;
+            let errorCount = 0;
+
+            // Save each mark individually
+            for (const markData of marksData) {
+                try {
+                    const response = await fetch('{{ route("teacher.assessment.marks.save") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify(markData)
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                        console.error('Save failed:', result.message);
+                    }
+                } catch (error) {
+                    errorCount++;
+                    console.error('Save error:', error);
+                }
+            }
+
+            // Restore button
+            saveButton.innerHTML = originalText;
+            saveButton.disabled = false;
+
+            // Show result and redirect on success
+            if (errorCount === 0) {
+                // Redirect back to the same page with success message
+                window.location.href = '{{ route("teacher.assessment.marks", $class->id) }}?success=' + encodeURIComponent(`${successCount} mark(s) saved successfully!`);
+            } else if (successCount > 0) {
+                showSuccessDialog('Partially saved', `${successCount} mark(s) saved, ${errorCount} failed.`);
+            } else {
+                showErrorDialog('Failed to save marks. Please try again.');
+            }
         }
 
         function showSuccessDialog(title, message) {

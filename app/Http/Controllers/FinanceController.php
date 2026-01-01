@@ -517,23 +517,18 @@ class FinanceController extends Controller
         // Year and term filter setup
         $years = range(date('Y'), date('Y') - 5);
         $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
-        $termDateRanges = [
-            'first' => ['01-01', '04-30'],
-            'second' => ['05-01', '08-31'],
-            'third' => ['09-01', '12-31'],
-        ];
         
         $selectedYear = $request->year;
         $selectedTerm = $request->term;
         
         $query = Product::orderBy('created_at', 'desc');
         
-        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
-            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
-            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
-            $query->whereBetween('created_at', [$dateFrom, $dateTo . ' 23:59:59']);
-        } elseif ($selectedYear) {
-            $query->whereYear('created_at', $selectedYear);
+        // Apply year/term filter using term/year fields
+        if ($selectedYear) {
+            $query->where('year', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $query->where('term', $selectedTerm);
         }
         
         $products = $query->paginate(20)->appends($request->query());
@@ -703,27 +698,21 @@ class FinanceController extends Controller
         // Year and term filter setup
         $years = range(date('Y'), date('Y') - 5);
         $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
-        $termDateRanges = [
-            'first' => ['01-01', '04-30'],
-            'second' => ['05-01', '08-31'],
-            'third' => ['09-01', '12-31'],
-        ];
         
         $selectedYear = $request->year;
         $selectedTerm = $request->term;
         
-        // Build base query with date filter
+        // Build base query with term/year filter
         $incomeQuery = CashBookEntry::where('transaction_type', 'receipt');
         $expenseQuery = CashBookEntry::where('transaction_type', 'payment');
         
-        if ($selectedYear && $selectedTerm && isset($termDateRanges[$selectedTerm])) {
-            $dateFrom = $selectedYear . '-' . $termDateRanges[$selectedTerm][0];
-            $dateTo = $selectedYear . '-' . $termDateRanges[$selectedTerm][1];
-            $incomeQuery->whereBetween('entry_date', [$dateFrom, $dateTo]);
-            $expenseQuery->whereBetween('entry_date', [$dateFrom, $dateTo]);
-        } elseif ($selectedYear) {
-            $incomeQuery->whereYear('entry_date', $selectedYear);
-            $expenseQuery->whereYear('entry_date', $selectedYear);
+        if ($selectedYear) {
+            $incomeQuery->where('year', $selectedYear);
+            $expenseQuery->where('year', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $incomeQuery->where('term', $selectedTerm);
+            $expenseQuery->where('term', $selectedTerm);
         }
         
         // Pull from CashBookEntry for complete financial picture
