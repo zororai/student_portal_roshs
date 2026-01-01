@@ -72,6 +72,10 @@ Route::post('/student/update-password', 'StudentController@updatePassword')->nam
 // Parent timetable route
 Route::get('/child-timetable', 'TimetableController@parentView')->name('parent.timetable')->middleware(['auth', 'role:Parent']);
 
+// User Notifications Inbox (for all authenticated users)
+Route::get('/notifications', 'SchoolNotificationController@inbox')->name('notifications.inbox')->middleware('auth');
+Route::post('/notifications/{id}/read', 'SchoolNotificationController@markAsRead')->name('notifications.read')->middleware('auth');
+
 Route::group(['middleware' => ['auth','role:Admin']], function ()
 {
     Route::get('/roles-permissions', 'RolePermissionController@roles')->name('roles-permissions');
@@ -307,6 +311,19 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('events/{event}', 'EventController@update')->name('events.update');
     Route::delete('events/{event}', 'EventController@destroy')->name('events.destroy');
     
+    // Admin Notifications
+    Route::get('/admin/notifications', 'SchoolNotificationController@adminIndex')->name('admin.notifications.index');
+    Route::get('/admin/notifications/create', 'SchoolNotificationController@create')->name('admin.notifications.create');
+    Route::post('/admin/notifications', 'SchoolNotificationController@store')->name('admin.notifications.store');
+    Route::get('/admin/notifications/{id}', 'SchoolNotificationController@show')->name('admin.notifications.show');
+    Route::delete('/admin/notifications/{id}', 'SchoolNotificationController@destroy')->name('admin.notifications.destroy');
+    
+    // Admin Payment Verification Routes
+    Route::get('/admin/payment-verification', 'PaymentVerificationController@adminIndex')->name('admin.payment-verification.index');
+    Route::get('/admin/payment-verification/{id}', 'PaymentVerificationController@show')->name('admin.payment-verification.show');
+    Route::post('/admin/payment-verification/{id}/verify', 'PaymentVerificationController@verify')->name('admin.payment-verification.verify');
+    Route::post('/admin/payment-verification/{id}/reject', 'PaymentVerificationController@reject')->name('admin.payment-verification.reject');
+    
     //studentid
     Route::get('/student/{id}/id-card', 'StudentController@showid')->name('student.id_card');
     Route::get('/student/{id}/id-card/download', 'StudentController@downloadIdCard')->name('student.download_id_card');
@@ -507,6 +524,10 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
     
     // Parent Disciplinary Records Routes
     Route::get('/parent/disciplinary-records', 'DisciplinaryController@parentIndex')->name('parent.disciplinary.index');
+    
+    // Parent Payment Verification Routes
+    Route::get('/parent/payment-verification', 'PaymentVerificationController@create')->name('parent.payment-verification.create');
+    Route::post('/parent/payment-verification', 'PaymentVerificationController@store')->name('parent.payment-verification.store');
 });
 
 Route::group(['middleware' => ['auth','role:Student']], function () {

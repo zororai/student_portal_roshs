@@ -11,6 +11,7 @@ use App\Teacher;
 use App\StudentPayment;
 use App\Assessment;
 use App\AssessmentMark;
+use App\PaymentVerification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -453,7 +454,7 @@ public function adminshowResult(Request $request)
         
         $studentIds = $students->pluck('id');
         
-        // Check for outstanding fees for any student (only if ResultsStatus records exist)
+        // Check for outstanding fees first
         $allTerms = ResultsStatus::all();
         $totalFees = 0;
         if ($allTerms->isNotEmpty()) {
@@ -464,12 +465,29 @@ public function adminshowResult(Request $request)
         $totalPaid = floatval(StudentPayment::whereIn('student_id', $studentIds)->sum('amount_paid'));
         $outstandingBalance = $totalFees - $totalPaid;
         
-        // If student has outstanding fees, block results view
+        // If there are outstanding fees, check for verified payment proof
         if ($outstandingBalance > 0) {
-            return view('reports.blocked', [
-                'message' => 'You cannot view your child\'s results due to outstanding fees.',
-                'outstanding' => $outstandingBalance
-            ]);
+            // Check for verified payment for this parent
+            $hasVerifiedPayment = PaymentVerification::where('parent_id', $parentId)
+                ->where('status', 'verified')
+                ->exists();
+            
+            // If no verified payment, require proof of payment
+            if (!$hasVerifiedPayment) {
+                // Check if there's a pending verification
+                $pendingVerification = PaymentVerification::where('parent_id', $parentId)
+                    ->where('status', 'pending')
+                    ->exists();
+                
+                return view('reports.blocked', [
+                    'message' => $pendingVerification 
+                        ? 'Your payment verification is pending approval. Please wait for admin confirmation.'
+                        : 'You have outstanding fees. Please submit proof of payment to view your child\'s results.',
+                    'outstanding' => $outstandingBalance,
+                    'show_verification_link' => true,
+                    'pending' => $pendingVerification
+                ]);
+            }
         }
         
         // Get ALL results for all students (all terms, all years)

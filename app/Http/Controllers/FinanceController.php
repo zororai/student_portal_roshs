@@ -10,6 +10,7 @@ use App\SchoolExpense;
 use App\Product;
 use App\StudentPayment;
 use App\CashBookEntry;
+use App\PaymentVerification;
 use DB;
 
 class FinanceController extends Controller
@@ -92,7 +93,13 @@ class FinanceController extends Controller
             ->orderBy('result_period', 'desc')
             ->get();
         
-        return view('backend.finance.student-payments', compact('students', 'currentTerm', 'classes', 'allTerms', 'allStudentsForModal'));
+        // Get pending payment verifications from parents
+        $pendingVerifications = PaymentVerification::with(['parent.user', 'student.user', 'student.class'])
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('backend.finance.student-payments', compact('students', 'currentTerm', 'classes', 'allTerms', 'allStudentsForModal', 'pendingVerifications'));
     }
 
     public function storePayment(Request $request)

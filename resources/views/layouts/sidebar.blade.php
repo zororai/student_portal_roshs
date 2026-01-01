@@ -34,8 +34,7 @@
         </button>
         
         <!-- Notifications -->
-        @can('sidebar-notifications')
-        <a href="#" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'" :title="collapsed ? 'Notifications' : ''">
+        <a href="{{ route('notifications.inbox') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'" :title="collapsed ? 'Notifications' : ''">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
@@ -43,7 +42,6 @@
                 <span class="font-medium" x-show="!collapsed">Notifications</span>
             </div>
         </a>
-        @endcan
 
         <!-- Home/Dashboard -->
         @can('sidebar-home')
@@ -118,6 +116,15 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
                 <span class="font-medium" x-show="!collapsed">Disciplinary Records</span>
+            </div>
+        </a>
+
+        <a href="{{ route('parent.payment-verification.create') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
+            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="font-medium" x-show="!collapsed">Payment Verification</span>
             </div>
         </a>
         @endrole
@@ -266,6 +273,26 @@
 
         @role('Admin')
         <!-- Admin Section -->
+        
+        <!-- Send Notifications (Admin Only) -->
+        <a href="{{ route('admin.notifications.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'" :title="collapsed ? 'Send Notifications' : ''">
+            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                </svg>
+                <span class="font-medium" x-show="!collapsed">Send Notifications</span>
+            </div>
+        </a>
+        
+        <!-- Payment Verifications (Admin Only) -->
+        <a href="{{ route('admin.payment-verification.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'" :title="collapsed ? 'Payment Verifications' : ''">
+            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="font-medium" x-show="!collapsed">Payment Verifications</span>
+            </div>
+        </a>
         
         <!-- Onboarding Process Section with Submenu -->
         @can('sidebar-onboard')

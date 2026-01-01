@@ -56,6 +56,55 @@
         </div>
     </form>
 
+    <!-- Pending Payment Verifications from Parents -->
+    @if(isset($pendingVerifications) && $pendingVerifications->count() > 0)
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg shadow mb-6">
+        <div class="px-4 py-3 border-b border-yellow-200 flex items-center justify-between">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h3 class="text-lg font-semibold text-yellow-800">Pending Payment Verifications ({{ $pendingVerifications->count() }})</h3>
+            </div>
+            <span class="text-sm text-yellow-600">Parents have submitted these receipts for verification</span>
+        </div>
+        <div class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach($pendingVerifications as $verification)
+                <div class="bg-white rounded-lg border border-yellow-300 p-4 shadow-sm">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <p class="font-semibold text-gray-800">{{ $verification->student->user->name ?? 'Unknown Student' }}</p>
+                            <p class="text-sm text-gray-600">{{ $verification->student->class->class_name ?? 'No Class' }}</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                    </div>
+                    <div class="space-y-1 text-sm mb-3">
+                        <p><span class="text-gray-500">Parent:</span> {{ $verification->parent->user->name ?? 'Unknown' }}</p>
+                        <p><span class="text-gray-500">Receipt #:</span> <span class="font-mono font-semibold">{{ $verification->receipt_number }}</span></p>
+                        <p><span class="text-gray-500">Amount:</span> <span class="font-semibold text-green-600">${{ number_format($verification->amount_paid, 2) }}</span></p>
+                        <p><span class="text-gray-500">Payment Date:</span> {{ $verification->payment_date->format('d M Y') }}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="{{ route('admin.payment-verification.show', $verification->id) }}" class="flex-1 text-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                            Review & Apply
+                        </a>
+                        @if($verification->receipt_file)
+                        <a href="{{ asset('storage/' . $verification->receipt_file) }}" target="_blank" class="px-3 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition-colors" title="View Receipt">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                        </a>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Students Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto overflow-y-visible" style="max-width: 100%;">
