@@ -743,9 +743,9 @@ class FinanceController extends Controller
                 DB::raw('YEAR(entry_date) as year'),
                 DB::raw('SUM(amount) as total')
             )
-            ->groupBy('year', 'month')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
+            ->groupBy(DB::raw('YEAR(entry_date)'), DB::raw('MONTH(entry_date)'))
+            ->orderBy(DB::raw('YEAR(entry_date)'), 'desc')
+            ->orderBy(DB::raw('MONTH(entry_date)'), 'desc')
             ->limit(12)
             ->get();
         
@@ -755,9 +755,9 @@ class FinanceController extends Controller
                 DB::raw('YEAR(entry_date) as year'),
                 DB::raw('SUM(amount) as total')
             )
-            ->groupBy('year', 'month')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
+            ->groupBy(DB::raw('YEAR(entry_date)'), DB::raw('MONTH(entry_date)'))
+            ->orderBy(DB::raw('YEAR(entry_date)'), 'desc')
+            ->orderBy(DB::raw('MONTH(entry_date)'), 'desc')
             ->limit(12)
             ->get();
         

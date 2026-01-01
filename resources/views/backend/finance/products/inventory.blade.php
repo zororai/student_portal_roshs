@@ -14,7 +14,6 @@
                 </svg>
                 Add Product
             </a>
-            <a href="{{ route('finance.products.pos') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">POS / Sell</a>
         </div>
     </div>
 

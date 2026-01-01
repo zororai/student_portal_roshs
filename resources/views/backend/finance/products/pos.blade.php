@@ -104,8 +104,13 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Customer Name (Optional)</label>
-                    <input type="text" id="customerName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" placeholder="Walk-in customer">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Buyer Name</label>
+                    <input type="text" id="customerName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" placeholder="Enter buyer name">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input type="text" id="customerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" placeholder="Enter phone number">
                 </div>
 
                 <button onclick="processSale()" id="checkoutBtn" disabled class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-semibold">
@@ -266,6 +271,7 @@ function processSale() {
         amount_paid: amountPaid,
         payment_method: document.getElementById('paymentMethod').value,
         customer_name: document.getElementById('customerName').value || null,
+        customer_phone: document.getElementById('customerPhone').value || null,
     };
     
     fetch('{{ route("finance.products.process-sale") }}', {

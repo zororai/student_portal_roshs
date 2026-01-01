@@ -95,7 +95,7 @@ class ProductController extends Controller
             ]);
         }
 
-        return redirect()->route('finance.products.index')
+        return redirect()->route('finance.products')
             ->with('success', 'Product created successfully. Barcode: ' . $barcode);
     }
 
@@ -141,7 +141,7 @@ class ProductController extends Controller
             'is_active' => $request->has('is_active'),
         ]);
 
-        return redirect()->route('finance.products.index')
+        return redirect()->route('finance.products')
             ->with('success', 'Product updated successfully.');
     }
 

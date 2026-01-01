@@ -129,13 +129,27 @@
             </div>
 
             <!-- Barcode Display -->
-            <div class="bg-white rounded-lg shadow-sm border p-6 text-center">
-                <h3 class="font-semibold text-gray-800 mb-4">Product Barcode</h3>
-                <div class="bg-white p-4 border-2 border-dashed rounded-lg">
+            <div class="bg-white rounded-lg shadow-sm border p-6 text-center" id="barcode-section">
+                <h3 class="font-semibold text-gray-800 mb-4 no-print">Product Barcode</h3>
+                <div class="bg-white p-4 border-2 border-dashed rounded-lg print-barcode" id="barcode-container">
                     <svg id="barcode"></svg>
                     <p class="font-mono text-lg mt-2">{{ $product->barcode }}</p>
+                    <p class="text-sm text-gray-600 mt-1">{{ $product->name }}</p>
                 </div>
-                <button onclick="window.print()" class="mt-4 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">Print Barcode</button>
+                <div class="mt-4 flex gap-2 justify-center no-print">
+                    <button onclick="printBarcode()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        </svg>
+                        Print
+                    </button>
+                    <button onclick="downloadBarcode()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download
+                    </button>
+                </div>
             </div>
 
             <!-- Stats -->
@@ -160,6 +174,20 @@
     </div>
 </div>
 
+<style>
+@media print {
+    body * { visibility: hidden; }
+    #barcode-container, #barcode-container * { visibility: visible; }
+    #barcode-container { 
+        position: absolute; 
+        left: 50%; 
+        top: 50%; 
+        transform: translate(-50%, -50%);
+        border: none !important;
+    }
+    .no-print { display: none !important; }
+}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script>
 JsBarcode("#barcode", "{{ $product->barcode }}", {
@@ -168,5 +196,40 @@ JsBarcode("#barcode", "{{ $product->barcode }}", {
     height: 80,
     displayValue: false
 });
+
+function printBarcode() {
+    window.print();
+}
+
+function downloadBarcode() {
+    const svg = document.getElementById('barcode');
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = function() {
+        canvas.width = img.width + 40;
+        canvas.height = img.height + 80;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 20, 10);
+        
+        // Add barcode text
+        ctx.font = '14px monospace';
+        ctx.fillStyle = 'black';
+        ctx.textAlign = 'center';
+        ctx.fillText('{{ $product->barcode }}', canvas.width / 2, img.height + 30);
+        ctx.font = '12px sans-serif';
+        ctx.fillText('{{ $product->name }}', canvas.width / 2, img.height + 50);
+        
+        const link = document.createElement('a');
+        link.download = '{{ $product->barcode }}.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    };
+    
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+}
 </script>
 @endsection
