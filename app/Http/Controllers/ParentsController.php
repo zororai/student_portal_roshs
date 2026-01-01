@@ -276,11 +276,21 @@ class ParentsController extends Controller
                 'token_expires_at'      => null
             ]);
 
-            return redirect('/login')->with('success', 'Registration completed successfully! You can now login with your email and password.');
+            return redirect()->route('parent.register.success');
         } catch (\Exception $e) {
             Log::error('Parent registration error: ' . $e->getMessage());
             return back()->withInput()->with('error', 'An error occurred while saving your registration. Please try again.');
         }
+    }
+
+    /**
+     * Show registration success page
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function registrationSuccess()
+    {
+        return view('backend.parents.registration_success');
     }
 }
 

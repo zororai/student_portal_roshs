@@ -31,6 +31,7 @@ Route::get('/logout', function() {
 // Parent self-registration routes (public access, no auth required)
 Route::get('/parent/register/{token}', 'ParentsController@showRegistrationForm')->name('parent.register.form');
 Route::post('/parent/register/{token}', 'ParentsController@completeRegistration')->name('parent.register.complete');
+Route::get('/parent/registration-success', 'ParentsController@registrationSuccess')->name('parent.register.success');
 
 Route::get('/web', 'websiteController@index')->name('website.index');
 Route::get('/about', 'websiteController@about')->name('website.about');

@@ -40,21 +40,22 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse ($parents as $parent)
+                            @if($parent->user)
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="pl-4 pr-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-10 w-10">
                                             <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                                                {{ strtoupper(substr($parent->user->name, 0, 1)) }}
+                                                {{ strtoupper(substr($parent->user->name ?? 'P', 0, 1)) }}
                                             </div>
                                         </div>
                                         <div class="ml-3">
-                                            <div class="text-sm font-semibold text-gray-900">{{ $parent->user->name }}</div>
+                                            <div class="text-sm font-semibold text-gray-900">{{ $parent->user->name ?? 'Unknown' }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-600">{{ $parent->user->email }}</div>
+                                    <div class="text-sm text-gray-600">{{ $parent->user->email ?? 'N/A' }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-600">{{ $parent->phone ?? 'N/A' }}</div>
@@ -62,9 +63,11 @@
                                 <td class="px-6 py-4">
                                     <div class="flex flex-wrap gap-2">
                                         @forelse ($parent->children as $children)
+                                            @if($children->user)
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                {{ $children->user->name }}
+                                                {{ $children->user->name ?? 'Unknown' }}
                                             </span>
+                                            @endif
                                         @empty
                                             <span class="text-xs text-gray-400 italic">No children assigned</span>
                                         @endforelse
@@ -102,6 +105,7 @@
                                     </div>
                                 </td>
                             </tr>
+                            @endif
                         @empty
                             <tr>
                                 <td colspan="6" class="px-6 py-12 text-center">

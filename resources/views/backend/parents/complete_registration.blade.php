@@ -49,20 +49,22 @@
                 </h2>
                 <div class="grid md:grid-cols-2 gap-4">
                     @foreach($parent->students as $student)
+                        @if($student && $student->user)
                         <div class="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
                             <div class="flex items-center space-x-3">
-                                <img src="{{ asset('images/profile/' . $student->user->profile_picture) }}"
+                                <img src="{{ asset('images/profile/' . ($student->user->profile_picture ?? 'avatar.png')) }}"
                                      class="w-16 h-16 rounded-full object-cover border-2 border-blue-300"
-                                     alt="{{ $student->user->name }}">
+                                     alt="{{ $student->user->name ?? 'Student' }}">
                                 <div>
-                                    <p class="font-bold text-gray-800">{{ $student->user->name }}</p>
-                                    <p class="text-sm text-gray-600">Roll Number: <span class="font-semibold text-blue-600">{{ $student->roll_number }}</span></p>
+                                    <p class="font-bold text-gray-800">{{ $student->user->name ?? 'Unknown Student' }}</p>
+                                    <p class="text-sm text-gray-600">Roll Number: <span class="font-semibold text-blue-600">{{ $student->roll_number ?? 'N/A' }}</span></p>
                                     @if($student->class)
                                         <p class="text-sm text-gray-600">Class: {{ $student->class->name }}</p>
                                     @endif
                                 </div>
                             </div>
                         </div>
+                        @endif
                     @endforeach
                 </div>
             </div>
