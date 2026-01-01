@@ -26,15 +26,28 @@
                 <div class="p-6 space-y-6">
                     <!-- Student Selection -->
                     <div>
-                        <label for="student_id" class="block text-sm font-medium text-gray-700 mb-2">Select Student *</label>
+                        <label for="student_id" class="block text-sm font-medium text-gray-700 mb-2">Select Your Child *</label>
+                        @if($students->count() == 1)
+                        <div class="flex items-center p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-sm font-bold text-indigo-600">{{ substr($students->first()->user->name ?? 'S', 0, 1) }}</span>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">{{ $students->first()->user->name ?? 'Unknown' }}</p>
+                                <p class="text-sm text-gray-500">{{ $students->first()->class->class_name ?? 'No Class' }}</p>
+                            </div>
+                            <input type="hidden" name="student_id" value="{{ $students->first()->id }}">
+                        </div>
+                        @else
                         <select name="student_id" id="student_id" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all">
-                            <option value="">-- Select Student --</option>
+                            <option value="">-- Select Your Child --</option>
                             @foreach($students as $student)
                             <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
-                                {{ $student->user->name ?? 'Unknown' }}
+                                {{ $student->user->name ?? 'Unknown' }} ({{ $student->class->class_name ?? 'No Class' }})
                             </option>
                             @endforeach
                         </select>
+                        @endif
                         @error('student_id')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -135,15 +148,27 @@
                     <!-- Attachment -->
                     <div>
                         <label for="attachment" class="block text-sm font-medium text-gray-700 mb-2">Attachment (Medical Document)</label>
-                        <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-red-400 transition-colors">
+                        <div id="upload-area" class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-red-400 transition-colors cursor-pointer">
                             <input type="file" name="attachment" id="attachment" accept=".pdf,.jpg,.jpeg,.png" class="hidden">
-                            <label for="attachment" class="cursor-pointer">
+                            <div id="upload-placeholder">
                                 <svg class="w-10 h-10 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                 </svg>
                                 <p class="text-gray-600">Click to upload or drag and drop</p>
                                 <p class="text-sm text-gray-400 mt-1">PDF, JPG, PNG (Max 5MB)</p>
-                            </label>
+                            </div>
+                            <div id="file-preview" class="hidden">
+                                <div class="flex items-center justify-center space-x-3">
+                                    <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <div class="text-left">
+                                        <p id="file-name" class="font-medium text-gray-800"></p>
+                                        <p id="file-size" class="text-sm text-gray-500"></p>
+                                    </div>
+                                </div>
+                                <button type="button" id="remove-file" class="mt-3 text-sm text-red-500 hover:text-red-700">Remove file</button>
+                            </div>
                         </div>
                         @error('attachment')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -164,4 +189,49 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('upload-area');
+    const fileInput = document.getElementById('attachment');
+    const placeholder = document.getElementById('upload-placeholder');
+    const preview = document.getElementById('file-preview');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const removeBtn = document.getElementById('remove-file');
+
+    uploadArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            placeholder.classList.add('hidden');
+            preview.classList.remove('hidden');
+            uploadArea.classList.remove('border-gray-200');
+            uploadArea.classList.add('border-emerald-400', 'bg-emerald-50');
+        }
+    });
+
+    removeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        fileInput.value = '';
+        placeholder.classList.remove('hidden');
+        preview.classList.add('hidden');
+        uploadArea.classList.add('border-gray-200');
+        uploadArea.classList.remove('border-emerald-400', 'bg-emerald-50');
+    });
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+});
+</script>
 @endsection

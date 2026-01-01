@@ -114,6 +114,12 @@
             
             <div class="p-6">
                 @if($report->status === 'pending')
+                <div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <p class="text-amber-800 text-sm">
+                        <strong>Action Required:</strong> Please review this medical report and acknowledge that you have received it. 
+                        The parent will be notified that their report has been seen.
+                    </p>
+                </div>
                 <form action="{{ route('admin.medical-reports.acknowledge', $report->id) }}" method="POST">
                     @csrf
                     <div class="mb-4">
@@ -121,6 +127,7 @@
                         <textarea name="admin_response" id="admin_response" rows="4" 
                             placeholder="Add any notes or response for the parent..."
                             class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none">{{ old('admin_response') }}</textarea>
+                        <p class="text-sm text-gray-500 mt-1">This message will be visible to the parent.</p>
                     </div>
                     <button type="submit" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 shadow-lg">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
