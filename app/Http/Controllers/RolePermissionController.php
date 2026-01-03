@@ -45,6 +45,18 @@ class RolePermissionController extends Controller
         preg_match_all("/@can\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/", $content, $matches);
         
         $permissions = array_unique($matches[1]);
+        
+        // Add any hardcoded permissions that should always exist
+        $additionalPermissions = [
+            'sidebar-user-management',
+            'sidebar-disciplinary',
+            'sidebar-payroll',
+            'sidebar-cashbook',
+            'sidebar-purchase-orders',
+            'sidebar-reports',
+        ];
+        
+        $permissions = array_unique(array_merge($permissions, $additionalPermissions));
 
         foreach ($permissions as $permissionName) {
             if (!Permission::where('name', $permissionName)->exists()) {
@@ -147,6 +159,7 @@ class RolePermissionController extends Controller
             'sidebar-home' => 'Home/Dashboard',
             'sidebar-notifications' => 'Notifications',
             'sidebar-onboard' => 'OnBoard Section',
+            'sidebar-user-management' => 'User Management',
             'sidebar-teachers' => 'Teachers',
             'sidebar-students' => 'Students',
             'sidebar-subjects' => 'Subjects',
@@ -155,6 +168,8 @@ class RolePermissionController extends Controller
             'sidebar-student-section' => 'Student Section',
             'sidebar-student-record' => 'Student Record',
             'sidebar-applicants' => 'Applicants',
+            'sidebar-disciplinary' => 'Disciplinary Records',
+            'sidebar-results-management' => 'Results Management',
             'sidebar-logbook' => 'Teacher Log Book',
             'sidebar-leave-management' => 'Leave Management',
             'sidebar-teacher-attendance' => 'Teacher - My Attendance',
@@ -174,6 +189,10 @@ class RolePermissionController extends Controller
             'sidebar-parents-arrears' => 'Parents with Arrears',
             'sidebar-school-income' => 'School Income',
             'sidebar-school-expenses' => 'School Expenses',
+            'sidebar-payroll' => 'Payroll',
+            'sidebar-cashbook' => 'Cash Book',
+            'sidebar-purchase-orders' => 'Purchase Orders',
+            'sidebar-reports' => 'Reports & Dashboard',
         ];
 
         // Get all existing permissions

@@ -61,8 +61,8 @@
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                         <div class="bg-gradient-to-r from-rose-500 to-pink-600 px-6 py-4">
                             <div class="flex items-center justify-between">
-                                <h3 class="text-xl font-bold text-white">{{ $class->class_name }}</h3>
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white backdrop-blur-sm">
+                                <h3 class="text-xl font-bold text-gray-900">{{ $class->class_name }}</h3>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray/20 text-gray-900 backdrop-blur-sm">
                                     {{ $class->students_count }} Students
                                 </span>
                             </div>
@@ -94,7 +94,7 @@
                             </div>
                             
                             <!-- Action -->
-                            <a href="{{ route('adminresults.classname', $class->id) }}" class="block w-full text-center px-4 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold hover:from-rose-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg">
+                            <a href="{{ route('adminresults.classname', $class->id) }}" class="block w-full text-center px-4 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-gray-900 font-semibold hover:from-rose-600 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg">
                                 <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                 </svg>

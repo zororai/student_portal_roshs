@@ -22,8 +22,8 @@ class AdminUserController extends Controller
         $users = User::with('roles')
             ->get()
             ->filter(function ($user) use ($excludedRoles) {
-                // Keep user if they don't have any of the excluded roles
-                return !$user->hasAnyRole($excludedRoles);
+                // Keep user if they have at least one role AND don't have any of the excluded roles
+                return $user->roles->isNotEmpty() && !$user->hasAnyRole($excludedRoles);
             });
         
         // Manual pagination
