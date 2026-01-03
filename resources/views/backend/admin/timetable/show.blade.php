@@ -43,6 +43,26 @@
         </div>
     @endif
 
+    @if(session('warning'))
+        <div class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 mb-6 rounded-r-lg">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                {{ session('warning') }}
+            </div>
+        </div>
+    @endif
+
+    <!-- Academic Period Info -->
+    @if($settings)
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+        <p class="text-sm text-blue-800">
+            <span class="font-semibold">Viewing:</span> {{ $settings->academic_year }} - Term {{ $settings->term }}
+        </p>
+    </div>
+    @endif
+
     <!-- Settings Summary -->
     @if($settings)
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
@@ -78,22 +98,39 @@
         <div class="overflow-x-auto">
             <table class="w-full min-w-[800px]">
                 <thead>
-                    <tr class="bg-gradient-to-r from-emerald-500 to-teal-600">
-                        <th class="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider w-24">Time</th>
-                        @foreach($days as $day)
-                            <th class="px-4 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">{{ $day }}</th>
-                        @endforeach
+                    <tr style="background: linear-gradient(to right, #10b981, #14b8a6) !important;">
+                        <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-24" style="color: #616161ff !important; background-color: transparent !important;">Time</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider" style="color: #616161ff !important; background-color: transparent !important;">Monday</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider" style="color: #616161ff !important; background-color: transparent !important;">Tuesday</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider" style="color: #616161ff !important; background-color: transparent !important;">Wednesday</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider" style="color: #616161ff !important; background-color: transparent !important;">Thursday</th>
+                        <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider" style="color: #616161ff !important; background-color: transparent !important;">Friday</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @php
+                        $daysArray = isset($days) && is_array($days) ? $days : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
                         $maxSlots = 0;
-                        foreach($days as $day) {
+                        foreach($daysArray as $day) {
                             if(isset($timetable[$day]) && $timetable[$day]->count() > $maxSlots) {
                                 $maxSlots = $timetable[$day]->count();
                             }
                         }
                     @endphp
+
+                    @if($maxSlots == 0)
+                        <tr>
+                            <td colspan="6" class="px-4 py-12 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <p class="text-gray-500 text-lg font-medium">No timetable generated yet</p>
+                                    <p class="text-gray-400 text-sm mt-2">Click "Edit" to create a timetable for this class</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endif
 
                     @for($i = 0; $i < $maxSlots; $i++)
                         <tr class="hover:bg-gray-50">
@@ -104,7 +141,7 @@
                                     <span class="text-xs text-gray-400">{{ \Carbon\Carbon::parse($timetable['Monday'][$i]->end_time)->format('H:i') }}</span>
                                 @endif
                             </td>
-                            @foreach($days as $day)
+                            @foreach($daysArray as $day)
                                 <td class="px-2 py-2">
                                     @if(isset($timetable[$day][$i]))
                                         @php $slot = $timetable[$day][$i]; @endphp

@@ -239,6 +239,7 @@
                                 <a href="{{ route('website.index') }}">Online Application</a>
                             </div>
                         </li>
+                        <li><a class="nav-link" href="{{ route('shop.index') }}">Shop</a></li>
                         <li><a class="nav-link" href="{{ route('website.News') }}">News Letter</a></li>
                         <li><a class="nav-link" href="{{ route('website.contact') }}">Contact Us</a></li>
                     </ul>

@@ -14,7 +14,9 @@ class Timetable extends Model
         'start_time',
         'end_time',
         'slot_type',
-        'slot_order'
+        'slot_order',
+        'academic_year',
+        'term'
     ];
 
     public function grade()
@@ -36,13 +38,17 @@ class Timetable extends Model
     {
         $query = self::where('teacher_id', $teacherId)
             ->where('day', $day)
+            ->where('slot_type', 'subject')
             ->where(function($q) use ($startTime, $endTime) {
-                $q->whereBetween('start_time', [$startTime, $endTime])
-                  ->orWhereBetween('end_time', [$startTime, $endTime])
-                  ->orWhere(function($q2) use ($startTime, $endTime) {
-                      $q2->where('start_time', '<=', $startTime)
-                         ->where('end_time', '>=', $endTime);
-                  });
+                // Check for any time overlap:
+                // 1. New slot starts during existing slot
+                // 2. New slot ends during existing slot  
+                // 3. New slot completely contains existing slot
+                // 4. Existing slot completely contains new slot
+                $q->where(function($q2) use ($startTime, $endTime) {
+                    $q2->where('start_time', '<', $endTime)
+                       ->where('end_time', '>', $startTime);
+                });
             });
 
         if ($excludeId) {

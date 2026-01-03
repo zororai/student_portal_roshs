@@ -42,6 +42,8 @@ class CreateTimetablesTable extends Migration
             $table->time('end_time');
             $table->enum('slot_type', ['subject', 'break', 'lunch', 'free'])->default('subject');
             $table->integer('slot_order')->default(0);
+            $table->string('academic_year')->nullable();
+            $table->integer('term')->nullable();
             $table->timestamps();
             
             $table->foreign('class_id')->references('id')->on('grades')->onDelete('cascade');

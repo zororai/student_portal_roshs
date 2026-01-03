@@ -50,6 +50,10 @@ Route::get('/newsletter', 'NewsletterController@showNewsletters')->name('website
 //Route::get('/newslettersshow/{id}','NewsletterController@show')->name('website.newsletter.show');
 Route::get('/newslettersshow/{id}','NewsletterController@show')->name('website.newsletter.show');
 
+// Shop Routes (Public)
+Route::get('/shop', 'ShopController@index')->name('shop.index');
+Route::get('/shop/{id}', 'ShopController@show')->name('shop.show');
+
 Route::get('/image/{filename}', 'ImageController@showImage')->name('image.show');
 
 
@@ -243,6 +247,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('admin/timetable/{id}/edit', 'AdminTimetableController@edit')->name('admin.timetable.edit');
     Route::put('admin/timetable/{id}', 'AdminTimetableController@update')->name('admin.timetable.update');
     Route::delete('admin/timetable/{id}', 'AdminTimetableController@destroy')->name('admin.timetable.destroy');
+    Route::post('admin/timetable/check-conflicts', 'AdminTimetableController@checkConflicts')->name('admin.timetable.check-conflicts');
 
     // Stepper route for creating student with parents
     Route::get('student-with-parents/create', 'StudentController@createWithParents')->name('student.create-with-parents');

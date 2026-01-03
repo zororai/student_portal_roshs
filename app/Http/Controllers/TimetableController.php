@@ -42,16 +42,23 @@ class TimetableController extends Controller
             return view('backend.timetable.view', ['error' => $error, 'class' => null, 'settings' => null, 'timetable' => [], 'days' => []]);
         }
 
-        $settings = TimetableSetting::where('class_id', $classId)->first();
+        $settings = TimetableSetting::where('class_id', $classId)
+            ->orderBy('academic_year', 'desc')
+            ->orderBy('term', 'desc')
+            ->first();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         $timetable = [];
         
-        foreach ($days as $day) {
-            $timetable[$day] = Timetable::where('class_id', $classId)
-                ->where('day', $day)
-                ->with(['subject', 'teacher.user'])
-                ->orderBy('slot_order')
-                ->get();
+        if ($settings) {
+            foreach ($days as $day) {
+                $timetable[$day] = Timetable::where('class_id', $classId)
+                    ->where('academic_year', $settings->academic_year)
+                    ->where('term', $settings->term)
+                    ->where('day', $day)
+                    ->with(['subject', 'teacher.user'])
+                    ->orderBy('slot_order')
+                    ->get();
+            }
         }
 
         return view('backend.timetable.view', compact('class', 'settings', 'timetable', 'days'));
@@ -83,16 +90,23 @@ class TimetableController extends Controller
         }
 
         $class = Grade::find($classId);
-        $settings = TimetableSetting::where('class_id', $classId)->first();
+        $settings = TimetableSetting::where('class_id', $classId)
+            ->orderBy('academic_year', 'desc')
+            ->orderBy('term', 'desc')
+            ->first();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         $timetable = [];
         
-        foreach ($days as $day) {
-            $timetable[$day] = Timetable::where('class_id', $classId)
-                ->where('day', $day)
-                ->with(['subject', 'teacher.user'])
-                ->orderBy('slot_order')
-                ->get();
+        if ($settings) {
+            foreach ($days as $day) {
+                $timetable[$day] = Timetable::where('class_id', $classId)
+                    ->where('academic_year', $settings->academic_year)
+                    ->where('term', $settings->term)
+                    ->where('day', $day)
+                    ->with(['subject', 'teacher.user'])
+                    ->orderBy('slot_order')
+                    ->get();
+            }
         }
 
         return view('backend.timetable.teacher', compact('class', 'classes', 'settings', 'timetable', 'days'));
@@ -132,16 +146,23 @@ class TimetableController extends Controller
         $classId = $selectedChild->class_id;
         $class = Grade::find($classId);
         
-        $settings = TimetableSetting::where('class_id', $classId)->first();
+        $settings = TimetableSetting::where('class_id', $classId)
+            ->orderBy('academic_year', 'desc')
+            ->orderBy('term', 'desc')
+            ->first();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         $timetable = [];
         
-        foreach ($days as $day) {
-            $timetable[$day] = Timetable::where('class_id', $classId)
-                ->where('day', $day)
-                ->with(['subject', 'teacher.user'])
-                ->orderBy('slot_order')
-                ->get();
+        if ($settings) {
+            foreach ($days as $day) {
+                $timetable[$day] = Timetable::where('class_id', $classId)
+                    ->where('academic_year', $settings->academic_year)
+                    ->where('term', $settings->term)
+                    ->where('day', $day)
+                    ->with(['subject', 'teacher.user'])
+                    ->orderBy('slot_order')
+                    ->get();
+            }
         }
 
         return view('backend.timetable.parent', compact('class', 'children', 'settings', 'timetable', 'days', 'selectedChild'));

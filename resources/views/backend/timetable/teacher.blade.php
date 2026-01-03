@@ -86,10 +86,10 @@
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[800px]">
                     <thead>
-                        <tr class="bg-gradient-to-r from-emerald-500 to-teal-600">
-                            <th class="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider w-24">Time</th>
+                        <tr style="background: linear-gradient(to right, #10b981, #14b8a6) !important;">
+                            <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-24" style="color: #616161 !important; background-color: transparent !important;">Time</th>
                             @foreach($days as $day)
-                                <th class="px-4 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">{{ $day }}</th>
+                                <th class="px-4 py-4 text-center text-xs font-semibold uppercase tracking-wider" style="color: #616161 !important; background-color: transparent !important;">{{ $day }}</th>
                             @endforeach
                         </tr>
                     </thead>

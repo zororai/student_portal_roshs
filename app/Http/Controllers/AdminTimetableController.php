@@ -29,7 +29,12 @@ class AdminTimetableController extends Controller
         $subjects = Subject::orderBy('name')->get();
         $teachers = Teacher::with('user')->get();
         
-        return view('backend.admin.timetable.create', compact('classes', 'subjects', 'teachers'));
+        // Get current term from ResultsStatus
+        $currentTerm = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+        
+        return view('backend.admin.timetable.create', compact('classes', 'subjects', 'teachers', 'currentTerm'));
     }
 
     public function store(Request $request)
@@ -43,11 +48,17 @@ class AdminTimetableController extends Controller
             'lunch_end' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i',
             'subject_duration' => 'required|integer|min:20|max:120',
+            'academic_year' => 'required|string|max:10',
+            'term' => 'required|integer|min:1|max:3',
         ]);
 
         // Save or update timetable settings
         $settings = TimetableSetting::updateOrCreate(
-            ['class_id' => $validated['class_id']],
+            [
+                'class_id' => $validated['class_id'],
+                'academic_year' => $validated['academic_year'],
+                'term' => $validated['term']
+            ],
             $validated
         );
 
@@ -61,17 +72,24 @@ class AdminTimetableController extends Controller
     public function show($classId)
     {
         $class = Grade::with(['subjects', 'teacher'])->findOrFail($classId);
-        $settings = TimetableSetting::where('class_id', $classId)->first();
+        $settings = TimetableSetting::where('class_id', $classId)
+            ->orderBy('academic_year', 'desc')
+            ->orderBy('term', 'desc')
+            ->first();
         
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         $timetable = [];
         
-        foreach ($days as $day) {
-            $timetable[$day] = Timetable::where('class_id', $classId)
-                ->where('day', $day)
-                ->with(['subject', 'teacher.user'])
-                ->orderBy('slot_order')
-                ->get();
+        if ($settings) {
+            foreach ($days as $day) {
+                $timetable[$day] = Timetable::where('class_id', $classId)
+                    ->where('academic_year', $settings->academic_year)
+                    ->where('term', $settings->term)
+                    ->where('day', $day)
+                    ->with(['subject', 'teacher.user'])
+                    ->orderBy('slot_order')
+                    ->get();
+            }
         }
 
         return view('backend.admin.timetable.show', compact('class', 'settings', 'timetable', 'days'));
@@ -80,18 +98,25 @@ class AdminTimetableController extends Controller
     public function edit($classId)
     {
         $class = Grade::findOrFail($classId);
-        $settings = TimetableSetting::where('class_id', $classId)->first();
+        $settings = TimetableSetting::where('class_id', $classId)
+            ->orderBy('academic_year', 'desc')
+            ->orderBy('term', 'desc')
+            ->first();
         $subjects = Subject::orderBy('name')->get();
         $teachers = Teacher::with('user')->get();
         
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         $timetable = [];
         
-        foreach ($days as $day) {
-            $timetable[$day] = Timetable::where('class_id', $classId)
-                ->where('day', $day)
-                ->orderBy('slot_order')
-                ->get();
+        if ($settings) {
+            foreach ($days as $day) {
+                $timetable[$day] = Timetable::where('class_id', $classId)
+                    ->where('academic_year', $settings->academic_year)
+                    ->where('term', $settings->term)
+                    ->where('day', $day)
+                    ->orderBy('slot_order')
+                    ->get();
+            }
         }
 
         return view('backend.admin.timetable.edit', compact('class', 'settings', 'timetable', 'days', 'subjects', 'teachers'));
@@ -153,14 +178,22 @@ class AdminTimetableController extends Controller
 
     private function generateTimetable(TimetableSetting $settings)
     {
-        // Delete existing timetable for this class
-        Timetable::where('class_id', $settings->class_id)->delete();
+        // Delete existing timetable for this class, academic year, and term
+        Timetable::where('class_id', $settings->class_id)
+            ->where('academic_year', $settings->academic_year)
+            ->where('term', $settings->term)
+            ->delete();
 
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         $class = Grade::with('subjects')->find($settings->class_id);
         $subjects = $class->subjects->toArray();
         
-        foreach ($days as $day) {
+        // Shuffle subjects to create variety
+        shuffle($subjects);
+        
+        $globalSubjectIndex = 0; // Track subject index across all days
+        
+        foreach ($days as $dayIndex => $day) {
             $currentTime = Carbon::parse($settings->start_time);
             $endTime = Carbon::parse($settings->end_time);
             $breakStart = Carbon::parse($settings->break_start);
@@ -169,7 +202,9 @@ class AdminTimetableController extends Controller
             $lunchEnd = Carbon::parse($settings->lunch_end);
             
             $slotOrder = 0;
-            $subjectIndex = 0;
+            
+            // Offset the starting subject for each day to create rotation
+            $dayOffset = $dayIndex % count($subjects);
 
             while ($currentTime < $endTime) {
                 $slotEndTime = (clone $currentTime)->addMinutes($settings->subject_duration);
@@ -183,6 +218,8 @@ class AdminTimetableController extends Controller
                         'end_time' => $breakEnd->format('H:i:s'),
                         'slot_type' => 'break',
                         'slot_order' => $slotOrder++,
+                        'academic_year' => $settings->academic_year,
+                        'term' => $settings->term,
                     ]);
                     $currentTime = clone $breakEnd;
                     continue;
@@ -197,6 +234,8 @@ class AdminTimetableController extends Controller
                         'end_time' => $lunchEnd->format('H:i:s'),
                         'slot_type' => 'lunch',
                         'slot_order' => $slotOrder++,
+                        'academic_year' => $settings->academic_year,
+                        'term' => $settings->term,
                     ]);
                     $currentTime = clone $lunchEnd;
                     continue;
@@ -220,9 +259,11 @@ class AdminTimetableController extends Controller
                 // Create subject slot
                 if ($currentTime < $slotEndTime) {
                     $subjectId = null;
-                    if (!empty($subjects) && isset($subjects[$subjectIndex % count($subjects)])) {
-                        $subjectId = $subjects[$subjectIndex % count($subjects)]['id'];
-                        $subjectIndex++;
+                    if (!empty($subjects)) {
+                        // Calculate subject index with day offset for rotation
+                        $currentSubjectIndex = ($globalSubjectIndex + $dayOffset) % count($subjects);
+                        $subjectId = $subjects[$currentSubjectIndex]['id'];
+                        $globalSubjectIndex++;
                     }
 
                     Timetable::create([
@@ -233,6 +274,8 @@ class AdminTimetableController extends Controller
                         'end_time' => $slotEndTime->format('H:i:s'),
                         'slot_type' => 'subject',
                         'slot_order' => $slotOrder++,
+                        'academic_year' => $settings->academic_year,
+                        'term' => $settings->term,
                     ]);
                 }
 

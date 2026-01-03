@@ -57,7 +57,7 @@
                         <tr class="bg-gradient-to-r from-amber-500 to-orange-600">
                             <th class="px-4 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider w-24">Time</th>
                             @foreach($days as $day)
-                                <th class="px-4 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">{{ $day }}</th>
+                                <th class="px-4 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider">{{ substr($day, 0, 3) }}</th>
                             @endforeach
                         </tr>
                     </thead>
@@ -139,12 +139,28 @@
         </div>
 
         <!-- Conflict Warning -->
-        <div id="conflictWarning" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg">
+        <div id="conflictWarning" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg shadow-lg animate-pulse">
             <div class="flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
-                <span id="conflictMessage">Teacher has a conflict at this time!</span>
+                <div>
+                    <p class="font-bold text-lg">⚠️ Scheduling Conflict Detected!</p>
+                    <p id="conflictMessage" class="mt-1">Teacher has a conflict at this time!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded-r-lg">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <p class="font-semibold">Smart Scheduling Enabled</p>
+                    <p class="text-sm mt-1">The system will automatically check for teacher conflicts across all classes. Teachers cannot be assigned to multiple classes at the same time and day.</p>
+                </div>
             </div>
         </div>
 
@@ -190,30 +206,86 @@
             const startTime = this.dataset.start;
             const endTime = this.dataset.end;
             const slotId = this.dataset.slotId;
+            const selectElement = this;
+
+            // Remove any existing conflict styling
+            selectElement.classList.remove('border-red-500', 'bg-red-50');
+            selectElement.parentElement.classList.remove('ring-2', 'ring-red-500');
 
             if (!teacherId) {
                 document.getElementById('conflictWarning').classList.add('hidden');
                 return;
             }
 
-            // Check for conflicts with other slots in the same form
-            let hasConflict = false;
+            // Check for conflicts with other slots in the same form (current timetable)
+            let hasLocalConflict = false;
             document.querySelectorAll('.teacher-select').forEach(otherSelect => {
-                if (otherSelect !== this && 
+                if (otherSelect !== selectElement && 
                     otherSelect.value === teacherId && 
-                    otherSelect.dataset.day === day) {
-                    hasConflict = true;
+                    otherSelect.dataset.day === day &&
+                    otherSelect.dataset.start === startTime) {
+                    hasLocalConflict = true;
                 }
             });
 
-            if (hasConflict) {
+            if (hasLocalConflict) {
+                selectElement.classList.add('border-red-500', 'bg-red-50');
+                selectElement.parentElement.classList.add('ring-2', 'ring-red-500');
                 document.getElementById('conflictWarning').classList.remove('hidden');
                 document.getElementById('conflictMessage').textContent = 
-                    'Warning: This teacher is already assigned to another class at the same time on ' + day + '!';
-            } else {
-                document.getElementById('conflictWarning').classList.add('hidden');
+                    'Warning: This teacher is already assigned at ' + startTime + ' on ' + day + ' in this timetable!';
+                return;
             }
+
+            // Check for conflicts with other classes via AJAX
+            fetch('{{ route("admin.timetable.check-conflicts") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    teacher_id: teacherId,
+                    day: day,
+                    start_time: startTime,
+                    end_time: endTime,
+                    exclude_id: slotId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.has_conflict) {
+                    selectElement.classList.add('border-red-500', 'bg-red-50');
+                    selectElement.parentElement.classList.add('ring-2', 'ring-red-500');
+                    document.getElementById('conflictWarning').classList.remove('hidden');
+                    document.getElementById('conflictMessage').textContent = 
+                        'Warning: This teacher is already assigned to another class at this time on ' + day + '!';
+                } else {
+                    document.getElementById('conflictWarning').classList.add('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking conflicts:', error);
+            });
         });
+    });
+
+    // Prevent form submission if there are conflicts
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const conflictWarning = document.getElementById('conflictWarning');
+        if (!conflictWarning.classList.contains('hidden')) {
+            e.preventDefault();
+            alert('Please resolve teacher conflicts before saving the timetable.');
+            return false;
+        }
+
+        // Check for any red-bordered selects (visual conflict indicators)
+        const conflictedSelects = document.querySelectorAll('.teacher-select.border-red-500');
+        if (conflictedSelects.length > 0) {
+            e.preventDefault();
+            alert('Please resolve all teacher scheduling conflicts before saving.');
+            return false;
+        }
     });
 </script>
 @endpush

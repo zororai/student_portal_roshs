@@ -10,7 +10,110 @@
     <link rel="stylesheet" href="{{ asset('css/style.css')}}?v={{ time() }}" />
     <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ time() }}" />
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}?v={{ time() }}" />
-    <style>
+    
+    @php
+        $siteLogo = \App\WebsiteSetting::get('site_logo', 'images/logo.png');
+    @endphp
+    
+  <style>
+        .navbar-nav.equal-spacing {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100% !important;
+            padding: 0 60px !important;
+        }
+        .navbar-nav.equal-spacing li {
+            flex: 0 0 auto !important;
+        }
+        .navbar-nav.equal-spacing .logo-center {
+            margin: 0 50px !important;
+        }
+
+        /* Mobile Navigation Fixes */
+        @media (max-width: 991px) {
+            .navbar-nav.equal-spacing {
+                flex-direction: column !important;
+                padding: 20px !important;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 10px;
+                margin-top: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+
+            .navbar-nav.equal-spacing li {
+                width: 100% !important;
+                margin: 5px 0 !important;
+                text-align: center;
+            }
+
+            .navbar-nav.equal-spacing .logo-center {
+                order: -1 !important;
+                margin: 15px 0 25px 0 !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                width: 100% !important;
+                background: transparent !important;
+            }
+
+            .navbar-nav.equal-spacing .logo-center .navbar-brand {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .navbar-nav.equal-spacing .logo-center img {
+                width: 90px !important;
+                height: 90px !important;
+                display: block !important;
+                margin: 0 auto !important;
+                border-radius: 50% !important;
+                box-shadow: 0 6px 12px rgba(45, 80, 22, 0.3) !important;
+                border: 3px solid #2d5016 !important;
+            }
+
+            .navbar-nav.equal-spacing .nav-link {
+                padding: 12px 20px !important;
+                border-radius: 8px;
+                background: #f8f9fa;
+                margin: 3px 0;
+                color: #333 !important;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+
+            .navbar-nav.equal-spacing .nav-link:hover,
+            .navbar-nav.equal-spacing .nav-link.active {
+                background: #2d5016 !important;
+                color: white !important;
+            }
+
+            .dropdown-content {
+                position: static !important;
+                display: block !important;
+                background: #e9ecef !important;
+                box-shadow: none !important;
+                border-radius: 5px !important;
+                margin-top: 5px !important;
+                padding: 10px !important;
+            }
+
+            .dropdown-content a {
+                padding: 8px 15px !important;
+                margin: 2px 0 !important;
+                border-radius: 5px !important;
+                background: white !important;
+                color: #333 !important;
+            }
+
+            .dropdown-content a:hover {
+                background: #2d5016 !important;
+                color: white !important;
+            }
+        }
+   
+
         .form-section { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
         .form-section h4 { color: #28a745; border-bottom: 2px solid #28a745; padding-bottom: 10px; margin-bottom: 20px; }
         .form-control { margin-bottom: 10px; }
@@ -23,28 +126,46 @@
         <div class="loader"><img src="images/loader.gif" alt="#" /></div>
     </div>
 
-    <header class="top-header">
+      <header class="top-header">
         <nav class="navbar header-nav navbar-expand-lg">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="{{ route('website.index') }}">
-                    <img style="height:80px; width:100px" src="images/logo.png" alt="image">
-
-                </a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd">
-                    <span></span><span></span><span></span>
+            <div class="container">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd" aria-controls="navbar-wd" aria-expanded="false" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </button>
-                <div class="collapse navbar-collapse justify-content-end" id="navbar-wd">
-                    <ul class="navbar-nav">
+                <div class="collapse navbar-collapse" id="navbar-wd">
+                    <ul class="navbar-nav equal-spacing">
+                        <li class="nav-item d-flex align-items-center">
+                            <a class="navbar-brand logo-center" href="{{ route('website.index') }}">
+                                <img style="height:80px; width:100px;" src="{{ asset($siteLogo) }}" alt="Rose of Sharon High School">
+                            </a>
+                        </li>
                         <li><a class="nav-link" href="{{ route('website.index') }}">Home</a></li>
                         <li><a class="nav-link" href="{{ route('website.about') }}">About</a></li>
-                        <li><a class="nav-link" href="{{ route('website.courses') }}">Our Subjects</a></li>
-                        <li><a class="nav-link active" href="{{ route('website.application') }}">Application Form</a></li>
+                        <li class="navbar">
+                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('studentParentDropdown')">Parent/Student Portal</a>
+                            <div class="dropdown-content" id="studentParentDropdown">
+                                <a href="{{route('website.results') }}">Our Results</a>
+                                <a href="{{ url('/logins') }}">Student Portal</a>
+                            </div>
+                        </li>
+                        <li class="navbar">
+                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('admissionDropdown')">Admission</a>
+                            <div class="dropdown-content" id="admissionDropdown">
+                                <a href="{{ route('website.courses') }}">Our Subjects</a>
+                                <a href="{{ route('website.application') }}">Application Form</a>
+                            </div>
+                        </li>
+                        <li><a class="nav-link active" href="{{ route('shop.index') }}">Shop</a></li>
+                        <li><a class="nav-link" href="{{ route('website.News') }}">News Letter</a></li>
                         <li><a class="nav-link" href="{{ route('website.contact') }}">Contact Us</a></li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
+
 
     <section class="inner_banner">
         <div class="container">

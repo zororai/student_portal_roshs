@@ -16,22 +16,39 @@
         <div class="loader"><img src="images/loader.gif" alt="#" /></div>
     </div>
 
-    <header class="top-header">
+     <header class="top-header">
         <nav class="navbar header-nav navbar-expand-lg">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="{{ route('website.index') }}">
-                    <img style="height:80px; width:100px" src="images/logo.png" alt="image">
-
-                </a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd">
-                    <span></span><span></span><span></span>
+            <div class="container">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-wd" aria-controls="navbar-wd" aria-expanded="false" aria-label="Toggle navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </button>
-                <div class="collapse navbar-collapse justify-content-end" id="navbar-wd">
-                    <ul class="navbar-nav">
+                <div class="collapse navbar-collapse" id="navbar-wd">
+                    <ul class="navbar-nav equal-spacing">
+                        <li class="nav-item d-flex align-items-center">
+                            <a class="navbar-brand logo-center" href="{{ route('website.index') }}">
+                                <img style="height:80px; width:100px;" src="{{ asset($siteLogo) }}" alt="Rose of Sharon High School">
+                            </a>
+                        </li>
                         <li><a class="nav-link" href="{{ route('website.index') }}">Home</a></li>
                         <li><a class="nav-link" href="{{ route('website.about') }}">About</a></li>
-                        <li><a class="nav-link" href="{{ route('website.courses') }}">Our Subjects</a></li>
-                        <li><a class="nav-link" href="{{ route('website.application') }}">Application Form</a></li>
+                        <li class="navbar">
+                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('studentParentDropdown')">Parent/Student Portal</a>
+                            <div class="dropdown-content" id="studentParentDropdown">
+                                <a href="{{route('website.results') }}">Our Results</a>
+                                <a href="{{ url('/logins') }}">Student Portal</a>
+                            </div>
+                        </li>
+                        <li class="navbar">
+                            <a class="nav-link" href="javascript:void(0);" onclick="toggleDropdown('admissionDropdown')">Admission</a>
+                            <div class="dropdown-content" id="admissionDropdown">
+                                <a href="{{ route('website.courses') }}">Our Subjects</a>
+                                <a href="{{ route('website.application') }}">Application Form</a>
+                            </div>
+                        </li>
+                        <li><a class="nav-link active" href="{{ route('shop.index') }}">Shop</a></li>
+                        <li><a class="nav-link" href="{{ route('website.News') }}">News Letter</a></li>
                         <li><a class="nav-link" href="{{ route('website.contact') }}">Contact Us</a></li>
                     </ul>
                 </div>
