@@ -47,21 +47,36 @@
                             Permissions
                         </label>
                     </div>
-                    <div class="md:w-2/3 block text-gray-600 font-bold">
-                        @foreach ($permissions as $permission)
-                            <div class="flex items-center">
-                                <label>
-                                    <input name="selectedpermissions[]" class="mr-2 leading-tight" type="checkbox" value="{{ $permission->name }}"
-                                        @foreach ($role->permissions as $item)
-                                            {{ ($item->id === $permission->id) ? 'checked' : '' }}
-                                        @endforeach
-                                    >
-                                    <span class="text-sm">
-                                        {{ $permission->name }}
-                                    </span>
-                                </label>
+                    <div class="md:w-2/3">
+                        <!-- Search Bar -->
+                        <div class="mb-4">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </div>
+                                <input type="text" id="permissionSearch" placeholder="Search permissions..." 
+                                    class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
-                        @endforeach
+                        </div>
+                        
+                        <div class="block text-gray-600 font-bold max-h-64 overflow-y-auto" id="permissionsContainer">
+                            @foreach ($permissions as $permission)
+                                <div class="flex items-center permission-item">
+                                    <label>
+                                        <input name="selectedpermissions[]" class="mr-2 leading-tight" type="checkbox" value="{{ $permission->name }}"
+                                            @foreach ($role->permissions as $item)
+                                                {{ ($item->id === $permission->id) ? 'checked' : '' }}
+                                            @endforeach
+                                        >
+                                        <span class="text-sm">
+                                            {{ $permission->name }}
+                                        </span>
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
                 <div class="md:flex md:items-center">
@@ -77,3 +92,26 @@
         <!-- Log on to codeastro.com for more projects -->
     </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('permissionSearch');
+    const permissionItems = document.querySelectorAll('.permission-item');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        permissionItems.forEach(function(item) {
+            const permissionText = item.textContent.toLowerCase();
+            
+            if (permissionText.includes(searchTerm)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+@endpush

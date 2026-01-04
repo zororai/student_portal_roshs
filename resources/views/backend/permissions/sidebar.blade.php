@@ -49,51 +49,9 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @php
                                     $userPermissions = $user->getAllPermissions()->pluck('name')->toArray();
-                                    $sections = [
-                                        'Navigation' => [
-                                            'sidebar-home' => 'Home/Dashboard',
-                                            'sidebar-notifications' => 'Notifications'
-                                        ],
-                                        'OnBoard Management' => [
-                                            'sidebar-onboard' => 'OnBoard Section',
-                                            'sidebar-teachers' => 'Teachers',
-                                            'sidebar-students' => 'Students',
-                                            'sidebar-subjects' => 'Subjects',
-                                            'sidebar-classes' => 'Classes',
-                                            'sidebar-parents' => 'Parents'
-                                        ],
-                                        'Student Management' => [
-                                            'sidebar-student-section' => 'Student Section',
-                                            'sidebar-student-record' => 'Student Record',
-                                            'sidebar-applicants' => 'Applicants',
-                                            'sidebar-disciplinary' => 'Disciplinary Records',
-                                            'sidebar-results-management' => 'Results Management',
-                                            'sidebar-marking-scheme' => 'Marking Scheme',
-                                            'sidebar-attendance' => 'Attendance Register'
-                                        ],
-                                        'Staff Management' => [
-                                            'sidebar-school-staff' => 'School Staff Section',
-                                            'sidebar-staff-members' => 'Staff Members',
-                                            'sidebar-timetable' => 'Timetable',
-                                            'sidebar-webcam' => 'Webcam'
-                                        ],
-                                        'Website Management' => [
-                                            'sidebar-website' => 'Website Section',
-                                            'sidebar-banner' => 'Banner',
-                                            'sidebar-newsletter' => 'Newsletter',
-                                            'sidebar-events' => 'Events'
-                                        ],
-                                        'Finance & Accounting' => [
-                                            'sidebar-finance' => 'Finance & Accounting',
-                                            'sidebar-student-payments' => 'Student Payments',
-                                            'sidebar-parents-arrears' => 'Parents with Arrears',
-                                            'sidebar-school-income' => 'School Income',
-                                            'sidebar-school-expenses' => 'School Expenses'
-                                        ]
-                                    ];
                                 @endphp
 
-                                @foreach($sections as $sectionName => $sectionItems)
+                                @foreach($sidebarItems as $sectionName => $sectionItems)
                                 <div class="bg-white rounded-lg p-4 border border-gray-200">
                                     <h4 class="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-100">{{ $sectionName }}</h4>
                                     <div class="space-y-2">

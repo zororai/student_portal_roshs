@@ -54,6 +54,10 @@ class RolePermissionController extends Controller
             'sidebar-cashbook',
             'sidebar-purchase-orders',
             'sidebar-reports',
+            'sidebar-inventory',
+            'sidebar-pos',
+            'sidebar-student-groceries',
+            'sidebar-medical-reports',
         ];
         
         $permissions = array_unique(array_merge($permissions, $additionalPermissions));
@@ -61,6 +65,31 @@ class RolePermissionController extends Controller
         foreach ($permissions as $permissionName) {
             if (!Permission::where('name', $permissionName)->exists()) {
                 Permission::create(['name' => $permissionName, 'guard_name' => 'web']);
+            }
+        }
+        
+        // Remove obsolete permissions that no longer exist
+        $this->removeObsoletePermissions();
+    }
+    
+    /**
+     * Remove permissions that no longer exist in the sidebar
+     */
+    private function removeObsoletePermissions()
+    {
+        $obsoletePermissions = [
+            'sidebar-ledger',
+            'sidebar-budgets', 
+            'sidebar-reconciliation'
+        ];
+        
+        foreach ($obsoletePermissions as $permissionName) {
+            $permission = Permission::where('name', $permissionName)->first();
+            if ($permission) {
+                // Remove permission from all roles
+                $permission->roles()->detach();
+                // Delete the permission
+                $permission->delete();
             }
         }
     }
@@ -154,52 +183,74 @@ class RolePermissionController extends Controller
      */
     public function manageSidebarPermissions()
     {
-        // Define all available sidebar items
+        // Define all available sidebar items grouped by category
         $sidebarItems = [
-            'sidebar-home' => 'Home/Dashboard',
-            'sidebar-notifications' => 'Notifications',
-            'sidebar-onboard' => 'OnBoard Section',
-            'sidebar-user-management' => 'User Management',
-            'sidebar-teachers' => 'Teachers',
-            'sidebar-students' => 'Students',
-            'sidebar-subjects' => 'Subjects',
-            'sidebar-classes' => 'Classes',
-            'sidebar-parents' => 'Parents',
-            'sidebar-student-section' => 'Student Section',
-            'sidebar-student-record' => 'Student Record',
-            'sidebar-applicants' => 'Applicants',
-            'sidebar-disciplinary' => 'Disciplinary Records',
-            'sidebar-results-management' => 'Results Management',
-            'sidebar-logbook' => 'Teacher Log Book',
-            'sidebar-leave-management' => 'Leave Management',
-            'sidebar-teacher-attendance' => 'Teacher - My Attendance',
-            'sidebar-teacher-leave' => 'Teacher - Leave Applications',
-            'sidebar-marking-scheme' => 'Marking Scheme',
-            'sidebar-attendance' => 'Attendance Register',
-            'sidebar-school-staff' => 'School Staff Section',
-            'sidebar-staff-members' => 'Staff Members',
-            'sidebar-timetable' => 'Timetable',
-            'sidebar-webcam' => 'Webcam',
-            'sidebar-website' => 'Website Section',
-            'sidebar-banner' => 'Banner',
-            'sidebar-newsletter' => 'Newsletter',
-            'sidebar-events' => 'Events',
-            'sidebar-finance' => 'Finance & Accounting',
-            'sidebar-student-payments' => 'Student Payments',
-            'sidebar-parents-arrears' => 'Parents with Arrears',
-            'sidebar-school-income' => 'School Income',
-            'sidebar-school-expenses' => 'School Expenses',
-            'sidebar-payroll' => 'Payroll',
-            'sidebar-cashbook' => 'Cash Book',
-            'sidebar-purchase-orders' => 'Purchase Orders',
-            'sidebar-reports' => 'Reports & Dashboard',
+            'Navigation' => [
+                'sidebar-home' => 'Home/Dashboard',
+                'sidebar-notifications' => 'Notifications'
+            ],
+            'User Management' => [
+                'sidebar-onboard' => 'OnBoard Section',
+                'sidebar-user-management' => 'User Management',
+                'sidebar-teachers' => 'Teachers',
+                'sidebar-students' => 'Students',
+                'sidebar-subjects' => 'Subjects',
+                'sidebar-classes' => 'Classes',
+                'sidebar-parents' => 'Parents'
+            ],
+            'Student Management' => [
+                'sidebar-student-section' => 'Student Section',
+                'sidebar-student-record' => 'Student Record',
+                'sidebar-applicants' => 'Applicants',
+                'sidebar-disciplinary' => 'Disciplinary Records',
+                'sidebar-medical-reports' => 'Student Medical Records',
+                'sidebar-results-management' => 'Results Management',
+                'sidebar-marking-scheme' => 'Marking Scheme',
+                'sidebar-attendance' => 'Attendance Register'
+            ],
+            'Staff Management' => [
+                'sidebar-school-staff' => 'School Staff Section',
+                'sidebar-staff-members' => 'Staff Members',
+                'sidebar-logbook' => 'Teacher Log Book',
+                'sidebar-leave-management' => 'Leave Management',
+                'sidebar-teacher-attendance' => 'Teacher - My Attendance',
+                'sidebar-teacher-leave' => 'Teacher - Leave Applications',
+                'sidebar-timetable' => 'Timetable',
+                'sidebar-webcam' => 'Webcam'
+            ],
+            'Website Management' => [
+                'sidebar-website' => 'Website Section',
+                'sidebar-banner' => 'Banner',
+                'sidebar-newsletter' => 'Newsletter',
+                'sidebar-events' => 'Events'
+            ],
+            'Finance & Accounting' => [
+                'sidebar-finance' => 'Finance & Accounting',
+                'sidebar-student-payments' => 'Student Payments',
+                'sidebar-parents-arrears' => 'Parents with Arrears',
+                'sidebar-school-income' => 'School Income',
+                'sidebar-school-expenses' => 'School Expenses',
+                'sidebar-inventory' => 'Inventory',
+                'sidebar-pos' => 'POS / Sell',
+                'sidebar-student-groceries' => 'Student Groceries',
+                'sidebar-payroll' => 'Payroll',
+                'sidebar-cashbook' => 'Cash Book',
+                'sidebar-purchase-orders' => 'Purchase Orders',
+                'sidebar-reports' => 'Reports & Dashboard'
+            ]
         ];
 
+        // Flatten the sidebar items to get all permission keys
+        $allPermissions = [];
+        foreach ($sidebarItems as $category => $items) {
+            $allPermissions = array_merge($allPermissions, array_keys($items));
+        }
+        
         // Get all existing permissions
-        $existingPermissions = Permission::whereIn('name', array_keys($sidebarItems))->pluck('name')->toArray();
+        $existingPermissions = Permission::whereIn('name', $allPermissions)->pluck('name')->toArray();
         
         // Create missing sidebar permissions
-        foreach ($sidebarItems as $permissionName => $displayName) {
+        foreach ($allPermissions as $permissionName) {
             if (!in_array($permissionName, $existingPermissions)) {
                 Permission::create(['name' => $permissionName, 'guard_name' => 'web']);
             }
@@ -220,15 +271,17 @@ class RolePermissionController extends Controller
         
         // Define all sidebar permissions
         $sidebarPermissions = [
-            'sidebar-home', 'sidebar-notifications', 'sidebar-onboard', 'sidebar-teachers',
+            'sidebar-home', 'sidebar-notifications', 'sidebar-onboard', 'sidebar-user-management', 'sidebar-teachers',
             'sidebar-students', 'sidebar-subjects', 'sidebar-classes', 'sidebar-parents',
             'sidebar-student-section', 'sidebar-student-record', 'sidebar-applicants',
-            'sidebar-disciplinary', 'sidebar-results-management', 'sidebar-marking-scheme',
+            'sidebar-disciplinary', 'sidebar-medical-reports', 'sidebar-results-management', 'sidebar-marking-scheme',
             'sidebar-attendance', 'sidebar-school-staff', 'sidebar-staff-members', 'sidebar-logbook', 'sidebar-leave-management',
             'sidebar-teacher-attendance', 'sidebar-teacher-leave',
             'sidebar-timetable', 'sidebar-webcam', 'sidebar-website', 'sidebar-banner',
             'sidebar-newsletter', 'sidebar-events', 'sidebar-finance', 'sidebar-student-payments',
-            'sidebar-parents-arrears', 'sidebar-school-income', 'sidebar-school-expenses'
+            'sidebar-parents-arrears', 'sidebar-school-income', 'sidebar-school-expenses',
+            'sidebar-inventory', 'sidebar-pos', 'sidebar-student-groceries', 'sidebar-payroll', 'sidebar-cashbook', 
+            'sidebar-purchase-orders', 'sidebar-reports'
         ];
         
         // Remove all existing sidebar permissions from user

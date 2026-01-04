@@ -165,7 +165,7 @@
                             <a href="{{ route('teacher.index') }}" class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200">
                                 Cancel
                             </a>
-                            <button type="submit" class="px-8 py-3 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg hover:from-emerald-600 hover:to-teal-700 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+                            <button type="submit" class="px-8 py-3 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 text-gray-700  font-semibold shadow-lg hover:from-emerald-600 hover:to-teal-700 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
                                 <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                 </svg>
