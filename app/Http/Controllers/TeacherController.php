@@ -44,6 +44,7 @@ class TeacherController extends Controller
         $request->validate([
             'name'              => 'required|string|max:255',
             'email'             => 'required|string|email|max:255|unique:users',
+            'password'          => 'required|string|min:8|confirmed',
             'gender'            => 'required|string',
             'phone'             => 'required|string|max:255',
             'dateofbirth'       => 'required|date',
@@ -51,12 +52,12 @@ class TeacherController extends Controller
             'permanent_address' => 'required|string|max:255'
         ]);
 
-        $defaultPassword = '12345678';
+        $password = $request->password;
 
         $user = User::create([
             'name'      => $request->name,
             'email'     => $request->email,
-            'password'  => Hash::make($defaultPassword)
+            'password'  => Hash::make($password)
         ]);
 
         if ($request->hasFile('profile_picture')) {
@@ -80,10 +81,10 @@ class TeacherController extends Controller
         $user->assignRole('Teacher');
 
         // Send email notification with credentials
-        $this->sendCredentialsEmail($user, $defaultPassword);
+        $this->sendCredentialsEmail($user, $password);
 
         // Send SMS notification with credentials
-        $this->sendCredentialsSms($request->phone, $user->name, $user->email, $defaultPassword);
+        $this->sendCredentialsSms($request->phone, $user->name, $user->email, $password);
 
         return redirect()->route('teacher.index')
             ->with('success', 'Teacher created successfully! Login credentials have been sent via email and SMS.');

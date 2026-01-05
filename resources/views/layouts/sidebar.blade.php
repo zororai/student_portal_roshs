@@ -292,7 +292,9 @@
                 <span class="font-medium" x-show="!collapsed">Send Notifications</span>
             </div>
         </a>
+        @endrole
         
+        <!-- Permission-based sections - accessible by any role with the permission -->
         <!-- Onboarding Process Section with Submenu -->
         @can('sidebar-onboard')
         <div x-data="{ open: false }" class="mt-1" x-show="!collapsed">
@@ -698,6 +700,7 @@
         @endcan
 
         <!-- Settings Section with Submenu -->
+        @if(Auth::user()->hasRole('Admin') || Auth::user()->can('sidebar-settings'))
         <div x-data="{ open: false }" class="mt-1" x-show="!collapsed">
             <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg transition-colors" :class="open ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700'">
                 <div class="flex items-center space-x-3">
@@ -763,7 +766,7 @@
                 </a>
             </div>
         </div>
-        @endrole
+        @endif
     </div>
 
 </aside>

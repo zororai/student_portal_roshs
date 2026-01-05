@@ -451,11 +451,12 @@ class StudentController extends Controller
     }
 
     /**
-     * Update student password
+     * Update student password and phone number
      */
     public function updatePassword(Request $request)
     {
         $request->validate([
+            'phone' => 'required|string|max:20',
             'current_password' => 'required',
             'new_password' => 'required|string|min:8|confirmed',
         ]);
@@ -472,11 +473,17 @@ class StudentController extends Controller
             return redirect()->back()->with('error', 'New password cannot be the default password (12345678).');
         }
 
+        // Update phone number on student record
+        if ($user->student) {
+            $user->student->phone = $request->phone;
+            $user->student->save();
+        }
+
         // Update password
         $user->password = Hash::make($request->new_password);
         $user->save();
 
-        return redirect()->route('home')->with('success', 'Password changed successfully!');
+        return redirect()->route('home')->with('success', 'Profile updated successfully!');
     }
 
     /**

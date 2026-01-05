@@ -35,5 +35,9 @@
     @role('Student')
         @include('dashboard.student')
     @endrole
+
+    @if(!Auth::user()->hasAnyRole(['Admin', 'Parent', 'Teacher', 'Student']))
+        @include('dashboard.admin')
+    @endif
 </div>
 @endsection

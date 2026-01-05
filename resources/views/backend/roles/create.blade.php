@@ -76,35 +76,78 @@
             </div>
             
             <div class="px-8 py-6">
-                <!-- Search Bar -->
+                <!-- Grouped Sidebar Permissions -->
                 <div class="mb-6">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </div>
-                        <input type="text" id="permissionSearch" placeholder="Search permissions..." 
-                            class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                    </div>
-                </div>
-                @if(count($permissions) > 0)
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        @foreach ($permissions as $permission)
-                            <label class="relative flex items-center p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all group">
-                                <input type="checkbox" name="selectedpermissions[]" value="{{ $permission->name }}" 
-                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-blue-700">{{ $permission->name }}</span>
-                            </label>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                        </svg>
+                        Sidebar Permissions
+                    </h4>
+                    <div class="space-y-3">
+                        @foreach($groupedPermissions as $category => $items)
+                            <div x-data="{ open: false, selectAll: false }" class="border border-gray-200 rounded-lg overflow-hidden">
+                                <!-- Category Header -->
+                                <div class="bg-gray-50 px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors" @click="open = !open">
+                                    <div class="flex items-center space-x-3">
+                                        <input type="checkbox" 
+                                            x-model="selectAll"
+                                            @click.stop
+                                            @change="$refs.categoryItems.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = selectAll)"
+                                            class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                        <span class="font-medium text-gray-800">{{ $category }}</span>
+                                        <span class="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{{ count($items) }}</span>
+                                    </div>
+                                    <svg class="w-5 h-5 text-gray-500 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </div>
+                                <!-- Category Items -->
+                                <div x-show="open" x-collapse x-ref="categoryItems" class="bg-white border-t border-gray-200">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-4">
+                                        @foreach($items as $permissionKey => $permissionLabel)
+                                            <label class="relative flex items-center p-2 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all group">
+                                                <input type="checkbox" name="selectedpermissions[]" value="{{ $permissionKey }}" 
+                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                                <span class="ml-2 text-sm text-gray-700 group-hover:text-blue-700">{{ $permissionLabel }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         @endforeach
                     </div>
-                @else
-                    <div class="text-center py-8">
-                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <p class="text-gray-500">No permissions available</p>
-                        <a href="{{ route('permission.create') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2 inline-block">Create a permission first</a>
+                </div>
+
+                <!-- Other Permissions (non-sidebar) -->
+                @php
+                    $sidebarPermissionKeys = collect($groupedPermissions)->flatten()->keys()->toArray();
+                    $allSidebarKeys = [];
+                    foreach($groupedPermissions as $items) {
+                        $allSidebarKeys = array_merge($allSidebarKeys, array_keys($items));
+                    }
+                    $otherPermissions = $permissions->filter(function($p) use ($allSidebarKeys) {
+                        return !in_array($p->name, $allSidebarKeys);
+                    });
+                @endphp
+                
+                @if($otherPermissions->count() > 0)
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                            </svg>
+                            Other Permissions
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            @foreach ($otherPermissions as $permission)
+                                <label class="relative flex items-center p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all group">
+                                    <input type="checkbox" name="selectedpermissions[]" value="{{ $permission->name }}" 
+                                        class="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                                    <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-purple-700">{{ $permission->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
             </div>
@@ -125,27 +168,3 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('permissionSearch');
-    const permissionLabels = document.querySelectorAll('label[class*="group"]');
-    
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        
-        permissionLabels.forEach(function(label) {
-            const permissionText = label.textContent.toLowerCase();
-            const checkbox = label.querySelector('input[type="checkbox"]');
-            
-            if (permissionText.includes(searchTerm)) {
-                label.style.display = 'flex';
-            } else {
-                label.style.display = 'none';
-            }
-        });
-    });
-});
-</script>
-@endpush

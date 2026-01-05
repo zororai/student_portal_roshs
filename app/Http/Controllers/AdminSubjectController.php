@@ -32,8 +32,12 @@ class AdminSubjectController extends Controller
     public function create()
     {
         $teachers = Teacher::latest()->get();
+        
+        // Generate next subject code (auto-increment number)
+        $lastSubject = Subject::orderBy('subject_code', 'desc')->first();
+        $nextSubjectCode = $lastSubject ? (intval($lastSubject->subject_code) + 1) : 1001;
 
-        return view('backend.subjectsadmin.create', compact('teachers'));
+        return view('backend.subjectsadmin.create', compact('teachers', 'nextSubjectCode'));
     }
 
     /**

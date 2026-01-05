@@ -56,20 +56,22 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Subject Code <span class="text-red-500">*</span></label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
-                                </svg>
+                        <div class="w-full px-4 py-3 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-400 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center text-gray-600">
+                                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+                                    </svg>
+                                    <span class="text-sm font-medium">Auto-generated:</span>
+                                </div>
+                                <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">{{ $nextSubjectCode }}</span>
                             </div>
-                            <input type="text" id="subject_code" name="subject_code" value="{{ old('subject_code') }}" 
-                                class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('subject_code') border-red-500 @enderror"
-                                placeholder="Auto-generated">
                         </div>
+                        <input type="hidden" name="subject_code" value="{{ $nextSubjectCode }}">
                         @error('subject_code')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
-                        <p class="mt-1 text-xs text-gray-500">Code is auto-generated from subject name</p>
+                        <p class="mt-1 text-xs text-gray-500">This code will be assigned to the new subject</p>
                     </div>
                 </div>
 
@@ -141,26 +143,3 @@
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const subjectNameInput = document.getElementById('subject_name');
-        const subjectCodeInput = document.getElementById('subject_code');
-        
-        subjectNameInput.addEventListener('input', function() {
-            const subjectName = this.value.trim();
-            
-            if (subjectName.length >= 2) {
-                // Generate subject code: F + first 2 letters uppercase
-                const firstTwoLetters = subjectName.substring(0, 2).toUpperCase();
-                const subjectCode = 'F' + firstTwoLetters;
-                
-                subjectCodeInput.value = subjectCode;
-            } else {
-                subjectCodeInput.value = '';
-            }
-        });
-    });
-</script>
-@endpush

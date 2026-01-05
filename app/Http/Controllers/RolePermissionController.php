@@ -24,8 +24,78 @@ class RolePermissionController extends Controller
         $this->syncSidebarPermissions();
         
         $permissions = Permission::orderBy('name')->get();
+        
+        // Group sidebar permissions by category for better UX
+        $groupedPermissions = $this->getGroupedSidebarPermissions();
 
-        return view('backend.roles.create', compact('permissions'));
+        return view('backend.roles.create', compact('permissions', 'groupedPermissions'));
+    }
+    
+    /**
+     * Get sidebar permissions grouped by category
+     */
+    private function getGroupedSidebarPermissions()
+    {
+        return [
+            'General' => [
+                'sidebar-home' => 'Home',
+                'sidebar-notifications' => 'Notifications'
+            ],
+            'Onboarding Process' => [
+                'sidebar-onboard' => 'Onboarding Section',
+                'sidebar-user-management' => 'User Management',
+                'sidebar-teachers' => 'Teachers',
+                'sidebar-students' => 'Students',
+                'sidebar-subjects' => 'Subjects',
+                'sidebar-classes' => 'Classes',
+                'sidebar-parents' => 'Parents'
+            ],
+            'Student Management' => [
+                'sidebar-student-section' => 'Student Section',
+                'sidebar-student-record' => 'Student Record',
+                'sidebar-applicants' => 'Applicants',
+                'sidebar-disciplinary' => 'Disciplinary',
+                'sidebar-medical-reports' => 'Medical Reports',
+                'sidebar-results-management' => 'Results Management',
+                'sidebar-marking-scheme' => 'Marking Scheme',
+                'sidebar-attendance' => 'Attendance'
+            ],
+            'School Staff' => [
+                'sidebar-school-staff' => 'School Staff Section',
+                'sidebar-staff-members' => 'Staff Members',
+                'sidebar-logbook' => 'Logbook',
+                'sidebar-leave-management' => 'Leave Management',
+                'sidebar-teacher-attendance' => 'Teacher Attendance',
+                'sidebar-teacher-leave' => 'Teacher Leave'
+            ],
+            'Timetable & Media' => [
+                'sidebar-timetable' => 'Timetable',
+                'sidebar-webcam' => 'Webcam'
+            ],
+            'Website Management' => [
+                'sidebar-website' => 'Website Section',
+                'sidebar-banner' => 'Banner',
+                'sidebar-newsletter' => 'Newsletter',
+                'sidebar-events' => 'Events'
+            ],
+            'Finance & Accounting' => [
+                'sidebar-finance' => 'Finance Section',
+                'sidebar-student-payments' => 'Student Payments',
+                'sidebar-parents-arrears' => 'Parents with Arrears',
+                'sidebar-school-income' => 'School Income',
+                'sidebar-school-expenses' => 'School Expenses',
+                'sidebar-inventory' => 'Inventory',
+                'sidebar-pos' => 'POS / Sell',
+                'sidebar-student-groceries' => 'Student Groceries',
+                'sidebar-payroll' => 'Payroll',
+                'sidebar-cashbook' => 'Cash Book',
+                'sidebar-purchase-orders' => 'Purchase Orders',
+                'sidebar-reports' => 'Reports & Dashboard'
+            ],
+            'Settings' => [
+                'sidebar-settings' => 'Settings Section'
+            ]
+        ];
     }
     
     /**
@@ -114,8 +184,9 @@ class RolePermissionController extends Controller
         
         $role = Role::with('permissions')->find($id);
         $permissions = Permission::orderBy('name')->get();
+        $groupedPermissions = $this->getGroupedSidebarPermissions();
 
-        return view('backend.roles.edit', compact('role','permissions'));
+        return view('backend.roles.edit', compact('role', 'permissions', 'groupedPermissions'));
     }
 
     public function updateRole(Request $request, $id)
@@ -237,6 +308,9 @@ class RolePermissionController extends Controller
                 'sidebar-cashbook' => 'Cash Book',
                 'sidebar-purchase-orders' => 'Purchase Orders',
                 'sidebar-reports' => 'Reports & Dashboard'
+            ],
+            'Settings' => [
+                'sidebar-settings' => 'Settings Section'
             ]
         ];
 
@@ -281,7 +355,7 @@ class RolePermissionController extends Controller
             'sidebar-newsletter', 'sidebar-events', 'sidebar-finance', 'sidebar-student-payments',
             'sidebar-parents-arrears', 'sidebar-school-income', 'sidebar-school-expenses',
             'sidebar-inventory', 'sidebar-pos', 'sidebar-student-groceries', 'sidebar-payroll', 'sidebar-cashbook', 
-            'sidebar-purchase-orders', 'sidebar-reports'
+            'sidebar-purchase-orders', 'sidebar-reports', 'sidebar-settings'
         ];
         
         // Remove all existing sidebar permissions from user
