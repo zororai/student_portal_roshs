@@ -105,7 +105,7 @@ class AdminTimetableController extends Controller
                     ->where('academic_year', $settings->academic_year)
                     ->where('term', $settings->term)
                     ->where('day', $day)
-                    ->with(['subject', 'teacher.user'])
+                    ->with(['subject.teacher.user', 'teacher.user'])
                     ->orderBy('slot_order')
                     ->get();
             }
@@ -152,11 +152,31 @@ class AdminTimetableController extends Controller
         ]);
 
         $conflicts = [];
+        $class = Grade::with('subjects')->findOrFail($classId);
+        $classSubjectIds = $class->subjects->pluck('id')->toArray();
 
         foreach ($validated['slots'] as $slotData) {
             $slot = Timetable::find($slotData['id']);
             
-            // Check for teacher conflicts
+            // Check if subject is assigned to this class
+            if ($slotData['subject_id'] && !in_array($slotData['subject_id'], $classSubjectIds)) {
+                $subject = Subject::find($slotData['subject_id']);
+                $conflicts[] = "Subject '{$subject->name}' is not assigned to this class";
+                continue;
+            }
+            
+            // Check if teacher is assigned to teach this subject
+            if ($slotData['teacher_id'] && $slotData['subject_id']) {
+                $subject = Subject::find($slotData['subject_id']);
+                if ($subject->teacher_id != $slotData['teacher_id']) {
+                    $teacher = Teacher::with('user')->find($slotData['teacher_id']);
+                    $assignedTeacher = $subject->teacher ? $subject->teacher->user->name : 'None';
+                    $conflicts[] = "{$teacher->user->name} does not teach {$subject->name} (assigned: {$assignedTeacher})";
+                    continue;
+                }
+            }
+            
+            // Check for teacher time conflicts
             if ($slotData['teacher_id']) {
                 $hasConflict = Timetable::checkTeacherConflict(
                     $slotData['teacher_id'],
@@ -168,7 +188,7 @@ class AdminTimetableController extends Controller
                 
                 if ($hasConflict) {
                     $teacher = Teacher::with('user')->find($slotData['teacher_id']);
-                    $conflicts[] = "{$teacher->user->name} has a conflict on {$slot->day} at {$slot->start_time}";
+                    $conflicts[] = "{$teacher->user->name} has a time conflict on {$slot->day} at {$slot->start_time}";
                     continue;
                 }
             }
@@ -205,7 +225,7 @@ class AdminTimetableController extends Controller
             ->delete();
 
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        $class = Grade::with('subjects')->find($settings->class_id);
+        $class = Grade::with('subjects.teacher')->find($settings->class_id);
         $subjects = $class->subjects->toArray();
         
         // Shuffle subjects to create variety
@@ -279,16 +299,24 @@ class AdminTimetableController extends Controller
                 // Create subject slot
                 if ($currentTime < $slotEndTime) {
                     $subjectId = null;
+                    $teacherId = null;
                     if (!empty($subjects)) {
                         // Calculate subject index with day offset for rotation
                         $currentSubjectIndex = ($globalSubjectIndex + $dayOffset) % count($subjects);
                         $subjectId = $subjects[$currentSubjectIndex]['id'];
+                        
+                        // Only assign teacher if they exist in the database
+                        $potentialTeacherId = $subjects[$currentSubjectIndex]['teacher_id'] ?? null;
+                        if ($potentialTeacherId && Teacher::find($potentialTeacherId)) {
+                            $teacherId = $potentialTeacherId;
+                        }
                         $globalSubjectIndex++;
                     }
 
                     Timetable::create([
                         'class_id' => $settings->class_id,
                         'subject_id' => $subjectId,
+                        'teacher_id' => $teacherId,
                         'day' => $day,
                         'start_time' => $currentTime->format('H:i:s'),
                         'end_time' => $slotEndTime->format('H:i:s'),

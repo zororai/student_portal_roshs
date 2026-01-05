@@ -213,6 +213,36 @@
 
 @push('scripts')
 <script>
+    // Auto-select teacher when subject is selected
+    document.querySelectorAll('.subject-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const slotIndex = this.dataset.slotIndex;
+            const selectedOption = this.options[this.selectedIndex];
+            const teacherId = selectedOption.dataset.teacherId;
+            const teacherName = selectedOption.dataset.teacherName;
+            
+            // Find the corresponding teacher select
+            const teacherSelect = document.querySelector(`.teacher-select[data-slot-index="${slotIndex}"]`);
+            
+            if (teacherId && teacherSelect) {
+                // Auto-select the teacher assigned to this subject
+                teacherSelect.value = teacherId;
+                
+                // Highlight the teacher select to show it was auto-selected
+                teacherSelect.classList.add('border-emerald-500', 'bg-emerald-50');
+                setTimeout(() => {
+                    teacherSelect.classList.remove('border-emerald-500', 'bg-emerald-50');
+                }, 2000);
+                
+                // Trigger conflict check for the newly selected teacher
+                teacherSelect.dispatchEvent(new Event('change'));
+            } else if (teacherSelect) {
+                // Clear teacher selection if no teacher is assigned to subject
+                teacherSelect.value = '';
+            }
+        });
+    });
+
     // Check for teacher conflicts when selecting a teacher
     document.querySelectorAll('.teacher-select').forEach(select => {
         select.addEventListener('change', function() {
@@ -221,15 +251,32 @@
             const startTime = this.dataset.start;
             const endTime = this.dataset.end;
             const slotId = this.dataset.slotId;
+            const slotIndex = this.dataset.slotIndex;
             const selectElement = this;
 
             // Remove any existing conflict styling
-            selectElement.classList.remove('border-red-500', 'bg-red-50');
-            selectElement.parentElement.classList.remove('ring-2', 'ring-red-500');
+            selectElement.classList.remove('border-red-500', 'bg-red-50', 'border-amber-500', 'bg-amber-50');
+            selectElement.parentElement.classList.remove('ring-2', 'ring-red-500', 'ring-amber-500');
 
             if (!teacherId) {
                 document.getElementById('conflictWarning').classList.add('hidden');
                 return;
+            }
+            
+            // Check if teacher is assigned to the selected subject
+            const subjectSelect = document.querySelector(`.subject-select[data-slot-index="${slotIndex}"]`);
+            if (subjectSelect && subjectSelect.value) {
+                const selectedSubject = subjectSelect.options[subjectSelect.selectedIndex];
+                const assignedTeacherId = selectedSubject.dataset.teacherId;
+                
+                if (assignedTeacherId && assignedTeacherId !== teacherId) {
+                    selectElement.classList.add('border-amber-500', 'bg-amber-50');
+                    selectElement.parentElement.classList.add('ring-2', 'ring-amber-500');
+                    document.getElementById('conflictWarning').classList.remove('hidden');
+                    document.getElementById('conflictMessage').textContent = 
+                        'Warning: This teacher is not assigned to teach the selected subject!';
+                    return;
+                }
             }
 
             // Check for conflicts with other slots in the same form (current timetable)
@@ -295,7 +342,7 @@
         }
 
         // Check for any red-bordered selects (visual conflict indicators)
-        const conflictedSelects = document.querySelectorAll('.teacher-select.border-red-500');
+        const conflictedSelects = document.querySelectorAll('.teacher-select.border-red-500, .teacher-select.border-amber-500');
         if (conflictedSelects.length > 0) {
             e.preventDefault();
             alert('Please resolve all teacher scheduling conflicts before saving.');

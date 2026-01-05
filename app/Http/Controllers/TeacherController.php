@@ -43,17 +43,20 @@ class TeacherController extends Controller
     {
         $request->validate([
             'name'   => 'required|string|max:255',
-            'email'  => 'required|string|email|max:255|unique:users',
             'gender' => 'required|string',
             'phone'  => 'required|string|max:255|unique:teachers,phone'
         ]);
 
         // Default password for first login
         $password = '12345678';
+        
+        // Generate placeholder email from phone number (will be updated on first login)
+        $cleanPhone = preg_replace('/[^0-9]/', '', $request->phone);
+        $placeholderEmail = 'teacher_' . $cleanPhone . '@placeholder.local';
 
         $user = User::create([
             'name'      => $request->name,
-            'email'     => $request->email,
+            'email'     => $placeholderEmail,
             'password'  => Hash::make($password),
             'profile_picture' => 'avatar.png'
         ]);
@@ -144,7 +147,10 @@ class TeacherController extends Controller
      */
     public function updatePassword(Request $request)
     {
+        $user = auth()->user();
+        
         $request->validate([
+            'email'             => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'dateofbirth'       => 'required|date',
             'current_address'   => 'required|string|max:500',
             'permanent_address' => 'required|string|max:500',
@@ -153,8 +159,6 @@ class TeacherController extends Controller
         ], [
             'password.different' => 'New password must be different from the default password.',
         ]);
-
-        $user = auth()->user();
 
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'The current password is incorrect.']);
@@ -167,8 +171,9 @@ class TeacherController extends Controller
             $user->update(['profile_picture' => $profile]);
         }
 
-        // Update password
+        // Update email and password
         $user->update([
+            'email'    => $request->email,
             'password' => Hash::make($request->password)
         ]);
 

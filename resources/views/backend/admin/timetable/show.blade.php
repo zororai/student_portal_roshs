@@ -159,9 +159,17 @@
                                                 <p class="font-semibold text-gray-800 text-sm truncate">
                                                     {{ $slot->subject->name ?? 'No Subject' }}
                                                 </p>
-                                                @if($slot->teacher)
+                                                @php
+                                                    $teacherName = null;
+                                                    if ($slot->teacher) {
+                                                        $teacherName = $slot->teacher->user->name ?? null;
+                                                    } elseif ($slot->subject && $slot->subject->teacher) {
+                                                        $teacherName = $slot->subject->teacher->user->name ?? null;
+                                                    }
+                                                @endphp
+                                                @if($teacherName)
                                                     <p class="text-xs text-gray-500 mt-1 truncate">
-                                                        {{ $slot->teacher->user->name ?? '' }}
+                                                        {{ $teacherName }}
                                                     </p>
                                                 @else
                                                     <p class="text-xs text-red-400 mt-1">No teacher assigned</p>
