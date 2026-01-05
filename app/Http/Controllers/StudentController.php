@@ -290,7 +290,7 @@ class StudentController extends Controller
             $request->validate([
             'student_name'              => 'required|string|max:255',
             'student_email'             => 'required|string|email|max:255|unique:users,email',
-                'student_phone'             => 'required|string|max:255',
+                'student_phone'             => 'nullable|string|max:255',
                 'student_gender'            => 'required|string',
                 'dateofbirth'               => 'required|date',
                 'class_id'                  => 'required|numeric',
