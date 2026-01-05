@@ -42,40 +42,28 @@ class TeacherController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'              => 'required|string|max:255',
-            'email'             => 'required|string|email|max:255|unique:users',
-            'password'          => 'required|string|min:8|confirmed',
-            'gender'            => 'required|string',
-            'phone'             => 'required|string|max:255',
-            'dateofbirth'       => 'required|date',
-            'current_address'   => 'required|string|max:255',
-            'permanent_address' => 'required|string|max:255'
+            'name'   => 'required|string|max:255',
+            'email'  => 'required|string|email|max:255|unique:users',
+            'gender' => 'required|string',
+            'phone'  => 'required|string|max:255|unique:teachers,phone'
         ]);
 
-        $password = $request->password;
+        // Default password for first login
+        $password = '12345678';
 
         $user = User::create([
             'name'      => $request->name,
             'email'     => $request->email,
-            'password'  => Hash::make($password)
-        ]);
-
-        if ($request->hasFile('profile_picture')) {
-            $profile = Str::slug($user->name).'-'.$user->id.'.'.$request->profile_picture->getClientOriginalExtension();
-            $request->profile_picture->move(public_path('images/profile'), $profile);
-        } else {
-            $profile = 'avatar.png';
-        }
-        $user->update([
-            'profile_picture' => $profile
+            'password'  => Hash::make($password),
+            'profile_picture' => 'avatar.png'
         ]);
 
         $user->teacher()->create([
             'gender'            => $request->gender,
             'phone'             => $request->phone,
-            'dateofbirth'       => $request->dateofbirth,
-            'current_address'   => $request->current_address,
-            'permanent_address' => $request->permanent_address
+            'dateofbirth'       => null,
+            'current_address'   => null,
+            'permanent_address' => null
         ]);
 
         $user->assignRole('Teacher');
@@ -83,8 +71,8 @@ class TeacherController extends Controller
         // Send email notification with credentials
         $this->sendCredentialsEmail($user, $password);
 
-        // Send SMS notification with credentials
-        $this->sendCredentialsSms($request->phone, $user->name, $user->email, $password);
+        // Send SMS notification with credentials (phone is username)
+        $this->sendCredentialsSms($request->phone, $user->name, $request->phone, $password);
 
         return redirect()->route('teacher.index')
             ->with('success', 'Teacher created successfully! Login credentials have been sent via email and SMS.');
@@ -122,7 +110,7 @@ class TeacherController extends Controller
             }
             
             // Shorter message to avoid InboxIQ HTTP 500 error
-            $message = "RSH School: Teacher account created. Email: {$email}, Password: {$password}. Change password on first login.";
+            $message = "RSH School: Teacher account created. Login: {$phone}, Password: {$password}. Complete profile on first login.";
             
             // Send SMS using SmsHelper
             $result = \App\Helpers\SmsHelper::sendSms($phone, $message);
@@ -152,13 +140,16 @@ class TeacherController extends Controller
     }
 
     /**
-     * Update teacher password.
+     * Update teacher profile and password.
      */
     public function updatePassword(Request $request)
     {
         $request->validate([
-            'current_password' => 'required',
-            'password' => 'required|string|min:8|confirmed|different:current_password',
+            'dateofbirth'       => 'required|date',
+            'current_address'   => 'required|string|max:500',
+            'permanent_address' => 'required|string|max:500',
+            'current_password'  => 'required',
+            'password'          => 'required|string|min:8|confirmed|different:current_password',
         ], [
             'password.different' => 'New password must be different from the default password.',
         ]);
@@ -169,11 +160,26 @@ class TeacherController extends Controller
             return back()->withErrors(['current_password' => 'The current password is incorrect.']);
         }
 
+        // Handle profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            $profile = Str::slug($user->name).'-'.$user->id.'.'.$request->profile_picture->getClientOriginalExtension();
+            $request->profile_picture->move(public_path('images/profile'), $profile);
+            $user->update(['profile_picture' => $profile]);
+        }
+
+        // Update password
         $user->update([
             'password' => Hash::make($request->password)
         ]);
 
-        return redirect()->route('home')->with('success', 'Password changed successfully!');
+        // Update teacher profile details
+        $user->teacher()->update([
+            'dateofbirth'       => $request->dateofbirth,
+            'current_address'   => $request->current_address,
+            'permanent_address' => $request->permanent_address
+        ]);
+
+        return redirect()->route('home')->with('success', 'Profile completed successfully!');
     }
 
     /**

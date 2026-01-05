@@ -40,7 +40,8 @@ class AdminTimetableController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'class_id' => 'required|exists:grades,id',
+            'class_ids' => 'required|array|min:1',
+            'class_ids.*' => 'exists:grades,id',
             'start_time' => 'required|date_format:H:i',
             'break_start' => 'required|date_format:H:i',
             'break_end' => 'required|date_format:H:i',
@@ -52,21 +53,39 @@ class AdminTimetableController extends Controller
             'term' => 'required|integer|min:1|max:3',
         ]);
 
-        // Save or update timetable settings
-        $settings = TimetableSetting::updateOrCreate(
-            [
-                'class_id' => $validated['class_id'],
-                'academic_year' => $validated['academic_year'],
-                'term' => $validated['term']
-            ],
-            $validated
-        );
+        $classIds = $validated['class_ids'];
+        $generatedCount = 0;
 
-        // Generate timetable
-        $this->generateTimetable($settings);
+        foreach ($classIds as $classId) {
+            // Prepare settings data for this class
+            $settingsData = $validated;
+            $settingsData['class_id'] = $classId;
+            unset($settingsData['class_ids']);
 
-        return redirect()->route('admin.timetable.show', $validated['class_id'])
-            ->with('success', 'Timetable generated successfully!');
+            // Save or update timetable settings
+            $settings = TimetableSetting::updateOrCreate(
+                [
+                    'class_id' => $classId,
+                    'academic_year' => $validated['academic_year'],
+                    'term' => $validated['term']
+                ],
+                $settingsData
+            );
+
+            // Generate timetable
+            $this->generateTimetable($settings);
+            $generatedCount++;
+        }
+
+        // If only one class, redirect to show that class's timetable
+        if (count($classIds) === 1) {
+            return redirect()->route('admin.timetable.show', $classIds[0])
+                ->with('success', 'Timetable generated successfully!');
+        }
+
+        // If multiple classes, redirect to index
+        return redirect()->route('admin.timetable.index')
+            ->with('success', "Timetables generated successfully for {$generatedCount} classes!");
     }
 
     public function show($classId)
@@ -97,13 +116,14 @@ class AdminTimetableController extends Controller
 
     public function edit($classId)
     {
-        $class = Grade::findOrFail($classId);
+        $class = Grade::with('subjects.teacher.user')->findOrFail($classId);
         $settings = TimetableSetting::where('class_id', $classId)
             ->orderBy('academic_year', 'desc')
             ->orderBy('term', 'desc')
             ->first();
+        $classSubjects = $class->subjects()->with('teacher.user')->orderBy('name')->get();
         $subjects = Subject::orderBy('name')->get();
-        $teachers = Teacher::with('user')->get();
+        $teachers = Teacher::with(['user', 'subjects'])->get();
         
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         $timetable = [];
@@ -119,7 +139,7 @@ class AdminTimetableController extends Controller
             }
         }
 
-        return view('backend.admin.timetable.edit', compact('class', 'settings', 'timetable', 'days', 'subjects', 'teachers'));
+        return view('backend.admin.timetable.edit', compact('class', 'settings', 'timetable', 'days', 'subjects', 'teachers', 'classSubjects'));
     }
 
     public function update(Request $request, $classId)

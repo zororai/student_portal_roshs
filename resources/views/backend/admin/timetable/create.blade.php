@@ -44,16 +44,23 @@
                         <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
-                        Select Class
+                        Select Classes
                     </h2>
                     
-                    <div class="space-y-3">
+                    <div class="mb-3">
+                        <label class="flex items-center p-3 bg-emerald-50 border-2 border-emerald-200 rounded-xl cursor-pointer hover:bg-emerald-100 transition-all">
+                            <input type="checkbox" id="select-all-classes" 
+                                   class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 rounded">
+                            <span class="ml-3 font-semibold text-emerald-700">Select All Classes</span>
+                        </label>
+                    </div>
+                    
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
                         @foreach($classes as $class)
-                            <label class="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:border-emerald-300 {{ request('class_id') == $class->id ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200' }}">
-                                <input type="radio" name="class_id" value="{{ $class->id }}" 
-                                       class="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
-                                       {{ request('class_id') == $class->id ? 'checked' : '' }}
-                                       {{ old('class_id') == $class->id ? 'checked' : '' }}>
+                            <label class="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:border-emerald-300 border-gray-200 class-checkbox-label">
+                                <input type="checkbox" name="class_ids[]" value="{{ $class->id }}" 
+                                       class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 rounded class-checkbox"
+                                       {{ is_array(old('class_ids')) && in_array($class->id, old('class_ids')) ? 'checked' : '' }}>
                                 <div class="ml-3">
                                     <p class="font-semibold text-gray-800">{{ $class->name }}</p>
                                     <p class="text-sm text-gray-500">Form {{ $class->class_numeric }}</p>
@@ -216,16 +223,41 @@
 </div>
 
 <script>
-    // Auto-select radio button when clicking on the label container
-    document.querySelectorAll('label[class*="border-2"]').forEach(label => {
-        label.addEventListener('click', function() {
-            document.querySelectorAll('label[class*="border-2"]').forEach(l => {
-                l.classList.remove('border-emerald-500', 'bg-emerald-50');
-                l.classList.add('border-gray-200');
-            });
-            this.classList.remove('border-gray-200');
-            this.classList.add('border-emerald-500', 'bg-emerald-50');
+    // Select All functionality
+    const selectAllCheckbox = document.getElementById('select-all-classes');
+    const classCheckboxes = document.querySelectorAll('.class-checkbox');
+    const classLabels = document.querySelectorAll('.class-checkbox-label');
+    
+    selectAllCheckbox.addEventListener('change', function() {
+        classCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateLabelStyles();
+    });
+    
+    // Update Select All state when individual checkboxes change
+    classCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            selectAllCheckbox.checked = [...classCheckboxes].every(cb => cb.checked);
+            updateLabelStyles();
         });
     });
+    
+    // Update label styles based on checkbox state
+    function updateLabelStyles() {
+        classLabels.forEach(label => {
+            const checkbox = label.querySelector('.class-checkbox');
+            if (checkbox.checked) {
+                label.classList.remove('border-gray-200');
+                label.classList.add('border-emerald-500', 'bg-emerald-50');
+            } else {
+                label.classList.remove('border-emerald-500', 'bg-emerald-50');
+                label.classList.add('border-gray-200');
+            }
+        });
+    }
+    
+    // Initialize styles on page load
+    updateLabelStyles();
 </script>
 @endsection

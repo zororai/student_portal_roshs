@@ -99,11 +99,18 @@
                                                     <input type="hidden" name="slots[{{ $slotIndex }}][id]" value="{{ $slot->id }}">
                                                     
                                                     <select name="slots[{{ $slotIndex }}][subject_id]" 
-                                                            class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                                                            class="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent subject-select"
+                                                            data-slot-index="{{ $slotIndex }}">
                                                         <option value="">Select Subject</option>
-                                                        @foreach($subjects as $subject)
-                                                            <option value="{{ $subject->id }}" {{ $slot->subject_id == $subject->id ? 'selected' : '' }}>
+                                                        @foreach($classSubjects as $subject)
+                                                            <option value="{{ $subject->id }}" 
+                                                                    data-teacher-id="{{ $subject->teacher_id }}"
+                                                                    data-teacher-name="{{ $subject->teacher->user->name ?? '' }}"
+                                                                    {{ $slot->subject_id == $subject->id ? 'selected' : '' }}>
                                                                 {{ $subject->name }}
+                                                                @if($subject->teacher)
+                                                                    ({{ $subject->teacher->user->name ?? '' }})
+                                                                @endif
                                                             </option>
                                                         @endforeach
                                                     </select>
@@ -113,10 +120,18 @@
                                                             data-day="{{ $day }}"
                                                             data-start="{{ $slot->start_time }}"
                                                             data-end="{{ $slot->end_time }}"
-                                                            data-slot-id="{{ $slot->id }}">
+                                                            data-slot-id="{{ $slot->id }}"
+                                                            data-slot-index="{{ $slotIndex }}">
                                                         <option value="">Select Teacher</option>
                                                         @foreach($teachers as $teacher)
-                                                            <option value="{{ $teacher->id }}" {{ $slot->teacher_id == $teacher->id ? 'selected' : '' }}>
+                                                            @php
+                                                                $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+                                                                $isAssigned = $slot->subject_id && in_array($slot->subject_id, $teacherSubjectIds);
+                                                            @endphp
+                                                            <option value="{{ $teacher->id }}" 
+                                                                    data-subject-ids="{{ implode(',', $teacherSubjectIds) }}"
+                                                                    {{ $slot->teacher_id == $teacher->id ? 'selected' : '' }}
+                                                                    {{ !$isAssigned && $slot->subject_id ? 'class=text-gray-400' : '' }}>
                                                                 {{ $teacher->user->name ?? 'Unknown' }}
                                                             </option>
                                                         @endforeach

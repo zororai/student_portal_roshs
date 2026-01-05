@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\User;
+use App\Teacher;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -36,6 +39,34 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    /**
+     * Attempt to log the user into the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return bool
+     */
+    protected function attemptLogin(Request $request)
+    {
+        $login = $request->input('email');
+        $password = $request->input('password');
+
+        // First try to login with email
+        if (Auth::attempt(['email' => $login, 'password' => $password, 'is_active' => true])) {
+            return true;
+        }
+
+        // If email login fails, try to find user by phone number (for teachers)
+        $teacher = Teacher::where('phone', $login)->first();
+        if ($teacher) {
+            $user = User::find($teacher->user_id);
+            if ($user && $user->is_active && Auth::attempt(['email' => $user->email, 'password' => $password, 'is_active' => true])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
