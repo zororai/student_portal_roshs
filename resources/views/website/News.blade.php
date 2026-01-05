@@ -33,6 +33,9 @@
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}?v={{ time() }}" />
 
     <!-- Navigation Spacing Fix -->
+    @php
+        $siteLogo = \App\WebsiteSetting::get('site_logo', 'images/logo.png');
+    @endphp
     <style>
         .navbar-nav.equal-spacing {
             display: flex !important;
