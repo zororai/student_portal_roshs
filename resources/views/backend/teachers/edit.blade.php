@@ -160,6 +160,77 @@
                             </div>
                         </div>
 
+                        <!-- Teacher Roles Card -->
+                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                            <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                    </svg>
+                                    Teacher Roles
+                                </h3>
+                                <p class="mt-1 text-sm text-gray-500">Assign special roles and responsibilities</p>
+                            </div>
+                            <div class="px-6 py-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <!-- Class Teacher -->
+                                    <label class="flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50 {{ $teacher->is_class_teacher ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200' }}">
+                                        <input type="checkbox" name="is_class_teacher" value="1"
+                                               class="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                               {{ $teacher->is_class_teacher ? 'checked' : '' }}>
+                                        <div class="ml-3 flex-1">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-2">
+                                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-sm font-semibold text-gray-900">Class Teacher</span>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1 ml-10">Can manage class students & attendance</p>
+                                        </div>
+                                    </label>
+
+                                    <!-- HOD -->
+                                    <label class="flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50 {{ $teacher->is_hod ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200' }}">
+                                        <input type="checkbox" name="is_hod" value="1"
+                                               class="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                               {{ $teacher->is_hod ? 'checked' : '' }}>
+                                        <div class="ml-3 flex-1">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center mr-2">
+                                                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-sm font-semibold text-gray-900">Head of Department</span>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1 ml-10">Department management</p>
+                                        </div>
+                                    </label>
+
+                                    <!-- Sport Director -->
+                                    <label class="flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50 {{ $teacher->is_sport_director ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200' }}">
+                                        <input type="checkbox" name="is_sport_director" value="1"
+                                               class="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                                               {{ $teacher->is_sport_director ? 'checked' : '' }}>
+                                        <div class="ml-3 flex-1">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center mr-2">
+                                                    <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-sm font-semibold text-gray-900">Sport Director</span>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1 ml-10">Sports activities & teams</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Submit Buttons -->
                         <div class="flex items-center justify-end space-x-4 pt-4">
                             <a href="{{ route('teacher.index') }}" class="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200">

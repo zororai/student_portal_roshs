@@ -115,6 +115,78 @@
                 </div>
             </div>
 
+            <!-- Teacher Roles Section -->
+            <div class="px-8 py-6 border-t border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center mb-4">
+                    <span class="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                        </svg>
+                    </span>
+                    Teacher Roles
+                </h3>
+                <p class="text-sm text-gray-600 mb-4">Select all roles that apply to this teacher (optional)</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Class Teacher -->
+                    <label class="role-option relative flex items-start p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
+                        <input type="checkbox" name="is_class_teacher" value="1" class="hidden" {{ old('is_class_teacher') ? 'checked' : '' }}>
+                        <div class="role-checkbox w-6 h-6 border-2 border-gray-300 rounded-lg mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg class="w-4 h-4 text-white hidden" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                <span class="font-semibold text-gray-900">Class Teacher</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Can manage class students and attendance</p>
+                        </div>
+                    </label>
+                    
+                    <!-- HOD -->
+                    <label class="role-option relative flex items-start p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all">
+                        <input type="checkbox" name="is_hod" value="1" class="hidden" {{ old('is_hod') ? 'checked' : '' }}>
+                        <div class="role-checkbox w-6 h-6 border-2 border-gray-300 rounded-lg mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg class="w-4 h-4 text-white hidden" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="font-semibold text-gray-900">Head of Department</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Department management responsibilities</p>
+                        </div>
+                    </label>
+                    
+                    <!-- Sport Director -->
+                    <label class="role-option relative flex items-start p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-all">
+                        <input type="checkbox" name="is_sport_director" value="1" class="hidden" {{ old('is_sport_director') ? 'checked' : '' }}>
+                        <div class="role-checkbox w-6 h-6 border-2 border-gray-300 rounded-lg mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg class="w-4 h-4 text-white hidden" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-orange-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="font-semibold text-gray-900">Sport Director</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Manages sports activities and teams</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
             <!-- Login Credentials Info -->
             <div class="px-8 py-6 border-t border-gray-100 bg-gradient-to-r from-green-50 to-blue-50">
                 <div class="flex items-start">
@@ -178,6 +250,42 @@
 
         // Set initial state if there's an old value
         $('input[name="gender"]:checked').closest('.gender-option').trigger('click');
+
+        // Role checkbox functionality
+        $('.role-option').on('click', function() {
+            const $input = $(this).find('input[type="checkbox"]');
+            const isChecked = $input.prop('checked');
+            $input.prop('checked', !isChecked);
+            
+            const $checkbox = $(this).find('.role-checkbox');
+            const $checkIcon = $checkbox.find('svg');
+            
+            if (!isChecked) {
+                // Check the box
+                if ($(this).find('input[name="is_class_teacher"]').length) {
+                    $(this).removeClass('border-gray-200').addClass('border-blue-500 bg-blue-50');
+                    $checkbox.removeClass('border-gray-300').addClass('border-blue-500 bg-blue-500');
+                } else if ($(this).find('input[name="is_hod"]').length) {
+                    $(this).removeClass('border-gray-200').addClass('border-green-500 bg-green-50');
+                    $checkbox.removeClass('border-gray-300').addClass('border-green-500 bg-green-500');
+                } else {
+                    $(this).removeClass('border-gray-200').addClass('border-orange-500 bg-orange-50');
+                    $checkbox.removeClass('border-gray-300').addClass('border-orange-500 bg-orange-500');
+                }
+                $checkIcon.removeClass('hidden');
+            } else {
+                // Uncheck the box
+                $(this).removeClass('border-blue-500 border-green-500 border-orange-500 bg-blue-50 bg-green-50 bg-orange-50').addClass('border-gray-200');
+                $checkbox.removeClass('border-blue-500 border-green-500 border-orange-500 bg-blue-500 bg-green-500 bg-orange-500').addClass('border-gray-300');
+                $checkIcon.addClass('hidden');
+            }
+        });
+
+        // Set initial state for role checkboxes
+        $('.role-option input[type="checkbox"]:checked').each(function() {
+            $(this).closest('.role-option').trigger('click');
+            $(this).closest('.role-option').trigger('click');
+        });
     })
 </script>
 @endpush

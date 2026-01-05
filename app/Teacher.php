@@ -15,6 +15,9 @@ class Teacher extends Model
         'dateofbirth',
         'current_address',
         'permanent_address',
+        'is_class_teacher',
+        'is_hod',
+        'is_sport_director',
         'qr_code',
         'qr_code_token',
     ];

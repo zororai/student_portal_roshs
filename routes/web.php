@@ -440,6 +440,11 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::get('/teacher/student-record/{class_id}', 'TeacherController@classStudents')->name('teacher.class.students');
     Route::post('/teacher/student/{student_id}/transfer', 'TeacherController@transferStudent')->name('teacher.student.transfer');
 
+    // Class Teacher Routes (for teachers marked as class teachers)
+    Route::get('/teacher/my-class-students', 'TeacherController@myClassStudents')->name('teacher.class-students');
+    Route::get('/teacher/class-attendance', 'TeacherController@classAttendance')->name('teacher.class-attendance');
+    Route::post('/teacher/class-attendance/store', 'TeacherController@storeClassAttendance')->name('teacher.class-attendance.store');
+
     // Disciplinary Records Routes
     Route::get('/teacher/disciplinary-records', 'DisciplinaryController@index')->name('teacher.disciplinary.index');
     Route::post('/teacher/disciplinary-records', 'DisciplinaryController@store')->name('teacher.disciplinary.store');

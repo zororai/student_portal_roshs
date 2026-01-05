@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\Teacher;
+use App\Grade;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -66,7 +67,10 @@ class TeacherController extends Controller
             'phone'             => $request->phone,
             'dateofbirth'       => null,
             'current_address'   => null,
-            'permanent_address' => null
+            'permanent_address' => null,
+            'is_class_teacher'  => $request->has('is_class_teacher'),
+            'is_hod'            => $request->has('is_hod'),
+            'is_sport_director' => $request->has('is_sport_director'),
         ]);
 
         $user->assignRole('Teacher');
@@ -188,6 +192,97 @@ class TeacherController extends Controller
     }
 
     /**
+     * Show students in the class where the logged-in teacher is the class teacher.
+     */
+    public function myClassStudents()
+    {
+        $teacher = auth()->user()->teacher;
+        
+        if (!$teacher || !$teacher->is_class_teacher) {
+            return redirect()->route('home')->with('error', 'You are not assigned as a class teacher.');
+        }
+
+        $class = Grade::where('teacher_id', $teacher->id)->with('students.user')->first();
+        
+        if (!$class) {
+            return redirect()->route('home')->with('error', 'No class assigned to you.');
+        }
+
+        $students = $class->students()->with('user')->orderBy('id')->get();
+
+        return view('backend.teacher.my-class-students', compact('class', 'students'));
+    }
+
+    /**
+     * Show attendance register for the class teacher's class.
+     */
+    public function classAttendance(Request $request)
+    {
+        $teacher = auth()->user()->teacher;
+        
+        if (!$teacher || !$teacher->is_class_teacher) {
+            return redirect()->route('home')->with('error', 'You are not assigned as a class teacher.');
+        }
+
+        $class = Grade::where('teacher_id', $teacher->id)->with('students.user')->first();
+        
+        if (!$class) {
+            return redirect()->route('home')->with('error', 'No class assigned to you.');
+        }
+
+        $date = $request->get('date', now()->format('Y-m-d'));
+        $students = $class->students()->with('user')->orderBy('id')->get();
+        
+        // Get existing attendance for this date
+        $attendances = \App\Attendance::where('class_id', $class->id)
+            ->whereDate('date', $date)
+            ->get()
+            ->keyBy('student_id');
+
+        return view('backend.teacher.class-attendance', compact('class', 'students', 'date', 'attendances'));
+    }
+
+    /**
+     * Store attendance for the class teacher's class.
+     */
+    public function storeClassAttendance(Request $request)
+    {
+        $teacher = auth()->user()->teacher;
+        
+        if (!$teacher || !$teacher->is_class_teacher) {
+            return redirect()->route('home')->with('error', 'You are not assigned as a class teacher.');
+        }
+
+        $class = Grade::where('teacher_id', $teacher->id)->first();
+        
+        if (!$class) {
+            return redirect()->route('home')->with('error', 'No class assigned to you.');
+        }
+
+        $request->validate([
+            'date' => 'required|date',
+            'attendance' => 'required|array',
+        ]);
+
+        foreach ($request->attendance as $studentId => $status) {
+            \App\Attendance::updateOrCreate(
+                [
+                    'student_id' => $studentId,
+                    'class_id' => $class->id,
+                    'date' => $request->date,
+                ],
+                [
+                    'status' => $status,
+                    'teacher_id' => $teacher->id,
+                ]
+            );
+        }
+
+        return redirect()->route('teacher.class-attendance', ['date' => $request->date])
+            ->with('success', 'Attendance saved successfully!');
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param  \App\Teacher  $teacher
@@ -250,7 +345,10 @@ class TeacherController extends Controller
             'phone'             => $request->phone,
             'dateofbirth'       => $request->dateofbirth,
             'current_address'   => $request->current_address,
-            'permanent_address' => $request->permanent_address
+            'permanent_address' => $request->permanent_address,
+            'is_class_teacher'  => $request->has('is_class_teacher'),
+            'is_hod'            => $request->has('is_hod'),
+            'is_sport_director' => $request->has('is_sport_director'),
         ]);
 
         return redirect()->route('teacher.index');
