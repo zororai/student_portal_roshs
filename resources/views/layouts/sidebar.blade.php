@@ -164,6 +164,15 @@
                 <span class="font-medium" x-show="!collapsed">Attendance Register</span>
             </div>
         </a>
+
+        <a href="{{ url('/student-with-parents/create') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'" :title="collapsed ? 'Add New Student' : ''">
+            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                <span class="font-medium" x-show="!collapsed">Add New Student</span>
+            </div>
+        </a>
         @endif
 
         <a href="{{ route('teacher.attendance.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">

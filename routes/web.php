@@ -80,6 +80,14 @@ Route::get('/child-timetable', 'TimetableController@parentView')->name('parent.t
 Route::get('/notifications', 'SchoolNotificationController@inbox')->name('notifications.inbox')->middleware('auth');
 Route::post('/notifications/{id}/read', 'SchoolNotificationController@markAsRead')->name('notifications.read')->middleware('auth');
 
+// Shared routes for Admin and Teacher - Student creation
+Route::group(['middleware' => ['auth', 'role:Admin|Teacher']], function () {
+    Route::get('student/create', 'StudentController@create')->name('shared.student.create');
+    Route::post('student', 'StudentController@store')->name('shared.student.store');
+    Route::get('student-with-parents/create', 'StudentController@createWithParents')->name('shared.student.create-with-parents');
+    Route::post('student-with-parents', 'StudentController@storeWithParents')->name('shared.student.store-with-parents');
+});
+
 Route::group(['middleware' => ['auth','role:Admin']], function ()
 {
     Route::get('/roles-permissions', 'RolePermissionController@roles')->name('roles-permissions');
@@ -119,7 +127,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::resource('subject', 'SubjectController');
     Route::resource('teacher', 'TeacherController')->except(['show']);
     Route::resource('parents', 'ParentsController');
-    Route::resource('student', 'StudentController');
+    Route::resource('student', 'StudentController')->except(['create', 'store']);
 
     // Admin Applicants Routes
     Route::get('admin/applicants', 'AdminApplicantController@index')->name('admin.applicants.index');
@@ -249,9 +257,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::delete('admin/timetable/{id}', 'AdminTimetableController@destroy')->name('admin.timetable.destroy');
     Route::post('admin/timetable/check-conflicts', 'AdminTimetableController@checkConflicts')->name('admin.timetable.check-conflicts');
 
-    // Stepper route for creating student with parents
-    Route::get('student-with-parents/create', 'StudentController@createWithParents')->name('student.create-with-parents');
-    Route::post('student-with-parents', 'StudentController@storeWithParents')->name('student.store-with-parents');
+    // Resend parent SMS (Admin only)
     Route::post('student/{student}/resend-parent-sms', 'StudentController@resendParentSms')->name('student.resend-parent-sms');
 
     // SMS Test Routes
@@ -444,6 +450,7 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::get('/teacher/my-class-students', 'TeacherController@myClassStudents')->name('teacher.class-students');
     Route::get('/teacher/class-attendance', 'TeacherController@classAttendance')->name('teacher.class-attendance');
     Route::post('/teacher/class-attendance/store', 'TeacherController@storeClassAttendance')->name('teacher.class-attendance.store');
+    
 
     // Disciplinary Records Routes
     Route::get('/teacher/disciplinary-records', 'DisciplinaryController@index')->name('teacher.disciplinary.index');

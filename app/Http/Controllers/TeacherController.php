@@ -235,7 +235,7 @@ class TeacherController extends Controller
         
         // Get existing attendance for this date
         $attendances = \App\Attendance::where('class_id', $class->id)
-            ->whereDate('date', $date)
+            ->whereDate('attendence_date', $date)
             ->get()
             ->keyBy('student_id');
 
@@ -265,14 +265,17 @@ class TeacherController extends Controller
         ]);
 
         foreach ($request->attendance as $studentId => $status) {
+            // Convert status string to boolean
+            $statusBoolean = ($status === 'present') ? true : false;
+            
             \App\Attendance::updateOrCreate(
                 [
                     'student_id' => $studentId,
                     'class_id' => $class->id,
-                    'date' => $request->date,
+                    'attendence_date' => $request->date,
                 ],
                 [
-                    'status' => $status,
+                    'attendence_status' => $statusBoolean,
                     'teacher_id' => $teacher->id,
                 ]
             );

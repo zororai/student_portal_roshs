@@ -50,7 +50,12 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($students as $index => $student)
                         @php
-                            $currentStatus = $attendances->get($student->id)->status ?? null;
+                            $attendance = $attendances->get($student->id);
+                            // Convert boolean to status string
+                            $currentStatus = null;
+                            if ($attendance) {
+                                $currentStatus = $attendance->attendence_status ? 'present' : 'absent';
+                            }
                         @endphp
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
