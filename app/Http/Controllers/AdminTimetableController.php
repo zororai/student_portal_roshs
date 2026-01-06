@@ -340,9 +340,19 @@ class AdminTimetableController extends Controller
                             $todayCount = $subjectPerDay[$day][$candidateId] ?? 0;
                             
                             // Calculate max periods per day for this subject
-                            // Allow subjects with more periods to have 2-3 periods on the same day
-                            // 1-3 periods/week = 1 max/day, 4-6 = 2 max/day, 7-9 = 3 max/day, 10 = 3 max/day
-                            $maxPerDay = min(3, max(1, ceil($candidate['periods_per_week'] / 3)));
+                            // Allow natural distribution: e.g., 10 periods = 2/day, 8 periods = up to 2/day
+                            // Use ceiling to ensure all periods can be allocated across 5 days
+                            $periodsPerWeek = $candidate['periods_per_week'];
+                            $maxPerDay = max(1, ceil($periodsPerWeek / 5));
+                            
+                            // For subjects with many periods (6+), allow slightly more flexibility
+                            // This ensures subjects like Math (10 periods) can have 2-3 periods some days
+                            if ($periodsPerWeek >= 6) {
+                                $maxPerDay = ceil($periodsPerWeek / 4); // More generous: allows clustering
+                            }
+                            if ($periodsPerWeek >= 10) {
+                                $maxPerDay = ceil($periodsPerWeek / 3); // Even more generous for high-period subjects
+                            }
                             
                             // If subject hasn't exceeded daily limit, use it
                             if ($todayCount < $maxPerDay) {
