@@ -273,6 +273,21 @@ class StudentController extends Controller
     }
 
     /**
+     * Generate a new roll number via AJAX
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function generateRollNumberAjax()
+    {
+        $newRollNumber = $this->generateRollNumber();
+        
+        // Update the session with the new roll number
+        session(['student_roll_number' => $newRollNumber]);
+        
+        return response()->json(['roll_number' => $newRollNumber]);
+    }
+
+    /**
      * Store a newly created student with multiple parents
      *
      * @param  \Illuminate\Http\Request  $request
@@ -296,7 +311,7 @@ class StudentController extends Controller
                 'class_id'                  => 'required|numeric',
                 'parents'                   => 'required|array|min:1',
                 'parents.*.name'            => 'required|string|max:255',
-                'parents.*.phone'           => 'required|string|max:255|regex:/^\+[0-9]{10,15}$/',
+                'parents.*.phone'           => 'required|string|max:255',
             ]);
 
         \Log::info('Validation passed successfully');
@@ -373,7 +388,7 @@ class StudentController extends Controller
             'class_id'          => $request->class_id,
             'roll_number'       => $rollNumber,
             'gender'            => $request->student_gender,
-            'phone'             => $request->student_phone,
+            'phone'             => $request->student_phone ?? '',
             'dateofbirth'       => $request->dateofbirth,
             'current_address'   => 'To be updated', // Dummy value - student will update on first login
             'permanent_address' => 'To be updated', // Dummy value - student will update on first login

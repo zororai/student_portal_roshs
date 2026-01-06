@@ -123,10 +123,18 @@
                                             </svg>
                                             <span class="text-sm font-medium">Auto-generated:</span>
                                         </div>
-                                        <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">{{ $nextRollNumber }}</span>
+                                        <span id="roll-number-display" class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600">{{ $nextRollNumber }}</span>
                                     </div>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">This roll number will be assigned to the new student</p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <p class="text-xs text-gray-500">This roll number will be assigned to the new student</p>
+                                    <button type="button" id="generate-new-roll" onclick="generateNewRollNumber()" class="inline-flex items-center px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-lg shadow-sm transition duration-200">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                        </svg>
+                                        Generate New
+                                    </button>
+                                </div>
                             </div>
 
                             <div>
@@ -297,7 +305,7 @@
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number (with country code) *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
                                     <div class="flex items-center">
                                         <span class="inline-flex items-center px-3 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -553,7 +561,7 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number (with country code) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
                         <div class="flex items-center">
                             <span class="inline-flex items-center px-3 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -703,6 +711,39 @@
             dayIndicator.classList.remove('bg-blue-500', 'border-blue-500');
             dayIndicator.classList.add('border-gray-300');
         }
+    }
+
+    // Generate new roll number via AJAX
+    function generateNewRollNumber() {
+        const btn = document.getElementById('generate-new-roll');
+        const display = document.getElementById('roll-number-display');
+        
+        // Disable button and show loading
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating...';
+        
+        fetch('{{ route("student.generate-roll-number") }}', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.roll_number) {
+                display.textContent = data.roll_number;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to generate new roll number');
+        })
+        .finally(() => {
+            // Re-enable button
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Generate New';
+        });
     }
 </script>
 @endpush

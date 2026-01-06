@@ -90,6 +90,7 @@ Route::group(['middleware' => ['auth', 'role:Admin|Teacher']], function () {
     Route::post('student', 'StudentController@store')->name('shared.student.store');
     Route::get('student-with-parents/create', 'StudentController@createWithParents')->name('shared.student.create-with-parents');
     Route::post('student-with-parents', 'StudentController@storeWithParents')->name('shared.student.store-with-parents');
+    Route::get('student/generate-roll-number', 'StudentController@generateRollNumberAjax')->name('student.generate-roll-number');
 });
 
 Route::group(['middleware' => ['auth','role:Admin']], function ()
