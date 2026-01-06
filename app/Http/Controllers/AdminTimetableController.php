@@ -326,7 +326,7 @@ class AdminTimetableController extends Controller
                     
                     if (!empty($weightedSubjectPool)) {
                         // Find a subject that hasn't been used too many times today
-                        // Try to distribute subjects evenly across days
+                        // AND whose teacher is not already scheduled at this time
                         $selectedSubject = null;
                         $attempts = 0;
                         $maxAttempts = count($weightedSubjectPool);
@@ -335,27 +335,40 @@ class AdminTimetableController extends Controller
                             $candidateIndex = ($poolIndex + $attempts) % count($weightedSubjectPool);
                             $candidate = $weightedSubjectPool[$candidateIndex];
                             $candidateId = $candidate['id'];
+                            $candidateTeacherId = $candidate['teacher_id'] ?? null;
                             
                             // Check how many times this subject appears today
                             $todayCount = $subjectPerDay[$day][$candidateId] ?? 0;
                             
                             // Calculate max periods per day for this subject
-                            // Allow natural distribution: e.g., 10 periods = 2/day, 8 periods = up to 2/day
-                            // Use ceiling to ensure all periods can be allocated across 5 days
                             $periodsPerWeek = $candidate['periods_per_week'];
                             $maxPerDay = max(1, ceil($periodsPerWeek / 5));
                             
-                            // For subjects with many periods (6+), allow slightly more flexibility
-                            // This ensures subjects like Math (10 periods) can have 2-3 periods some days
                             if ($periodsPerWeek >= 6) {
-                                $maxPerDay = ceil($periodsPerWeek / 4); // More generous: allows clustering
+                                $maxPerDay = ceil($periodsPerWeek / 4);
                             }
                             if ($periodsPerWeek >= 10) {
-                                $maxPerDay = ceil($periodsPerWeek / 3); // Even more generous for high-period subjects
+                                $maxPerDay = ceil($periodsPerWeek / 3);
                             }
                             
-                            // If subject hasn't exceeded daily limit, use it
-                            if ($todayCount < $maxPerDay) {
+                            // Check for teacher conflict across ALL classes
+                            $teacherHasConflict = false;
+                            if ($candidateTeacherId) {
+                                $teacherHasConflict = Timetable::where('teacher_id', $candidateTeacherId)
+                                    ->where('day', $day)
+                                    ->where('academic_year', $settings->academic_year)
+                                    ->where('term', $settings->term)
+                                    ->where(function($query) use ($currentTime, $slotEndTime) {
+                                        $query->where(function($q) use ($currentTime, $slotEndTime) {
+                                            $q->where('start_time', '<', $slotEndTime->format('H:i:s'))
+                                              ->where('end_time', '>', $currentTime->format('H:i:s'));
+                                        });
+                                    })
+                                    ->exists();
+                            }
+                            
+                            // If subject hasn't exceeded daily limit AND teacher is available
+                            if ($todayCount < $maxPerDay && !$teacherHasConflict) {
                                 $selectedSubject = $candidate;
                                 $poolIndex = ($candidateIndex + 1) % count($weightedSubjectPool);
                                 break;
@@ -364,10 +377,23 @@ class AdminTimetableController extends Controller
                             $attempts++;
                         }
                         
-                        // If no subject found within limits, just use next in pool
+                        // If no subject found without conflicts, try to find one without teacher
                         if (!$selectedSubject && !empty($weightedSubjectPool)) {
-                            $selectedSubject = $weightedSubjectPool[$poolIndex % count($weightedSubjectPool)];
-                            $poolIndex = ($poolIndex + 1) % count($weightedSubjectPool);
+                            // Find a subject with no teacher assigned (no conflict possible)
+                            foreach ($weightedSubjectPool as $idx => $candidate) {
+                                if (empty($candidate['teacher_id'])) {
+                                    $selectedSubject = $candidate;
+                                    $poolIndex = ($idx + 1) % count($weightedSubjectPool);
+                                    break;
+                                }
+                            }
+                            
+                            // If still no subject, use next in pool but skip teacher assignment
+                            if (!$selectedSubject) {
+                                $selectedSubject = $weightedSubjectPool[$poolIndex % count($weightedSubjectPool)];
+                                $selectedSubject['skip_teacher'] = true; // Mark to skip teacher due to conflict
+                                $poolIndex = ($poolIndex + 1) % count($weightedSubjectPool);
+                            }
                         }
                         
                         if ($selectedSubject) {
@@ -379,9 +405,10 @@ class AdminTimetableController extends Controller
                             }
                             $subjectPerDay[$day][$subjectId]++;
                             
-                            // Only assign teacher if they exist in the database
+                            // Only assign teacher if no conflict and they exist
                             $potentialTeacherId = $selectedSubject['teacher_id'] ?? null;
-                            if ($potentialTeacherId && Teacher::find($potentialTeacherId)) {
+                            $skipTeacher = $selectedSubject['skip_teacher'] ?? false;
+                            if ($potentialTeacherId && !$skipTeacher && Teacher::find($potentialTeacherId)) {
                                 $teacherId = $potentialTeacherId;
                             }
                         }
