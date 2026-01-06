@@ -53,7 +53,7 @@ class TeacherController extends Controller
         
         // Generate placeholder email from phone number (will be updated on first login)
         $cleanPhone = preg_replace('/[^0-9]/', '', $request->phone);
-        $placeholderEmail = 'teacher_'  . '@placeholder.co.zw';
+        $placeholderEmail = 'teacher_' . $cleanPhone . '@placeholder.co.zw';
 
         // Check if user with this placeholder email already exists (from failed previous attempt)
         $existingUser = User::where('email', $placeholderEmail)->first();

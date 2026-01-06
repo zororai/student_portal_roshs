@@ -124,6 +124,9 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('admin/subjects', 'AdminSubjectController@index')->name('admin.subjects.index');
     Route::get('admin/subjects/create', 'AdminSubjectController@create')->name('admin.subjects.create');
     Route::post('admin/subjects', 'AdminSubjectController@store')->name('admin.subjects.store');
+    Route::get('admin/subjects/assign', 'AdminSubjectController@assignForm')->name('admin.subjects.assign');
+    Route::post('admin/subjects/assign', 'AdminSubjectController@assign')->name('admin.subjects.assign.store');
+    Route::delete('admin/subjects/unassign/{id}', 'AdminSubjectController@unassign')->name('admin.subjects.unassign');
     Route::get('admin/subjects/{subject}/edit', 'AdminSubjectController@edit')->name('admin.subjects.edit');
     Route::put('admin/subjects/{subject}', 'AdminSubjectController@update')->name('admin.subjects.update');
     Route::delete('admin/subjects/{subject}', 'AdminSubjectController@destroy')->name('admin.subjects.destroy');

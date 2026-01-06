@@ -64,6 +64,9 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="text-sm font-medium text-gray-900">{{ $subject->name }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         @if($subject->teacher)
                                             <div class="flex items-center">
                                                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold">

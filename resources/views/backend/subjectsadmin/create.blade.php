@@ -7,9 +7,9 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Add New Subject</h1>
-                <p class="mt-2 text-sm text-gray-600">Create a new academic subject and assign a teacher</p>
+                <p class="mt-2 text-sm text-gray-600">Create a new academic subject</p>
             </div>
-            <a href="{{ route('subject.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
+            <a href="{{ route('admin.subjects.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                 </svg>
@@ -20,7 +20,7 @@
 
     <!-- Form Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <form action="{{ route('subject.store') }}" method="POST">
+        <form action="{{ route('admin.subjects.store') }}" method="POST">
             @csrf
             
             <!-- Subject Details Section -->
@@ -74,80 +74,11 @@
                         <p class="mt-1 text-xs text-gray-500">This code will be assigned to the new subject</p>
                     </div>
                 </div>
-
-            </div>
-
-            <!-- Teacher Assignment Section -->
-            <div class="px-8 py-6 border-t border-b border-gray-100 bg-gray-50">
-                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                    <span class="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mr-3">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    </span>
-                    Teacher Assignment
-                </h3>
-            </div>
-            
-            <div class="px-8 py-6 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Assign Teacher</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                </svg>
-                            </div>
-                            <select name="teacher_id" 
-                                class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white @error('teacher_id') border-red-500 @enderror">
-                                <option value="">-- Select Teacher --</option>
-                                @foreach ($teachers as $teacher)
-                                    <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>{{ $teacher->user->name }}</option>
-                                @endforeach
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </div>
-                        </div>
-                        @error('teacher_id')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Periods Per Week <span class="text-red-500">*</span></label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <select name="periods_per_week" 
-                                class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white @error('periods_per_week') border-red-500 @enderror">
-                                <option value="">-- Select Periods --</option>
-                                @for ($i = 1; $i <= 10; $i++)
-                                    <option value="{{ $i }}" {{ old('periods_per_week') == $i ? 'selected' : '' }}>{{ $i }} {{ $i == 1 ? 'Period' : 'Periods' }}</option>
-                                @endfor
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </div>
-                        </div>
-                        @error('periods_per_week')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                        <p class="mt-1 text-xs text-gray-500">Number of periods for timetable generation</p>
-                    </div>
-                </div>
             </div>
 
             <!-- Submit Section -->
             <div class="px-8 py-6 bg-gray-50 border-t border-gray-200 flex items-center justify-end space-x-4">
-                <a href="{{ route('subject.index') }}" class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                <a href="{{ route('admin.subjects.index') }}" class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
                     Cancel
                 </a>
                 <button type="submit" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center">
