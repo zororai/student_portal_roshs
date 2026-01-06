@@ -59,13 +59,6 @@
                                 @error('class_numeric')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Class Description</label>
-                            <textarea name="class_description" rows="3" 
-                                      class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-colors duration-200"
-                                      placeholder="Enter class description">{{ $class->class_description }}</textarea>
-                            @error('class_description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                        </div>
                     </div>
                 </div>
 

@@ -35,7 +35,7 @@ class GradeController extends Controller
      */
     public function create()
     {
-        $teachers = Teacher::latest()->get();
+        $teachers = Teacher::where('is_class_teacher', 1)->latest()->get();
         $classFormats = ClassFormat::active()->ordered()->get();
         
         return view('backend.classes.create', compact('teachers', 'classFormats'));
@@ -85,7 +85,7 @@ class GradeController extends Controller
      */
     public function edit($id)
     {
-        $teachers = Teacher::latest()->get();
+        $teachers = Teacher::where('is_class_teacher', 1)->latest()->get();
         $class = Grade::findOrFail($id);
         $classFormats = ClassFormat::active()->ordered()->get();
 
@@ -105,7 +105,6 @@ class GradeController extends Controller
             'class_name'        => 'required|string|max:255|unique:grades,class_name,'.$id,
             'class_numeric'     => 'required|numeric',
             'teacher_id'        => 'required|numeric',
-            'class_description' => 'required|string|max:255'
         ]);
 
         $class = Grade::findOrFail($id);
@@ -114,7 +113,6 @@ class GradeController extends Controller
             'class_name'        => $request->class_name,
             'class_numeric'     => $request->class_numeric,
             'teacher_id'        => $request->teacher_id,
-            'class_description' => $request->class_description
         ]);
 
         return redirect()->route('classes.index');

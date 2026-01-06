@@ -338,9 +338,9 @@ class TeacherController extends Controller
             'email'             => 'required|string|email|max:255|unique:users,email,'.$teacher->user_id,
             'gender'            => 'required|string',
             'phone'             => 'required|string|max:255',
-            'dateofbirth'       => 'required|date',
-            'current_address'   => 'required|string|max:255',
-            'permanent_address' => 'required|string|max:255'
+            'dateofbirth'       => 'nullable|date',
+            'current_address'   => 'nullable|string|max:255',
+            'permanent_address' => 'nullable|string|max:255'
         ]);
 
         $user = User::findOrFail($teacher->user_id);
