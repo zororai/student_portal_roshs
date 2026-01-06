@@ -46,6 +46,15 @@ class CheckDefaultPassword
             }
         }
 
+        // Check must_change_password flag for other users (Admin, etc.)
+        if ($user->must_change_password) {
+            if (!$request->is('user/force-change-password') &&
+                !$request->is('logout')) {
+                return redirect()->route('user.force-change-password')
+                    ->with('warning', 'Please change your default password to continue.');
+            }
+        }
+
         return $next($request);
     }
 }

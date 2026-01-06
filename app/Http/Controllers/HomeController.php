@@ -779,4 +779,38 @@ class HomeController extends Controller
             'stats' => $assessmentStats
         ]);
     }
+
+    /**
+     * Show force password change form for users with must_change_password flag.
+     */
+    public function showForceChangePasswordForm()
+    {
+        return view('auth.force-change-password');
+    }
+
+    /**
+     * Handle force password change.
+     */
+    public function forceChangePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'password.confirmed' => 'The password confirmation does not match.',
+        ]);
+
+        $user = Auth::user();
+
+        // Ensure new password is different from default
+        if (Hash::check($request->password, $user->password)) {
+            return back()->withErrors(['password' => 'Please choose a different password from your current one.']);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
+            'must_change_password' => false,
+        ]);
+
+        return redirect()->route('home')->with('success', 'Password changed successfully!');
+    }
 }

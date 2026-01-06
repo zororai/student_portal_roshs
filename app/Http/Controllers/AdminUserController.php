@@ -54,22 +54,61 @@ class AdminUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed',
             'role' => 'required|exists:roles,name',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'required|string|max:20',
         ]);
+
+        // Default password for first login
+        $defaultPassword = '12345678';
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($defaultPassword),
             'phone' => $request->phone,
+            'must_change_password' => true,
         ]);
 
         $user->assignRole($request->role);
 
+        // Send SMS with credentials
+        $this->sendCredentialsSms($request->phone, $user->name, $request->email, $defaultPassword);
+
         return redirect()->route('admin.users.index')
-            ->with('success', 'User created successfully.');
+            ->with('success', 'User created successfully! Login credentials have been sent via SMS.');
+    }
+
+    /**
+     * Send credentials SMS to new user.
+     */
+    private function sendCredentialsSms($phone, $name, $email, $password)
+    {
+        try {
+            // Format phone number (ensure it has country code)
+            $phone = preg_replace('/\s+/', '', $phone);
+            if (!preg_match('/^\+/', $phone)) {
+                $phone = '+263' . ltrim($phone, '0');
+            }
+            
+            $message = "RSH School: Account created. Login: {$email}, Password: {$password}. Please change your password on first login.";
+            
+            // Send SMS using SmsHelper
+            $result = \App\Helpers\SmsHelper::sendSms($phone, $message);
+            
+            if ($result['success']) {
+                \Log::info('User credentials SMS sent successfully', [
+                    'phone' => $phone,
+                    'user_name' => $name
+                ]);
+            } else {
+                \Log::warning('Failed to send user credentials SMS', [
+                    'phone' => $phone,
+                    'error' => $result['message'] ?? 'Unknown error'
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send user credentials SMS: ' . $e->getMessage());
+        }
     }
 
     public function show($id)

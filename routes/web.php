@@ -73,6 +73,10 @@ Route::post('/profile/changepassword', 'HomeController@changePassword')->name('p
 Route::get('/student/change-password', 'StudentController@showChangePasswordForm')->name('student.change-password');
 Route::post('/student/update-password', 'StudentController@updatePassword')->name('student.update-password');
 
+// Force password change for users with must_change_password flag
+Route::get('/user/force-change-password', 'HomeController@showForceChangePasswordForm')->name('user.force-change-password')->middleware('auth');
+Route::post('/user/force-change-password', 'HomeController@forceChangePassword')->name('user.force-change-password.update')->middleware('auth');
+
 // Parent timetable route
 Route::get('/child-timetable', 'TimetableController@parentView')->name('parent.timetable')->middleware(['auth', 'role:Parent']);
 
