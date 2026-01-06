@@ -27,9 +27,14 @@ class FinanceController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Calculate total fees and amount paid for modal students
+        // Calculate total fees and amount paid for modal students based on student type
         foreach ($allStudentsForModal as $student) {
-            $student->total_fees = $currentTerm ? floatval($currentTerm->total_fees) : 0;
+            $studentType = $student->student_type ?? 'day';
+            if ($studentType === 'boarding') {
+                $student->total_fees = $currentTerm ? floatval($currentTerm->total_boarding_fees) : 0;
+            } else {
+                $student->total_fees = $currentTerm ? floatval($currentTerm->total_day_fees) : 0;
+            }
             $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)
                 ->sum('amount_paid'));
             $student->balance = $student->total_fees - $student->amount_paid;
@@ -43,11 +48,21 @@ class FinanceController extends Controller
             $query->where('class_id', $request->class_id);
         }
         
+        // Apply student type filter if provided
+        if ($request->has('student_type') && $request->student_type != '') {
+            $query->where('student_type', $request->student_type);
+        }
+        
         $filteredStudents = $query->orderBy('created_at', 'desc')->get();
         
-        // Calculate total fees and amount paid for filtered students
+        // Calculate total fees and amount paid for filtered students based on student type
         foreach ($filteredStudents as $student) {
-            $student->total_fees = $currentTerm ? floatval($currentTerm->total_fees) : 0;
+            $studentType = $student->student_type ?? 'day';
+            if ($studentType === 'boarding') {
+                $student->total_fees = $currentTerm ? floatval($currentTerm->total_boarding_fees) : 0;
+            } else {
+                $student->total_fees = $currentTerm ? floatval($currentTerm->total_day_fees) : 0;
+            }
             $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)
                 ->sum('amount_paid'));
             $student->balance = $student->total_fees - $student->amount_paid;
@@ -215,10 +230,24 @@ class FinanceController extends Controller
                     });
                 }
                 
-                // Calculate cumulative fees from ALL terms
+                // Filter students by type if provided
+                if ($request->has('student_type') && $request->student_type != '') {
+                    $students = $students->filter(function($student) use ($request) {
+                        return ($student->student_type ?? 'day') == $request->student_type;
+                    });
+                }
+                
+                // Calculate cumulative fees from ALL terms based on student type
                 $totalFees = 0;
-                foreach ($allTerms as $term) {
-                    $totalFees += floatval($term->total_fees) * $students->count();
+                foreach ($students as $student) {
+                    $studentType = $student->student_type ?? 'day';
+                    foreach ($allTerms as $term) {
+                        if ($studentType === 'boarding') {
+                            $totalFees += floatval($term->total_boarding_fees ?? $term->total_fees);
+                        } else {
+                            $totalFees += floatval($term->total_day_fees ?? $term->total_fees);
+                        }
+                    }
                 }
                 
                 // Calculate total paid across all terms
@@ -237,9 +266,15 @@ class FinanceController extends Controller
                 // Get arrears breakdown by term for each student
                 $arrearsBreakdown = [];
                 foreach ($students as $student) {
+                    $studentType = $student->student_type ?? 'day';
                     $studentArrears = [];
                     foreach ($allTerms as $term) {
-                        $termFees = floatval($term->total_fees);
+                        // Get fees based on student type
+                        if ($studentType === 'boarding') {
+                            $termFees = floatval($term->total_boarding_fees ?? $term->total_fees);
+                        } else {
+                            $termFees = floatval($term->total_day_fees ?? $term->total_fees);
+                        }
                         $termPaid = floatval(\App\StudentPayment::where('student_id', $student->id)
                             ->where('results_status_id', $term->id)
                             ->sum('amount_paid'));
@@ -259,6 +294,7 @@ class FinanceController extends Controller
                         $arrearsBreakdown[$student->id] = [
                             'student_name' => $student->user->name ?? $student->name,
                             'class' => $student->class->class_name ?? 'N/A',
+                            'student_type' => ucfirst($studentType),
                             'terms' => $studentArrears,
                             'total_arrears' => array_sum(array_column($studentArrears, 'arrears'))
                         ];

@@ -376,7 +376,8 @@ class StudentController extends Controller
             'phone'             => $request->student_phone,
             'dateofbirth'       => $request->dateofbirth,
             'current_address'   => 'To be updated', // Dummy value - student will update on first login
-            'permanent_address' => 'To be updated'  // Dummy value - student will update on first login
+            'permanent_address' => 'To be updated', // Dummy value - student will update on first login
+            'student_type'      => $request->student_type ?? 'day' // Day or Boarding student
         ]);
 
         // Attach all parents to the student

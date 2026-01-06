@@ -198,6 +198,57 @@
                             </div>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Student Type *</label>
+                            <div class="grid grid-cols-2 gap-4" id="student-type-selector">
+                                <div class="student-type-card relative flex items-center p-4 border-2 rounded-lg cursor-pointer hover:border-blue-400 transition-colors border-blue-500 bg-blue-50" data-type="day" onclick="selectStudentType('day')">
+                                    <input name="student_type" id="student_type_day" type="radio" value="day" class="hidden" {{ old('student_type', 'day') == 'day' ? 'checked' : '' }}>
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-900 font-semibold">Day Scholar</span>
+                                            <p class="text-xs text-gray-500">Student goes home daily</p>
+                                        </div>
+                                    </div>
+                                    <div class="check-indicator absolute top-2 right-2 w-5 h-5 border-2 rounded-full bg-blue-500 border-blue-500 flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="student-type-card relative flex items-center p-4 border-2 rounded-lg cursor-pointer hover:border-green-400 transition-colors border-gray-300" data-type="boarding" onclick="selectStudentType('boarding')">
+                                    <input name="student_type" id="student_type_boarding" type="radio" value="boarding" class="hidden" {{ old('student_type') == 'boarding' ? 'checked' : '' }}>
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-900 font-semibold">Boarding</span>
+                                            <p class="text-xs text-gray-500">Student stays at school</p>
+                                        </div>
+                                    </div>
+                                    <div class="check-indicator absolute top-2 right-2 w-5 h-5 border-2 rounded-full border-gray-300 flex items-center justify-center hidden">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            @error('student_type')
+                                <p class="text-red-500 text-xs mt-1 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
 
                     </div>
 
@@ -609,6 +660,48 @@
             window.open(`{{ route('sms-test.index') }}?phone=${phone}&auto=1`, '_blank');
         } else {
             alert('Please enter a phone number first');
+        }
+    }
+
+    // Student type selection function
+    function selectStudentType(type) {
+        const dayCard = document.querySelector('.student-type-card[data-type="day"]');
+        const boardingCard = document.querySelector('.student-type-card[data-type="boarding"]');
+        const dayRadio = document.getElementById('student_type_day');
+        const boardingRadio = document.getElementById('student_type_boarding');
+        const dayIndicator = dayCard.querySelector('.check-indicator');
+        const boardingIndicator = boardingCard.querySelector('.check-indicator');
+
+        if (type === 'day') {
+            // Select day
+            dayRadio.checked = true;
+            dayCard.classList.remove('border-gray-300');
+            dayCard.classList.add('border-blue-500', 'bg-blue-50');
+            dayIndicator.classList.remove('hidden', 'border-gray-300');
+            dayIndicator.classList.add('bg-blue-500', 'border-blue-500');
+            
+            // Deselect boarding
+            boardingRadio.checked = false;
+            boardingCard.classList.remove('border-green-500', 'bg-green-50');
+            boardingCard.classList.add('border-gray-300');
+            boardingIndicator.classList.add('hidden');
+            boardingIndicator.classList.remove('bg-green-500', 'border-green-500');
+            boardingIndicator.classList.add('border-gray-300');
+        } else {
+            // Select boarding
+            boardingRadio.checked = true;
+            boardingCard.classList.remove('border-gray-300');
+            boardingCard.classList.add('border-green-500', 'bg-green-50');
+            boardingIndicator.classList.remove('hidden', 'border-gray-300');
+            boardingIndicator.classList.add('bg-green-500', 'border-green-500');
+            
+            // Deselect day
+            dayRadio.checked = false;
+            dayCard.classList.remove('border-blue-500', 'bg-blue-50');
+            dayCard.classList.add('border-gray-300');
+            dayIndicator.classList.add('hidden');
+            dayIndicator.classList.remove('bg-blue-500', 'border-blue-500');
+            dayIndicator.classList.add('border-gray-300');
         }
     }
 </script>

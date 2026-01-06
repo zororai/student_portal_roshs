@@ -19,6 +19,7 @@ class Student extends Model
         'current_address',
         'permanent_address',
         'is_transferred',
+        'student_type',
     ];
 
     public function user()

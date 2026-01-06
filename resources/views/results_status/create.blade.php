@@ -40,19 +40,24 @@
                     @enderror
                 </div>
 
-                <!-- Fee Payment Types Section -->
+                <!-- Day Scholar Fees Section -->
                 <div class="mb-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-gray-700">Fee Payment Types</h3>
+                        <h3 class="text-lg font-bold text-gray-700 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                            Day Scholar Fees
+                        </h3>
                     </div>
 
-                    <div id="feeTypesContainer" class="space-y-4">
+                    <div id="dayFeesContainer" class="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
                         @if($feeTypes->count() > 0)
-                            <div class="fee-type-row bg-gray-50 p-4 rounded border border-gray-200">
+                            <div class="fee-type-row bg-white p-4 rounded border border-gray-200">
                                 <div class="grid grid-cols-12 gap-4">
                                     <div class="col-span-5">
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Fee Type</label>
-                                        <select name="fees[0][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500" required>
+                                        <select name="day_fees[0][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500" required>
                                             <option value="">Select Fee Type</option>
                                             @foreach($feeTypes as $type)
                                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
@@ -61,15 +66,15 @@
                                     </div>
                                     <div class="col-span-5">
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-                                        <input type="number" name="fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500" placeholder="0.00" required>
+                                        <input type="number" name="day_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 day-fee-amount" placeholder="0.00" required>
                                     </div>
                                     <div class="col-span-2 flex items-end gap-2">
-                                        <button type="button" class="add-fee-row bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
+                                        <button type="button" class="add-day-fee bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                             </svg>
                                         </button>
-                                        <button type="button" class="remove-fee-type bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
+                                        <button type="button" class="remove-day-fee bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
@@ -82,23 +87,84 @@
                                 <p>No fee types available. Please add fee types first.</p>
                             </div>
                         @endif
+                        <div class="text-right font-semibold text-blue-700">
+                            Day Total: <span id="dayTotalDisplay">$0.00</span>
+                        </div>
                     </div>
 
-                    @error('fees')
+                    @error('day_fees')
                         <div class="text-danger text-red-500 text-sm mt-2">{{ $message }}</div>
                     @enderror
                 </div>
 
-                <!-- Total Fees Display -->
-                <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="text-lg font-bold text-gray-800">Total Term Fees</h4>
-                            <p class="text-sm text-gray-600">Sum of all fee types for this term</p>
+                <!-- Boarding Fees Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-700 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                            </svg>
+                            Boarding Fees
+                        </h3>
+                    </div>
+
+                    <div id="boardingFeesContainer" class="space-y-4 bg-green-50 p-4 rounded-lg border border-green-200">
+                        @if($feeTypes->count() > 0)
+                            <div class="fee-type-row bg-white p-4 rounded border border-gray-200">
+                                <div class="grid grid-cols-12 gap-4">
+                                    <div class="col-span-5">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Fee Type</label>
+                                        <select name="boarding_fees[0][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-500" required>
+                                            <option value="">Select Fee Type</option>
+                                            @foreach($feeTypes as $type)
+                                                <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-span-5">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
+                                        <input type="number" name="boarding_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-500 boarding-fee-amount" placeholder="0.00" required>
+                                    </div>
+                                    <div class="col-span-2 flex items-end gap-2">
+                                        <button type="button" class="add-boarding-fee bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                        </button>
+                                        <button type="button" class="remove-boarding-fee bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-center py-8 text-gray-500">
+                                <p>No fee types available. Please add fee types first.</p>
+                            </div>
+                        @endif
+                        <div class="text-right font-semibold text-green-700">
+                            Boarding Total: <span id="boardingTotalDisplay">$0.00</span>
                         </div>
-                        <div class="text-right">
-                            <div id="totalFeesDisplay" class="text-3xl font-bold text-blue-600">$0.00</div>
-                        </div>
+                    </div>
+
+                    @error('boarding_fees')
+                        <div class="text-danger text-red-500 text-sm mt-2">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <!-- Total Fees Summary -->
+                <div class="mb-6 grid grid-cols-2 gap-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                        <h4 class="text-lg font-bold text-gray-800">Day Scholar Total</h4>
+                        <p class="text-sm text-gray-600">Total fees for day students</p>
+                        <div id="totalDayFeesDisplay" class="text-2xl font-bold text-blue-600 mt-2">$0.00</div>
+                    </div>
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                        <h4 class="text-lg font-bold text-gray-800">Boarding Total</h4>
+                        <p class="text-sm text-gray-600">Total fees for boarding students</p>
+                        <div id="totalBoardingFeesDisplay" class="text-2xl font-bold text-green-600 mt-2">$0.00</div>
                     </div>
                 </div>
 
@@ -113,62 +179,74 @@
 
 @push('scripts')
 <script>
-let feeTypeIndex = 1;
+let dayFeeIndex = 1;
+let boardingFeeIndex = 1;
 
-// Function to calculate and update total fees
-function updateTotalFees() {
-    const amountInputs = document.querySelectorAll('input[name*="[amount]"]');
-    let total = 0;
-    
-    amountInputs.forEach(input => {
-        const value = parseFloat(input.value) || 0;
-        total += value;
+// Function to calculate totals
+function updateTotals() {
+    // Calculate Day fees total
+    let dayTotal = 0;
+    document.querySelectorAll('.day-fee-amount').forEach(input => {
+        dayTotal += parseFloat(input.value) || 0;
     });
+    document.getElementById('dayTotalDisplay').textContent = '$' + dayTotal.toFixed(2);
+    document.getElementById('totalDayFeesDisplay').textContent = '$' + dayTotal.toFixed(2);
     
-    document.getElementById('totalFeesDisplay').textContent = '$' + total.toFixed(2);
+    // Calculate Boarding fees total
+    let boardingTotal = 0;
+    document.querySelectorAll('.boarding-fee-amount').forEach(input => {
+        boardingTotal += parseFloat(input.value) || 0;
+    });
+    document.getElementById('boardingTotalDisplay').textContent = '$' + boardingTotal.toFixed(2);
+    document.getElementById('totalBoardingFeesDisplay').textContent = '$' + boardingTotal.toFixed(2);
 }
 
+// Fee type options HTML
+const feeTypeOptions = `
+    <option value="">Select Fee Type</option>
+    @foreach($feeTypes as $type)
+        <option value="{{ $type->id }}">{{ $type->name }}</option>
+    @endforeach
+`;
+
 document.addEventListener('DOMContentLoaded', function() {
-    const feeTypesContainer = document.getElementById('feeTypesContainer');
+    const dayFeesContainer = document.getElementById('dayFeesContainer');
+    const boardingFeesContainer = document.getElementById('boardingFeesContainer');
     
-    // Update total when amount changes
-    feeTypesContainer.addEventListener('input', function(e) {
-        if (e.target.name && e.target.name.includes('[amount]')) {
-            updateTotalFees();
+    // Update totals on any input change
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('day-fee-amount') || e.target.classList.contains('boarding-fee-amount')) {
+            updateTotals();
         }
     });
     
     // Initial calculation
-    updateTotalFees();
+    updateTotals();
     
-    // Add new fee type row when '+' button is clicked
-    feeTypesContainer.addEventListener('click', function(e) {
-        // Check if the clicked element is the add button or inside it
-        const addBtn = e.target.closest('.add-fee-row');
+    // Day Fees - Add row
+    dayFeesContainer.addEventListener('click', function(e) {
+        const addBtn = e.target.closest('.add-day-fee');
         if (addBtn) {
             const newRow = `
-                <div class="fee-type-row bg-gray-50 p-4 rounded border border-gray-200">
+                <div class="fee-type-row bg-white p-4 rounded border border-gray-200">
                     <div class="grid grid-cols-12 gap-4">
                         <div class="col-span-5">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Fee Type</label>
-                            <select name="fees[${feeTypeIndex}][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500" required>
-                                <option value="">Select Fee Type</option>
-                                @foreach($feeTypes as $type)
-                                    <option value="{{ $type->id }}">{{ $type->name }}</option>
-                                @endforeach
+                            <select name="day_fees[${dayFeeIndex}][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500" required>
+                                ${feeTypeOptions}
                             </select>
                         </div>
                         <div class="col-span-5">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-                            <input type="number" name="fees[${feeTypeIndex}][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500" placeholder="0.00" required>
+                            <input type="number" name="day_fees[${dayFeeIndex}][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 day-fee-amount" placeholder="0.00" required>
                         </div>
                         <div class="col-span-2 flex items-end gap-2">
-                            <button type="button" class="add-fee-row bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
+                            <button type="button" class="add-day-fee bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                 </svg>
                             </button>
-                            <button type="button" class="remove-fee-type bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
+                            <button type="button" class="remove-day-fee bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
@@ -177,24 +255,72 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             `;
-            
-            // Insert the new row after the current row
             const currentRow = addBtn.closest('.fee-type-row');
             currentRow.insertAdjacentHTML('afterend', newRow);
-            feeTypeIndex++;
+            dayFeeIndex++;
         }
         
-        // Remove fee type row
-        const removeBtn = e.target.closest('.remove-fee-type');
+        // Remove day fee row
+        const removeBtn = e.target.closest('.remove-day-fee');
         if (removeBtn) {
             const row = removeBtn.closest('.fee-type-row');
-            const allRows = feeTypesContainer.querySelectorAll('.fee-type-row');
-            
-            // Only allow removal if there's more than one row
+            const allRows = dayFeesContainer.querySelectorAll('.fee-type-row');
             if (allRows.length > 1 && row) {
                 row.remove();
+                updateTotals();
             } else {
-                alert('You must have at least one fee type.');
+                alert('You must have at least one day fee type.');
+            }
+        }
+    });
+    
+    // Boarding Fees - Add row
+    boardingFeesContainer.addEventListener('click', function(e) {
+        const addBtn = e.target.closest('.add-boarding-fee');
+        if (addBtn) {
+            const newRow = `
+                <div class="fee-type-row bg-white p-4 rounded border border-gray-200">
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-5">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fee Type</label>
+                            <select name="boarding_fees[${boardingFeeIndex}][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-500" required>
+                                ${feeTypeOptions}
+                            </select>
+                        </div>
+                        <div class="col-span-5">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
+                            <input type="number" name="boarding_fees[${boardingFeeIndex}][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-500 boarding-fee-amount" placeholder="0.00" required>
+                        </div>
+                        <div class="col-span-2 flex items-end gap-2">
+                            <button type="button" class="add-boarding-fee bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="remove-boarding-fee bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            const currentRow = addBtn.closest('.fee-type-row');
+            currentRow.insertAdjacentHTML('afterend', newRow);
+            boardingFeeIndex++;
+        }
+        
+        // Remove boarding fee row
+        const removeBtn = e.target.closest('.remove-boarding-fee');
+        if (removeBtn) {
+            const row = removeBtn.closest('.fee-type-row');
+            const allRows = boardingFeesContainer.querySelectorAll('.fee-type-row');
+            if (allRows.length > 1 && row) {
+                row.remove();
+                updateTotals();
+            } else {
+                alert('You must have at least one boarding fee type.');
             }
         }
     });

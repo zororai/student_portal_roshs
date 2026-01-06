@@ -290,6 +290,14 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('/Term/{id}', 'ResultsStatusController@update')->name('results_status.update');
     Route::get('/Term', 'ResultsStatusController@index')->name('results_status.index');
     Route::delete('/results-status/{id}', 'ResultsStatusController@destroy')->name('results_status.destroy');
+
+    // Fee Types management
+    Route::get('/fee-types', 'FeeTypeController@index')->name('fee_types.index');
+    Route::get('/fee-types/create', 'FeeTypeController@create')->name('fee_types.create');
+    Route::post('/fee-types', 'FeeTypeController@store')->name('fee_types.store');
+    Route::get('/fee-types/{id}/edit', 'FeeTypeController@edit')->name('fee_types.edit');
+    Route::put('/fee-types/{id}', 'FeeTypeController@update')->name('fee_types.update');
+    Route::delete('/fee-types/{id}', 'FeeTypeController@destroy')->name('fee_types.destroy');
     ///resultactive
     Route::get('/activeresults', 'ResultController@resultsactive')->name('activeresults.index');
     Route::get('/viewstudent/{student}', 'ResultController@changestatus')->name('viewstudentstatus.results');

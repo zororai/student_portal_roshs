@@ -27,9 +27,12 @@ class ResultsStatusController extends Controller
         $validatedData = $request->validate([
             'year' => 'required|integer',
             'result_period' => 'required|string',
-            'fees' => 'required|array',
-            'fees.*.fee_type_id' => 'required|exists:fee_types,id',
-            'fees.*.amount' => 'required|numeric|min:0',
+            'day_fees' => 'required|array',
+            'day_fees.*.fee_type_id' => 'required|exists:fee_types,id',
+            'day_fees.*.amount' => 'required|numeric|min:0',
+            'boarding_fees' => 'required|array',
+            'boarding_fees.*.fee_type_id' => 'required|exists:fee_types,id',
+            'boarding_fees.*.amount' => 'required|numeric|min:0',
         ]);
     
         // Attempt to create a new record only if it doesn't already exist
@@ -41,26 +44,41 @@ class ResultsStatusController extends Controller
             return redirect()->back()->withErrors(['duplicate' => 'A record with the same year and result period already exists.']);
         }
     
-        // Calculate total fees
-        $totalFees = array_sum(array_column($validatedData['fees'], 'amount'));
+        // Calculate total fees for day and boarding separately
+        $totalDayFees = array_sum(array_column($validatedData['day_fees'], 'amount'));
+        $totalBoardingFees = array_sum(array_column($validatedData['boarding_fees'], 'amount'));
+        $totalFees = $totalDayFees + $totalBoardingFees;
         
         // Create a new ResultsStatus record
         $resultsStatus = ResultsStatus::create([
             'year' => $validatedData['year'],
             'result_period' => $validatedData['result_period'],
-            'total_fees' => $totalFees
+            'total_fees' => $totalFees,
+            'total_day_fees' => $totalDayFees,
+            'total_boarding_fees' => $totalBoardingFees
         ]);
         
-        // Create term fees
-        foreach ($validatedData['fees'] as $fee) {
+        // Create day fees
+        foreach ($validatedData['day_fees'] as $fee) {
             TermFee::create([
                 'results_status_id' => $resultsStatus->id,
                 'fee_type_id' => $fee['fee_type_id'],
+                'student_type' => 'day',
+                'amount' => $fee['amount']
+            ]);
+        }
+        
+        // Create boarding fees
+        foreach ($validatedData['boarding_fees'] as $fee) {
+            TermFee::create([
+                'results_status_id' => $resultsStatus->id,
+                'fee_type_id' => $fee['fee_type_id'],
+                'student_type' => 'boarding',
                 'amount' => $fee['amount']
             ]);
         }
     
-        return redirect()->route('results_status.index')->with('success', 'Term and fees created successfully. Total fees: $' . number_format($totalFees, 2));
+        return redirect()->route('results_status.index')->with('success', 'Term created! Day fees: $' . number_format($totalDayFees, 2) . ' | Boarding fees: $' . number_format($totalBoardingFees, 2));
     }
 
     public function destroy($id)

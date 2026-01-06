@@ -10,11 +10,15 @@ class ResultsStatus extends Model
         'year',
         'result_period',
         'total_fees',
+        'total_day_fees',
+        'total_boarding_fees',
 
     ];
 
     protected $casts = [
         'total_fees' => 'decimal:2',
+        'total_day_fees' => 'decimal:2',
+        'total_boarding_fees' => 'decimal:2',
     ];
 
     // A result status belongs to ONE class (grade)

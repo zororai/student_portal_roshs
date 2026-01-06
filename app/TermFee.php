@@ -9,6 +9,7 @@ class TermFee extends Model
     protected $fillable = [
         'results_status_id',
         'fee_type_id',
+        'student_type',
         'amount'
     ];
 
