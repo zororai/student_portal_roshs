@@ -53,7 +53,22 @@ class TeacherController extends Controller
         
         // Generate placeholder email from phone number (will be updated on first login)
         $cleanPhone = preg_replace('/[^0-9]/', '', $request->phone);
-        $placeholderEmail = 'teacher_' . $cleanPhone . '@placeholder.local';
+        $placeholderEmail = 'teacher_'  . '@placeholder.co.zw';
+
+        // Check if user with this placeholder email already exists (from failed previous attempt)
+        $existingUser = User::where('email', $placeholderEmail)->first();
+        
+        if ($existingUser) {
+            // Check if this user already has a teacher profile
+            if ($existingUser->teacher) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['phone' => 'A teacher with this phone number already exists.']);
+            }
+            
+            // Orphaned user record - delete it and proceed
+            $existingUser->delete();
+        }
 
         $user = User::create([
             'name'      => $request->name,
@@ -117,7 +132,7 @@ class TeacherController extends Controller
             }
             
             // Shorter message to avoid InboxIQ HTTP 500 error
-            $message = "RSH School: Teacher account created. Login: {$phone}, Password: {$password}. Complete profile on first login.";
+            $message = "RSH School: Teacher account created. Login: {$email}, Password: {$password}. Complete profile on first login.";
             
             // Send SMS using SmsHelper
             $result = \App\Helpers\SmsHelper::sendSms($phone, $message);
