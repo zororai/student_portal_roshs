@@ -11,7 +11,7 @@ class Subject extends Model
         'slug',
         'subject_code',
         'teacher_id',
-        'description'
+        'periods_per_week'
     ];
 
     public function teacher()

@@ -64,17 +64,6 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                                                {{ strtoupper(substr($subject->name, 0, 2)) }}
-                                            </div>
-                                            <div class="ml-3">
-                                                <p class="text-sm font-semibold text-gray-900">{{ $subject->name }}</p>
-                                                <p class="text-xs text-gray-500">{{ Str::limit($subject->description, 30) }}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
                                         @if($subject->teacher)
                                             <div class="flex items-center">
                                                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold">

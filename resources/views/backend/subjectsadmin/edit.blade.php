@@ -49,13 +49,6 @@
                                 @error('subject_code')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                            <textarea name="description" rows="3" 
-                                      class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                                      placeholder="Enter subject description">{{ $subject->description }}</textarea>
-                            @error('description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                        </div>
                     </div>
                 </div>
 
@@ -69,24 +62,56 @@
                             Teacher Assignment
                         </h3>
                     </div>
-                    <div class="px-6 py-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Assign Teacher</label>
-                        <div class="relative">
-                            <select name="teacher_id" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 appearance-none bg-white">
-                                <option value="">-- Select Teacher --</option>
-                                @foreach ($teachers as $teacher)
-                                    <option value="{{ $teacher->id }}" {{ ($teacher->id === $subject->teacher_id) ? 'selected' : '' }}>
-                                        {{ $teacher->user->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
+                    <div class="px-6 py-6 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Assign Teacher</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                    </div>
+                                    <select name="teacher_id" class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white @error('teacher_id') border-red-500 @enderror">
+                                        <option value="">-- Select Teacher --</option>
+                                        @foreach ($teachers as $teacher)
+                                            <option value="{{ $teacher->id }}" {{ ($teacher->id === $subject->teacher_id) ? 'selected' : '' }}>
+                                                {{ $teacher->user->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                @error('teacher_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Periods Per Week <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                    <select name="periods_per_week" class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white @error('periods_per_week') border-red-500 @enderror">
+                                        <option value="">-- Select Periods --</option>
+                                        @for ($i = 1; $i <= 10; $i++)
+                                            <option value="{{ $i }}" {{ $subject->periods_per_week == $i ? 'selected' : '' }}>{{ $i }} {{ $i == 1 ? 'Period' : 'Periods' }}</option>
+                                        @endfor
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                @error('periods_per_week')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                                <p class="mt-1 text-xs text-gray-500">Number of periods for timetable generation</p>
                             </div>
                         </div>
-                        @error('teacher_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
 

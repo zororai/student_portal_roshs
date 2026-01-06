@@ -89,7 +89,7 @@ class SubjectController extends Controller
             'name'          => 'required|string|max:255|unique:subjects',
             'subject_code'  => 'required|numeric',
             'teacher_id'    => 'required|numeric',
-            'description'   => 'required|string|max:255'
+            'periods_per_week' => 'required|integer|min:1|max:10'
         ]);
 
         Subject::create([
@@ -97,7 +97,7 @@ class SubjectController extends Controller
             'slug'          => Str::slug($request->name),
             'subject_code'  => $request->subject_code,
             'teacher_id'    => $request->teacher_id,
-            'description'   => $request->description
+            'periods_per_week' => $request->periods_per_week
         ]);
 
         return redirect()->route('subject.index');
@@ -137,7 +137,7 @@ class SubjectController extends Controller
             'name'          => 'required|string|max:255|unique:subjects,name,'.$subject->id,
             'subject_code'  => 'required|numeric',
             'teacher_id'    => 'required|numeric',
-            'description'   => 'required|string|max:255'
+            'periods_per_week' => 'required|integer|min:1|max:10'
         ]);
 
         $subject->update([
@@ -145,7 +145,7 @@ class SubjectController extends Controller
             'slug'          => Str::slug($request->name),
             'subject_code'  => $request->subject_code,
             'teacher_id'    => $request->teacher_id,
-            'description'   => $request->description
+            'periods_per_week' => $request->periods_per_week
         ]);
 
         return redirect()->route('subject.index');
