@@ -87,26 +87,16 @@ class AdminSubjectController extends Controller
         $createdCount = 0;
 
         foreach ($request->subjects as $subjectData) {
-            // Check if subject with same name already exists
-            $existingSubject = Subject::where('name', $subjectData['name'])->first();
-            
-            if ($existingSubject) {
-                // Just attach to class if not already attached
-                if (!$existingSubject->grades()->where('grade_id', $class->id)->exists()) {
-                    $existingSubject->grades()->attach($class->id);
-                }
-                continue;
-            }
-
             // Calculate total periods per week
             $totalPeriods = ($subjectData['single_lessons_per_week'] ?? 0) * 1 
                           + ($subjectData['double_lessons_per_week'] ?? 0) * 2 
                           + ($subjectData['triple_lessons_per_week'] ?? 0) * 3 
                           + ($subjectData['quad_lessons_per_week'] ?? 0) * 4;
 
+            // Create new subject (allows same name for different classes with unique codes)
             $subject = Subject::create([
                 'name'          => $subjectData['name'],
-                'slug'          => Str::slug($subjectData['name']),
+                'slug'          => Str::slug($subjectData['name']) . '-' . Str::slug($class->class_name),
                 'subject_code'  => $subjectData['subject_code'],
                 'single_lessons_per_week' => $subjectData['single_lessons_per_week'] ?? 0,
                 'double_lessons_per_week' => $subjectData['double_lessons_per_week'] ?? 0,
