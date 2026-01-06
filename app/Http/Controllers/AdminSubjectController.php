@@ -49,12 +49,27 @@ class AdminSubjectController extends Controller
         $request->validate([
             'name'          => 'required|string|max:255|unique:subjects',
             'subject_code'  => 'required|numeric',
+            'single_lessons_per_week' => 'nullable|integer|min:0|max:20',
+            'double_lessons_per_week' => 'nullable|integer|min:0|max:10',
+            'triple_lessons_per_week' => 'nullable|integer|min:0|max:5',
+            'quad_lessons_per_week'   => 'nullable|integer|min:0|max:5',
         ]);
+
+        // Calculate total periods per week
+        $totalPeriods = ($request->single_lessons_per_week ?? 0) * 1 
+                      + ($request->double_lessons_per_week ?? 0) * 2 
+                      + ($request->triple_lessons_per_week ?? 0) * 3 
+                      + ($request->quad_lessons_per_week ?? 0) * 4;
 
         Subject::create([
             'name'          => $request->name,
             'slug'          => Str::slug($request->name),
             'subject_code'  => $request->subject_code,
+            'single_lessons_per_week' => $request->single_lessons_per_week ?? 0,
+            'double_lessons_per_week' => $request->double_lessons_per_week ?? 0,
+            'triple_lessons_per_week' => $request->triple_lessons_per_week ?? 0,
+            'quad_lessons_per_week'   => $request->quad_lessons_per_week ?? 0,
+            'periods_per_week' => $totalPeriods,
         ]);
 
         return redirect()->route('admin.subjects.index')->with('success', 'Subject created successfully.');

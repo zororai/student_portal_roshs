@@ -11,6 +11,10 @@ class Subject extends Model
         'slug',
         'subject_code',
         'teacher_id',
+        'single_lessons_per_week',
+        'double_lessons_per_week',
+        'triple_lessons_per_week',
+        'quad_lessons_per_week',
         'periods_per_week'
     ];
 

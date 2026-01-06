@@ -219,8 +219,133 @@
 
 <style>
     @media print {
-        .no-print { display: none !important; }
-        body { background: white !important; }
+        /* Reset and base */
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        html, body { 
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            font-size: 10px !important;
+        }
+        
+        /* Page setup - landscape A4 */
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        
+        /* Hide non-essential elements */
+        .no-print, 
+        nav, 
+        aside, 
+        header,
+        footer,
+        button,
+        a[href*="edit"],
+        a[href*="index"],
+        .flex.flex-col.md\\:flex-row.md\\:items-center.md\\:justify-between > div:last-child,
+        .bg-blue-50,
+        .grid.grid-cols-2,
+        .mt-6.flex.flex-wrap,
+        .mt-6.flex.justify-end { 
+            display: none !important; 
+        }
+        
+        /* Container */
+        .container-fluid {
+            padding: 0 !important;
+            max-width: 100% !important;
+        }
+        
+        /* Title styling */
+        h1 {
+            font-size: 16px !important;
+            margin-bottom: 5px !important;
+        }
+        h1 .w-10 { display: none !important; }
+        p.text-gray-500 { font-size: 10px !important; margin: 0 !important; }
+        
+        /* Table container */
+        .bg-white.rounded-2xl {
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+        }
+        
+        .overflow-x-auto {
+            overflow: visible !important;
+        }
+        
+        /* Table */
+        table {
+            width: 100% !important;
+            min-width: unset !important;
+            border-collapse: collapse !important;
+            font-size: 9px !important;
+            table-layout: fixed !important;
+        }
+        
+        /* Table header */
+        thead tr {
+            background: #10b981 !important;
+        }
+        
+        th {
+            padding: 6px 4px !important;
+            font-size: 9px !important;
+            border: 1px solid #ccc !important;
+        }
+        
+        /* Table cells */
+        td {
+            padding: 4px 2px !important;
+            border: 1px solid #ddd !important;
+            vertical-align: top !important;
+        }
+        
+        /* Time column */
+        td:first-child {
+            width: 50px !important;
+            font-size: 8px !important;
+        }
+        
+        /* Subject cells */
+        .bg-gradient-to-br, 
+        .bg-amber-100, 
+        .bg-orange-100,
+        .bg-gray-50 {
+            padding: 4px !important;
+            border-radius: 4px !important;
+            margin: 0 !important;
+        }
+        
+        .bg-gradient-to-br p,
+        .bg-amber-100 p,
+        .bg-orange-100 p {
+            font-size: 8px !important;
+            margin: 0 !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* Truncate fix */
+        .truncate {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+        
+        /* Remove shadows and hover effects */
+        .shadow-sm, .hover\\:shadow-md {
+            box-shadow: none !important;
+        }
+        
+        /* Alerts */
+        .bg-green-100, .bg-amber-100.border-l-4 {
+            display: none !important;
+        }
     }
 </style>
 @endsection
