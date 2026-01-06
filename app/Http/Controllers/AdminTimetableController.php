@@ -226,12 +226,38 @@ class AdminTimetableController extends Controller
 
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         $class = Grade::with('subjects.teacher')->find($settings->class_id);
-        $subjects = $class->subjects->toArray();
+        $subjects = $class->subjects;
         
-        // Shuffle subjects to create variety
-        shuffle($subjects);
+        // Build weighted subject pool based on periods_per_week
+        // Each subject will appear in the pool according to its periods_per_week value
+        $weightedSubjectPool = [];
+        $subjectPeriodsRemaining = [];
         
-        $globalSubjectIndex = 0; // Track subject index across all days
+        foreach ($subjects as $subject) {
+            $periodsPerWeek = $subject->periods_per_week ?? 1;
+            $subjectPeriodsRemaining[$subject->id] = $periodsPerWeek;
+            
+            // Add subject to pool based on periods_per_week
+            for ($i = 0; $i < $periodsPerWeek; $i++) {
+                $weightedSubjectPool[] = [
+                    'id' => $subject->id,
+                    'name' => $subject->name,
+                    'teacher_id' => $subject->teacher_id,
+                    'periods_per_week' => $periodsPerWeek
+                ];
+            }
+        }
+        
+        // Shuffle the weighted pool to create variety
+        shuffle($weightedSubjectPool);
+        
+        // Track how many periods each subject has been assigned per day (to distribute evenly)
+        $subjectPerDay = [];
+        foreach ($days as $day) {
+            $subjectPerDay[$day] = [];
+        }
+        
+        $poolIndex = 0;
         
         foreach ($days as $dayIndex => $day) {
             $currentTime = Carbon::parse($settings->start_time);
@@ -242,9 +268,6 @@ class AdminTimetableController extends Controller
             $lunchEnd = Carbon::parse($settings->lunch_end);
             
             $slotOrder = 0;
-            
-            // Offset the starting subject for each day to create rotation
-            $dayOffset = $dayIndex % count($subjects);
 
             while ($currentTime < $endTime) {
                 $slotEndTime = (clone $currentTime)->addMinutes($settings->subject_duration);
@@ -300,17 +323,58 @@ class AdminTimetableController extends Controller
                 if ($currentTime < $slotEndTime) {
                     $subjectId = null;
                     $teacherId = null;
-                    if (!empty($subjects)) {
-                        // Calculate subject index with day offset for rotation
-                        $currentSubjectIndex = ($globalSubjectIndex + $dayOffset) % count($subjects);
-                        $subjectId = $subjects[$currentSubjectIndex]['id'];
+                    
+                    if (!empty($weightedSubjectPool)) {
+                        // Find a subject that hasn't been used too many times today
+                        // Try to distribute subjects evenly across days
+                        $selectedSubject = null;
+                        $attempts = 0;
+                        $maxAttempts = count($weightedSubjectPool);
                         
-                        // Only assign teacher if they exist in the database
-                        $potentialTeacherId = $subjects[$currentSubjectIndex]['teacher_id'] ?? null;
-                        if ($potentialTeacherId && Teacher::find($potentialTeacherId)) {
-                            $teacherId = $potentialTeacherId;
+                        while ($attempts < $maxAttempts) {
+                            $candidateIndex = ($poolIndex + $attempts) % count($weightedSubjectPool);
+                            $candidate = $weightedSubjectPool[$candidateIndex];
+                            $candidateId = $candidate['id'];
+                            
+                            // Check how many times this subject appears today
+                            $todayCount = $subjectPerDay[$day][$candidateId] ?? 0;
+                            
+                            // Calculate max periods per day for this subject
+                            // Allow subjects with more periods to have 2-3 periods on the same day
+                            // 1-3 periods/week = 1 max/day, 4-6 = 2 max/day, 7-9 = 3 max/day, 10 = 3 max/day
+                            $maxPerDay = min(3, max(1, ceil($candidate['periods_per_week'] / 3)));
+                            
+                            // If subject hasn't exceeded daily limit, use it
+                            if ($todayCount < $maxPerDay) {
+                                $selectedSubject = $candidate;
+                                $poolIndex = ($candidateIndex + 1) % count($weightedSubjectPool);
+                                break;
+                            }
+                            
+                            $attempts++;
                         }
-                        $globalSubjectIndex++;
+                        
+                        // If no subject found within limits, just use next in pool
+                        if (!$selectedSubject && !empty($weightedSubjectPool)) {
+                            $selectedSubject = $weightedSubjectPool[$poolIndex % count($weightedSubjectPool)];
+                            $poolIndex = ($poolIndex + 1) % count($weightedSubjectPool);
+                        }
+                        
+                        if ($selectedSubject) {
+                            $subjectId = $selectedSubject['id'];
+                            
+                            // Track subject usage per day
+                            if (!isset($subjectPerDay[$day][$subjectId])) {
+                                $subjectPerDay[$day][$subjectId] = 0;
+                            }
+                            $subjectPerDay[$day][$subjectId]++;
+                            
+                            // Only assign teacher if they exist in the database
+                            $potentialTeacherId = $selectedSubject['teacher_id'] ?? null;
+                            if ($potentialTeacherId && Teacher::find($potentialTeacherId)) {
+                                $teacherId = $potentialTeacherId;
+                            }
+                        }
                     }
 
                     Timetable::create([
