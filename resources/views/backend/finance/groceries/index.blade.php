@@ -105,19 +105,41 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 text-center">
-                            @if($list->status === 'active')
+                            @if(!$list->locked)
+                                <a href="{{ route('admin.groceries.edit', $list->id) }}" class="text-blue-600 hover:text-blue-800 mr-2" title="Edit List">
+                                    <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </a>
+                                <form action="{{ route('admin.groceries.lock', $list->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to lock this list? No further editing will be allowed.')">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" class="text-orange-600 hover:text-orange-800 mr-2" title="Lock List">
+                                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            @else
+                                <span class="text-gray-400 mr-2" title="Locked">
+                                    <svg class="w-5 h-5 inline" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 1C8.676 1 6 3.676 6 7v2H4v14h16V9h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v2H8V7c0-2.276 1.724-4 4-4zm0 10c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/>
+                                    </svg>
+                                </span>
+                            @endif
+                            @if($list->status === 'active' && !$list->locked)
                             <form action="{{ route('admin.groceries.close', $list->id) }}" method="POST" class="inline">
                                 @csrf
                                 @method('PUT')
                                 <button type="submit" class="text-yellow-600 hover:text-yellow-800 mr-2" title="Close List">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
                                 </button>
                             </form>
                             @endif
                             <button type="button" onclick="openDeleteModal({{ $list->id }}, '{{ ucfirst($list->term) }} {{ $list->year }}')" class="text-red-500 hover:text-red-700">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
                             </button>

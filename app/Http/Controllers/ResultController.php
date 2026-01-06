@@ -12,6 +12,7 @@ use App\StudentPayment;
 use App\Assessment;
 use App\AssessmentMark;
 use App\PaymentVerification;
+use App\Http\Controllers\GroceryController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -403,13 +404,26 @@ public function adminshowResult(Request $request)
             $totalFees += floatval($term->total_fees);
         }
         $totalPaid = floatval(StudentPayment::where('student_id', $studentId)->sum('amount_paid'));
-        $outstandingBalance = $totalFees - $totalPaid;
+        $outstandingFees = $totalFees - $totalPaid;
         
-        // If student has outstanding fees, block results view
-        if ($outstandingBalance > 0) {
+        // Check for grocery arrears
+        $groceryArrears = GroceryController::calculateGroceryBalance($studentId);
+        
+        // If student has outstanding fees OR grocery arrears, block results view
+        if ($outstandingFees > 0 || $groceryArrears > 0) {
+            $messages = [];
+            if ($outstandingFees > 0) {
+                $messages[] = 'Outstanding school fees: $' . number_format($outstandingFees, 2);
+            }
+            if ($groceryArrears > 0) {
+                $messages[] = 'Outstanding groceries: $' . number_format($groceryArrears, 2);
+            }
+            
             return view('reports.blocked', [
-                'message' => 'You cannot view your results due to outstanding fees.',
-                'outstanding' => $outstandingBalance
+                'message' => 'You cannot view your results due to outstanding balance.',
+                'outstanding' => $outstandingFees,
+                'grocery_arrears' => $groceryArrears,
+                'details' => $messages
             ]);
         }
         
@@ -463,28 +477,47 @@ public function adminshowResult(Request $request)
             }
         }
         $totalPaid = floatval(StudentPayment::whereIn('student_id', $studentIds)->sum('amount_paid'));
-        $outstandingBalance = $totalFees - $totalPaid;
+        $outstandingFees = $totalFees - $totalPaid;
         
-        // If there are outstanding fees, check for verified payment proof
-        if ($outstandingBalance > 0) {
-            // Check for verified payment for this parent
+        // Check for grocery arrears for all children
+        $totalGroceryArrears = 0;
+        foreach ($studentIds as $studentId) {
+            $totalGroceryArrears += GroceryController::calculateGroceryBalance($studentId);
+        }
+        
+        // If there are outstanding fees OR grocery arrears, block results
+        if ($outstandingFees > 0 || $totalGroceryArrears > 0) {
+            // Check for verified payment for this parent (only for fees)
             $hasVerifiedPayment = PaymentVerification::where('parent_id', $parentId)
                 ->where('status', 'verified')
                 ->exists();
             
-            // If no verified payment, require proof of payment
-            if (!$hasVerifiedPayment) {
+            // If no verified payment OR has grocery arrears, block results
+            if (!$hasVerifiedPayment || $totalGroceryArrears > 0) {
                 // Check if there's a pending verification
                 $pendingVerification = PaymentVerification::where('parent_id', $parentId)
                     ->where('status', 'pending')
                     ->exists();
                 
+                $messages = [];
+                if ($outstandingFees > 0 && !$hasVerifiedPayment) {
+                    $messages[] = 'Outstanding school fees: $' . number_format($outstandingFees, 2);
+                }
+                if ($totalGroceryArrears > 0) {
+                    $messages[] = 'Outstanding groceries: $' . number_format($totalGroceryArrears, 2);
+                }
+                
+                $message = 'You cannot view your child\'s results due to outstanding balance.';
+                if ($pendingVerification && $outstandingFees > 0) {
+                    $message = 'Your payment verification is pending approval. Please wait for admin confirmation.';
+                }
+                
                 return view('reports.blocked', [
-                    'message' => $pendingVerification 
-                        ? 'Your payment verification is pending approval. Please wait for admin confirmation.'
-                        : 'You have outstanding fees. Please submit proof of payment to view your child\'s results.',
-                    'outstanding' => $outstandingBalance,
-                    'show_verification_link' => true,
+                    'message' => $message,
+                    'outstanding' => $outstandingFees,
+                    'grocery_arrears' => $totalGroceryArrears,
+                    'details' => $messages,
+                    'show_verification_link' => $outstandingFees > 0 && !$hasVerifiedPayment,
                     'pending' => $pendingVerification
                 ]);
             }

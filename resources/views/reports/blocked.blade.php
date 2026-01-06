@@ -30,7 +30,27 @@
                 <div class="text-center mb-6">
                     <p class="text-gray-700 text-lg mb-4">{{ $message }}</p>
                     
-                    @if(isset($outstanding) && $outstanding > 0)
+                    @if(isset($details) && count($details) > 0)
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-6 mt-6">
+                        <p class="text-sm text-gray-600 uppercase tracking-wide mb-4">Outstanding Balances</p>
+                        <div class="space-y-3">
+                            @foreach($details as $detail)
+                            <div class="flex items-center justify-between bg-white px-4 py-3 rounded-lg">
+                                <span class="text-gray-700">{{ $detail }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                        @php
+                            $totalBalance = ($outstanding ?? 0) + ($grocery_arrears ?? 0);
+                        @endphp
+                        <div class="border-t border-red-200 mt-4 pt-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-700 font-semibold">Total Outstanding:</span>
+                                <span class="text-2xl font-bold text-red-600">${{ number_format($totalBalance, 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    @elseif(isset($outstanding) && $outstanding > 0)
                     <div class="bg-red-50 border border-red-200 rounded-lg p-6 mt-6">
                         <p class="text-sm text-gray-600 uppercase tracking-wide mb-2">Outstanding Balance</p>
                         <p class="text-4xl font-bold text-red-600">${{ number_format($outstanding, 2) }}</p>

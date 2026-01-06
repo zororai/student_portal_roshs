@@ -374,6 +374,10 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/groceries/response/{responseId}', 'GroceryController@viewResponse')->name('admin.groceries.response');
     Route::put('/admin/groceries/{responseId}/acknowledge', 'GroceryController@acknowledge')->name('admin.groceries.acknowledge');
     Route::put('/admin/groceries/{id}/close', 'GroceryController@close')->name('admin.groceries.close');
+    Route::get('/admin/groceries/{id}/edit', 'GroceryController@edit')->name('admin.groceries.edit');
+    Route::put('/admin/groceries/{id}', 'GroceryController@update')->name('admin.groceries.update');
+    Route::put('/admin/groceries/{id}/lock', 'GroceryController@lock')->name('admin.groceries.lock');
+    Route::get('/admin/groceries/student/{studentId}/history', 'GroceryController@studentHistory')->name('admin.groceries.student-history');
     Route::delete('/admin/groceries/{id}', 'GroceryController@destroy')->name('admin.groceries.destroy');
 
     // Admin View Results Routes

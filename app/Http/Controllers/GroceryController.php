@@ -229,6 +229,156 @@ class GroceryController extends Controller
         return redirect()->back()->with('success', 'Grocery list closed.');
     }
 
+    // Admin: Edit grocery list form (only if not locked)
+    public function edit($id)
+    {
+        $groceryList = GroceryList::with(['classes', 'items'])->findOrFail($id);
+        
+        if ($groceryList->locked) {
+            return redirect()->back()->with('error', 'This grocery list is locked and cannot be edited.');
+        }
+        
+        $classes = Grade::all();
+        return view('backend.finance.groceries.edit', compact('groceryList', 'classes'));
+    }
+
+    // Admin: Update grocery list (only if not locked)
+    public function update(Request $request, $id)
+    {
+        $groceryList = GroceryList::findOrFail($id);
+        
+        if ($groceryList->locked) {
+            return redirect()->back()->with('error', 'This grocery list is locked and cannot be edited.');
+        }
+
+        $validated = $request->validate([
+            'term' => 'required|string',
+            'year' => 'required|string',
+            'classes' => 'required|array|min:1',
+            'classes.*' => 'exists:grades,id',
+            'items' => 'required|array|min:1',
+            'items.*.name' => 'required|string|max:255',
+            'items.*.quantity' => 'nullable|string|max:100',
+            'items.*.price' => 'nullable|numeric|min:0',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $groceryList->update([
+                'term' => $validated['term'],
+                'year' => $validated['year']
+            ]);
+
+            // Sync classes
+            $groceryList->classes()->sync($validated['classes']);
+
+            // Delete existing items and recreate
+            $groceryList->items()->delete();
+            foreach ($validated['items'] as $item) {
+                GroceryItem::create([
+                    'grocery_list_id' => $groceryList->id,
+                    'name' => $item['name'],
+                    'quantity' => $item['quantity'] ?? null,
+                    'price' => $item['price'] ?? 0
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('admin.groceries.index')->with('success', 'Grocery list updated successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to update grocery list: ' . $e->getMessage());
+        }
+    }
+
+    // Admin: Lock grocery list (prevents further editing)
+    public function lock($id)
+    {
+        $groceryList = GroceryList::findOrFail($id);
+        $groceryList->update([
+            'locked' => true,
+            'locked_at' => now()
+        ]);
+        
+        return redirect()->back()->with('success', 'Grocery list locked. No further editing is allowed.');
+    }
+
+    // Admin: View student grocery history
+    public function studentHistory($studentId)
+    {
+        $student = Student::with(['user', 'class'])->findOrFail($studentId);
+        
+        // Get all grocery responses for this student
+        $responses = GroceryResponse::where('student_id', $studentId)
+            ->with(['groceryList.items', 'parent.user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Calculate accumulative balance
+        $totalOwed = 0;
+        $historyData = [];
+        
+        foreach ($responses as $response) {
+            $groceryList = $response->groceryList;
+            $allItems = $groceryList->items;
+            $boughtItemIds = $response->items_bought ?? [];
+            
+            $listTotal = 0;
+            $paidTotal = 0;
+            $owedTotal = 0;
+            
+            foreach ($allItems as $item) {
+                $itemPrice = floatval($item->price);
+                $listTotal += $itemPrice;
+                
+                if (in_array($item->id, $boughtItemIds)) {
+                    $paidTotal += $itemPrice;
+                } else {
+                    $owedTotal += $itemPrice;
+                }
+            }
+            
+            $totalOwed += $owedTotal;
+            
+            $historyData[] = [
+                'response' => $response,
+                'list_total' => $listTotal,
+                'paid_total' => $paidTotal,
+                'owed_total' => $owedTotal,
+                'term' => $groceryList->term,
+                'year' => $groceryList->year
+            ];
+        }
+        
+        return view('backend.finance.groceries.student-history', compact('student', 'historyData', 'totalOwed'));
+    }
+
+    // Helper: Calculate grocery balance for a student
+    public static function calculateGroceryBalance($studentId)
+    {
+        $responses = GroceryResponse::where('student_id', $studentId)
+            ->with('groceryList.items')
+            ->get();
+        
+        $totalOwed = 0;
+        
+        foreach ($responses as $response) {
+            $groceryList = $response->groceryList;
+            if (!$groceryList) continue;
+            
+            $allItems = $groceryList->items;
+            $boughtItemIds = $response->items_bought ?? [];
+            
+            foreach ($allItems as $item) {
+                if (!in_array($item->id, $boughtItemIds)) {
+                    $totalOwed += floatval($item->price);
+                }
+            }
+        }
+        
+        return $totalOwed;
+    }
+
     // Admin: Delete a grocery list
     public function destroy($id)
     {

@@ -23,6 +23,11 @@ class Subject extends Model
         return $this->belongsTo(Teacher::class);
     }
 
+    public function grades()
+    {
+        return $this->belongsToMany(Grade::class);
+    }
+
     // A subject has many results
     public function results()
     {

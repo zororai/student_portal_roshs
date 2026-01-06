@@ -10,7 +10,12 @@ class GroceryItem extends Model
         'grocery_list_id',
         'name',
         'quantity',
+        'price',
         'description'
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2'
     ];
 
     public function groceryList()

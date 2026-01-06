@@ -9,7 +9,14 @@ class GroceryList extends Model
     protected $fillable = [
         'term',
         'year',
-        'status'
+        'status',
+        'locked',
+        'locked_at'
+    ];
+
+    protected $casts = [
+        'locked' => 'boolean',
+        'locked_at' => 'datetime'
     ];
 
     public function classes()
