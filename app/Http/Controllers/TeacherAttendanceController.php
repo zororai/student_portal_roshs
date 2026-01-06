@@ -62,6 +62,7 @@ class TeacherAttendanceController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'action' => 'required|in:check_in,check_out,absent',
+            'location_skipped' => 'nullable|boolean',
         ]);
 
         $user = Auth::user();
@@ -77,14 +78,15 @@ class TeacherAttendanceController extends Controller
         $lat = $request->latitude;
         $lng = $request->longitude;
         $action = $request->action;
+        $locationSkipped = $request->boolean('location_skipped', false);
         $today = today();
         $now = now();
 
-        // Check if within school boundary
+        // Check if within school boundary (skip if location was not provided)
         $schoolBoundary = SchoolGeolocation::where('is_active', true)->first();
         $withinBoundary = false;
 
-        if ($schoolBoundary) {
+        if ($schoolBoundary && !$locationSkipped) {
             $withinBoundary = $schoolBoundary->containsPoint($lat, $lng);
         }
 
@@ -115,7 +117,8 @@ class TeacherAttendanceController extends Controller
                 ], 400);
             }
 
-            if (!$withinBoundary && $schoolBoundary) {
+            // Only enforce boundary check if location was not skipped
+            if (!$withinBoundary && $schoolBoundary && !$locationSkipped) {
                 return response()->json([
                     'success' => false,
                     'message' => 'You must be within the school boundary to check in. Please move closer to the school.',
@@ -124,17 +127,23 @@ class TeacherAttendanceController extends Controller
             }
 
             $log->time_in = $now->format('H:i:s');
-            $log->check_in_lat = $lat;
-            $log->check_in_lng = $lng;
+            $log->check_in_lat = $locationSkipped ? null : $lat;
+            $log->check_in_lng = $locationSkipped ? null : $lng;
             $log->status = 'present';
-            $log->within_boundary = $withinBoundary;
+            $log->within_boundary = $locationSkipped ? null : $withinBoundary;
+            $log->notes = $locationSkipped ? 'Location verification skipped' : $log->notes;
             $log->save();
+
+            $message = $locationSkipped 
+                ? 'Welcome! You have checked in at ' . $now->format('H:i') . ' (without location verification)'
+                : 'Welcome! You have checked in at ' . $now->format('H:i');
 
             return response()->json([
                 'success' => true,
-                'message' => 'Welcome! You have checked in at ' . $now->format('H:i'),
+                'message' => $message,
                 'time_in' => $now->format('H:i'),
                 'within_boundary' => $withinBoundary,
+                'location_skipped' => $locationSkipped,
                 'status' => 'checked_in',
             ]);
         }

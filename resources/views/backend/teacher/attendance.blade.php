@@ -227,12 +227,15 @@
         getLocation();
     }
 
+    var locationSkipped = false;
+
     function skipLocation() {
         var statusEl = document.getElementById('locationStatus');
         statusEl.innerHTML = '<div class="flex items-center text-yellow-700"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>Location skipped - attendance will be recorded without location verification</div>';
         statusEl.className = 'bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6';
         currentLat = 0;
         currentLng = 0;
+        locationSkipped = true;
         locationFailed = false;
     }
 
@@ -396,7 +399,8 @@
             body: JSON.stringify({
                 latitude: lat,
                 longitude: lng,
-                action: action
+                action: action,
+                location_skipped: locationSkipped
             })
         })
         .then(function(response) { return response.json(); })
