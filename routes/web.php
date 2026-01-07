@@ -123,6 +123,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     ////
     // Admin Subject Management Routes
     Route::get('admin/subjects', 'AdminSubjectController@index')->name('admin.subjects.index');
+    Route::get('admin/subjects/class/{classId}', 'AdminSubjectController@showByClass')->name('admin.subjects.byClass');
     Route::get('admin/subjects/create', 'AdminSubjectController@create')->name('admin.subjects.create');
     Route::post('admin/subjects', 'AdminSubjectController@store')->name('admin.subjects.store');
     Route::get('admin/subjects/assign', 'AdminSubjectController@assignForm')->name('admin.subjects.assign');

@@ -18,12 +18,25 @@ class AdminSubjectController extends Controller
      */
     public function index()
     {
+        $classes = Grade::with(['subjects' => function($query) {
+            $query->with('teacher')->withCount('readings');
+        }])->orderBy('class_name')->get();
+        
+        $totalSubjects = Subject::count();
+        
+        return view('backend.subjectsadmin.index', compact('classes', 'totalSubjects'));
+    }
+    
+    public function showByClass($classId)
+    {
+        $class = Grade::findOrFail($classId);
         $subjects = Subject::with('teacher')
             ->withCount('readings')
+            ->where('class_id', $classId)
             ->latest()
             ->paginate(10);
         
-        return view('backend.subjectsadmin.index', compact('subjects'));
+        return view('backend.subjectsadmin.show_class', compact('class', 'subjects'));
     }
 
     /**
