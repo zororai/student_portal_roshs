@@ -30,9 +30,9 @@ class AdminSubjectController extends Controller
     public function showByClass($classId)
     {
         $class = Grade::findOrFail($classId);
-        $subjects = Subject::with('teacher')
+        $subjects = $class->subjects()
+            ->with('teacher')
             ->withCount('readings')
-            ->where('class_id', $classId)
             ->latest()
             ->paginate(10);
         
