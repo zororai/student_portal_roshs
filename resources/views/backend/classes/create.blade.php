@@ -81,6 +81,24 @@
                         <p class="mt-1 text-xs text-gray-500">This value is auto-filled when you select a class name</p>
                     </div>
                 </div>
+
+                <!-- Class Description -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Class Description <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <div class="absolute top-3 left-3 pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                            </svg>
+                        </div>
+                        <textarea name="class_description" id="class-description" rows="3"
+                            class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('class_description') border-red-500 @enderror"
+                            placeholder="Auto-filled from class name">{{ old('class_description') }}</textarea>
+                    </div>
+                    @error('class_description')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             <!-- Teacher Assignment Section -->
@@ -97,7 +115,7 @@
             
             <div class="px-8 py-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign Class Teacher</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign Class Teacher <span class="text-gray-400 text-xs">(Optional)</span></label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,7 +124,7 @@
                         </div>
                         <select name="teacher_id" 
                             class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white @error('teacher_id') border-red-500 @enderror">
-                            <option value="">-- Select Teacher --</option>
+                            <option value="">-- Select Teacher (Optional) --</option>
                             @foreach ($teachers as $teacher)
                                 <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>{{ $teacher->user->name }}</option>
                             @endforeach
@@ -120,6 +138,7 @@
                     @error('teacher_id')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
+                    <p class="mt-1 text-xs text-gray-500">You can assign a teacher later if none are available</p>
                 </div>
             </div>
 
@@ -143,8 +162,18 @@
     document.getElementById('class-name-select').addEventListener('change', function() {
         var selectedOption = this.options[this.selectedIndex];
         var numericValue = selectedOption.getAttribute('data-numeric');
+        var className = selectedOption.value;
+        
         if (numericValue) {
             document.querySelector('input[name="class_numeric"]').value = numericValue;
+        }
+        
+        // Auto-fill class description
+        if (className) {
+            var description = 'This is the ' + className + ' classroom for the current academic year.';
+            document.getElementById('class-description').value = description;
+        } else {
+            document.getElementById('class-description').value = '';
         }
     });
 </script>

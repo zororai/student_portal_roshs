@@ -35,7 +35,10 @@ class GradeController extends Controller
      */
     public function create()
     {
-        $teachers = Teacher::where('is_class_teacher', 1)->latest()->get();
+        $teachers = Teacher::where('is_class_teacher', 1)
+            ->whereDoesntHave('classes')
+            ->latest()
+            ->get();
         $classFormats = ClassFormat::active()->ordered()->get();
         
         return view('backend.classes.create', compact('teachers', 'classFormats'));
@@ -52,14 +55,14 @@ class GradeController extends Controller
         $request->validate([
             'class_name'        => 'required|string|max:255|unique:grades',
             'class_numeric'     => 'required|numeric',
-            'teacher_id'        => 'required|numeric',
+            'teacher_id'        => 'nullable|numeric',
             'class_description' => 'required|string|max:255'
         ]);
 
         Grade::create([
             'class_name'        => $request->class_name,
             'class_numeric'     => $request->class_numeric,
-            'teacher_id'        => $request->teacher_id,
+            'teacher_id'        => $request->teacher_id ?: null,
             'class_description' => $request->class_description
         ]);
 
@@ -85,8 +88,16 @@ class GradeController extends Controller
      */
     public function edit($id)
     {
-        $teachers = Teacher::where('is_class_teacher', 1)->latest()->get();
         $class = Grade::findOrFail($id);
+        
+        $teachers = Teacher::where('is_class_teacher', 1)
+            ->where(function($query) use ($class) {
+                $query->whereDoesntHave('classes')
+                      ->orWhere('id', $class->teacher_id);
+            })
+            ->latest()
+            ->get();
+        
         $classFormats = ClassFormat::active()->ordered()->get();
 
         return view('backend.classes.edit', compact('class', 'teachers', 'classFormats'));
@@ -104,7 +115,7 @@ class GradeController extends Controller
         $request->validate([
             'class_name'        => 'required|string|max:255|unique:grades,class_name,'.$id,
             'class_numeric'     => 'required|numeric',
-            'teacher_id'        => 'required|numeric',
+            'teacher_id'        => 'nullable|numeric',
         ]);
 
         $class = Grade::findOrFail($id);
@@ -112,7 +123,7 @@ class GradeController extends Controller
         $class->update([
             'class_name'        => $request->class_name,
             'class_numeric'     => $request->class_numeric,
-            'teacher_id'        => $request->teacher_id,
+            'teacher_id'        => $request->teacher_id ?: null,
         ]);
 
         return redirect()->route('classes.index');

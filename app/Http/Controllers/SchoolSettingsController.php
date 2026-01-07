@@ -48,10 +48,9 @@ class SchoolSettingsController extends Controller
             'numeric_value' => 'required|integer|min:0',
             'display_name' => 'required|string|max:100',
             'sort_order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
         ]);
 
-        $validated['is_active'] = $request->has('is_active');
+        $validated['is_active'] = $request->has('is_active') ? 1 : 0;
         
         $classFormat->update($validated);
 

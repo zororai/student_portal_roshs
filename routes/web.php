@@ -132,6 +132,12 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('admin/subjects/{subject}', 'AdminSubjectController@update')->name('admin.subjects.update');
     Route::delete('admin/subjects/{subject}', 'AdminSubjectController@destroy')->name('admin.subjects.destroy');
     
+    // Onboard Subject Routes
+    Route::get('admin/onboard-subjects', 'OnboardSubjectController@index')->name('admin.onboard-subjects.index');
+    Route::post('admin/onboard-subjects', 'OnboardSubjectController@store')->name('admin.onboard-subjects.store');
+    Route::delete('admin/onboard-subjects/{id}', 'OnboardSubjectController@destroy')->name('admin.onboard-subjects.destroy');
+    Route::get('api/onboard-subjects', 'OnboardSubjectController@getSubjects')->name('api.onboard-subjects');
+    
     Route::resource('subject', 'SubjectController');
     Route::resource('teacher', 'TeacherController')->except(['show']);
     Route::resource('parents', 'ParentsController');

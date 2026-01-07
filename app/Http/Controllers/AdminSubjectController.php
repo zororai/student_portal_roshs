@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Subject;
 use App\Teacher;
 use App\Grade;
+use App\OnboardSubject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -33,23 +34,41 @@ class AdminSubjectController extends Controller
     public function create()
     {
         $classes = Grade::orderBy('class_name')->get();
+        $onboardSubjects = OnboardSubject::orderBy('name')->get();
 
-        return view('backend.subjectsadmin.create', compact('classes'));
+        return view('backend.subjectsadmin.create', compact('classes', 'onboardSubjects'));
     }
 
     /**
      * Generate subject code from subject name and class name
-     * Format: [First letter of subject][Last letter of subject][First char of class][Last char of class]
+     * Format: F{number}{stream_initial} {subject_first_letter}{subject_last_letter}
+     * Example: "English" + "Form 2 Red" = "F2R EH"
      */
     private function generateSubjectCode($subjectName, $className)
     {
         $subjectName = strtoupper(trim($subjectName));
-        $className = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $className));
+        $className = trim($className);
         
+        // Parse class name format: "Form {number} {stream}"
+        if (preg_match('/Form\s+(\d+)\s+(\w+)/i', $className, $matches)) {
+            $formNumber = $matches[1];
+            $stream = $matches[2];
+            $streamInitial = strtoupper(substr($stream, 0, 1));
+            
+            // Get first and last letter of subject
+            $firstLetterSubject = substr($subjectName, 0, 1);
+            $lastLetterSubject = substr($subjectName, -1);
+            
+            // Format: F{number}{stream_initial} {subject_first}{subject_last}
+            return "F{$formNumber}{$streamInitial} {$firstLetterSubject}{$lastLetterSubject}";
+        }
+        
+        // Fallback to old format if pattern doesn't match
+        $cleanClass = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $className));
         $firstLetterSubject = substr($subjectName, 0, 1);
         $lastLetterSubject = substr($subjectName, -1);
-        $firstCharClass = substr($className, 0, 1);
-        $lastCharClass = substr($className, -1);
+        $firstCharClass = substr($cleanClass, 0, 1);
+        $lastCharClass = substr($cleanClass, -1);
         
         return $firstLetterSubject . $lastLetterSubject . $firstCharClass . $lastCharClass;
     }
