@@ -15,7 +15,13 @@
             </h1>
             <p class="text-gray-500 mt-1 ml-13">Manage class schedules and timetables</p>
         </div>
-        <div class="mt-4 md:mt-0">
+        <div class="mt-4 md:mt-0 flex gap-3">
+            <button onclick="openClearModal()" class="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Clear Timetables
+            </button>
             <a href="{{ route('admin.timetable.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -119,4 +125,86 @@
         @endforelse
     </div>
 </div>
+
+<!-- Clear Timetable Modal -->
+<div id="clearModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        <div class="bg-gradient-to-r from-red-500 to-red-600 px-6 py-4">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Clear Timetables
+            </h3>
+        </div>
+        <form action="{{ route('admin.timetable.clear') }}" method="POST" class="p-6">
+            @csrf
+            <p class="text-gray-600 mb-4">This will delete all timetable records for the selected term and academic year. This action cannot be undone.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Academic Year</label>
+                    <select name="academic_year" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="">Select Year</option>
+                        @php
+                            $currentYear = date('Y');
+                            $years = range($currentYear - 2, $currentYear + 1);
+                        @endphp
+                        @foreach($years as $year)
+                            <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>{{ $year }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Term</label>
+                    <select name="term" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="">Select Term</option>
+                        <option value="1">Term 1</option>
+                        <option value="2">Term 2</option>
+                        <option value="3">Term 3</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Class (Optional)</label>
+                    <select name="class_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="">All Classes</option>
+                        @foreach($classes as $class)
+                            <option value="{{ $class->id }}">{{ $class->class_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+                <button type="button" onclick="closeClearModal()" class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors">
+                    Clear Timetables
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openClearModal() {
+        document.getElementById('clearModal').classList.remove('hidden');
+        document.getElementById('clearModal').classList.add('flex');
+    }
+    
+    function closeClearModal() {
+        document.getElementById('clearModal').classList.add('hidden');
+        document.getElementById('clearModal').classList.remove('flex');
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('clearModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeClearModal();
+        }
+    });
+</script>
 @endsection

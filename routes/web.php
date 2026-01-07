@@ -129,6 +129,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('admin/subjects/assign', 'AdminSubjectController@assignForm')->name('admin.subjects.assign');
     Route::post('admin/subjects/assign', 'AdminSubjectController@assign')->name('admin.subjects.assign.store');
     Route::delete('admin/subjects/unassign/{id}', 'AdminSubjectController@unassign')->name('admin.subjects.unassign');
+    Route::post('admin/subjects/bulk-unassign', 'AdminSubjectController@bulkUnassign')->name('admin.subjects.bulkUnassign');
     Route::get('admin/subjects/{subject}/edit', 'AdminSubjectController@edit')->name('admin.subjects.edit');
     Route::put('admin/subjects/{subject}', 'AdminSubjectController@update')->name('admin.subjects.update');
     Route::delete('admin/subjects/{subject}', 'AdminSubjectController@destroy')->name('admin.subjects.destroy');
@@ -271,6 +272,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('admin/timetable/{id}', 'AdminTimetableController@update')->name('admin.timetable.update');
     Route::delete('admin/timetable/{id}', 'AdminTimetableController@destroy')->name('admin.timetable.destroy');
     Route::post('admin/timetable/check-conflicts', 'AdminTimetableController@checkConflicts')->name('admin.timetable.check-conflicts');
+    Route::post('admin/timetable/clear', 'AdminTimetableController@clear')->name('admin.timetable.clear');
 
     // Resend parent SMS (Admin only)
     Route::post('student/{student}/resend-parent-sms', 'StudentController@resendParentSms')->name('student.resend-parent-sms');

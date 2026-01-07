@@ -252,7 +252,7 @@ function addSubjectSettings(id, name) {
                         class="w-full px-2 py-1 border border-gray-200 rounded text-center text-sm font-semibold">
                 </div>
                 <div class="bg-indigo-50 rounded-lg p-2 border border-indigo-200">
-                    <label class="block text-xs font-medium text-indigo-700 mb-1">Total</label>
+                    <label class="block text-xs font-medium text-indigo-700 mb-1">Total Periods Per Week</label>
                     <div class="text-center">
                         <span id="total_${id}" class="text-lg font-bold text-indigo-600">0</span>
                     </div>

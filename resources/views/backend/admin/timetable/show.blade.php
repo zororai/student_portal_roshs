@@ -116,6 +116,104 @@
                                 $maxSlots = $timetable[$day]->count();
                             }
                         }
+                        
+                        // Pre-process timetable for rendering rules
+                        // Track: merged lessons, slots to skip, slots to show as free period
+                        $renderData = [];
+                        foreach($daysArray as $day) {
+                            $renderData[$day] = [];
+                            $subjectsSeenInSegment = []; // Reset after break/lunch
+                            $skipNext = 0; // How many slots to skip (for merged lessons)
+                            
+                            if (!isset($timetable[$day])) continue;
+                            
+                            $slots = $timetable[$day]->values();
+                            for ($idx = 0; $idx < $slots->count(); $idx++) {
+                                $slot = $slots[$idx];
+                                
+                                // Break/Lunch resets tracking
+                                if (in_array($slot->slot_type, ['break', 'lunch'])) {
+                                    $subjectsSeenInSegment = [];
+                                    $renderData[$day][$idx] = [
+                                        'action' => 'show',
+                                        'type' => $slot->slot_type,
+                                        'rowspan' => 1,
+                                    ];
+                                    continue;
+                                }
+                                
+                                // Subject slot
+                                if ($slot->slot_type === 'subject' && $slot->subject_id) {
+                                    $subjectId = $slot->subject_id;
+                                    $teacherId = $slot->teacher_id;
+                                    
+                                    // Check if this subject already appeared in this segment (non-continuous)
+                                    if (isset($subjectsSeenInSegment[$subjectId])) {
+                                        // Same subject appeared before but not continuous - show as FREE
+                                        $renderData[$day][$idx] = [
+                                            'action' => 'free',
+                                            'type' => 'free_repeated',
+                                            'rowspan' => 1,
+                                        ];
+                                        continue;
+                                    }
+                                    
+                                    // Check for back-to-back merging (same subject, same teacher, continuous time)
+                                    $mergeCount = 1;
+                                    $endTime = $slot->end_time;
+                                    
+                                    // Look ahead for continuous lessons
+                                    for ($j = $idx + 1; $j < $slots->count(); $j++) {
+                                        $nextSlot = $slots[$j];
+                                        
+                                        // If break/lunch, stop merging
+                                        if (in_array($nextSlot->slot_type, ['break', 'lunch'])) {
+                                            break;
+                                        }
+                                        
+                                        // Check if same subject, same teacher, and continuous time
+                                        if ($nextSlot->subject_id === $subjectId && 
+                                            $nextSlot->teacher_id === $teacherId &&
+                                            $nextSlot->start_time === $endTime) {
+                                            $mergeCount++;
+                                            $endTime = $nextSlot->end_time;
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                    
+                                    // Mark this slot to show with rowspan
+                                    $renderData[$day][$idx] = [
+                                        'action' => 'show',
+                                        'type' => 'subject',
+                                        'rowspan' => $mergeCount,
+                                        'merged_end_time' => $endTime,
+                                    ];
+                                    
+                                    // Mark next slots as skipped (merged)
+                                    for ($k = 1; $k < $mergeCount; $k++) {
+                                        $renderData[$day][$idx + $k] = [
+                                            'action' => 'skip',
+                                            'type' => 'merged',
+                                            'rowspan' => 0,
+                                        ];
+                                    }
+                                    
+                                    // Mark this subject as seen in segment
+                                    $subjectsSeenInSegment[$subjectId] = true;
+                                    
+                                    // Skip the merged slots in the loop
+                                    $idx += ($mergeCount - 1);
+                                } else {
+                                    // Empty subject slot or free period
+                                    $renderData[$day][$idx] = [
+                                        'action' => 'show',
+                                        'type' => 'free',
+                                        'rowspan' => 1,
+                                    ];
+                                }
+                            }
+                        }
                     @endphp
 
                     @if($maxSlots == 0)
@@ -142,46 +240,70 @@
                                 @endif
                             </td>
                             @foreach($daysArray as $day)
-                                <td class="px-2 py-2">
-                                    @if(isset($timetable[$day][$i]))
-                                        @php $slot = $timetable[$day][$i]; @endphp
-                                        
-                                        @if($slot->slot_type == 'break')
-                                            <div class="bg-amber-100 border border-amber-200 rounded-xl p-3 text-center">
-                                                <p class="font-semibold text-amber-700">☕ Break</p>
-                                            </div>
-                                        @elseif($slot->slot_type == 'lunch')
-                                            <div class="bg-orange-100 border border-orange-200 rounded-xl p-3 text-center">
-                                                <p class="font-semibold text-orange-700">🍽️ Lunch</p>
-                                            </div>
-                                        @elseif($slot->slot_type == 'subject')
-                                            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl p-3 hover:shadow-md transition-shadow">
-                                                <p class="font-semibold text-gray-800 text-sm truncate">
-                                                    {{ $slot->subject->name ?? 'No Subject' }}
-                                                </p>
-                                                @php
-                                                    $teacherName = null;
-                                                    if ($slot->teacher) {
-                                                        $teacherName = $slot->teacher->user->name ?? null;
-                                                    } elseif ($slot->subject && $slot->subject->teacher) {
-                                                        $teacherName = $slot->subject->teacher->user->name ?? null;
-                                                    }
-                                                @endphp
-                                                @if($teacherName)
-                                                    <p class="text-xs text-gray-500 mt-1 truncate">
-                                                        {{ $teacherName }}
-                                                    </p>
+                                @php
+                                    $render = $renderData[$day][$i] ?? ['action' => 'show', 'type' => 'empty', 'rowspan' => 1];
+                                @endphp
+                                
+                                @if($render['action'] === 'skip')
+                                    {{-- Skip this cell - it's merged with previous --}}
+                                @else
+                                    <td class="px-2 py-2" @if($render['rowspan'] > 1) rowspan="{{ $render['rowspan'] }}" style="vertical-align: top;" @endif>
+                                        @if(isset($timetable[$day][$i]))
+                                            @php $slot = $timetable[$day][$i]; @endphp
+                                            
+                                            @if($render['action'] === 'free' || $render['type'] === 'free_repeated')
+                                                {{-- Repeated non-continuous subject - show as Free Period --}}
+                                                <div class="bg-gray-100 border border-gray-200 rounded-xl p-3 text-center h-full">
+                                                    <p class="font-medium text-gray-500 text-sm">📚 Free Period</p>
+                                                </div>
+                                            @elseif($slot->slot_type == 'break')
+                                                <div class="bg-amber-100 border border-amber-200 rounded-xl p-3 text-center">
+                                                    <p class="font-semibold text-amber-700">☕ Break</p>
+                                                </div>
+                                            @elseif($slot->slot_type == 'lunch')
+                                                <div class="bg-orange-100 border border-orange-200 rounded-xl p-3 text-center">
+                                                    <p class="font-semibold text-orange-700">🍽️ Lunch</p>
+                                                </div>
+                                            @elseif($slot->slot_type == 'subject')
+                                                @if($slot->subject_id)
+                                                    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl p-3 hover:shadow-md transition-shadow h-full">
+                                                        <p class="font-semibold text-gray-800 text-sm truncate">
+                                                            {{ $slot->subject->name ?? 'Unknown Subject' }}
+                                                        </p>
+                                                        @if($render['rowspan'] > 1)
+                                                            <p class="text-xs text-indigo-600 font-medium">
+                                                                ({{ $render['rowspan'] }} periods)
+                                                            </p>
+                                                        @endif
+                                                        @php
+                                                            $teacherName = null;
+                                                            if ($slot->teacher) {
+                                                                $teacherName = $slot->teacher->user->name ?? null;
+                                                            } elseif ($slot->subject && $slot->subject->teacher) {
+                                                                $teacherName = $slot->subject->teacher->user->name ?? null;
+                                                            }
+                                                        @endphp
+                                                        @if($teacherName)
+                                                            <p class="text-xs text-gray-500 mt-1 truncate">
+                                                                {{ $teacherName }}
+                                                            </p>
+                                                        @else
+                                                            <p class="text-xs text-red-400 mt-1">No teacher assigned</p>
+                                                        @endif
+                                                    </div>
                                                 @else
-                                                    <p class="text-xs text-red-400 mt-1">No teacher assigned</p>
+                                                    <div class="bg-gray-100 border border-gray-200 rounded-xl p-3 text-center h-full">
+                                                        <p class="font-medium text-gray-500 text-sm">📚 Free Period</p>
+                                                    </div>
                                                 @endif
-                                            </div>
-                                        @else
-                                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center">
-                                                <p class="text-gray-400 text-sm">Free</p>
-                                            </div>
+                                            @else
+                                                <div class="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center h-full">
+                                                    <p class="text-gray-400 text-sm">Free</p>
+                                                </div>
+                                            @endif
                                         @endif
-                                    @endif
-                                </td>
+                                    </td>
+                                @endif
                             @endforeach
                         </tr>
                     @endfor

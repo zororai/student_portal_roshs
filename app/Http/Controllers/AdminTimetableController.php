@@ -228,209 +228,458 @@ class AdminTimetableController extends Controller
         $class = Grade::with('subjects.teacher')->find($settings->class_id);
         $subjects = $class->subjects;
         
-        // Build weighted subject pool based on periods_per_week
-        // Each subject will appear in the pool according to its periods_per_week value
-        $weightedSubjectPool = [];
-        $subjectPeriodsRemaining = [];
+        // Build lesson pools by type (quad, triple, double, single)
+        // Each entry represents ONE lesson block (not individual periods)
+        $lessonPool = [];
+        
+        // Track which subjects have multi-period lessons configured
+        // These subjects CAN have lessons back-to-back on the same day
+        $subjectsWithMultiPeriod = [];
+        foreach ($subjects as $subject) {
+            $hasMulti = ($subject->double_lessons_per_week ?? 0) > 0 
+                     || ($subject->triple_lessons_per_week ?? 0) > 0 
+                     || ($subject->quad_lessons_per_week ?? 0) > 0;
+            $subjectsWithMultiPeriod[$subject->id] = $hasMulti;
+        }
         
         foreach ($subjects as $subject) {
-            $periodsPerWeek = $subject->periods_per_week ?? 1;
-            $subjectPeriodsRemaining[$subject->id] = $periodsPerWeek;
+            $subjectInfo = [
+                'id' => $subject->id,
+                'name' => $subject->name,
+                'teacher_id' => $subject->teacher_id,
+                'has_multi_period' => $subjectsWithMultiPeriod[$subject->id],
+            ];
             
-            // Add subject to pool based on periods_per_week
-            for ($i = 0; $i < $periodsPerWeek; $i++) {
-                $weightedSubjectPool[] = [
-                    'id' => $subject->id,
-                    'name' => $subject->name,
-                    'teacher_id' => $subject->teacher_id,
-                    'periods_per_week' => $periodsPerWeek
-                ];
+            // Add quad lessons (4 consecutive periods)
+            $quadCount = $subject->quad_lessons_per_week ?? 0;
+            for ($i = 0; $i < $quadCount; $i++) {
+                $lessonPool[] = array_merge($subjectInfo, ['duration_periods' => 4, 'type' => 'quad']);
+            }
+            
+            // Add triple lessons (3 consecutive periods)
+            $tripleCount = $subject->triple_lessons_per_week ?? 0;
+            for ($i = 0; $i < $tripleCount; $i++) {
+                $lessonPool[] = array_merge($subjectInfo, ['duration_periods' => 3, 'type' => 'triple']);
+            }
+            
+            // Add double lessons (2 consecutive periods)
+            $doubleCount = $subject->double_lessons_per_week ?? 0;
+            for ($i = 0; $i < $doubleCount; $i++) {
+                $lessonPool[] = array_merge($subjectInfo, ['duration_periods' => 2, 'type' => 'double']);
+            }
+            
+            // Add single lessons (1 period)
+            $singleCount = $subject->single_lessons_per_week ?? 0;
+            for ($i = 0; $i < $singleCount; $i++) {
+                $lessonPool[] = array_merge($subjectInfo, ['duration_periods' => 1, 'type' => 'single']);
             }
         }
         
-        // Shuffle the weighted pool to create variety
-        shuffle($weightedSubjectPool);
+        // Sort pool: longer lessons first (harder to fit), then shuffle within each type
+        usort($lessonPool, function($a, $b) {
+            return $b['duration_periods'] - $a['duration_periods'];
+        });
         
-        // Track how many periods each subject has been assigned per day (to distribute evenly)
-        $subjectPerDay = [];
+        // Track which lessons have been placed and on which days
+        $placedLessons = []; // Array of placed lesson info
+        $subjectDayCount = []; // Track how many times each subject appears per day
         foreach ($days as $day) {
-            $subjectPerDay[$day] = [];
+            $subjectDayCount[$day] = [];
         }
         
-        $poolIndex = 0;
+        // First pass: Generate the time structure for each day
+        $dayStructure = [];
+        foreach ($days as $day) {
+            $dayStructure[$day] = $this->generateDayStructure($settings, $day);
+        }
         
-        foreach ($days as $dayIndex => $day) {
-            $currentTime = Carbon::parse($settings->start_time);
-            $endTime = Carbon::parse($settings->end_time);
-            $breakStart = Carbon::parse($settings->break_start);
-            $breakEnd = Carbon::parse($settings->break_end);
-            $lunchStart = Carbon::parse($settings->lunch_start);
-            $lunchEnd = Carbon::parse($settings->lunch_end);
+        // Track how many lessons of each type have been placed for each subject
+        $subjectLessonsPlaced = [];
+        foreach ($subjects as $subject) {
+            $subjectLessonsPlaced[$subject->id] = [
+                'quad' => 0,
+                'triple' => 0,
+                'double' => 0,
+                'single' => 0,
+            ];
+        }
+        
+        // Distribute lessons across days, spacing out multi-period lessons
+        foreach ($lessonPool as $lessonIndex => $lesson) {
+            $subjectId = $lesson['id'];
+            $durationPeriods = $lesson['duration_periods'];
+            $teacherId = $lesson['teacher_id'];
+            $lessonType = $lesson['type'];
+            $hasMultiPeriod = $lesson['has_multi_period'] ?? false;
             
-            $slotOrder = 0;
-
-            while ($currentTime < $endTime) {
-                $slotEndTime = (clone $currentTime)->addMinutes($settings->subject_duration);
+            // For multi-period lessons, try to space them across different days
+            $preferredDays = $this->getPreferredDays($days, $subjectId, $subjectDayCount, $durationPeriods);
+            
+            // Determine max lessons per day for this subject
+            // Single-only subjects: max 1 per day
+            // Subjects with multi-period: max 2 per day
+            $maxPerDay = $hasMultiPeriod ? 2 : 1;
+            
+            $placed = false;
+            foreach ($preferredDays as $day) {
+                // Check if subject has reached daily limit
+                $currentDayCount = $subjectDayCount[$day][$subjectId] ?? 0;
+                if ($currentDayCount >= $maxPerDay) {
+                    continue; // Skip this day - subject limit reached
+                }
                 
-                // Check if it's break time
-                if ($currentTime >= $breakStart && $currentTime < $breakEnd) {
-                    Timetable::create([
-                        'class_id' => $settings->class_id,
-                        'day' => $day,
-                        'start_time' => $breakStart->format('H:i:s'),
-                        'end_time' => $breakEnd->format('H:i:s'),
-                        'slot_type' => 'break',
-                        'slot_order' => $slotOrder++,
-                        'academic_year' => $settings->academic_year,
-                        'term' => $settings->term,
-                    ]);
-                    $currentTime = clone $breakEnd;
-                    continue;
-                }
-
-                // Check if it's lunch time
-                if ($currentTime >= $lunchStart && $currentTime < $lunchEnd) {
-                    Timetable::create([
-                        'class_id' => $settings->class_id,
-                        'day' => $day,
-                        'start_time' => $lunchStart->format('H:i:s'),
-                        'end_time' => $lunchEnd->format('H:i:s'),
-                        'slot_type' => 'lunch',
-                        'slot_order' => $slotOrder++,
-                        'academic_year' => $settings->academic_year,
-                        'term' => $settings->term,
-                    ]);
-                    $currentTime = clone $lunchEnd;
-                    continue;
-                }
-
-                // Check if slot would overlap with break
-                if ($currentTime < $breakStart && $slotEndTime > $breakStart) {
-                    $slotEndTime = clone $breakStart;
-                }
-
-                // Check if slot would overlap with lunch
-                if ($currentTime < $lunchStart && $slotEndTime > $lunchStart) {
-                    $slotEndTime = clone $lunchStart;
-                }
-
-                // Don't exceed end time
-                if ($slotEndTime > $endTime) {
-                    $slotEndTime = clone $endTime;
-                }
-
-                // Create subject slot
-                if ($currentTime < $slotEndTime) {
-                    $subjectId = null;
-                    $teacherId = null;
+                // Find consecutive available slots for this lesson
+                $availableSlot = $this->findConsecutiveSlots(
+                    $dayStructure[$day], 
+                    $durationPeriods, 
+                    $settings->subject_duration,
+                    $teacherId,
+                    $day,
+                    $settings,
+                    $subjectId,
+                    $lessonType,
+                    $hasMultiPeriod
+                );
+                
+                if ($availableSlot !== null) {
+                    // Mark slots as used - $availableSlot is now an array of actual indices
+                    foreach ($availableSlot as $i => $slotIndex) {
+                        $dayStructure[$day][$slotIndex]['subject_id'] = $subjectId;
+                        $dayStructure[$day][$slotIndex]['teacher_id'] = $teacherId;
+                        $dayStructure[$day][$slotIndex]['lesson_type'] = $lessonType;
+                        $dayStructure[$day][$slotIndex]['is_continuation'] = ($i > 0);
+                    }
                     
-                    if (!empty($weightedSubjectPool)) {
-                        // Find a subject that hasn't been used too many times today
-                        // AND whose teacher is not already scheduled at this time
-                        $selectedSubject = null;
-                        $attempts = 0;
-                        $maxAttempts = count($weightedSubjectPool);
-                        
-                        while ($attempts < $maxAttempts) {
-                            $candidateIndex = ($poolIndex + $attempts) % count($weightedSubjectPool);
-                            $candidate = $weightedSubjectPool[$candidateIndex];
-                            $candidateId = $candidate['id'];
-                            $candidateTeacherId = $candidate['teacher_id'] ?? null;
-                            
-                            // Check how many times this subject appears today
-                            $todayCount = $subjectPerDay[$day][$candidateId] ?? 0;
-                            
-                            // Calculate max periods per day for this subject
-                            $periodsPerWeek = $candidate['periods_per_week'];
-                            $maxPerDay = max(1, ceil($periodsPerWeek / 5));
-                            
-                            if ($periodsPerWeek >= 6) {
-                                $maxPerDay = ceil($periodsPerWeek / 4);
-                            }
-                            if ($periodsPerWeek >= 10) {
-                                $maxPerDay = ceil($periodsPerWeek / 3);
-                            }
-                            
-                            // Check for teacher conflict across ALL classes
-                            $teacherHasConflict = false;
-                            if ($candidateTeacherId) {
-                                $teacherHasConflict = Timetable::where('teacher_id', $candidateTeacherId)
-                                    ->where('day', $day)
-                                    ->where('academic_year', $settings->academic_year)
-                                    ->where('term', $settings->term)
-                                    ->where(function($query) use ($currentTime, $slotEndTime) {
-                                        $query->where(function($q) use ($currentTime, $slotEndTime) {
-                                            $q->where('start_time', '<', $slotEndTime->format('H:i:s'))
-                                              ->where('end_time', '>', $currentTime->format('H:i:s'));
-                                        });
-                                    })
-                                    ->exists();
-                            }
-                            
-                            // If subject hasn't exceeded daily limit AND teacher is available
-                            if ($todayCount < $maxPerDay && !$teacherHasConflict) {
-                                $selectedSubject = $candidate;
-                                $poolIndex = ($candidateIndex + 1) % count($weightedSubjectPool);
+                    // Track subject per day
+                    if (!isset($subjectDayCount[$day][$subjectId])) {
+                        $subjectDayCount[$day][$subjectId] = 0;
+                    }
+                    $subjectDayCount[$day][$subjectId]++;
+                    
+                    // Track lessons placed by type
+                    $subjectLessonsPlaced[$subjectId][$lessonType]++;
+                    
+                    $placed = true;
+                    break;
+                }
+            }
+            
+            // If couldn't place (all days at limit or no slots), lesson is NOT placed
+            // The remaining empty slots will become free periods
+            // This prevents subjects from appearing too many times on same day
+        }
+        
+        // Now create timetable records from the day structure
+        // IMPORTANT: Store every slot as a separate record to ensure all days align
+        foreach ($days as $day) {
+            $slots = $dayStructure[$day];
+            
+            foreach ($slots as $slotOrder => $slot) {
+                // Create the timetable record for every slot
+                Timetable::create([
+                    'class_id' => $settings->class_id,
+                    'subject_id' => $slot['subject_id'] ?? null,
+                    'teacher_id' => $slot['teacher_id'] ?? null,
+                    'day' => $day,
+                    'start_time' => $slot['start_time'],
+                    'end_time' => $slot['end_time'],
+                    'slot_type' => $slot['slot_type'],
+                    'slot_order' => $slotOrder,
+                    'academic_year' => $settings->academic_year,
+                    'term' => $settings->term,
+                ]);
+            }
+        }
+    }
+    
+    /**
+     * Generate the basic time structure for a day (breaks, lunch, subject slots)
+     * Break and Lunch are FIXED at their configured times and never move
+     */
+    private function generateDayStructure(TimetableSetting $settings, $day)
+    {
+        $structure = [];
+        
+        // Parse all times as strings to avoid Carbon date issues
+        $startTime = $settings->start_time;
+        $endTime = $settings->end_time;
+        $breakStart = $settings->break_start;
+        $breakEnd = $settings->break_end;
+        $lunchStart = $settings->lunch_start;
+        $lunchEnd = $settings->lunch_end;
+        $periodDuration = $settings->subject_duration;
+        
+        // Convert times to minutes from midnight for easier comparison
+        $toMinutes = function($time) {
+            $parts = explode(':', $time);
+            return intval($parts[0]) * 60 + intval($parts[1]);
+        };
+        
+        $fromMinutes = function($minutes) {
+            $h = str_pad(floor($minutes / 60), 2, '0', STR_PAD_LEFT);
+            $m = str_pad($minutes % 60, 2, '0', STR_PAD_LEFT);
+            return "{$h}:{$m}:00";
+        };
+        
+        $startMins = $toMinutes($startTime);
+        $endMins = $toMinutes($endTime);
+        $breakStartMins = $toMinutes($breakStart);
+        $breakEndMins = $toMinutes($breakEnd);
+        $lunchStartMins = $toMinutes($lunchStart);
+        $lunchEndMins = $toMinutes($lunchEnd);
+        
+        $currentMins = $startMins;
+        
+        while ($currentMins < $endMins) {
+            // Check if we're at break time
+            if ($currentMins >= $breakStartMins && $currentMins < $breakEndMins) {
+                $structure[] = [
+                    'start_time' => $fromMinutes($breakStartMins),
+                    'end_time' => $fromMinutes($breakEndMins),
+                    'slot_type' => 'break',
+                    'subject_id' => null,
+                    'teacher_id' => null,
+                ];
+                $currentMins = $breakEndMins;
+                continue;
+            }
+            
+            // Check if we're at lunch time
+            if ($currentMins >= $lunchStartMins && $currentMins < $lunchEndMins) {
+                $structure[] = [
+                    'start_time' => $fromMinutes($lunchStartMins),
+                    'end_time' => $fromMinutes($lunchEndMins),
+                    'slot_type' => 'lunch',
+                    'subject_id' => null,
+                    'teacher_id' => null,
+                ];
+                $currentMins = $lunchEndMins;
+                continue;
+            }
+            
+            // Calculate slot end time
+            $slotEndMins = $currentMins + $periodDuration;
+            
+            // Check if slot would overlap with break
+            if ($currentMins < $breakStartMins && $slotEndMins > $breakStartMins) {
+                // Create shorter slot before break if there's meaningful time
+                if ($breakStartMins - $currentMins >= 10) {
+                    $structure[] = [
+                        'start_time' => $fromMinutes($currentMins),
+                        'end_time' => $fromMinutes($breakStartMins),
+                        'slot_type' => 'subject',
+                        'subject_id' => null,
+                        'teacher_id' => null,
+                        'is_gap' => true,
+                    ];
+                }
+                $currentMins = $breakStartMins;
+                continue;
+            }
+            
+            // Check if slot would overlap with lunch
+            if ($currentMins < $lunchStartMins && $slotEndMins > $lunchStartMins) {
+                // Create shorter slot before lunch if there's meaningful time
+                if ($lunchStartMins - $currentMins >= 10) {
+                    $structure[] = [
+                        'start_time' => $fromMinutes($currentMins),
+                        'end_time' => $fromMinutes($lunchStartMins),
+                        'slot_type' => 'subject',
+                        'subject_id' => null,
+                        'teacher_id' => null,
+                        'is_gap' => true,
+                    ];
+                }
+                $currentMins = $lunchStartMins;
+                continue;
+            }
+            
+            // Don't exceed end time
+            if ($slotEndMins > $endMins) {
+                if ($endMins - $currentMins >= 10) {
+                    $structure[] = [
+                        'start_time' => $fromMinutes($currentMins),
+                        'end_time' => $fromMinutes($endMins),
+                        'slot_type' => 'subject',
+                        'subject_id' => null,
+                        'teacher_id' => null,
+                        'is_gap' => true,
+                    ];
+                }
+                break;
+            }
+            
+            // Create a normal subject slot
+            $structure[] = [
+                'start_time' => $fromMinutes($currentMins),
+                'end_time' => $fromMinutes($slotEndMins),
+                'slot_type' => 'subject',
+                'subject_id' => null,
+                'teacher_id' => null,
+            ];
+            
+            $currentMins = $slotEndMins;
+        }
+        
+        return $structure;
+    }
+    
+    /**
+     * Get preferred days for placing a lesson, prioritizing days where the subject hasn't been placed yet
+     */
+    private function getPreferredDays($days, $subjectId, $subjectDayCount, $durationPeriods)
+    {
+        // For multi-period lessons, strongly prefer days where this subject hasn't been placed
+        $daysWithSubject = [];
+        $daysWithoutSubject = [];
+        
+        foreach ($days as $day) {
+            $count = $subjectDayCount[$day][$subjectId] ?? 0;
+            if ($count === 0) {
+                $daysWithoutSubject[] = $day;
+            } else {
+                $daysWithSubject[] = ['day' => $day, 'count' => $count];
+            }
+        }
+        
+        // Shuffle days without subject for variety
+        shuffle($daysWithoutSubject);
+        
+        // Sort days with subject by count (ascending)
+        usort($daysWithSubject, function($a, $b) {
+            return $a['count'] - $b['count'];
+        });
+        
+        $result = $daysWithoutSubject;
+        foreach ($daysWithSubject as $item) {
+            $result[] = $item['day'];
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * Find consecutive available slots that can fit a multi-period lesson
+     * For subjects with ONLY single lessons, avoid placing adjacent to same subject
+     * For subjects with double/triple/quad configured, ALLOW back-to-back placement
+     */
+    private function findConsecutiveSlots($dayStructure, $periodsNeeded, $periodDuration, $teacherId, $day, $settings, $subjectId = null, $lessonType = 'single', $hasMultiPeriod = false, $forcePlace = false)
+    {
+        $subjectSlots = [];
+        
+        // Get indices of subject slots only (excluding gap slots which stay as free periods)
+        foreach ($dayStructure as $index => $slot) {
+            if ($slot['slot_type'] === 'subject' && $slot['subject_id'] === null) {
+                // Skip gap slots - they should remain as free periods
+                if (isset($slot['is_gap']) && $slot['is_gap']) {
+                    continue;
+                }
+                $subjectSlots[] = $index;
+            }
+        }
+        
+        // Find consecutive available slots
+        for ($i = 0; $i <= count($subjectSlots) - $periodsNeeded; $i++) {
+            $consecutive = true;
+            $startIndex = $subjectSlots[$i];
+            
+            // For subjects with ONLY single lessons (no double/triple/quad configured),
+            // check if this subject is ANYWHERE on this day already
+            // This prevents single-only subjects from appearing multiple times per day
+            // Unless forcePlace is true (when all days already have this subject)
+            if ($lessonType === 'single' && $subjectId !== null && !$hasMultiPeriod && !$forcePlace) {
+                $subjectAlreadyOnDay = false;
+                foreach ($dayStructure as $slot) {
+                    if (isset($slot['subject_id']) && $slot['subject_id'] === $subjectId) {
+                        $subjectAlreadyOnDay = true;
+                        break;
+                    }
+                }
+                if ($subjectAlreadyOnDay) {
+                    // This subject already has a lesson today - skip ALL slots on this day
+                    // Return null to force trying another day
+                    return null;
+                }
+            }
+            
+            // Check if the next N slots are consecutive and available
+            for ($j = 0; $j < $periodsNeeded; $j++) {
+                if ($i + $j >= count($subjectSlots)) {
+                    $consecutive = false;
+                    break;
+                }
+                
+                $currentSlotIndex = $subjectSlots[$i + $j];
+                
+                // Check if this slot is already used
+                if ($dayStructure[$currentSlotIndex]['subject_id'] !== null) {
+                    $consecutive = false;
+                    break;
+                }
+                
+                // Check if slots are actually consecutive
+                // Double lessons CAN span across break/lunch but NOT across other subjects
+                if ($j > 0) {
+                    $prevSlotIndex = $subjectSlots[$i + $j - 1];
+                    $currSlotIndex = $subjectSlots[$i + $j];
+                    
+                    // If not directly adjacent, check what's in between
+                    if ($currSlotIndex != $prevSlotIndex + 1) {
+                        // Check if the gap contains ONLY break/lunch (which is allowed)
+                        $gapIsOnlyBreakLunch = true;
+                        for ($k = $prevSlotIndex + 1; $k < $currSlotIndex; $k++) {
+                            if (!in_array($dayStructure[$k]['slot_type'], ['break', 'lunch'])) {
+                                // There's something other than break/lunch in the gap
+                                $gapIsOnlyBreakLunch = false;
                                 break;
                             }
-                            
-                            $attempts++;
                         }
-                        
-                        // If no subject found without conflicts, try to find one without teacher
-                        if (!$selectedSubject && !empty($weightedSubjectPool)) {
-                            // Find a subject with no teacher assigned (no conflict possible)
-                            foreach ($weightedSubjectPool as $idx => $candidate) {
-                                if (empty($candidate['teacher_id'])) {
-                                    $selectedSubject = $candidate;
-                                    $poolIndex = ($idx + 1) % count($weightedSubjectPool);
-                                    break;
-                                }
-                            }
-                            
-                            // If still no subject, use next in pool but skip teacher assignment
-                            if (!$selectedSubject) {
-                                $selectedSubject = $weightedSubjectPool[$poolIndex % count($weightedSubjectPool)];
-                                $selectedSubject['skip_teacher'] = true; // Mark to skip teacher due to conflict
-                                $poolIndex = ($poolIndex + 1) % count($weightedSubjectPool);
-                            }
+                        if (!$gapIsOnlyBreakLunch) {
+                            // Gap contains subject slots - not truly consecutive
+                            $consecutive = false;
+                            break;
                         }
-                        
-                        if ($selectedSubject) {
-                            $subjectId = $selectedSubject['id'];
-                            
-                            // Track subject usage per day
-                            if (!isset($subjectPerDay[$day][$subjectId])) {
-                                $subjectPerDay[$day][$subjectId] = 0;
-                            }
-                            $subjectPerDay[$day][$subjectId]++;
-                            
-                            // Only assign teacher if no conflict and they exist
-                            $potentialTeacherId = $selectedSubject['teacher_id'] ?? null;
-                            $skipTeacher = $selectedSubject['skip_teacher'] ?? false;
-                            if ($potentialTeacherId && !$skipTeacher && Teacher::find($potentialTeacherId)) {
-                                $teacherId = $potentialTeacherId;
-                            }
-                        }
+                        // If gap is only break/lunch, that's OK - continue checking
                     }
-
-                    Timetable::create([
-                        'class_id' => $settings->class_id,
-                        'subject_id' => $subjectId,
-                        'teacher_id' => $teacherId,
-                        'day' => $day,
-                        'start_time' => $currentTime->format('H:i:s'),
-                        'end_time' => $slotEndTime->format('H:i:s'),
-                        'slot_type' => 'subject',
-                        'slot_order' => $slotOrder++,
-                        'academic_year' => $settings->academic_year,
-                        'term' => $settings->term,
-                    ]);
                 }
-
-                $currentTime = $slotEndTime;
             }
+            
+            if (!$consecutive) {
+                continue;
+            }
+            
+            // Check for teacher conflict across the entire time span
+            if ($teacherId) {
+                $startTime = $dayStructure[$startIndex]['start_time'];
+                $endSlotIndex = $subjectSlots[$i + $periodsNeeded - 1];
+                $endTime = Carbon::parse($dayStructure[$startIndex]['start_time'])
+                    ->addMinutes($periodDuration * $periodsNeeded)
+                    ->format('H:i:s');
+                
+                $teacherHasConflict = Timetable::where('teacher_id', $teacherId)
+                    ->where('day', $day)
+                    ->where('academic_year', $settings->academic_year)
+                    ->where('term', $settings->term)
+                    ->where(function($query) use ($startTime, $endTime) {
+                        $query->where('start_time', '<', $endTime)
+                              ->where('end_time', '>', $startTime);
+                    })
+                    ->exists();
+                
+                if ($teacherHasConflict) {
+                    continue;
+                }
+            }
+            
+            // Return array of actual slot indices for multi-period lessons
+            $slotIndices = [];
+            for ($j = 0; $j < $periodsNeeded; $j++) {
+                $slotIndices[] = $subjectSlots[$i + $j];
+            }
+            return $slotIndices;
         }
+        
+        return null;
     }
 
     public function checkConflicts(Request $request)
@@ -444,5 +693,47 @@ class AdminTimetableController extends Controller
         $hasConflict = Timetable::checkTeacherConflict($teacherId, $day, $startTime, $endTime, $excludeId);
 
         return response()->json(['has_conflict' => $hasConflict]);
+    }
+
+    /**
+     * Clear timetables for a specific term and academic year
+     */
+    public function clear(Request $request)
+    {
+        $validated = $request->validate([
+            'academic_year' => 'required|integer',
+            'term' => 'required|integer|between:1,3',
+            'class_id' => 'nullable|exists:grades,id',
+        ]);
+
+        $query = Timetable::where('academic_year', $validated['academic_year'])
+            ->where('term', $validated['term']);
+
+        // If a specific class is selected, only delete for that class
+        if (!empty($validated['class_id'])) {
+            $query->where('class_id', $validated['class_id']);
+            $className = Grade::find($validated['class_id'])->class_name;
+            $deletedCount = $query->delete();
+            
+            // Also delete the timetable settings for this class
+            TimetableSetting::where('class_id', $validated['class_id'])
+                ->where('academic_year', $validated['academic_year'])
+                ->where('term', $validated['term'])
+                ->delete();
+            
+            return redirect()->route('admin.timetable.index')
+                ->with('success', "Cleared {$deletedCount} timetable records for {$className} (Term {$validated['term']}, {$validated['academic_year']})");
+        }
+
+        // Delete all timetables for the term and year
+        $deletedCount = $query->delete();
+        
+        // Also delete the timetable settings
+        TimetableSetting::where('academic_year', $validated['academic_year'])
+            ->where('term', $validated['term'])
+            ->delete();
+
+        return redirect()->route('admin.timetable.index')
+            ->with('success', "Cleared {$deletedCount} timetable records for all classes (Term {$validated['term']}, {$validated['academic_year']})");
     }
 }

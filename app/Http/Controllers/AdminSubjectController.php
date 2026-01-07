@@ -186,6 +186,22 @@ class AdminSubjectController extends Controller
     }
 
     /**
+     * Remove teacher assignments from multiple subjects.
+     */
+    public function bulkUnassign(Request $request)
+    {
+        $request->validate([
+            'subject_ids' => 'required|array|min:1',
+            'subject_ids.*' => 'exists:subjects,id',
+        ]);
+
+        Subject::whereIn('id', $request->subject_ids)->update(['teacher_id' => null]);
+
+        $count = count($request->subject_ids);
+        return redirect()->route('admin.subjects.assign')->with('success', $count . ' teacher assignment(s) removed successfully.');
+    }
+
+    /**
      * Show the form for editing the specified resource.
      *
      * @param  \App\Subject  $subject
