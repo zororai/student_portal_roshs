@@ -76,7 +76,7 @@ class CreateWebsiteSettingsTable extends Migration
             ],
             [
                 'key' => 'contact_phone',
-                'value' => '+263 772 490 478',
+                'value' => '+263 771 142 8629',
                 'type' => 'text',
                 'group' => 'general',
                 'label' => 'Contact Phone',
@@ -85,7 +85,7 @@ class CreateWebsiteSettingsTable extends Migration
             ],
             [
                 'key' => 'whatsapp_number',
-                'value' => '263772490478',
+                'value' => '2637711428629',
                 'type' => 'text',
                 'group' => 'general',
                 'label' => 'WhatsApp Number',

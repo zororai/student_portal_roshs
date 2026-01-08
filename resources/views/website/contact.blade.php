@@ -460,7 +460,7 @@ jQuery(function ($) {
 
 <!-- WhatsApp Floating Button -->
 <div class="whatsapp-float">
-    <a href="https://wa.me/263772490478?text=Hello%20Rose%20of%20Sharon%20High%20School,%20I%20would%20like%20to%20inquire%20about" target="_blank" class="whatsapp-btn">
+    <a href="https://wa.me/263771428629?text=Hello%20Rose%20of%20Sharon%20High%20School,%20I%20would%20like%20to%20inquire%20about" target="_blank" class="whatsapp-btn">
         <i class="fab fa-whatsapp"></i>
     </a>
 </div>
