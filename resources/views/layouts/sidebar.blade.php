@@ -157,32 +157,97 @@
         </a>
         @endif
 
-        <a href="{{ route('teacher.attendance.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
-            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
+        <!-- Teacher Resources with Submenu -->
+        <div x-data="{ open: false }" class="mt-1">
+            <!-- Collapsed state - single icon -->
+            <a href="{{ route('teacher.attendance.index') }}" x-show="collapsed" class="flex items-center justify-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :title="'Teacher Resources'">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
-                <span class="font-medium" x-show="!collapsed">My Attendance</span>
+            </a>
+            
+            <!-- Expanded state - dropdown menu -->
+            <div x-show="!collapsed">
+                <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg transition-colors" :class="open ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700'">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="font-medium">Teacher Resources</span>
+                    </div>
+                    <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                    <a href="{{ route('teacher.attendance.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                        My Attendance
+                    </a>
+                    <a href="{{ route('teacher.leave.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Leave Applications
+                    </a>
+                    <a href="{{ route('teacher.logbook.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        My Logbook
+                    </a>
+                </div>
             </div>
-        </a>
+        </div>
 
-        <a href="{{ route('teacher.leave.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
-            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
+        <!-- Student Resources with Submenu -->
+        <div x-data="{ open: false }" class="mt-1">
+            <!-- Collapsed state - single icon -->
+            <a href="{{ route('teacher.studentrecord') }}" x-show="collapsed" class="flex items-center justify-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :title="'Student Resources'">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/>
                 </svg>
-                <span class="font-medium" x-show="!collapsed">Leave Applications</span>
+            </a>
+            
+            <!-- Expanded state - dropdown menu -->
+            <div x-show="!collapsed">
+                <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg transition-colors" :class="open ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700'">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/>
+                        </svg>
+                        <span class="font-medium">Student Resources</span>
+                    </div>
+                    <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                    <a href="{{ route('teacher.studentrecord') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        Student Record
+                    </a>
+                    <a href="{{ route('teacher.assessment') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        Student Assessment
+                    </a>
+                    <a href="{{ route('teacher.disciplinary.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Disciplinary Records
+                    </a>
+                </div>
             </div>
-        </a>
-
-        <a href="{{ route('teacher.studentrecord') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
-            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                </svg>
-                <span class="font-medium" x-show="!collapsed">Student Record</span>
-            </div>
-        </a>
+        </div>
 
         <a href="{{ route('subject.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
@@ -193,41 +258,44 @@
             </div>
         </a>
 
-        <a href="{{ route('teacher.assessment') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
-            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
+        <!-- Results Management with Submenu -->
+        <div x-data="{ open: false }" class="mt-1">
+            <!-- Collapsed state - single icon -->
+            <a href="{{ route('results.index') }}" x-show="collapsed" class="flex items-center justify-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :title="'Results Management'">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <span class="font-medium" x-show="!collapsed">Student Assessment</span>
+            </a>
+            
+            <!-- Expanded state - dropdown menu -->
+            <div x-show="!collapsed">
+                <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg transition-colors" :class="open ? 'bg-blue-600 text-white' : 'text-white hover:bg-blue-700'">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span class="font-medium">Results Management</span>
+                    </div>
+                    <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                    <a href="{{ route('results.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Add Results
+                    </a>
+                    <a href="{{ route('results.record') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Results Records
+                    </a>
+                </div>
             </div>
-        </a>
-
-        <a href="{{ route('results.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
-            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <span class="font-medium" x-show="!collapsed">Add Results</span>
-            </div>
-        </a>
-
-        <a href="{{ route('results.record') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
-            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <span class="font-medium" x-show="!collapsed">Results Records</span>
-            </div>
-        </a>
-
-        <a href="{{ route('teacher.disciplinary.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
-            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-                <span class="font-medium" x-show="!collapsed">Disciplinary Records</span>
-            </div>
-        </a>
+        </div>
 
         <a href="{{ route('teacher.timetable') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
             <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
@@ -238,14 +306,6 @@
             </div>
         </a>
 
-        <a href="{{ route('teacher.logbook.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors" :class="collapsed ? 'justify-center' : 'justify-between'">
-            <div class="flex items-center" :class="collapsed ? '' : 'space-x-3'">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span class="font-medium" x-show="!collapsed">My Logbook</span>
-            </div>
-        </a>
         @endrole
 
         @role('Student')

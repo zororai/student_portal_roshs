@@ -596,6 +596,11 @@ class TeacherController extends Controller
         // Verify the class belongs to this teacher and load subjects
         $class = Grade::with('subjects')->findOrFail($class_id);
 
+        // Filter subjects to only show those taught by this teacher
+        $class->subjects = $class->subjects->filter(function($subject) use ($teacherSubjectIds) {
+            return in_array($subject->id, $teacherSubjectIds);
+        });
+
         // Get assessments for this class and teacher
         $assessments = \App\Assessment::where('teacher_id', $teacher->id)
             ->where('class_id', $class_id)
@@ -603,8 +608,9 @@ class TeacherController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        // Get assessment comments for this class
+        // Get assessment comments for this class and teacher's subjects only
         $assessmentComments = \App\AssessmentComment::where('class_id', $class_id)
+            ->whereIn('subject_id', $teacherSubjectIds)
             ->with('subject')
             ->orderBy('created_at', 'desc')
             ->get();

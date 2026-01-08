@@ -349,46 +349,63 @@
                             <ul id="formErrorList" class="mt-2 list-disc list-inside"></ul>
                         </div>
 
+                        <!-- Subject Selection (Single) -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Select Subject</label>
+                            <select id="selectedSubject" name="subject_id"
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none bg-white">
+                                <option value="">Choose a subject</option>
+                                @foreach($class->subjects as $subject)
+                                    <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Select the subject for which you want to add comments and grades</p>
+                        </div>
+
                         <!-- Dynamic Grade Entries Container -->
-                        <div id="gradeEntriesContainer">
-                            <!-- Initial Subject and Grade Row -->
-                            <div class="grade-entry-row flex items-center gap-3 mb-3">
-                                <div class="flex-1">
-                                    <select name="entries[0][subject_id]"
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                                        <option value="">Select Subject</option>
-                                        @foreach($class->subjects as $subject)
-                                            <option value="{{ $subject->id }}">{{ $subject->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="flex-1">
-                                    <input type="text" name="entries[0][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
-                                        maxlength="500"
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                </div>
-                                <div class="flex-1">
-                                    <select name="entries[0][grade]"
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                                        <option value="">Grade</option>
-                                        <option value="A">A (80-100%)</option>
-                                        <option value="B">B (70-79%)</option>
-                                        <option value="C">C (60-69%)</option>
-                                        <option value="D">D (50-59%)</option>
-                                        <option value="E">E (40-49%)</option>
-                                        <option value="F">F (0-39%)</option>
-                                    </select>
-                                </div>
-                                <button type="button" onclick="addGradeEntry()" class="p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors" title="Add more">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-semibold text-gray-700">Comments & Grades for Selected Subject</label>
+                                <button type="button" onclick="addGradeEntry()" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 448 512">
                                         <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
                                     </svg>
+                                    Add Entry
                                 </button>
-                                <button type="button" onclick="removeGradeEntry(this)" class="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors" title="Remove">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
-                                        <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
-                                    </svg>
-                                </button>
+                            </div>
+                            
+                            <div id="gradeEntriesContainer" class="space-y-3">
+                                <!-- Initial Comment and Grade Row -->
+                                <div class="grade-entry-row bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <div class="flex items-start gap-3">
+                                        <div class="flex-1">
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">Comment</label>
+                                            <input type="text" name="entries[0][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
+                                                maxlength="500"
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                        </div>
+                                        <div class="w-48">
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">Grade</label>
+                                            <select name="entries[0][grade]"
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                                                <option value="">Select Grade</option>
+                                                <option value="A">A (80-100%)</option>
+                                                <option value="B">B (70-79%)</option>
+                                                <option value="C">C (60-69%)</option>
+                                                <option value="D">D (50-59%)</option>
+                                                <option value="E">E (40-49%)</option>
+                                                <option value="F">F (0-39%)</option>
+                                            </select>
+                                        </div>
+                                        <div class="pt-6">
+                                            <button type="button" onclick="removeGradeEntry(this)" class="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors" title="Remove">
+                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
+                                                    <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -653,7 +670,6 @@
 
         function addGradeEntry() {
             const container = document.getElementById('gradeEntriesContainer');
-            const subjectOptions = `@foreach($class->subjects as $subject)<option value="{{ $subject->id }}">{{ $subject->name }}</option>@endforeach`;
             
             // Check max entries limit
             if (container.children.length >= 50) {
@@ -662,42 +678,36 @@
             }
             
             const newRow = document.createElement('div');
-            newRow.className = 'grade-entry-row flex items-center gap-3 mb-3';
+            newRow.className = 'grade-entry-row bg-gray-50 p-4 rounded-lg border border-gray-200';
             newRow.innerHTML = `
-                <div class="flex-1">
-                    <select name="entries[${gradeEntryCount}][subject_id]"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                        <option value="">Select Subject</option>
-                        ${subjectOptions}
-                    </select>
+                <div class="flex items-start gap-3">
+                    <div class="flex-1">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Comment</label>
+                        <input type="text" name="entries[${gradeEntryCount}][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
+                            maxlength="500"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    </div>
+                    <div class="w-48">
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Grade</label>
+                        <select name="entries[${gradeEntryCount}][grade]"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                            <option value="">Select Grade</option>
+                            <option value="A">A (80-100%)</option>
+                            <option value="B">B (70-79%)</option>
+                            <option value="C">C (60-69%)</option>
+                            <option value="D">D (50-59%)</option>
+                            <option value="E">E (40-49%)</option>
+                            <option value="F">F (0-39%)</option>
+                        </select>
+                    </div>
+                    <div class="pt-6">
+                        <button type="button" onclick="removeGradeEntry(this)" class="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors" title="Remove">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
+                                <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <input type="text" name="entries[${gradeEntryCount}][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
-                        maxlength="500"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                </div>
-                <div class="flex-1">
-                    <select name="entries[${gradeEntryCount}][grade]"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
-                        <option value="">Grade</option>
-                        <option value="A">A (80-100%)</option>
-                        <option value="B">B (70-79%)</option>
-                        <option value="C">C (60-69%)</option>
-                        <option value="D">D (50-59%)</option>
-                        <option value="E">E (40-49%)</option>
-                        <option value="F">F (0-39%)</option>
-                    </select>
-                </div>
-                <button type="button" onclick="addGradeEntry()" class="p-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors" title="Add more">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
-                        <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
-                    </svg>
-                </button>
-                <button type="button" onclick="removeGradeEntry(this)" class="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors" title="Remove">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
-                        <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
-                    </svg>
-                </button>
             `;
             container.appendChild(newRow);
             gradeEntryCount++;
