@@ -811,4 +811,70 @@ class FinanceController extends Controller
             'selectedTerm'
         ));
     }
+
+    /**
+     * Display payment history for parent's children
+     */
+    public function parentPaymentHistory()
+    {
+        $parent = Parents::where('user_id', auth()->id())->first();
+        
+        if (!$parent) {
+            return redirect()->route('home')->with('error', 'Parent profile not found.');
+        }
+
+        $children = $parent->children()->with(['user', 'class'])->get();
+        
+        // Get all terms for reference
+        $allTerms = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->get();
+
+        $paymentData = [];
+        
+        foreach ($children as $child) {
+            // Get all payments for this child
+            $payments = StudentPayment::where('student_id', $child->id)
+                ->with(['resultsStatus', 'termFee.feeType'])
+                ->orderBy('payment_date', 'desc')
+                ->get();
+
+            // Calculate fees and balances per term
+            $termSummary = [];
+            foreach ($allTerms as $term) {
+                $studentType = $child->student_type ?? 'day';
+                $termFees = $studentType === 'boarding' 
+                    ? floatval($term->total_boarding_fees) 
+                    : floatval($term->total_day_fees);
+                
+                $termPaid = StudentPayment::where('student_id', $child->id)
+                    ->where('results_status_id', $term->id)
+                    ->sum('amount_paid');
+
+                $termSummary[] = [
+                    'term' => ucfirst($term->result_period) . ' ' . $term->year,
+                    'term_id' => $term->id,
+                    'fees' => $termFees,
+                    'paid' => floatval($termPaid),
+                    'balance' => $termFees - floatval($termPaid)
+                ];
+            }
+
+            // Calculate totals
+            $totalFees = collect($termSummary)->sum('fees');
+            $totalPaid = $payments->sum('amount_paid');
+            $totalBalance = $totalFees - $totalPaid;
+
+            $paymentData[] = [
+                'student' => $child,
+                'payments' => $payments,
+                'termSummary' => $termSummary,
+                'totalFees' => $totalFees,
+                'totalPaid' => $totalPaid,
+                'totalBalance' => $totalBalance
+            ];
+        }
+
+        return view('parent.payment-history', compact('paymentData', 'children'));
+    }
 }

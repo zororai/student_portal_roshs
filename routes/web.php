@@ -609,6 +609,9 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
     // Parent Payment Verification Routes
     Route::get('/parent/payment-verification', 'PaymentVerificationController@create')->name('parent.payment-verification.create');
     Route::post('/parent/payment-verification', 'PaymentVerificationController@store')->name('parent.payment-verification.store');
+    
+    // Parent Payment History Route
+    Route::get('/parent/payment-history', 'FinanceController@parentPaymentHistory')->name('parent.payment-history');
 });
 
 Route::group(['middleware' => ['auth','role:Student']], function () {
