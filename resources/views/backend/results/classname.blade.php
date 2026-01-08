@@ -35,6 +35,137 @@
             </div>
         </div>
 
+        @if(isset($isClassTeacher) && $isClassTeacher && $classes->students->count() > 0)
+            <!-- Class Teacher Comprehensive View -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
+                <div class="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-4">
+                    <h2 class="text-xl font-bold text-white flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Class Results Overview (Class Teacher View)
+                    </h2>
+                    <p class="text-green-100 text-sm mt-1">All subjects and marks for all students</p>
+                </div>
+                
+                <!-- Filter Controls -->
+                <div class="px-6 py-4 bg-gray-50 border-b flex flex-wrap gap-4 items-center">
+                    <div>
+                        <label class="text-sm font-medium text-gray-700 mr-2">Filter by Year/Term:</label>
+                        <select id="filterYearTerm" onchange="filterResults()" class="rounded-lg border-gray-300 text-sm">
+                            <option value="all">All Results</option>
+                            @foreach($years as $yearTerm)
+                                <option value="{{ $yearTerm->year }}-{{ $yearTerm->result_period }}">{{ $yearTerm->year }} - {{ ucfirst($yearTerm->result_period) }} Term</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="classResultsTable">
+                        <thead class="bg-gradient-to-r from-blue-600 to-indigo-600">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider sticky left-0 bg-blue-600 z-10">Student</th>
+                                @foreach($subjects as $subject)
+                                    <th class="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">{{ $subject->name }}</th>
+                                @endforeach
+                                <th class="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider bg-indigo-700">Average</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($classes->students as $student)
+                                @php
+                                    $studentResults = $classResults[$student->id] ?? collect();
+                                    $totalMarks = 0;
+                                    $subjectCount = 0;
+                                @endphp
+                                <tr class="hover:bg-blue-50 result-row" data-student="{{ $student->id }}">
+                                    <td class="px-4 py-3 whitespace-nowrap sticky left-0 bg-white z-10">
+                                        <div class="flex items-center">
+                                            <div class="bg-blue-100 rounded-full p-2 mr-3">
+                                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-semibold text-gray-900">{{ $student->user->name }}</div>
+                                                @if($student->roll_number)
+                                                    <div class="text-xs text-gray-500">Roll: {{ $student->roll_number }}</div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    @foreach($subjects as $subject)
+                                        @php
+                                            $result = $studentResults->where('subject_id', $subject->id)->first();
+                                            if($result && $result->marks !== null) {
+                                                $totalMarks += $result->marks;
+                                                $subjectCount++;
+                                            }
+                                        @endphp
+                                        <td class="px-4 py-3 text-center result-cell" data-year="{{ $result->year ?? '' }}" data-term="{{ $result->result_period ?? '' }}">
+                                            @if($result)
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold
+                                                    @if($result->marks >= 80) bg-green-100 text-green-800
+                                                    @elseif($result->marks >= 60) bg-blue-100 text-blue-800
+                                                    @elseif($result->marks >= 40) bg-yellow-100 text-yellow-800
+                                                    @else bg-red-100 text-red-800
+                                                    @endif">
+                                                    {{ $result->marks }}%
+                                                </span>
+                                            @else
+                                                <span class="text-gray-400">-</span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                    <td class="px-4 py-3 text-center bg-gray-50">
+                                        @if($subjectCount > 0)
+                                            @php $avg = round($totalMarks / $subjectCount, 1); @endphp
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold
+                                                @if($avg >= 80) bg-green-500 text-white
+                                                @elseif($avg >= 60) bg-blue-500 text-white
+                                                @elseif($avg >= 40) bg-yellow-500 text-white
+                                                @else bg-red-500 text-white
+                                                @endif">
+                                                {{ $avg }}%
+                                            </span>
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <script>
+                function filterResults() {
+                    var filter = document.getElementById('filterYearTerm').value;
+                    var cells = document.querySelectorAll('.result-cell');
+                    
+                    if (filter === 'all') {
+                        cells.forEach(function(cell) {
+                            cell.style.opacity = '1';
+                        });
+                    } else {
+                        var parts = filter.split('-');
+                        var year = parts[0];
+                        var term = parts[1];
+                        
+                        cells.forEach(function(cell) {
+                            if (cell.dataset.year == year && cell.dataset.term == term) {
+                                cell.style.opacity = '1';
+                            } else if (cell.dataset.year && cell.dataset.term) {
+                                cell.style.opacity = '0.3';
+                            }
+                        });
+                    }
+                }
+            </script>
+        @endif
+
         <!-- Students Grid -->
         @if($classes->students->count() > 0)
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -99,14 +99,39 @@ class ResultController extends Controller
 
     public function Classnames($class_id)
     {
-        // Get the class with its students
-        $classes = Grade::with('students')->findOrFail($class_id);
+        // Get the class with its students and teacher
+        $classes = Grade::with(['students.user', 'teacher'])->findOrFail($class_id);
 
         // Get results for students in this class
         $studentIds = $classes->students->pluck('id');
-        $results = Result::whereIn('student_id', $studentIds)->get();
+        $results = Result::with(['subject', 'student.user'])->whereIn('student_id', $studentIds)->get();
 
-        return view('backend.results.classname', compact('results', 'classes'));
+        // Check if current user is the class teacher
+        $user = Auth::user();
+        $isClassTeacher = false;
+        
+        if ($user && $user->hasRole('Teacher') && $user->teacher) {
+            $isClassTeacher = $classes->teacher_id === $user->teacher->id;
+        }
+
+        // If class teacher, get comprehensive results data
+        $classResults = null;
+        $subjects = collect();
+        $years = collect();
+        
+        if ($isClassTeacher) {
+            // Get all unique subjects and years from results
+            $subjects = $results->pluck('subject')->unique('id')->filter();
+            $years = ResultsStatus::select('year', 'result_period')
+                ->distinct()
+                ->orderBy('year', 'desc')
+                ->get();
+            
+            // Group results by student for easier display
+            $classResults = $results->groupBy('student_id');
+        }
+
+        return view('backend.results.classname', compact('results', 'classes', 'isClassTeacher', 'classResults', 'subjects', 'years'));
     }
 
     public function adminclassnames($class_id)

@@ -142,6 +142,44 @@ class GroceryController extends Controller
         return redirect()->back()->with('success', 'Goods acknowledged as received!');
     }
 
+    // Admin: Update student grocery list
+    public function updateStudentGrocery(Request $request)
+    {
+        $validated = $request->validate([
+            'grocery_list_id' => 'required|exists:grocery_lists,id',
+            'student_id' => 'required|exists:students,id',
+            'response_id' => 'nullable|exists:grocery_responses,id',
+            'items_bought' => 'nullable|array',
+            'items_bought.*' => 'exists:grocery_items,id',
+            'notes' => 'nullable|string'
+        ]);
+
+        $student = Student::findOrFail($validated['student_id']);
+        
+        // If response exists, update it; otherwise create new
+        if (!empty($validated['response_id'])) {
+            $response = GroceryResponse::findOrFail($validated['response_id']);
+            $response->update([
+                'items_bought' => $validated['items_bought'] ?? [],
+                'notes' => $validated['notes'] ?? null,
+                'submitted' => true,
+                'submitted_at' => $response->submitted_at ?? now()
+            ]);
+        } else {
+            $response = GroceryResponse::create([
+                'grocery_list_id' => $validated['grocery_list_id'],
+                'student_id' => $validated['student_id'],
+                'parent_id' => $student->parent_id,
+                'items_bought' => $validated['items_bought'] ?? [],
+                'notes' => $validated['notes'] ?? null,
+                'submitted' => true,
+                'submitted_at' => now()
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Student grocery list updated successfully!');
+    }
+
     // Parent: View grocery lists for their children
     public function parentIndex()
     {

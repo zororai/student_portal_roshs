@@ -391,6 +391,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/groceries/class/{classId}', 'GroceryController@showClass')->name('admin.groceries.class');
     Route::get('/admin/groceries/response/{responseId}', 'GroceryController@viewResponse')->name('admin.groceries.response');
     Route::put('/admin/groceries/{responseId}/acknowledge', 'GroceryController@acknowledge')->name('admin.groceries.acknowledge');
+    Route::post('/admin/groceries/update-student', 'GroceryController@updateStudentGrocery')->name('admin.groceries.update-student');
     Route::put('/admin/groceries/{id}/close', 'GroceryController@close')->name('admin.groceries.close');
     Route::get('/admin/groceries/{id}/edit', 'GroceryController@edit')->name('admin.groceries.edit');
     Route::put('/admin/groceries/{id}', 'GroceryController@update')->name('admin.groceries.update');

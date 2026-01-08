@@ -32,10 +32,16 @@ class AddsubjectController extends Controller
     {
         $reading = Reading::findOrFail($id);
         
-       
-
-      
-       return Storage::download($reading->path);
+        // Check if file exists in public disk
+        if (!Storage::disk('public')->exists($reading->path)) {
+            abort(404, 'File not found');
+        }
+        
+        // Get the full path and original filename
+        $filePath = storage_path('app/public/' . $reading->path);
+        $fileName = $reading->name . '.' . pathinfo($reading->path, PATHINFO_EXTENSION);
+        
+        return response()->download($filePath, $fileName);
     }
 
       

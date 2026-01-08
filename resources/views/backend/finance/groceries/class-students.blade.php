@@ -86,6 +86,12 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 text-center">
+                        <button onclick="openEditModal({{ $student->id }}, '{{ $student->user->name }}', {{ $student->grocery_response ? $student->grocery_response->id : 'null' }}, {{ $student->grocery_response && $student->grocery_response->items_bought ? json_encode($student->grocery_response->items_bought) : '[]' }})" class="inline-flex items-center px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 mr-1">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Edit List
+                        </button>
                         @if($student->grocery_response && $student->grocery_response->submitted)
                         <a href="{{ route('admin.groceries.response', $student->grocery_response->id) }}" class="inline-flex items-center px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 mr-1">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,8 +112,6 @@
                             </button>
                         </form>
                         @endif
-                        @else
-                        <span class="text-gray-400 text-xs">No response yet</span>
                         @endif
                     </td>
                 </tr>
@@ -159,5 +163,82 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Student Grocery List Modal -->
+<div id="editGroceryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4">
+        <form id="editGroceryForm" method="POST" action="{{ route('admin.groceries.update-student') }}">
+            @csrf
+            <input type="hidden" name="grocery_list_id" value="{{ $activeList->id }}">
+            <input type="hidden" name="student_id" id="edit_student_id">
+            <input type="hidden" name="response_id" id="edit_response_id">
+            
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">Edit Grocery List - <span id="studentNameDisplay"></span></h3>
+                <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6 max-h-96 overflow-y-auto">
+                <p class="text-sm text-gray-600 mb-4">Check the items that the parent has brought:</p>
+                <div class="space-y-2">
+                    @foreach($activeList->items as $index => $item)
+                    <label class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                        <input type="checkbox" name="items_bought[]" value="{{ $item->id }}" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 mr-3">
+                        <div class="flex-1">
+                            <span class="text-gray-800 font-medium">{{ $item->name }}</span>
+                            @if($item->quantity)
+                            <span class="text-sm text-gray-500 ml-2">(Qty: {{ $item->quantity }})</span>
+                            @endif
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
+                
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                    <textarea name="notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Add any notes about the grocery items..."></textarea>
+                </div>
+            </div>
+            
+            <div class="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+                <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditModal(studentId, studentName, responseId, itemsBought) {
+    document.getElementById('edit_student_id').value = studentId;
+    document.getElementById('edit_response_id').value = responseId || '';
+    document.getElementById('studentNameDisplay').textContent = studentName;
+    
+    // Uncheck all checkboxes first
+    document.querySelectorAll('input[name="items_bought[]"]').forEach(cb => cb.checked = false);
+    
+    // Check the items that were bought
+    if (itemsBought && itemsBought.length > 0) {
+        itemsBought.forEach(itemId => {
+            const checkbox = document.querySelector(`input[name="items_bought[]"][value="${itemId}"]`);
+            if (checkbox) checkbox.checked = true;
+        });
+    }
+    
+    document.getElementById('editGroceryModal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+    document.getElementById('editGroceryModal').classList.add('hidden');
+}
+</script>
 @endif
 @endsection

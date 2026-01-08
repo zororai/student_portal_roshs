@@ -497,6 +497,12 @@
     var deviceInfo = {};
 
     function generateFingerprint() {
+        // Check if we already have a stored fingerprint in localStorage
+        var storedFingerprint = localStorage.getItem('device_fingerprint');
+        if (storedFingerprint) {
+            return storedFingerprint;
+        }
+        
         // Create a simple but effective fingerprint based on browser properties
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
@@ -524,7 +530,13 @@
             hash = hash & hash;
         }
         
-        return 'FP' + Math.abs(hash).toString(36) + Date.now().toString(36);
+        // Generate consistent fingerprint without timestamp
+        var newFingerprint = 'FP' + Math.abs(hash).toString(36);
+        
+        // Store in localStorage for consistency
+        localStorage.setItem('device_fingerprint', newFingerprint);
+        
+        return newFingerprint;
     }
 
     function getDeviceInfo() {
