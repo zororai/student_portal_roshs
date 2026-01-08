@@ -213,7 +213,21 @@
                 <!-- Confirmation Input -->
                 <div class="bg-red-50 p-4 rounded-lg border border-red-200">
                     <label class="block text-sm font-medium text-red-700 mb-2">Type "DELETE" to confirm</label>
-                    <input type="text" id="confirmDelete" class="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Type DELETE to confirm">
+                    <input type="text" id="confirmDelete" oninput="validateDeleteInput()" class="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Type DELETE to confirm" autocomplete="off">
+                    <div id="deleteValidationMessage" class="mt-2 text-sm hidden">
+                        <div id="deleteError" class="flex items-center text-red-600 hidden">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Please type exactly "DELETE" in capital letters</span>
+                        </div>
+                        <div id="deleteSuccess" class="flex items-center text-green-600 hidden">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Confirmed! You can now proceed</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex justify-end space-x-3 pt-4">
@@ -237,10 +251,39 @@
         document.getElementById('cleanTerm').value = '';
         document.getElementById('confirmDelete').value = '';
         document.getElementById('filterOptions').classList.remove('opacity-50', 'pointer-events-none');
+        
+        // Reset validation messages
+        document.getElementById('deleteValidationMessage').classList.add('hidden');
+        document.getElementById('deleteError').classList.add('hidden');
+        document.getElementById('deleteSuccess').classList.add('hidden');
     }
 
     function closeCleanResultsModal() {
         document.getElementById('cleanResultsModal').classList.add('hidden');
+    }
+
+    function validateDeleteInput() {
+        const input = document.getElementById('confirmDelete').value;
+        const validationMessage = document.getElementById('deleteValidationMessage');
+        const errorMessage = document.getElementById('deleteError');
+        const successMessage = document.getElementById('deleteSuccess');
+        
+        if (input.length === 0) {
+            // Hide all messages when empty
+            validationMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+        } else if (input === 'DELETE') {
+            // Show success message
+            validationMessage.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            successMessage.classList.remove('hidden');
+        } else {
+            // Show error message
+            validationMessage.classList.remove('hidden');
+            errorMessage.classList.remove('hidden');
+            successMessage.classList.add('hidden');
+        }
     }
 
     function toggleCleanAllOption() {
@@ -261,7 +304,7 @@
         const confirmText = document.getElementById('confirmDelete').value;
         
         if (confirmText !== 'DELETE') {
-            alert('Please type "DELETE" to confirm this action.');
+            // Validation already shown by real-time feedback
             return;
         }
 
@@ -271,11 +314,7 @@
         const term = document.getElementById('cleanTerm').value;
 
         if (!cleanAll && !classId && !year && !term) {
-            alert('Please select at least one filter option or check "Clean All Published Results".');
-            return;
-        }
-
-        if (!confirm('Are you absolutely sure you want to delete these results? This action cannot be undone!')) {
+            showNotification('Please select at least one filter option or check "Clean All Published Results".', 'error');
             return;
         }
 
@@ -304,19 +343,67 @@
             submitBtn.innerHTML = 'Clean Results';
             
             if (data.success) {
-                alert(data.message + '\n' + data.deleted_count + ' record(s) deleted.');
-                closeCleanResultsModal();
-                location.reload();
+                showNotification(data.message + ' - ' + data.deleted_count + ' record(s) deleted.', 'success');
+                setTimeout(() => {
+                    closeCleanResultsModal();
+                    location.reload();
+                }, 2000);
             } else {
-                alert('Error: ' + (data.message || 'Failed to clean results'));
+                showNotification('Error: ' + (data.message || 'Failed to clean results'), 'error');
             }
         })
         .catch(error => {
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Clean Results';
             console.error('Error:', error);
-            alert('An error occurred while cleaning results. Please try again.');
+            showNotification('An error occurred while cleaning results. Please try again.', 'error');
         });
+    }
+
+    function showNotification(message, type) {
+        // Remove existing notification if any
+        const existingNotification = document.getElementById('cleanResultsNotification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.id = 'cleanResultsNotification';
+        notification.className = `fixed top-4 right-4 z-[60] max-w-md p-4 rounded-lg shadow-2xl transform transition-all duration-300 ${
+            type === 'success' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-red-500 text-white'
+        }`;
+        
+        notification.innerHTML = `
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    ${type === 'success' 
+                        ? '<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>'
+                        : '<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>'
+                    }
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium">${message}</p>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 flex-shrink-0 inline-flex text-white hover:text-gray-200 focus:outline-none">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 5000);
     }
 
     // Close modal when clicking outside

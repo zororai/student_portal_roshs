@@ -18,9 +18,9 @@
                             </p>
                         </div>
                         <div class="hidden sm:block">
-                            <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl px-6 py-3">
-                                <p class="text-white text-sm font-medium">Student Results</p>
-                                <p class="text-blue-100 text-xs mt-1">View individual performance</p>
+                            <div class="bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl px-6 py-3 shadow-lg border-2 border-white border-opacity-30">
+                                <p class="text-white text-sm font-bold">Student Results</p>
+                                <p class="text-emerald-50 text-xs mt-1 font-medium">View individual performance</p>
                             </div>
                         </div>
                     </div>
