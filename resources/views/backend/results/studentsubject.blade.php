@@ -33,6 +33,7 @@
                 @csrf
                 <input type="hidden" name="class_id" value="{{ $class->id }}">
                 <input type="hidden" name="teacher_id" value="{{ auth()->user()->teacher->id }}">
+                <input type="hidden" name="student_id" value="{{ $student->id }}">
 
                 <!-- Term Selection -->
                 <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-6 border-b border-gray-200">
@@ -44,10 +45,18 @@
                     </label>
                     <select name="result_period" id="result_period" required class="w-full md:w-1/2 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 transition-all text-gray-700 font-medium bg-white shadow-sm">
                         <option value="">Choose a Term</option>
-                        <option value="first">First Term</option>
-                        <option value="second">Second Term</option>
-                        <option value="third">Third Term</option>
+                        <option value="first" {{ isset($lastRecord) && $lastRecord->result_period == 'first' ? 'selected' : '' }}>First Term</option>
+                        <option value="second" {{ isset($lastRecord) && $lastRecord->result_period == 'second' ? 'selected' : '' }}>Second Term</option>
+                        <option value="third" {{ isset($lastRecord) && $lastRecord->result_period == 'third' ? 'selected' : '' }}>Third Term</option>
                     </select>
+                    @if(isset($lastRecord))
+                        <p class="text-sm text-gray-600 mt-2">
+                            <svg class="w-4 h-4 inline mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            Current period: <strong>{{ ucfirst($lastRecord->result_period) }} Term {{ $lastRecord->year }}</strong>
+                        </p>
+                    @endif
                 </div>
 
                 <!-- Results Table -->
@@ -60,7 +69,7 @@
                                     <th class="px-6 py-4 text-left font-bold rounded-tl-xl">
                                         <div class="flex items-center">
                                             <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                             </svg>
                                             Subject
                                         </div>
@@ -96,35 +105,46 @@
                             <!-- Table Body -->
                             <tbody>
                                 @foreach($class->subjects as $index => $subject)
+                                    @php
+                                        $existingResult = isset($existingResults) ? $existingResults->get($subject->id) : null;
+                                    @endphp
                                     <tr class="border-b border-gray-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-colors {{ $index % 2 == 0 ? 'bg-gray-50' : 'bg-white' }}">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center">
                                                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm mr-3">
                                                     {{ strtoupper(substr($subject->name, 0, 2)) }}
                                                 </div>
-                                                <span class="font-semibold text-gray-800">{{ $subject->name }}</span>
+                                                <div>
+                                                    <span class="font-semibold text-gray-800">{{ $subject->name }}</span>
+                                                    @if($existingResult)
+                                                        <span class="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">Has Data</span>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4">
                                             <input type="number" 
                                                    name="results[{{ $student->id }}][{{ $subject->id }}][marks]" 
+                                                   value="{{ $existingResult ? $existingResult->marks : '' }}"
                                                    required 
                                                    min="0" 
                                                    max="100"
                                                    placeholder="0-100"
-                                                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all font-medium">
+                                                   class="w-full px-4 py-2 border-2 {{ $existingResult ? 'border-green-300 bg-green-50' : 'border-gray-300' }} rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all font-medium">
                                         </td>
                                         <td class="px-6 py-4">
                                             <input type="text" 
                                                    name="results[{{ $student->id }}][{{ $subject->id }}][comment]" 
+                                                   value="{{ $existingResult ? $existingResult->comment : '' }}"
                                                    placeholder="Optional comment"
-                                                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all">
+                                                   class="w-full px-4 py-2 border-2 {{ $existingResult ? 'border-green-300 bg-green-50' : 'border-gray-300' }} rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all">
                                         </td>
                                         <td class="px-6 py-4">
                                             <input type="text" 
                                                    name="results[{{ $student->id }}][{{ $subject->id }}][mark_grade]" 
+                                                   value="{{ $existingResult ? $existingResult->mark_grade : '' }}"
                                                    placeholder="A, B, C..."
-                                                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all font-bold text-center">
+                                                   class="w-full px-4 py-2 border-2 {{ $existingResult ? 'border-green-300 bg-green-50' : 'border-gray-300' }} rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all font-bold text-center">
                                         </td>
                                     </tr>
                                 @endforeach

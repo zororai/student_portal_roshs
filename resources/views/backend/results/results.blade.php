@@ -57,7 +57,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach ($classes->students as $student)
                 @php
-                    $studentResult = $results->where('student_id', $student->id)->first();
+                    $studentResult = $results->filter(function($result) use ($student) {
+                        return (int)$result->student_id === (int)$student->id;
+                    })->first();
                 @endphp
                 
                 <div class="group bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-purple-300 transform hover:-translate-y-1">
@@ -105,7 +107,7 @@
                         <!-- Action Buttons -->
                         <div class="space-y-2">
                             @if($studentResult)
-                                {{-- Student has results - show View button --}}
+                                {{-- Student has results - show both View and Add buttons --}}
                                 <a href="{{ route('student.results', $student->id) }}" 
                                    class="flex items-center justify-center w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,8 +116,15 @@
                                     </svg>
                                     View Results
                                 </a>
+                                <a href="{{ route('results.studentsubject', $student->id) }}" 
+                                   class="flex items-center justify-center w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    Add/Update Results
+                                </a>
                             @else
-                                {{-- Student doesn't have results - show Add button --}}
+                                {{-- Student doesn't have results - show Add button only --}}
                                 <a href="{{ route('results.studentsubject', $student->id) }}" 
                                    class="flex items-center justify-center w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

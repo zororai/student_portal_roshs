@@ -23,8 +23,27 @@ class ResultController extends Controller
         // Get the logged-in teacher
         $teacher = Auth::user()->teacher;
 
-        // Get classes assigned to this teacher with student count
-        $classes = $teacher ? $teacher->classes()->withCount('students')->get() : [];
+        if (!$teacher) {
+            return view('backend.results.index', ['classes' => collect()]);
+        }
+
+        // Get all subjects taught by this teacher
+        $teacherSubjects = $teacher->subjects;
+        
+        // Get all unique class IDs from the subjects this teacher teaches
+        $classIds = [];
+        foreach ($teacherSubjects as $subject) {
+            $subjectClassIds = $subject->grades()->pluck('grades.id')->toArray();
+            $classIds = array_merge($classIds, $subjectClassIds);
+        }
+        
+        // Remove duplicates
+        $classIds = array_unique($classIds);
+        
+        // Get all classes where teacher teaches subjects, with student count
+        $classes = Grade::whereIn('id', $classIds)
+            ->withCount('students')
+            ->get();
 
         return view('backend.results.index', compact('classes'));
     }
@@ -277,7 +296,20 @@ class ResultController extends Controller
             return in_array($subject->id, $teacherSubjectIds);
         });
 
-        return view('backend.results.studentsubject', compact('class','student'));
+        // Get the current period
+        $lastRecord = ResultsStatus::latest()->first();
+        
+        // Fetch existing results for this student in the current period
+        $existingResults = collect();
+        if ($lastRecord) {
+            $existingResults = Result::where('student_id', $student->id)
+                ->where('year', $lastRecord->year)
+                ->where('result_period', $lastRecord->result_period)
+                ->get()
+                ->keyBy('subject_id'); // Key by subject_id for easy lookup
+        }
+
+        return view('backend.results.studentsubject', compact('class', 'student', 'existingResults', 'lastRecord'));
     }
     public function Stuntentname($id)
     {
@@ -303,11 +335,14 @@ class ResultController extends Controller
         $request->validate([
             'class_id' => 'required|numeric',
             'teacher_id' => 'required|numeric',
+            'student_id' => 'required|numeric',
             'results' => 'required|array',
             'result_period'=> 'required',
-
         ]);
 
+        // Get the explicit student ID from the form
+        $targetStudentId = $request->student_id;
+        
         // Get the teacher's subject IDs
         $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
         
@@ -315,8 +350,13 @@ class ResultController extends Controller
         $class = Grade::with('subjects')->findOrFail($request->class_id);
         $classSubjectIds = $class->subjects->pluck('id')->toArray();
         
-        // Loop through results - should only be for one student
+        // Loop through results - only process for the target student
         foreach ($request->results as $studentId => $subjects) {
+            // IMPORTANT: Only process results for the explicitly specified student
+            if ($studentId != $targetStudentId) {
+                continue;
+            }
+            
             foreach ($subjects as $subjectId => $data) {
                 // Only allow results for subjects the teacher teaches AND that belong to this class
                 if (!in_array($subjectId, $teacherSubjectIds) || !in_array($subjectId, $classSubjectIds)) {
@@ -327,7 +367,7 @@ class ResultController extends Controller
                     [
                         'class_id' => $request->class_id,
                         'teacher_id' => $request->teacher_id,
-                        'student_id' => $studentId,
+                        'student_id' => $targetStudentId,
                         'subject_id' => $subjectId,
                         'year' => date('Y'),
                         'result_period' => $request->result_period,
@@ -395,19 +435,20 @@ public function showResult(Request $request)
 public function adminshowResult(Request $request)
 {
     // Validate the incoming request
-   $request->validate([
-       'year' => 'required|integer',
-  'result_period' => 'required|string',
+    $request->validate([
+        'year' => 'required|integer',
+        'result_period' => 'required|string',
         'class_id' => 'required|integer',
-   ]);
+    ]);
 
+    // Note: class_id in the form actually contains the student_id
+    $studentId = $request->class_id;
 
     $results = Result::with('subject')
-    ->when($request->student_id, fn($query) => $query->where('student_id', $request->class_id))
-    ->when($request->year, fn($query) => $query->where('year', $request->year))
-    ->when($request->term, fn($query) => $query->where('result_period', $request->result_period))
-    ->get();
-
+        ->where('student_id', $studentId)
+        ->where('year', $request->year)
+        ->where('result_period', $request->result_period)
+        ->get();
 
     return view('results.studentview', compact('results'));
 }
