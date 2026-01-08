@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 
 class ParentsController extends Controller
 {
@@ -291,6 +292,103 @@ class ParentsController extends Controller
     public function registrationSuccess()
     {
         return view('backend.parents.registration_success');
+    }
+
+    /**
+     * Generate password reset token for parent
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function generatePasswordResetToken($id)
+    {
+        $parent = Parents::with('user')->findOrFail($id);
+        
+        if (!$parent->user) {
+            return back()->with('error', 'Parent user account not found.');
+        }
+
+        // Generate a unique token
+        $token = Str::random(60);
+        
+        // Store token in parent record with expiration
+        $parent->update([
+            'password_reset_token' => $token,
+            'password_reset_expires_at' => now()->addHours(24)
+        ]);
+
+        // Return JSON response with token and parent info
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+            'parent_name' => $parent->user->name,
+            'parent_email' => $parent->user->email,
+            'reset_url' => route('parent.password-reset.show', $token)
+        ]);
+    }
+
+    /**
+     * Show password reset form for parent
+     *
+     * @param string $token
+     * @return \Illuminate\Http\Response
+     */
+    public function showPasswordResetForm($token)
+    {
+        $parent = Parents::where('password_reset_token', $token)
+                        ->where('password_reset_expires_at', '>', now())
+                        ->first();
+
+        if (!$parent) {
+            return redirect('/')->with('error', 'Invalid or expired password reset link.');
+        }
+
+        return view('backend.parents.password_reset', compact('parent', 'token'));
+    }
+
+    /**
+     * Process password reset for parent
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $token
+     * @return \Illuminate\Http\Response
+     */
+    public function resetPassword(Request $request, $token)
+    {
+        $parent = Parents::where('password_reset_token', $token)
+                        ->where('password_reset_expires_at', '>', now())
+                        ->first();
+
+        if (!$parent) {
+            return redirect('/')->with('error', 'Invalid or expired password reset link.');
+        }
+
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // Update password
+        $parent->user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        // Clear reset token
+        $parent->update([
+            'password_reset_token' => null,
+            'password_reset_expires_at' => null
+        ]);
+
+        return redirect()->route('parent.password-reset.success');
+    }
+
+    /**
+     * Show password reset success page
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function passwordResetSuccess()
+    {
+        return view('backend.parents.password_reset_success');
     }
 }
 
