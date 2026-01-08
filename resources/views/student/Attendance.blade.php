@@ -114,6 +114,7 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Class</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Teacher</th>
                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reason</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -146,6 +147,16 @@
                                     </svg>
                                     Absent
                                 </span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            @if(!$attendance->attendence_status && $attendance->absent_reason_type)
+                                <div class="text-gray-800 font-medium">{{ $attendance->absent_reason_type }}</div>
+                                @if($attendance->absent_reason_details)
+                                    <div class="text-gray-500 text-xs mt-1">{{ $attendance->absent_reason_details }}</div>
+                                @endif
+                            @else
+                                <span class="text-gray-400">-</span>
                             @endif
                         </td>
                     </tr>

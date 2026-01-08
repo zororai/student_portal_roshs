@@ -56,63 +56,6 @@
         </div>
     </form>
 
-    <!-- Pending Payment Verifications from Parents -->
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg shadow mb-6">
-        <div class="px-4 py-3 border-b border-yellow-200 flex items-center justify-between">
-            <div class="flex items-center">
-                <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <h3 class="text-lg font-semibold text-yellow-800">Pending Payment Verifications ({{ isset($pendingVerifications) ? $pendingVerifications->count() : 0 }})</h3>
-            </div>
-            <a href="{{ route('admin.payment-verification.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-medium">View All →</a>
-        </div>
-        <div class="p-4">
-            @if(isset($pendingVerifications) && $pendingVerifications->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach($pendingVerifications as $verification)
-                <div class="bg-white rounded-lg border border-yellow-300 p-4 shadow-sm">
-                    <div class="flex items-start justify-between mb-3">
-                        <div>
-                            <p class="font-semibold text-gray-800">{{ $verification->student->user->name ?? 'Unknown Student' }}</p>
-                            <p class="text-sm text-gray-600">{{ $verification->student->class->class_name ?? 'No Class' }}</p>
-                        </div>
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-                    </div>
-                    <div class="space-y-1 text-sm mb-3">
-                        <p><span class="text-gray-500">Parent:</span> {{ $verification->parent->user->name ?? 'Unknown' }}</p>
-                        <p><span class="text-gray-500">Receipt #:</span> <span class="font-mono font-semibold">{{ $verification->receipt_number }}</span></p>
-                        <p><span class="text-gray-500">Amount:</span> <span class="font-semibold text-green-600">${{ number_format($verification->amount_paid, 2) }}</span></p>
-                        <p><span class="text-gray-500">Payment Date:</span> {{ $verification->payment_date->format('d M Y') }}</p>
-                    </div>
-                    <div class="flex space-x-2">
-                        <a href="{{ route('admin.payment-verification.show', $verification->id) }}" class="flex-1 text-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                            Review & Apply
-                        </a>
-                        @if($verification->receipt_file)
-                        <a href="{{ asset('storage/' . $verification->receipt_file) }}" target="_blank" class="px-3 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition-colors" title="View Receipt">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                            </svg>
-                        </a>
-                        @endif
-                    </div>
-                </div>
-                @endforeach
-            </div>
-            @else
-            <div class="text-center py-6">
-                <svg class="w-12 h-12 text-yellow-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <p class="text-yellow-700 font-medium">No pending payment verifications</p>
-                <p class="text-yellow-600 text-sm mt-1">When parents submit payment proofs, they will appear here for review</p>
-            </div>
-            @endif
-        </div>
-    </div>
-
     <!-- Students Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto overflow-y-visible" style="max-width: 100%;">
@@ -457,14 +400,15 @@
                                         $balance = $totalFees - $amountPaid;
                                     @endphp
                                     <option value="{{ $student->id }}" 
-                                            data-name="{{ $student->name }}" 
+                                            data-name="{{ $student->user->name ?? 'Unknown' }}" 
                                             data-total-fees="{{ $totalFees }}"
                                             data-amount-paid="{{ $amountPaid }}"
                                             data-balance="{{ $balance }}"
                                             data-class="{{ $student->class->id ?? '' }}"
                                             data-roll="{{ $student->roll_number }}"
+                                            data-student-type="{{ $student->student_type ?? 'day' }}"
                                             class="student-option">
-                                        {{ $student->name }} ({{ $student->roll_number }}) - {{ $student->class->class_name ?? 'N/A' }} - Balance: ${{ number_format($balance, 2) }}
+                                        {{ $student->user->name ?? 'Unknown' }} ({{ $student->roll_number }}) - {{ $student->class->class_name ?? 'N/A' }} - Balance: ${{ number_format($balance, 2) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -855,20 +799,39 @@
         
         if (!feeTypesContainer) return;
         
+        // Get selected student's type
+        const studentSelect = document.getElementById('modal_student_id');
+        const selectedStudent = studentSelect.options[studentSelect.selectedIndex];
+        const studentType = selectedStudent && selectedStudent.value ? (selectedStudent.dataset.studentType || 'day') : 'day';
+        
         if (selectedOption.value && selectedOption.dataset.fees) {
             try {
                 const fees = JSON.parse(selectedOption.dataset.fees);
                 
+                // Filter fees based on student type
+                const filteredFees = fees.filter(fee => {
+                    // If fee has no student_type specified, show it to all
+                    if (!fee.student_type) return true;
+                    
+                    // If student is boarder, show boarding fees
+                    if (studentType === 'boarding') {
+                        return fee.student_type === 'boarding';
+                    }
+                    
+                    // If student is day, show day fees
+                    return fee.student_type === 'day';
+                });
+                
                 // Clear existing fee checkboxes
                 feeTypesContainer.innerHTML = '';
                 
-                if (fees.length === 0) {
-                    feeTypesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No fee types available for selected term</p>';
+                if (filteredFees.length === 0) {
+                    feeTypesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No fee types available for ' + (studentType === 'boarding' ? 'boarding' : 'day') + ' students in selected term</p>';
                     return;
                 }
                 
                 // Create new fee checkboxes
-                fees.forEach(fee => {
+                filteredFees.forEach(fee => {
                     const feeHtml = `
                         <div class="bg-white border border-gray-200 rounded-lg p-3">
                             <div class="flex items-center justify-between">
@@ -1029,6 +992,9 @@
             
             // Show student info section
             document.getElementById('student_info_section').style.display = 'block';
+            
+            // Update fee types based on student type
+            updateFeeTypes();
             
             // Reset checkboxes and calculations
             document.querySelectorAll('.fee-checkbox').forEach(cb => {

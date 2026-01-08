@@ -84,52 +84,109 @@
 
     <!-- Attendance Results -->
     @if(count($attendances) > 0)
-        <div class="space-y-6">
-            @foreach ($attendances as $classid => $datevalues)
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            @foreach ($attendances as $classid => $classAttendances)
+                @php
+                    $className = $classAttendances->first()->class->class_name ?? 'Class ' . $classid;
+                    $totalRecords = $classAttendances->count();
+                    $presentCount = $classAttendances->where('attendence_status', 1)->count();
+                    $absentCount = $totalRecords - $presentCount;
+                    $attendanceRate = $totalRecords > 0 ? round(($presentCount / $totalRecords) * 100, 1) : 0;
+                    
+                    // Group by student
+                    $studentAttendances = $classAttendances->groupBy('student_id');
+                @endphp
+                
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     <!-- Class Header -->
                     <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600">
-                        <h3 class="text-lg font-bold text-white flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                            </svg>
-                            Class {{ $classid }}
-                        </h3>
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-bold text-white flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                {{ $className }}
+                            </h3>
+                            <span class="text-white text-sm font-medium">{{ $studentAttendances->count() }} Students</span>
+                        </div>
                     </div>
                     
-                    <!-- Date Records -->
-                    <div class="divide-y divide-gray-100">
-                        @foreach ($datevalues as $key => $attendancevals)
-                            <div class="p-4">
-                                <div class="flex items-center mb-3">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        {{ $key }}
-                                    </span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                    @foreach ($attendancevals as $vals => $attendance)
-                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                            <span class="text-sm font-medium text-gray-700 truncate mr-2">{{ $attendance->student->user->name }}</span>
-                                            @if ($attendance->attendence_status)
-                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                    </svg>
-                                                    Present
-                                                </span>
+                    <!-- Class Stats -->
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <p class="text-2xl font-bold text-gray-900">{{ $totalRecords }}</p>
+                                <p class="text-xs text-gray-500 mt-1">Total Records</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-2xl font-bold text-green-600">{{ $presentCount }}</p>
+                                <p class="text-xs text-gray-500 mt-1">Present</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-2xl font-bold text-red-600">{{ $absentCount }}</p>
+                                <p class="text-xs text-gray-500 mt-1">Absent</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-gray-600">Attendance Rate</span>
+                                <span class="font-semibold text-gray-900">{{ $attendanceRate }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all" style="width: {{ $attendanceRate }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Student List -->
+                    <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                        @foreach ($studentAttendances as $studentId => $studentRecords)
+                            @php
+                                $studentName = $studentRecords->first()->student->user->name ?? 'Unknown Student';
+                                $studentPresent = $studentRecords->where('attendence_status', 1)->count();
+                                $studentAbsent = $studentRecords->count() - $studentPresent;
+                                $studentRate = $studentRecords->count() > 0 ? round(($studentPresent / $studentRecords->count()) * 100) : 0;
+                            @endphp
+                            
+                            <div class="px-6 py-3 hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center flex-1">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-semibold text-gray-900">{{ $studentName }}</p>
+                                            <div class="flex items-center gap-3 mt-1">
+                                                <span class="text-xs text-gray-500">{{ $studentRecords->count() }} days</span>
+                                                <span class="text-xs text-green-600 font-medium">{{ $studentPresent }} present</span>
+                                                <span class="text-xs text-red-600 font-medium">{{ $studentAbsent }} absent</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="text-right mr-2">
+                                            <p class="text-sm font-bold {{ $studentRate >= 75 ? 'text-green-600' : ($studentRate >= 50 ? 'text-yellow-600' : 'text-red-600') }}">
+                                                {{ $studentRate }}%
+                                            </p>
+                                        </div>
+                                        <div class="w-12 h-12 rounded-lg {{ $studentRate >= 75 ? 'bg-green-100' : ($studentRate >= 50 ? 'bg-yellow-100' : 'bg-red-100') }} flex items-center justify-center">
+                                            @if($studentRate >= 75)
+                                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            @elseif($studentRate >= 50)
+                                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                                </svg>
                                             @else
-                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
-                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                                    </svg>
-                                                    Absent
-                                                </span>
+                                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
                                             @endif
                                         </div>
-                                    @endforeach
+                                    </div>
                                 </div>
                             </div>
                         @endforeach

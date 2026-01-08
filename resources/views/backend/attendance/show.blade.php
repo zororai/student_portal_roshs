@@ -120,7 +120,8 @@
                             <th class="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
                             <th class="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Teacher</th>
                             <th class="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Class</th>
-                            <th class="text-right py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="text-center py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="text-left py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reason</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -147,7 +148,7 @@
                                     {{ $attendance->class->class_name ?? 'N/A' }}
                                 </span>
                             </td>
-                            <td class="py-4 px-6 text-right">
+                            <td class="py-4 px-6 text-center">
                                 @if ($attendance->attendence_status == 'present')
                                     <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
                                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-2"></span>
@@ -163,6 +164,16 @@
                                         <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
                                         Absent
                                     </span>
+                                @endif
+                            </td>
+                            <td class="py-4 px-6">
+                                @if(!$attendance->attendence_status && $attendance->absent_reason_type)
+                                    <div class="text-gray-800 font-medium text-sm">{{ $attendance->absent_reason_type }}</div>
+                                    @if($attendance->absent_reason_details)
+                                        <div class="text-gray-500 text-xs mt-1">{{ $attendance->absent_reason_details }}</div>
+                                    @endif
+                                @else
+                                    <span class="text-gray-400">-</span>
                                 @endif
                             </td>
                         </tr>

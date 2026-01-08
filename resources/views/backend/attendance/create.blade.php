@@ -101,7 +101,7 @@
             <!-- Student List -->
             <div class="divide-y divide-gray-100">
                 @foreach ($class->students as $index => $student)
-                    <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div class="px-6 py-4 hover:bg-gray-50 transition-colors" x-data="{ isAbsent: false }">
                         <div class="flex items-center justify-between">
                             <!-- Student Info -->
                             <div class="flex items-center gap-4 flex-1">
@@ -117,7 +117,7 @@
                             <!-- Attendance Options -->
                             <div class="flex items-center gap-4">
                                 <label class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all has-[:checked]:border-green-500 has-[:checked]:bg-green-50">
-                                    <input type="radio" name="attendences[{{ $student->id }}]" value="present" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500" required>
+                                    <input type="radio" name="attendences[{{ $student->id }}]" value="present" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500" required @click="isAbsent = false">
                                     <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
@@ -125,12 +125,36 @@
                                 </label>
 
                                 <label class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all has-[:checked]:border-red-500 has-[:checked]:bg-red-50">
-                                    <input type="radio" name="attendences[{{ $student->id }}]" value="absent" class="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500">
+                                    <input type="radio" name="attendences[{{ $student->id }}]" value="absent" class="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500" @click="isAbsent = true">
                                     <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
                                     <span class="text-sm font-medium text-gray-700">Absent</span>
                                 </label>
+                            </div>
+                        </div>
+
+                        <!-- Absent Reason Section -->
+                        <div x-show="isAbsent" x-collapse class="mt-4 ml-14 p-4 bg-red-50 rounded-xl border border-red-100">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Reason for Absence</label>
+                                    <select name="absent_reason_type[{{ $student->id }}]" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
+                                        <option value="">Select a reason...</option>
+                                        <option value="Sick">Sick / Medical</option>
+                                        <option value="Family Emergency">Family Emergency</option>
+                                        <option value="Transport Issues">Transport Issues</option>
+                                        <option value="Personal Reasons">Personal Reasons</option>
+                                        <option value="School Event">School Event</option>
+                                        <option value="Suspension">Suspension</option>
+                                        <option value="Unknown">Unknown</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
+                                    <input type="text" name="absent_reason_details[{{ $student->id }}]" placeholder="Enter additional details..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm">
+                                </div>
                             </div>
                         </div>
                     </div>

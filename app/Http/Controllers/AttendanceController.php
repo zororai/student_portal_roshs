@@ -29,11 +29,12 @@ class AttendanceController extends Controller
             $month = request()->input('month');
 
             if($type == 'class') {
-                $attendances = Attendance::whereMonth('attendence_date', $month)
-                                     ->select('attendence_date','student_id','attendence_status','class_id')
+                $attendances = Attendance::with(['student.user', 'class'])
+                                     ->whereMonth('attendence_date', $month)
                                      ->orderBy('class_id','asc')
+                                     ->orderBy('attendence_date','desc')
                                      ->get()
-                                     ->groupBy(['class_id','attendence_date']);
+                                     ->groupBy('class_id');
 
                 return view('backend.attendance.index', compact('attendances','months'));
 
@@ -104,12 +105,22 @@ class AttendanceController extends Controller
                 $attendence_status = false;
             }
 
+            $absentReasonType = null;
+            $absentReasonDetails = null;
+
+            if ($attendence == 'absent') {
+                $absentReasonType = $request->absent_reason_type[$studentid] ?? null;
+                $absentReasonDetails = $request->absent_reason_details[$studentid] ?? null;
+            }
+
             Attendance::create([
-                'class_id'          => $request->class_id,
-                'teacher_id'        => $request->teacher_id,
-                'student_id'        => $studentid,
-                'attendence_date'   => $attenddate,
-                'attendence_status' => $attendence_status
+                'class_id'              => $request->class_id,
+                'teacher_id'            => $request->teacher_id,
+                'student_id'            => $studentid,
+                'attendence_date'       => $attenddate,
+                'attendence_status'     => $attendence_status,
+                'absent_reason_type'    => $absentReasonType,
+                'absent_reason_details' => $absentReasonDetails
             ]);
         }
 

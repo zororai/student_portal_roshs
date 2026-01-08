@@ -11,7 +11,9 @@ class Attendance extends Model
         'teacher_id',
         'student_id',
         'attendence_date',
-        'attendence_status'
+        'attendence_status',
+        'absent_reason_type',
+        'absent_reason_details'
     ];
 
     public function student() {
