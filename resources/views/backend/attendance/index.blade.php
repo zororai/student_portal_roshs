@@ -97,9 +97,9 @@
                     $studentAttendances = $classAttendances->groupBy('student_id');
                 @endphp
                 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                    <!-- Class Header -->
-                    <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden" x-data="{ open: false }">
+                    <!-- Class Header - Clickable -->
+                    <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 cursor-pointer hover:from-blue-700 hover:to-indigo-700 transition-colors" @click="open = !open">
                         <div class="flex items-center justify-between">
                             <h3 class="text-lg font-bold text-white flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,12 +107,17 @@
                                 </svg>
                                 {{ $className }}
                             </h3>
-                            <span class="text-white text-sm font-medium">{{ $studentAttendances->count() }} Students</span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-white text-sm font-medium">{{ $studentAttendances->count() }} Students</span>
+                                <svg class="w-5 h-5 text-white transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Class Stats -->
-                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200" x-show="open" x-collapse>
                         <div class="grid grid-cols-3 gap-4">
                             <div class="text-center">
                                 <p class="text-2xl font-bold text-gray-900">{{ $totalRecords }}</p>
@@ -139,7 +144,7 @@
                     </div>
                     
                     <!-- Student List -->
-                    <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                    <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto" x-show="open" x-collapse>
                         @foreach ($studentAttendances as $studentId => $studentRecords)
                             @php
                                 $studentName = $studentRecords->first()->student->user->name ?? 'Unknown Student';
