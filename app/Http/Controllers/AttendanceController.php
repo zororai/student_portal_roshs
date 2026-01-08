@@ -46,6 +46,46 @@ class AttendanceController extends Controller
         return view('backend.attendance.index', compact('attendances','months'));
     }
 
+    public function classDetail($class_id)
+    {
+        $month = request()->input('month');
+        
+        $query = Attendance::with(['student.user', 'class', 'teacher.user'])
+                          ->where('class_id', $class_id);
+        
+        if ($month) {
+            $query->whereMonth('attendence_date', $month);
+        }
+        
+        $attendances = $query->orderBy('attendence_date', 'desc')->get();
+        
+        if ($attendances->isEmpty()) {
+            return redirect()->route('attendance.index')->with('error', 'No attendance records found for this class.');
+        }
+        
+        $class = $attendances->first()->class;
+        $studentAttendances = $attendances->groupBy('student_id');
+        
+        return view('backend.attendance.class-detail', compact('attendances', 'class', 'studentAttendances', 'month'));
+    }
+
+    public function cleanAttendance($class_id)
+    {
+        $month = request()->input('month');
+        
+        $query = Attendance::where('class_id', $class_id);
+        
+        if ($month) {
+            $query->whereMonth('attendence_date', $month);
+        }
+        
+        $count = $query->count();
+        $query->delete();
+        
+        return redirect()->route('attendance.index', ['type' => 'class', 'month' => $month])
+                        ->with('success', "Successfully deleted {$count} attendance record(s).");
+    }
+
     /**
      * Show the form for creating a new resource.
      *

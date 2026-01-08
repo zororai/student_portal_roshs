@@ -295,6 +295,8 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('sms-test/send', 'SmsTestController@send')->name('sms-test.send');
 
     Route::get('attendance', 'AttendanceController@index')->name('attendance.index');
+    Route::get('attendance/class/{class_id}', 'AttendanceController@classDetail')->name('attendance.class-detail');
+    Route::delete('attendance/clean/{class_id}', 'AttendanceController@cleanAttendance')->name('attendance.clean');
     ///banner
     Route::get('/banner', 'BannerController@index')->name('banner.index');
     Route::post('/banner', 'BannerController@store')->name('banner.store');
