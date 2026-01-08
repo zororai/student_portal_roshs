@@ -102,19 +102,25 @@ class ResultController extends Controller
         // Get the last inserted ResultsStatus record
         $lastRecord = ResultsStatus::latest()->first();
 
-        // Retrieve results for the specified students and check if they match the last record
+        // Initialize results query
         $resultsQuery = Result::whereIn('student_id', $studentIds);
 
         $exists = false;
+        $results = collect();
+        
         if ($lastRecord) {
-            $exists = $resultsQuery
+            // Check if any results exist for the current period
+            $exists = Result::whereIn('student_id', $studentIds)
                 ->where('year', $lastRecord->year)
                 ->where('result_period', $lastRecord->result_period)
                 ->exists();
+            
+            // Fetch only results for the current period
+            $results = Result::whereIn('student_id', $studentIds)
+                ->where('year', $lastRecord->year)
+                ->where('result_period', $lastRecord->result_period)
+                ->get();
         }
-
-        // Fetch results after filtering
-        $results = $resultsQuery->get();
 
         return view('backend.results.results', compact('results', 'classes', 'lastRecord', 'exists'));
     }
@@ -257,7 +263,19 @@ class ResultController extends Controller
 
     public function Showssubject(Student $student)
     {
-        $class = Grade::with('subjects')->where('id', $student->class_id)->first();
+        // Get the authenticated teacher
+        $teacher = Teacher::findOrFail(auth()->user()->teacher->id);
+        
+        // Get the class with its subjects
+        $class = Grade::with('subjects')->findOrFail($student->class_id);
+        
+        // Get the IDs of subjects that this teacher teaches
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        
+        // Filter the class subjects to only include those the teacher teaches
+        $class->subjects = $class->subjects->filter(function($subject) use ($teacherSubjectIds) {
+            return in_array($subject->id, $teacherSubjectIds);
+        });
 
         return view('backend.results.studentsubject', compact('class','student'));
     }
@@ -290,26 +308,37 @@ class ResultController extends Controller
 
         ]);
 
+        // Get the teacher's subject IDs
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        
+        // Get the class to verify subjects belong to this class
+        $class = Grade::with('subjects')->findOrFail($request->class_id);
+        $classSubjectIds = $class->subjects->pluck('id')->toArray();
+        
+        // Loop through results - should only be for one student
         foreach ($request->results as $studentId => $subjects) {
             foreach ($subjects as $subjectId => $data) {
+                // Only allow results for subjects the teacher teaches AND that belong to this class
+                if (!in_array($subjectId, $teacherSubjectIds) || !in_array($subjectId, $classSubjectIds)) {
+                    continue;
+                }
+                
                 Result::updateOrCreate(
                     [
                         'class_id' => $request->class_id,
                         'teacher_id' => $request->teacher_id,
                         'student_id' => $studentId,
                         'subject_id' => $subjectId,
+                        'year' => date('Y'),
+                        'result_period' => $request->result_period,
                     ],
                     [
                         'marks' => $data['marks'],
-                        'comment' => $data['comment'] ?? null,  // Use null if no comment is provided
-                        'mark_grade' => $data['mark_grade'] ?? null,  // Use null if no grade is provided
-                        'year' => date('Y'),
-                        'result_period' => $request->result_period,
+                        'comment' => $data['comment'] ?? null,
+                        'mark_grade' => $data['mark_grade'] ?? null,
                         'status' => 'Pending',
                     ]
                 );
-
-
             }
         }
 
