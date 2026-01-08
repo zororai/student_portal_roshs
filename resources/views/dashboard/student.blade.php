@@ -32,16 +32,16 @@
         <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-white text-sm font-semibold">My Subjects</p>
-                    <p class="text-4xl font-bold mt-2">{{ $student->class ? $student->class->subjects->count() : 0 }}</p>
+                    <p class="text-gray-900 text-sm font-semibold">My Subjects</p>
+                    <p class="text-gray-900 text-4xl font-bold mt-2">{{ $student->class ? $student->class->subjects->count() : 0 }}</p>
                 </div>
                 <div class="p-3 bg-white/20 rounded-lg">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                 </div>
             </div>
-            <div class="mt-4 flex items-center text-white text-base font-bold">
+            <div class="mt-4 flex items-center text-gray-900 text-base font-bold">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
                 </svg>
@@ -79,21 +79,21 @@
         <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg p-6 text-white">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-white text-sm font-semibold">Avg Performance</p>
+                    <p class="text-gray-900 text-sm font-semibold">Avg Performance</p>
                     @php
                         $avgPerformance = isset($subjectStats) && count($subjectStats) > 0 
                             ? round(collect($subjectStats)->avg('performance')) 
                             : 0;
                     @endphp
-                    <p class="text-4xl font-bold mt-2">{{ $avgPerformance }}%</p>
+                    <p class="text-gray-900 text-4xl font-bold mt-2">{{ $avgPerformance }}%</p>
                 </div>
                 <div class="p-3 bg-white/20 rounded-lg">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                 </div>
             </div>
-            <div class="mt-4 flex items-center text-white text-base font-bold">
+            <div class="mt-4 flex items-center text-gray-900 text-base font-bold">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
                 </svg>
