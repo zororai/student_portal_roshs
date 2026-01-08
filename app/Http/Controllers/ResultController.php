@@ -72,12 +72,29 @@ class ResultController extends Controller
         // Get the logged-in teacher
         $teacher = Auth::user()->teacher;
 
-        // Get classes assigned to this teacher
-        $classes = $teacher ? $teacher->classes : [];
+        if (!$teacher) {
+            return view('backend.results.resultsrecord', ['classes' => collect(), 'years' => collect()]);
+        }
+
+        // Get all subjects taught by this teacher
+        $teacherSubjects = $teacher->subjects;
+        
+        // Get all unique class IDs from the subjects this teacher teaches
+        $classIds = [];
+        foreach ($teacherSubjects as $subject) {
+            $subjectClassIds = $subject->grades()->pluck('grades.id')->toArray();
+            $classIds = array_merge($classIds, $subjectClassIds);
+        }
+        
+        // Remove duplicates
+        $classIds = array_unique($classIds);
+        
+        // Get all classes where teacher teaches subjects
+        $classes = Grade::whereIn('id', $classIds)->get();
+        
         $years = ResultsStatus::select('year')->distinct()->pluck('year');
 
         return view('backend.results.resultsrecord', compact('classes','years'));
-
     }
 
     public function Classnames($class_id)
@@ -415,19 +432,20 @@ public function deleteResult($id)
 public function showResult(Request $request)
 {
     // Validate the incoming request
-   $request->validate([
-       'year' => 'required|integer',
-  'result_period' => 'required|string',
+    $request->validate([
+        'year' => 'required|integer',
+        'result_period' => 'required|string',
         'class_id' => 'required|integer',
-   ]);
+    ]);
 
+    // Note: class_id in the form actually contains the student_id
+    $studentId = $request->class_id;
 
     $results = Result::with('subject')
-    ->when($request->student_id, fn($query) => $query->where('student_id', $request->class_id))
-    ->when($request->year, fn($query) => $query->where('year', $request->year))
-    ->when($request->term, fn($query) => $query->where('result_period', $request->result_period))
-    ->get();
-
+        ->where('student_id', $studentId)
+        ->where('year', $request->year)
+        ->where('result_period', $request->result_period)
+        ->get();
 
     return view('backend.results.studentview', compact('results'));
 }
