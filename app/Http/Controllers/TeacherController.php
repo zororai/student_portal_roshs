@@ -711,8 +711,19 @@ class TeacherController extends Controller
             'papers.*.weight.max' => 'Weight cannot exceed 100%.'
         ]);
 
-        // Verify the class belongs to this teacher
-        $class = $teacher->classes()->findOrFail($request->class_id);
+        // Verify the class belongs to this teacher (either as class teacher or teaches subjects in it)
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClassIds = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->pluck('id')->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+        
+        if (!in_array($request->class_id, $allowedClassIds)) {
+            return redirect()->route('teacher.assessment')->with('error', 'You do not have access to this class.');
+        }
+        
+        $class = Grade::findOrFail($request->class_id);
 
         // Validate that paper weights add up to 100%
         $totalWeight = array_sum(array_column($request->papers, 'weight'));
@@ -764,50 +775,63 @@ class TeacherController extends Controller
         // Validate the request with enhanced validation rules
         $validated = $request->validate([
             'class_id' => 'required|exists:grades,id',
+            'subject_id' => 'required|exists:subjects,id',
             'entries' => 'required|array|min:1|max:50',
             'entries.*.comment' => 'required|string|min:10|max:500',
-            'entries.*.subject_id' => 'required|exists:subjects,id',
             'entries.*.grade' => 'required|string|in:A,B,C,D,E,F'
         ], [
             'class_id.required' => 'Class selection is required.',
             'class_id.exists' => 'The selected class does not exist.',
+            'subject_id.required' => 'Subject selection is required.',
+            'subject_id.exists' => 'The selected subject does not exist.',
             'entries.required' => 'At least one assessment comment entry is required.',
             'entries.min' => 'At least one assessment comment entry is required.',
             'entries.max' => 'You cannot add more than 50 entries at once.',
             'entries.*.comment.required' => 'Comment field is required for all entries.',
             'entries.*.comment.min' => 'Each comment must be at least 10 characters long.',
             'entries.*.comment.max' => 'Each comment cannot exceed 500 characters.',
-            'entries.*.subject_id.required' => 'Subject selection is required for all entries.',
-            'entries.*.subject_id.exists' => 'One or more selected subjects do not exist.',
             'entries.*.grade.required' => 'Grade selection is required for all entries.',
             'entries.*.grade.in' => 'Grade must be one of: A, B, C, D, E, or F.'
         ]);
 
-        // Verify the class belongs to this teacher
-        $class = $teacher->classes()->findOrFail($request->class_id);
-
-        // Check for duplicate subject entries
-        $subjectIds = array_column($request->entries, 'subject_id');
-        if (count($subjectIds) !== count(array_unique($subjectIds))) {
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['entries' => 'You cannot add multiple comments for the same subject. Please ensure each subject is unique.']);
+        // Verify the class belongs to this teacher (either as class teacher or teaches subjects in it)
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClassIds = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->pluck('id')->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+        
+        if (!in_array($request->class_id, $allowedClassIds)) {
+            return redirect()->route('teacher.assessment')->with('error', 'You do not have access to this class.');
         }
 
-        // Create multiple assessment comments
+        // Create multiple assessment comments for the selected subject
+        $createdComments = [];
         foreach ($request->entries as $entry) {
-            \App\AssessmentComment::create([
+            $comment = \App\AssessmentComment::create([
                 'class_id' => $request->class_id,
-                'subject_id' => $entry['subject_id'],
+                'subject_id' => $request->subject_id,
                 'comment' => trim($entry['comment']),
                 'grade' => strtoupper($entry['grade'])
             ]);
+            $comment->load('subject');
+            $createdComments[] = $comment;
         }
 
         $count = count($request->entries);
         $message = $count > 1 
             ? "Successfully added {$count} assessment comments!" 
             : 'Assessment comment added successfully!';
+
+        // Return JSON response to keep modal open
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'comments' => $createdComments
+            ]);
+        }
 
         return redirect()->route('teacher.assessment.list', $request->class_id)
             ->with('success', $message);

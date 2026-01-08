@@ -338,8 +338,14 @@
                         </table>
                     </div>
 
+                    <!-- Success Message Container -->
+                    <div id="formSuccessMessage" class="hidden mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative" role="alert">
+                        <strong class="font-bold">Success!</strong>
+                        <span id="successMessageText"></span>
+                    </div>
+
                     <!-- Add New Comment Form -->
-                    <form action="{{ route('teacher.assessment.comment.store') }}" method="POST" class="space-y-4" id="assessmentCommentForm" onsubmit="return validateForm()">
+                    <form action="{{ route('teacher.assessment.comment.store') }}" method="POST" class="space-y-4" id="assessmentCommentForm" onsubmit="return submitAssessmentCommentForm(event)">
                         @csrf
                         <input type="hidden" name="class_id" value="{{ $class->id }}">
 
