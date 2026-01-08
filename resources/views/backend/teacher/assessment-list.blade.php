@@ -395,12 +395,11 @@
                                             <select name="entries[0][grade]"
                                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                                                 <option value="">Select Grade</option>
-                                                <option value="A">A (80-100%)</option>
-                                                <option value="B">B (70-79%)</option>
-                                                <option value="C">C (60-69%)</option>
-                                                <option value="D">D (50-59%)</option>
-                                                <option value="E">E (40-49%)</option>
-                                                <option value="F">F (0-39%)</option>
+                                                <option value="A">A (75-100%)</option>
+                                                <option value="B">B (65-74%)</option>
+                                                <option value="C">C (50-64%)</option>
+                                                <option value="D">D (40-49%)</option>
+                                                <option value="U">U (0-39%)</option>
                                             </select>
                                         </div>
                                         <div class="pt-6">
@@ -698,12 +697,11 @@
                         <select name="entries[${gradeEntryCount}][grade]"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                             <option value="">Select Grade</option>
-                            <option value="A">A (80-100%)</option>
-                            <option value="B">B (70-79%)</option>
-                            <option value="C">C (60-69%)</option>
-                            <option value="D">D (50-59%)</option>
-                            <option value="E">E (40-49%)</option>
-                            <option value="F">F (0-39%)</option>
+                            <option value="A">A (75-100%)</option>
+                            <option value="B">B (65-74%)</option>
+                            <option value="C">C (50-64%)</option>
+                            <option value="D">D (40-49%)</option>
+                            <option value="U">U (0-39%)</option>
                         </select>
                     </div>
                     <div class="pt-6">
@@ -751,9 +749,14 @@
         // Comprehensive form validation
         function validateForm() {
             const errors = [];
+            const subjectSelect = document.getElementById('selectedSubject');
             const container = document.getElementById('gradeEntriesContainer');
             const entries = container.querySelectorAll('.grade-entry-row');
-            const subjectIds = [];
+
+            // Validate subject selection
+            if (!subjectSelect.value) {
+                errors.push('Subject selection is required.');
+            }
 
             // Check if at least one entry exists
             if (entries.length === 0) {
@@ -763,7 +766,6 @@
             // Validate each entry
             entries.forEach((entry, index) => {
                 const comment = entry.querySelector('input[name*="[comment]"]');
-                const subjectId = entry.querySelector('select[name*="[subject_id]"]');
                 const grade = entry.querySelector('select[name*="[grade]"]');
 
                 // Validate comment
@@ -773,18 +775,6 @@
                     errors.push(`Entry ${index + 1}: Comment must be at least 10 characters long.`);
                 } else if (comment.value.trim().length > 500) {
                     errors.push(`Entry ${index + 1}: Comment cannot exceed 500 characters.`);
-                }
-
-                // Validate subject
-                if (!subjectId.value) {
-                    errors.push(`Entry ${index + 1}: Subject selection is required.`);
-                } else {
-                    // Check for duplicate subjects
-                    if (subjectIds.includes(subjectId.value)) {
-                        errors.push(`Entry ${index + 1}: Subject "${subjectId.options[subjectId.selectedIndex].text}" is already selected. Each subject must be unique.`);
-                    } else {
-                        subjectIds.push(subjectId.value);
-                    }
                 }
 
                 // Validate grade
@@ -802,6 +792,116 @@
             // Hide error container if validation passes
             document.getElementById('formValidationError').classList.add('hidden');
             return true;
+        }
+
+        // AJAX form submission
+        function submitAssessmentCommentForm(event) {
+            event.preventDefault();
+            
+            // Validate form first
+            if (!validateForm()) {
+                return false;
+            }
+
+            const form = document.getElementById('assessmentCommentForm');
+            const formData = new FormData(form);
+            const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Disable submit button
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Submitting...';
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const successContainer = document.getElementById('formSuccessMessage');
+                    const successText = document.getElementById('successMessageText');
+                    successText.textContent = data.message;
+                    successContainer.classList.remove('hidden');
+                    
+                    // Add new comments to table
+                    const tableBody = document.getElementById('commentsTableBody');
+                    data.comments.forEach(comment => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${comment.subject.name}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900">${comment.comment}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${comment.grade}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <form action="/teacher/assessment/comment/${comment.id}" method="POST" class="inline">
+                                    <input type="hidden" name="_token" value="${document.querySelector('input[name="_token"]').value}">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="text-red-600 hover:text-red-800 font-semibold">Delete</button>
+                                </form>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // Reset form
+                    form.reset();
+                    
+                    // Reset entries to just one
+                    const container = document.getElementById('gradeEntriesContainer');
+                    container.innerHTML = `
+                        <div class="grade-entry-row bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div class="flex items-start gap-3">
+                                <div class="flex-1">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Comment</label>
+                                    <input type="text" name="entries[0][comment]" placeholder="Enter the comment (min 10, max 500 characters)"
+                                        maxlength="500"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                </div>
+                                <div class="w-48">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Grade</label>
+                                    <select name="entries[0][grade]"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                                        <option value="">Select Grade</option>
+                                        <option value="A">A (75-100%)</option>
+                                        <option value="B">B (65-74%)</option>
+                                        <option value="C">C (50-64%)</option>
+                                        <option value="D">D (40-49%)</option>
+                                        <option value="U">U (0-39%)</option>
+                                    </select>
+                                </div>
+                                <div class="pt-6">
+                                    <button type="button" onclick="removeGradeEntry(this)" class="p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors" title="Remove">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 448 512">
+                                            <path d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    gradeEntryCount = 1;
+                    
+                    // Hide success message after 5 seconds
+                    setTimeout(() => {
+                        successContainer.classList.add('hidden');
+                    }, 5000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the form. Please try again.');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Submit';
+            });
+
+            return false;
         }
 
         // Display validation errors

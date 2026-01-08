@@ -18,8 +18,15 @@ class Result extends Model
         'mark_grade',
         'year',
         'result_period',
-        'status', 
-        
+        'status',
+        'approved',
+        'approved_by',
+        'approved_at',
+    ];
+
+    protected $casts = [
+        'approved' => 'boolean',
+        'approved_at' => 'datetime',
     ];
 
     // A result belongs to ONE subject
@@ -46,5 +53,9 @@ class Result extends Model
         return $this->belongsTo(Grade::class, 'class_id');
     }
 
-    
+    // A result was approved by a user (admin)
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
 }

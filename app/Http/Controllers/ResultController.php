@@ -522,6 +522,7 @@ public function adminshowResult(Request $request)
         $results = Result::where('student_id', $studentId)
         ->where('result_period',$period)
         ->where('status',$paid)
+        ->where('approved', true)
         ->where('year', $year)
         ->with(['subject', 'teacher', 'class'])
         ->get();
@@ -611,8 +612,9 @@ public function adminshowResult(Request $request)
             }
         }
         
-        // Get ALL results for all students (all terms, all years)
+        // Get ALL results for all students (all terms, all years) - only approved results
         $results = Result::whereIn('student_id', $studentIds)
+            ->where('approved', true)
             ->with(['subject', 'teacher', 'class', 'student.user'])
             ->orderBy('year', 'desc')
             ->orderBy('result_period', 'desc')
@@ -742,6 +744,138 @@ public function adminshowResult(Request $request)
                 'message' => 'Failed to clean results: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Admin view pending results for approval
+     */
+    public function pendingApproval()
+    {
+        $classes = Grade::withCount('students')->orderBy('class_name')->get();
+        $years = ResultsStatus::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
+        
+        // Get count of pending results per class/term/year
+        $pendingCounts = Result::where('approved', false)
+            ->selectRaw('class_id, year, result_period, COUNT(*) as count')
+            ->groupBy('class_id', 'year', 'result_period')
+            ->get();
+        
+        return view('backend.results.pending-approval', compact('classes', 'years', 'pendingCounts'));
+    }
+
+    /**
+     * Get pending results for a specific class/term/year
+     */
+    public function getPendingResults(Request $request)
+    {
+        $classId = $request->class_id;
+        $year = $request->year;
+        $term = $request->term;
+
+        $class = Grade::with('students.user')->findOrFail($classId);
+        $studentIds = $class->students->pluck('id');
+
+        $results = Result::with(['student.user', 'subject', 'teacher.user'])
+            ->whereIn('student_id', $studentIds)
+            ->where('year', $year)
+            ->where('result_period', $term)
+            ->where('approved', false)
+            ->get()
+            ->groupBy('student_id');
+
+        $pendingCount = Result::whereIn('student_id', $studentIds)
+            ->where('year', $year)
+            ->where('result_period', $term)
+            ->where('approved', false)
+            ->count();
+
+        return response()->json([
+            'class' => $class,
+            'results' => $results,
+            'students' => $class->students,
+            'pending_count' => $pendingCount
+        ]);
+    }
+
+    /**
+     * Approve results for a class/term/year
+     */
+    public function approveResults(Request $request)
+    {
+        $classId = $request->class_id;
+        $year = $request->year;
+        $term = $request->term;
+        $studentIds = $request->student_ids; // Optional: specific students
+
+        $class = Grade::findOrFail($classId);
+        $allStudentIds = $class->students->pluck('id')->toArray();
+
+        // If specific students provided, use those, otherwise approve all
+        $targetStudentIds = $studentIds ? array_intersect($studentIds, $allStudentIds) : $allStudentIds;
+
+        $updated = Result::whereIn('student_id', $targetStudentIds)
+            ->where('year', $year)
+            ->where('result_period', $term)
+            ->where('approved', false)
+            ->update([
+                'approved' => true,
+                'approved_by' => Auth::id(),
+                'approved_at' => now()
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully approved {$updated} results.",
+            'approved_count' => $updated
+        ]);
+    }
+
+    /**
+     * Approve ALL pending results across all classes
+     */
+    public function approveAllResults()
+    {
+        $updated = Result::where('approved', false)
+            ->update([
+                'approved' => true,
+                'approved_by' => Auth::id(),
+                'approved_at' => now()
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully approved {$updated} results across all classes.",
+            'approved_count' => $updated
+        ]);
+    }
+
+    /**
+     * Reject/Unapprove results (set back to pending)
+     */
+    public function rejectResults(Request $request)
+    {
+        $classId = $request->class_id;
+        $year = $request->year;
+        $term = $request->term;
+
+        $class = Grade::findOrFail($classId);
+        $studentIds = $class->students->pluck('id');
+
+        $updated = Result::whereIn('student_id', $studentIds)
+            ->where('year', $year)
+            ->where('result_period', $term)
+            ->where('approved', true)
+            ->update([
+                'approved' => false,
+                'approved_by' => null,
+                'approved_at' => null
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully rejected {$updated} results. They are now pending approval.",
+            'rejected_count' => $updated
+        ]);
     }
 }
 

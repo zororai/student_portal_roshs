@@ -778,7 +778,7 @@ class TeacherController extends Controller
             'subject_id' => 'required|exists:subjects,id',
             'entries' => 'required|array|min:1|max:50',
             'entries.*.comment' => 'required|string|min:10|max:500',
-            'entries.*.grade' => 'required|string|in:A,B,C,D,E,F'
+            'entries.*.grade' => 'required|string|in:A,B,C,D,U'
         ], [
             'class_id.required' => 'Class selection is required.',
             'class_id.exists' => 'The selected class does not exist.',
@@ -791,7 +791,7 @@ class TeacherController extends Controller
             'entries.*.comment.min' => 'Each comment must be at least 10 characters long.',
             'entries.*.comment.max' => 'Each comment cannot exceed 500 characters.',
             'entries.*.grade.required' => 'Grade selection is required for all entries.',
-            'entries.*.grade.in' => 'Grade must be one of: A, B, C, D, E, or F.'
+            'entries.*.grade.in' => 'Grade must be one of: A, B, C, D, or U.'
         ]);
 
         // Verify the class belongs to this teacher (either as class teacher or teaches subjects in it)
@@ -853,8 +853,17 @@ class TeacherController extends Controller
 
         $comment = \App\AssessmentComment::findOrFail($id);
 
-        // Verify the class belongs to this teacher
-        $class = $teacher->classes()->findOrFail($comment->class_id);
+        // Verify the class belongs to this teacher (either as class teacher or teaches subjects in it)
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClassIds = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->pluck('id')->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+        
+        if (!in_array($comment->class_id, $allowedClassIds)) {
+            return redirect()->route('teacher.assessment')->with('error', 'You do not have access to this class.');
+        }
 
         $comment->delete();
 

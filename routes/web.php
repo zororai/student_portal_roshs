@@ -402,6 +402,13 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/view-results', 'ResultController@adminViewResults')->name('admin.view-results');
     Route::post('/admin/get-results', 'ResultController@getAdminResults')->name('admin.get-results');
     Route::post('/admin/clean-results', 'ResultController@cleanResults')->name('admin.clean-results');
+    
+    // Admin Results Approval Routes
+    Route::get('/admin/results/pending-approval', 'ResultController@pendingApproval')->name('admin.results.pending-approval');
+    Route::post('/admin/results/get-pending', 'ResultController@getPendingResults')->name('admin.results.get-pending');
+    Route::post('/admin/results/approve', 'ResultController@approveResults')->name('admin.results.approve');
+    Route::post('/admin/results/approve-all', 'ResultController@approveAllResults')->name('admin.results.approve-all');
+    Route::post('/admin/results/reject', 'ResultController@rejectResults')->name('admin.results.reject');
 
     // Disciplinary Records Routes (Admin)
     Route::get('/admin/disciplinary-records', 'DisciplinaryController@index')->name('admin.disciplinary.index');
