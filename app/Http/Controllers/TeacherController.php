@@ -601,12 +601,21 @@ class TeacherController extends Controller
             return in_array($subject->id, $teacherSubjectIds);
         });
 
-        // Get assessments for this class and teacher
-        $assessments = \App\Assessment::where('teacher_id', $teacher->id)
+        // Get all assessments for this class and teacher
+        $allAssessments = \App\Assessment::where('teacher_id', $teacher->id)
             ->where('class_id', $class_id)
             ->with('subject')
             ->orderBy('date', 'desc')
             ->get();
+
+        // Separate into marked and unmarked assessments
+        $assessments = $allAssessments->filter(function($assessment) {
+            return \App\AssessmentMark::where('assessment_id', $assessment->id)->count() == 0;
+        });
+
+        $markedAssessments = $allAssessments->filter(function($assessment) {
+            return \App\AssessmentMark::where('assessment_id', $assessment->id)->count() > 0;
+        });
 
         // Get assessment comments for this class and teacher's subjects only
         $assessmentComments = \App\AssessmentComment::where('class_id', $class_id)
@@ -615,7 +624,7 @@ class TeacherController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('backend.teacher.assessment-list', compact('class', 'assessments', 'assessmentComments', 'teacher'));
+        return view('backend.teacher.assessment-list', compact('class', 'assessments', 'markedAssessments', 'assessmentComments', 'teacher'));
     }
 
     /**

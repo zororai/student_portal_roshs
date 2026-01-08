@@ -314,9 +314,10 @@ class HomeController extends Controller
             $recentAssessments = [];
             
             foreach ($parents->children as $child) {
-                // Get assessment marks with subject info
+                // Get assessment marks with subject info (only approved)
                 $childAssessments = AssessmentMark::with(['assessment.subject', 'assessment.class'])
                     ->where('student_id', $child->id)
+                    ->where('approved', true)
                     ->whereHas('assessment')
                     ->get();
                 
@@ -378,9 +379,10 @@ class HomeController extends Controller
                     'percentage' => $totalAttendance > 0 ? round(($presentCount / $totalAttendance) * 100, 1) : 0
                 ];
                 
-                // Get recent assessments
+                // Get recent assessments (only approved)
                 $recent = AssessmentMark::with(['assessment.subject'])
                     ->where('student_id', $child->id)
+                    ->where('approved', true)
                     ->whereHas('assessment')
                     ->orderBy('created_at', 'desc')
                     ->take(5)
@@ -394,6 +396,7 @@ class HomeController extends Controller
                 
                 foreach ($assessmentTypes as $type) {
                     $typeMarks = AssessmentMark::where('student_id', $child->id)
+                        ->where('approved', true)
                         ->whereHas('assessment', function($q) use ($type) {
                             $q->where('assessment_type', $type);
                         })
@@ -435,6 +438,7 @@ class HomeController extends Controller
             
             foreach ($assessmentTypes as $type) {
                 $marks = AssessmentMark::where('student_id', $student->id)
+                    ->where('approved', true)
                     ->whereHas('assessment', function($q) use ($type) {
                         $q->where('assessment_type', $type);
                     })
@@ -465,6 +469,7 @@ class HomeController extends Controller
             $subjectPerformance = [];
             $studentMarks = AssessmentMark::with(['assessment.subject'])
                 ->where('student_id', $student->id)
+                ->where('approved', true)
                 ->whereHas('assessment.subject')
                 ->get();
             

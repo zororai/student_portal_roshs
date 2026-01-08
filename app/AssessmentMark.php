@@ -14,12 +14,17 @@ class AssessmentMark extends Model
         'mark',
         'total_marks',
         'comment',
-        'absence_reason'
+        'absence_reason',
+        'approved',
+        'approved_by',
+        'approved_at',
     ];
 
     protected $casts = [
         'mark' => 'decimal:2',
-        'total_marks' => 'decimal:2'
+        'total_marks' => 'decimal:2',
+        'approved' => 'boolean',
+        'approved_at' => 'datetime',
     ];
 
     public function assessment()
@@ -30,5 +35,10 @@ class AssessmentMark extends Model
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

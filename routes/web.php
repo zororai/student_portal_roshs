@@ -410,6 +410,13 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('/admin/results/approve-all', 'ResultController@approveAllResults')->name('admin.results.approve-all');
     Route::post('/admin/results/reject', 'ResultController@rejectResults')->name('admin.results.reject');
 
+    // Admin Assessment Marks Approval Routes
+    Route::get('/admin/assessment-marks/pending', 'ResultController@pendingAssessmentMarks')->name('admin.assessment-marks.pending');
+    Route::post('/admin/assessment-marks/get-pending', 'ResultController@getPendingAssessmentMarks')->name('admin.assessment-marks.get-pending');
+    Route::post('/admin/assessment-marks/get-marks', 'ResultController@getAssessmentMarksForApproval')->name('admin.assessment-marks.get-marks');
+    Route::post('/admin/assessment-marks/approve', 'ResultController@approveAssessmentMarks')->name('admin.assessment-marks.approve');
+    Route::post('/admin/assessment-marks/approve-all', 'ResultController@approveAllAssessmentMarks')->name('admin.assessment-marks.approve-all');
+
     // Disciplinary Records Routes (Admin)
     Route::get('/admin/disciplinary-records', 'DisciplinaryController@index')->name('admin.disciplinary.index');
     Route::post('/admin/disciplinary-records', 'DisciplinaryController@store')->name('admin.disciplinary.store');

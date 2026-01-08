@@ -877,6 +877,124 @@ public function adminshowResult(Request $request)
             'rejected_count' => $updated
         ]);
     }
+
+    /**
+     * Admin view pending assessment marks for approval
+     */
+    public function pendingAssessmentMarks()
+    {
+        $classes = Grade::withCount('students')->orderBy('class_name')->get();
+        
+        // Get count of pending assessment marks per class
+        $pendingCounts = AssessmentMark::where('approved', false)
+            ->join('assessments', 'assessment_marks.assessment_id', '=', 'assessments.id')
+            ->selectRaw('assessments.class_id, COUNT(DISTINCT assessment_marks.assessment_id) as assessment_count, COUNT(*) as marks_count')
+            ->groupBy('assessments.class_id')
+            ->get()
+            ->keyBy('class_id');
+        
+        $totalPending = AssessmentMark::where('approved', false)->count();
+        
+        return view('backend.results.pending-assessment-marks', compact('classes', 'pendingCounts', 'totalPending'));
+    }
+
+    /**
+     * Get pending assessment marks for a specific class
+     */
+    public function getPendingAssessmentMarks(Request $request)
+    {
+        $classId = $request->class_id;
+
+        $class = Grade::with('students.user')->findOrFail($classId);
+
+        // Get assessments with pending marks for this class
+        $assessments = Assessment::where('class_id', $classId)
+            ->whereHas('marks', function($query) {
+                $query->where('approved', false);
+            })
+            ->with(['subject', 'teacher.user'])
+            ->withCount(['marks as pending_count' => function($query) {
+                $query->where('approved', false);
+            }])
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return response()->json([
+            'class' => $class,
+            'assessments' => $assessments
+        ]);
+    }
+
+    /**
+     * Get student marks for a specific assessment
+     */
+    public function getAssessmentMarksForApproval(Request $request)
+    {
+        $assessmentId = $request->assessment_id;
+
+        $marks = AssessmentMark::where('assessment_id', $assessmentId)
+            ->where('approved', false)
+            ->with('student.user')
+            ->get()
+            ->groupBy('student_id');
+
+        $assessment = Assessment::with(['subject', 'teacher.user'])->findOrFail($assessmentId);
+
+        return response()->json([
+            'assessment' => $assessment,
+            'marks' => $marks
+        ]);
+    }
+
+    /**
+     * Approve assessment marks
+     */
+    public function approveAssessmentMarks(Request $request)
+    {
+        $assessmentId = $request->assessment_id;
+        $classId = $request->class_id;
+
+        $query = AssessmentMark::where('approved', false);
+        
+        if ($assessmentId) {
+            $query->where('assessment_id', $assessmentId);
+        } elseif ($classId) {
+            $query->whereHas('assessment', function($q) use ($classId) {
+                $q->where('class_id', $classId);
+            });
+        }
+
+        $updated = $query->update([
+            'approved' => true,
+            'approved_by' => Auth::id(),
+            'approved_at' => now()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully approved {$updated} assessment marks.",
+            'approved_count' => $updated
+        ]);
+    }
+
+    /**
+     * Approve ALL pending assessment marks
+     */
+    public function approveAllAssessmentMarks()
+    {
+        $updated = AssessmentMark::where('approved', false)
+            ->update([
+                'approved' => true,
+                'approved_by' => Auth::id(),
+                'approved_at' => now()
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully approved {$updated} assessment marks across all classes.",
+            'approved_count' => $updated
+        ]);
+    }
 }
 
 
