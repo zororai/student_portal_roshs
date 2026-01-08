@@ -401,6 +401,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     // Admin View Results Routes
     Route::get('/admin/view-results', 'ResultController@adminViewResults')->name('admin.view-results');
     Route::post('/admin/get-results', 'ResultController@getAdminResults')->name('admin.get-results');
+    Route::post('/admin/clean-results', 'ResultController@cleanResults')->name('admin.clean-results');
 
     // Disciplinary Records Routes (Admin)
     Route::get('/admin/disciplinary-records', 'DisciplinaryController@index')->name('admin.disciplinary.index');

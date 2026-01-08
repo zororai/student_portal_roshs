@@ -611,6 +611,50 @@ public function adminshowResult(Request $request)
         
         return view('backend.parent.assessments', compact('students', 'assessmentMarks', 'groupedAssessments'));
     }
+
+    /**
+     * Clean/Delete results records by class, term, and year
+     */
+    public function cleanResults(Request $request)
+    {
+        try {
+            $cleanAll = $request->clean_all;
+            $classId = $request->class_id;
+            $year = $request->year;
+            $term = $request->term;
+
+            $query = Result::query();
+
+            if ($cleanAll) {
+                // Delete all results
+                $deletedCount = $query->delete();
+            } else {
+                // Apply filters
+                if ($classId) {
+                    $query->where('class_id', $classId);
+                }
+                if ($year) {
+                    $query->where('year', $year);
+                }
+                if ($term) {
+                    $query->where('result_period', $term);
+                }
+
+                $deletedCount = $query->delete();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Results cleaned successfully.',
+                'deleted_count' => $deletedCount
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to clean results: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 
 
