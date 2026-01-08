@@ -9,8 +9,10 @@ use App\Student;
 use App\Teacher;
 use App\Parents;
 use App\Grade;
+use App\Helpers\SmsHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SchoolNotificationController extends Controller
 {
@@ -190,5 +192,96 @@ class SchoolNotificationController extends Controller
         return $notifications->filter(function ($n) {
             return !$n->is_read;
         })->count();
+    }
+
+    /**
+     * Admin: Send bulk SMS notifications
+     */
+    public function sendSms(Request $request)
+    {
+        $request->validate([
+            'recipient_type' => 'required|in:all_parents,all_teachers,class_parents',
+            'class_id' => 'required_if:recipient_type,class_parents',
+            'message' => 'required|string|max:160'
+        ]);
+
+        $phoneNumbers = [];
+        $recipientType = $request->recipient_type;
+        $message = $request->message;
+
+        switch ($recipientType) {
+            case 'all_parents':
+                $parents = Parents::with('user')->get();
+                foreach ($parents as $parent) {
+                    if ($parent->user && $parent->user->phone) {
+                        $phoneNumbers[] = $this->formatPhoneNumber($parent->user->phone);
+                    }
+                }
+                break;
+
+            case 'all_teachers':
+                $teachers = Teacher::with('user')->get();
+                foreach ($teachers as $teacher) {
+                    if ($teacher->user && $teacher->user->phone) {
+                        $phoneNumbers[] = $this->formatPhoneNumber($teacher->user->phone);
+                    }
+                }
+                break;
+
+            case 'class_parents':
+                $students = Student::where('class_id', $request->class_id)->with('parent.user')->get();
+                foreach ($students as $student) {
+                    if ($student->parent && $student->parent->user && $student->parent->user->phone) {
+                        $phoneNumbers[] = $this->formatPhoneNumber($student->parent->user->phone);
+                    }
+                }
+                break;
+        }
+
+        // Remove duplicates and empty values
+        $phoneNumbers = array_unique(array_filter($phoneNumbers));
+
+        if (empty($phoneNumbers)) {
+            return redirect()->route('admin.notifications.index')
+                ->with('error', 'No valid phone numbers found for the selected recipients.');
+        }
+
+        $sent = 0;
+        $failed = 0;
+
+        foreach ($phoneNumbers as $phone) {
+            $result = SmsHelper::sendSms($phone, $message);
+            if ($result['success']) {
+                $sent++;
+            } else {
+                $failed++;
+                Log::warning('SMS failed', ['phone' => $phone, 'error' => $result['message']]);
+            }
+        }
+
+        return redirect()->route('admin.notifications.index')
+            ->with('sms_results', ['sent' => $sent, 'failed' => $failed])
+            ->with('success', "SMS notifications sent! Successfully delivered: {$sent}, Failed: {$failed}");
+    }
+
+    /**
+     * Format phone number to international format
+     */
+    private function formatPhoneNumber($phone)
+    {
+        // Remove spaces and special characters
+        $phone = preg_replace('/[^0-9+]/', '', $phone);
+        
+        // If starts with 0, replace with +263 (Zimbabwe)
+        if (substr($phone, 0, 1) === '0') {
+            $phone = '+263' . substr($phone, 1);
+        }
+        
+        // If doesn't start with +, add it
+        if (substr($phone, 0, 1) !== '+') {
+            $phone = '+' . $phone;
+        }
+        
+        return $phone;
     }
 }

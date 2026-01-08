@@ -35,6 +35,104 @@
         </div>
         @endif
 
+        @if(session('error'))
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                <p class="text-red-700">{{ session('error') }}</p>
+            </div>
+        </div>
+        @endif
+
+        @if(session('sms_results'))
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-blue-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div class="text-blue-700">
+                    <p class="font-semibold">SMS Results:</p>
+                    <p>Sent: {{ session('sms_results')['sent'] }} | Failed: {{ session('sms_results')['failed'] }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- SMS Push Notifications Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div class="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-green-500 to-emerald-600">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    <h2 class="text-lg font-semibold text-white">Push SMS Notifications</h2>
+                </div>
+            </div>
+
+            <form action="{{ route('admin.notifications.send-sms') }}" method="POST" class="p-6">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Recipient Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Send To</label>
+                        <select name="recipient_type" id="sms_recipient_type" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
+                            <option value="">-- Select Recipients --</option>
+                            <option value="all_parents">All Parents</option>
+                            <option value="all_teachers">All Teachers</option>
+                            <option value="class_parents">Parents of Specific Class</option>
+                        </select>
+                    </div>
+
+                    <!-- Class Selection (conditional) -->
+                    <div id="sms_class_select" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Class</label>
+                        <select name="class_id" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="">-- Select Class --</option>
+                            @foreach(\App\Grade::orderBy('class_name')->get() as $class)
+                                <option value="{{ $class->id }}">{{ $class->class_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Message -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                    <textarea name="message" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none" placeholder="Enter your SMS message..." required maxlength="160"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Maximum 160 characters for a single SMS</p>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="mt-6 flex items-center justify-between">
+                    <div class="flex items-center text-sm text-gray-500">
+                        <svg class="w-4 h-4 mr-1.5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        SMS charges may apply
+                    </div>
+                    <button type="submit" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-lg font-semibold">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                        Send SMS
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            document.getElementById('sms_recipient_type').addEventListener('change', function() {
+                const classSelect = document.getElementById('sms_class_select');
+                if (this.value === 'class_parents') {
+                    classSelect.classList.remove('hidden');
+                } else {
+                    classSelect.classList.add('hidden');
+                }
+            });
+        </script>
+
         <!-- Notifications List -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-5 border-b border-gray-100">

@@ -361,6 +361,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/notifications', 'SchoolNotificationController@adminIndex')->name('admin.notifications.index');
     Route::get('/admin/notifications/create', 'SchoolNotificationController@create')->name('admin.notifications.create');
     Route::post('/admin/notifications', 'SchoolNotificationController@store')->name('admin.notifications.store');
+    Route::post('/admin/notifications/send-sms', 'SchoolNotificationController@sendSms')->name('admin.notifications.send-sms');
     Route::get('/admin/notifications/{id}', 'SchoolNotificationController@show')->name('admin.notifications.show');
     Route::delete('/admin/notifications/{id}', 'SchoolNotificationController@destroy')->name('admin.notifications.destroy');
     

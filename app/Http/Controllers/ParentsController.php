@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
+use App\Helpers\SmsHelper;
 
 class ParentsController extends Controller
 {
@@ -308,12 +309,62 @@ class ParentsController extends Controller
             return back()->with('error', 'Parent user account not found.');
         }
 
-        // Set must_change_password flag
+        // Generate temporary password
+        $tempPassword = Str::random(8);
+        
+        // Update user's password and set must_change_password flag
         $parent->user->update([
+            'password' => Hash::make($tempPassword),
             'must_change_password' => true
         ]);
 
-        return back()->with('success', 'Password reset required for ' . $parent->user->name . '. They will be prompted to change their password on next login.');
+        // Send SMS with login credentials
+        $smsSent = false;
+        if ($parent->phone) {
+            $phone = $this->formatPhoneNumber($parent->phone);
+            $message = "ROSHS Password Reset\n" .
+                       "Email: {$parent->user->email}\n" .
+                       "Temp Password: {$tempPassword}\n" .
+                       "Please login and change your password immediately.";
+            
+            $result = SmsHelper::sendSms($phone, $message);
+            $smsSent = $result['success'];
+            
+            if (!$smsSent) {
+                Log::warning('Failed to send password reset SMS to parent', [
+                    'parent_id' => $parent->id,
+                    'phone' => $phone,
+                    'error' => $result['message'] ?? 'Unknown error'
+                ]);
+            }
+        }
+
+        $successMsg = 'Password reset for ' . $parent->user->name . '.';
+        if ($smsSent) {
+            $successMsg .= ' SMS sent with login credentials.';
+        } else {
+            $successMsg .= ' SMS could not be sent. Email: ' . $parent->user->email . ', Temp Password: ' . $tempPassword;
+        }
+
+        return back()->with('success', $successMsg);
+    }
+
+    /**
+     * Format phone number to international format
+     */
+    private function formatPhoneNumber($phone)
+    {
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+        
+        if (substr($phone, 0, 1) === '0') {
+            $phone = '+263' . substr($phone, 1);
+        } elseif (substr($phone, 0, 3) !== '263') {
+            $phone = '+263' . $phone;
+        } else {
+            $phone = '+' . $phone;
+        }
+        
+        return $phone;
     }
 }
 
