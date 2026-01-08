@@ -581,4 +581,26 @@ class StudentController extends Controller
             return redirect()->back()->with('error', 'Failed to send SMS: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Force student to change password on next login
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function forcePasswordReset($id)
+    {
+        $student = Student::with('user')->findOrFail($id);
+        
+        if (!$student->user) {
+            return back()->with('error', 'Student user account not found.');
+        }
+
+        // Set must_change_password flag
+        $student->user->update([
+            'must_change_password' => true
+        ]);
+
+        return back()->with('success', 'Password reset required for ' . $student->user->name . '. They will be prompted to change their password on next login.');
+    }
 }

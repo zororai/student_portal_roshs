@@ -143,8 +143,10 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::resource('subject', 'SubjectController');
     Route::resource('teacher', 'TeacherController')->except(['show']);
     Route::resource('parents', 'ParentsController');
-    Route::post('parents/{id}/generate-password-reset', 'ParentsController@generatePasswordResetToken')->name('parents.generate-password-reset');
+    Route::post('parents/{id}/force-password-reset', 'ParentsController@forcePasswordReset')->name('parents.force-password-reset');
     Route::resource('student', 'StudentController')->except(['create', 'store']);
+    Route::post('student/{id}/force-password-reset', 'StudentController@forcePasswordReset')->name('student.force-password-reset');
+    Route::post('teacher/{id}/force-password-reset', 'TeacherController@forcePasswordReset')->name('teacher.force-password-reset');
 
     // Admin Applicants Routes
     Route::get('admin/applicants', 'AdminApplicantController@index')->name('admin.applicants.index');
@@ -604,11 +606,6 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
     Route::get('/parent/payment-verification', 'PaymentVerificationController@create')->name('parent.payment-verification.create');
     Route::post('/parent/payment-verification', 'PaymentVerificationController@store')->name('parent.payment-verification.store');
 });
-
-// Parent Password Reset Routes (Public)
-Route::get('/parent/password-reset/{token}', 'ParentsController@showPasswordResetForm')->name('parent.password-reset.show');
-Route::post('/parent/password-reset/{token}', 'ParentsController@resetPassword')->name('parent.password-reset.submit');
-Route::get('/parent/password-reset-success', 'ParentsController@passwordResetSuccess')->name('parent.password-reset.success');
 
 Route::group(['middleware' => ['auth','role:Student']], function () {
 

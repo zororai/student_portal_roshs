@@ -126,6 +126,14 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-2">
+                                        <form action="{{ route('teacher.force-password-reset', $teacher->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="inline-flex items-center p-2 bg-purple-100 hover:bg-purple-200 text-purple-600 rounded-lg transition-colors" title="Force Password Reset">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 512 512">
+                                                    <path d="M336 0c-26.5 0-48 21.5-48 48v128c0 26.5 21.5 48 48 48h128c26.5 0 48-21.5 48-48V48c0-26.5-21.5-48-48-48H336zm12 68h104a12 12 0 0 1 12 12v56a12 12 0 0 1-12 12H348a12 12 0 0 1-12-12V80a12 12 0 0 1 12-12zm-116 76v128c0 26.5 21.5 48 48 48h128c26.5 0 48-21.5 48-48V256h-48v80H280V144H128v80h48V144c0-26.5 21.5-48 48-48h128v48H232z"/>
+                                                </svg>
+                                            </button>
+                                        </form>
                                         <a href="{{ route('teacher.edit',$teacher->id) }}" class="inline-flex items-center p-2 bg-green-100 hover:bg-green-200 text-green-600 rounded-lg transition-colors" title="Edit">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
                                                 <path d="M400 480H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v352c0 26.5-21.5 48-48 48zM238.1 177.9L102.4 313.6l-6.3 57.1c-.8 7.6 5.6 14.1 13.3 13.3l57.1-6.3L302.2 242c2.3-2.3 2.3-6.1 0-8.5L246.7 178c-2.5-2.4-6.3-2.4-8.6-.1zM345 165.1L314.9 135c-9.4-9.4-24.6-9.4-33.9 0l-23.1 23.1c-2.3 2.3-2.3 6.1 0 8.5l55.5 55.5c2.3 2.3 6.1 2.3 8.5 0L345 199c9.3-9.3 9.3-24.5 0-33.9z"/>

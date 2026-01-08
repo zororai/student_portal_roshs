@@ -1267,6 +1267,28 @@ class TeacherController extends Controller
     }
 
     /**
+     * Force teacher to change password on next login
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function forcePasswordReset($id)
+    {
+        $teacher = Teacher::with('user')->findOrFail($id);
+        
+        if (!$teacher->user) {
+            return back()->with('error', 'Teacher user account not found.');
+        }
+
+        // Set must_change_password flag
+        $teacher->user->update([
+            'must_change_password' => true
+        ]);
+
+        return back()->with('success', 'Password reset required for ' . $teacher->user->name . '. They will be prompted to change their password on next login.');
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Teacher  $teacher
