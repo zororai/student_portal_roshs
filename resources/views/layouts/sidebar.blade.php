@@ -516,6 +516,14 @@
                     Webcam
                 </a>
                 @endcan
+                @can('view-teacher-device-info')
+                <a href="{{ route('teacher-devices.index') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    Manage Teacher Devices
+                </a>
+                @endcan
             </div>
         </div>
         @endcan

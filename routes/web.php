@@ -151,6 +151,15 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::patch('admin/applicants/{id}/status', 'AdminApplicantController@updateStatus')->name('admin.applicants.updateStatus');
     Route::delete('admin/applicants/{id}', 'AdminApplicantController@destroy')->name('admin.applicants.destroy');
 
+    // Teacher Device Management Routes
+    Route::get('admin/teacher-devices', 'TeacherDeviceController@index')->name('teacher-devices.index');
+    Route::get('admin/teacher-devices/{id}', 'TeacherDeviceController@show')->name('teacher-devices.show');
+    Route::post('admin/teacher-devices/{id}/enable', 'TeacherDeviceController@enableRegistration')->name('teacher-devices.enable');
+    Route::post('admin/teacher-devices/{id}/allow-change', 'TeacherDeviceController@allowPhoneChange')->name('teacher-devices.allow-change');
+    Route::post('admin/teacher-devices/{id}/reset', 'TeacherDeviceController@resetDevice')->name('teacher-devices.reset');
+    Route::post('admin/teacher-devices/device/{deviceId}/revoke', 'TeacherDeviceController@revokeDevice')->name('teacher-devices.revoke');
+    Route::post('admin/teacher-devices/bulk-enable', 'TeacherDeviceController@bulkEnableRegistration')->name('teacher-devices.bulk-enable');
+
     // School Staff Routes
     Route::get('admin/staff', 'AdminStaffController@index')->name('admin.staff.index');
     Route::get('admin/staff/create', 'AdminStaffController@create')->name('admin.staff.create');
@@ -454,10 +463,14 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()
 {
-    // Teacher Attendance Routes
-    Route::get('/teacher/attendance', 'TeacherAttendanceController@index')->name('teacher.attendance.index');
-    Route::post('/teacher/attendance/mark', 'TeacherAttendanceController@markAttendance')->name('teacher.attendance.mark');
+    // Teacher Attendance Routes (with device validation)
+    Route::get('/teacher/attendance', 'TeacherAttendanceController@index')->name('teacher.attendance.index')->middleware('validate.teacher.device');
+    Route::post('/teacher/attendance/mark', 'TeacherAttendanceController@markAttendance')->name('teacher.attendance.mark')->middleware('validate.teacher.device');
     Route::get('/teacher/attendance/boundary', 'TeacherAttendanceController@getSchoolBoundary')->name('teacher.attendance.boundary');
+
+    // Teacher Device Registration Routes
+    Route::post('/teacher/device/register', 'TeacherDeviceController@registerDevice')->name('teacher.device.register');
+    Route::get('/teacher/device/status', 'TeacherDeviceController@getDeviceStatus')->name('teacher.device.status');
 
     // Teacher Leave Application Routes
     Route::get('/teacher/leave', 'TeacherLeaveController@index')->name('teacher.leave.index');

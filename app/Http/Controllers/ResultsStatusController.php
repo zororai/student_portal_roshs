@@ -97,8 +97,14 @@ class ResultsStatusController extends Controller
     // Method to show the edit form for a specific record
     public function edit($id)
     {
-        $resultStatus = ResultsStatus::findOrFail($id);
-        return view('results_status.edit', compact('resultStatus'));
+        $resultStatus = ResultsStatus::with(['termFees.feeType'])->findOrFail($id);
+        $feeTypes = FeeType::where('is_active', true)->get();
+        
+        // Separate day and boarding fees
+        $dayFees = $resultStatus->termFees->where('student_type', 'day')->values();
+        $boardingFees = $resultStatus->termFees->where('student_type', 'boarding')->values();
+        
+        return view('results_status.edit', compact('resultStatus', 'feeTypes', 'dayFees', 'boardingFees'));
     }
 
     // Method to update an existing record
@@ -107,19 +113,63 @@ class ResultsStatusController extends Controller
         $request->validate([
             'year' => 'required|integer',
             'result_period' => 'required|string',
+            'day_fees' => 'required|array',
+            'day_fees.*.fee_type_id' => 'required|exists:fee_types,id',
+            'day_fees.*.amount' => 'required|numeric|min:0',
+            'boarding_fees' => 'required|array',
+            'boarding_fees.*.fee_type_id' => 'required|exists:fee_types,id',
+            'boarding_fees.*.amount' => 'required|numeric|min:0',
         ]);
 
         $resultStatus = ResultsStatus::findOrFail($id);
 
-        if ($resultStatus->year !== $request->year) {
-            $existingRecord = ResultsStatus::where('year', $request->year)->first();
-            if ($existingRecord) {
-                return redirect()->back()->withErrors(['year' => 'The year has already been taken.']);
-            }
+        // Check for duplicate year+result_period combination (excluding current record)
+        $existingRecord = ResultsStatus::where('year', $request->year)
+            ->where('result_period', $request->result_period)
+            ->where('id', '!=', $id)
+            ->first();
+            
+        if ($existingRecord) {
+            return redirect()->back()->withErrors(['year' => 'A record with this year and result period already exists.']);
         }
 
-        $resultStatus->update($request->only('result_period'));
+        // Calculate total fees for day and boarding separately
+        $totalDayFees = array_sum(array_column($request->day_fees, 'amount'));
+        $totalBoardingFees = array_sum(array_column($request->boarding_fees, 'amount'));
+        $totalFees = $totalDayFees + $totalBoardingFees;
 
-        return redirect()->route('results_status.index')->with('success', 'Record updated successfully.');
+        // Update the results status
+        $resultStatus->update([
+            'year' => $request->year,
+            'result_period' => $request->result_period,
+            'total_fees' => $totalFees,
+            'total_day_fees' => $totalDayFees,
+            'total_boarding_fees' => $totalBoardingFees
+        ]);
+
+        // Delete existing term fees and recreate them
+        $resultStatus->termFees()->delete();
+
+        // Create day fees
+        foreach ($request->day_fees as $fee) {
+            TermFee::create([
+                'results_status_id' => $resultStatus->id,
+                'fee_type_id' => $fee['fee_type_id'],
+                'student_type' => 'day',
+                'amount' => $fee['amount']
+            ]);
+        }
+
+        // Create boarding fees
+        foreach ($request->boarding_fees as $fee) {
+            TermFee::create([
+                'results_status_id' => $resultStatus->id,
+                'fee_type_id' => $fee['fee_type_id'],
+                'student_type' => 'boarding',
+                'amount' => $fee['amount']
+            ]);
+        }
+
+        return redirect()->route('results_status.index')->with('success', 'Term updated! Day fees: $' . number_format($totalDayFees, 2) . ' | Boarding fees: $' . number_format($totalBoardingFees, 2));
     }
 }

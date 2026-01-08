@@ -70,21 +70,57 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     @if($resultStatus->termFees && $resultStatus->termFees->count() > 0)
-                                        <div class="space-y-1">
-                                            @foreach($resultStatus->termFees as $termFee)
-                                                <div class="flex items-center justify-between text-xs">
-                                                    <span class="text-gray-600">{{ $termFee->feeType->name }}</span>
-                                                    <span class="font-semibold text-gray-900">${{ number_format($termFee->amount, 2) }}</span>
+                                        <div class="space-y-3">
+                                            {{-- Day Student Fees --}}
+                                            @php $dayFees = $resultStatus->termFees->where('student_type', 'day'); @endphp
+                                            @if($dayFees->count() > 0)
+                                                <div>
+                                                    <div class="text-xs font-semibold text-blue-600 mb-1 flex items-center">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z"/></svg>
+                                                        Day Student
+                                                    </div>
+                                                    <div class="space-y-1 pl-4 border-l-2 border-blue-200">
+                                                        @foreach($dayFees as $termFee)
+                                                            <div class="flex items-center justify-between text-xs">
+                                                                <span class="text-gray-600">{{ $termFee->feeType->name }}</span>
+                                                                <span class="font-semibold text-gray-900">${{ number_format($termFee->amount, 2) }}</span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
                                                 </div>
-                                            @endforeach
+                                            @endif
+                                            
+                                            {{-- Boarding Student Fees --}}
+                                            @php $boardingFees = $resultStatus->termFees->where('student_type', 'boarding'); @endphp
+                                            @if($boardingFees->count() > 0)
+                                                <div>
+                                                    <div class="text-xs font-semibold text-purple-600 mb-1 flex items-center">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+                                                        Boarding Student
+                                                    </div>
+                                                    <div class="space-y-1 pl-4 border-l-2 border-purple-200">
+                                                        @foreach($boardingFees as $termFee)
+                                                            <div class="flex items-center justify-between text-xs">
+                                                                <span class="text-gray-600">{{ $termFee->feeType->name }}</span>
+                                                                <span class="font-semibold text-gray-900">${{ number_format($termFee->amount, 2) }}</span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </div>
                                     @else
                                         <span class="text-xs text-gray-400 italic">No fees added</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    <div class="text-lg font-bold text-blue-600">
-                                        ${{ number_format($resultStatus->total_fees, 2) }}
+                                    <div class="space-y-1">
+                                        <div class="text-xs text-blue-600">
+                                            Day: <span class="font-bold">${{ number_format($resultStatus->total_day_fees, 2) }}</span>
+                                        </div>
+                                        <div class="text-xs text-purple-600">
+                                            Boarding: <span class="font-bold">${{ number_format($resultStatus->total_boarding_fees, 2) }}</span>
+                                        </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

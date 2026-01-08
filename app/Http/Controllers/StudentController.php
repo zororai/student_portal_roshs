@@ -442,7 +442,13 @@ class StudentController extends Controller
         \Log::info('Process completed successfully');
         \Log::info('=== END DEBUG ===');
 
-        return redirect()->route('student.index')->with('success', 'Student created successfully! SMS sent to parent(s) for registration completion.');
+        // Redirect based on user role
+        if (auth()->user()->hasRole('Admin')) {
+            return redirect()->route('student.index')->with('success', 'Student created successfully! SMS sent to parent(s) for registration completion.');
+        } else {
+            // Class teacher redirect - show students of the class where student was added
+            return redirect('/teacher/student-record/' . $request->class_id)->with('success', 'Student created successfully! SMS sent to parent(s) for registration completion.');
+        }
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Validation failed:', ['errors' => $e->errors()]);

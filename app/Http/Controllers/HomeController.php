@@ -207,11 +207,21 @@ class HomeController extends Controller
 
         } elseif ($user->hasRole('Teacher')) {
 
-            $teacher = Teacher::with(['user','subjects','classes','students'])->withCount('subjects','classes')->findOrFail($user->teacher->id);
-
-            // Get assessment statistics for teacher's subjects
+            $teacher = Teacher::with(['user','subjects'])->withCount('subjects')->findOrFail($user->teacher->id);
+            
+            // Get classes through the subjects the teacher teaches (not direct class assignment)
             $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
-            $teacherClassIds = $teacher->classes->pluck('id')->toArray();
+            
+            // Get all classes associated with the teacher's subjects
+            $teacherClasses = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+                $query->whereIn('subjects.id', $teacherSubjectIds);
+            })->get();
+            
+            $teacherClassIds = $teacherClasses->pluck('id')->toArray();
+            
+            // Add classes and classes_count to teacher object for the view
+            $teacher->setRelation('classes', $teacherClasses);
+            $teacher->classes_count = $teacherClasses->count();
             
             $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
             $teacherAssessmentStats = [];

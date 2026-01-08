@@ -2,9 +2,50 @@
 
 @section('content')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@aspect-analytics/browser-fingerprint@0.1.7/dist/fingerprint.min.js"></script>
 <style>
     #attendanceMap { height: 300px; width: 100%; border-radius: 0.75rem; }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .user-marker div { animation: pulse 2s infinite; }
 </style>
+
+@php
+    $deviceRegistrationStatus = $teacher->device_registration_status ?? 'not_required';
+@endphp
+
+@if($deviceRegistrationStatus === 'pending')
+<!-- Device Registration Modal -->
+<div id="deviceRegistrationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <div class="bg-blue-600 px-6 py-4">
+            <h2 class="text-xl font-bold text-white">Register Your Device</h2>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center justify-center mb-6">
+                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-gray-600 text-center mb-6">
+                This device will be registered for your attendance. You will only be able to mark attendance from this device.
+            </p>
+            <div id="deviceInfo" class="bg-gray-50 rounded-lg p-4 mb-6">
+                <p class="text-sm text-gray-500">Detecting device information...</p>
+            </div>
+            <div id="registrationError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4"></div>
+            <button id="registerDeviceBtn" onclick="registerDevice()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
+                Register This Device
+            </button>
+        </div>
+    </div>
+</div>
+@endif
 
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header -->
@@ -213,11 +254,16 @@
     var schoolBoundary = @json($schoolBoundary);
 
     var locationFailed = false;
+    var mapInitialized = false;
 
-    window.onload = function() {
+    // Use DOMContentLoaded for more reliable initialization
+    document.addEventListener('DOMContentLoaded', function() {
         initMap();
-        getLocation();
-    };
+        // Small delay to ensure map is fully rendered
+        setTimeout(function() {
+            getLocation();
+        }, 500);
+    });
 
     function retryLocation() {
         var statusEl = document.getElementById('locationStatus');
@@ -246,10 +292,17 @@
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
+        // Fix map display issues by invalidating size after render
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 100);
+
         // Draw school boundary if exists
         if (schoolBoundary) {
             drawBoundary(schoolBoundary);
         }
+        
+        mapInitialized = true;
     }
 
     function drawBoundary(geo) {
@@ -305,20 +358,23 @@
                 // Update map
                 map.setView([currentLat, currentLng], 17);
 
-                // Add/update user marker
+                // Add/update user marker with a more visible design
                 if (userMarker) {
                     userMarker.setLatLng([currentLat, currentLng]);
                 } else {
                     userMarker = L.marker([currentLat, currentLng], {
                         icon: L.divIcon({
                             className: 'user-marker',
-                            html: '<div style="background: #ef4444; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
-                            iconSize: [16, 16],
-                            iconAnchor: [8, 8]
+                            html: '<div style="background: #ef4444; width: 20px; height: 20px; border-radius: 50%; border: 4px solid white; box-shadow: 0 3px 8px rgba(0,0,0,0.4); animation: pulse 2s infinite;"></div>',
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10]
                         })
                     }).addTo(map);
-                    userMarker.bindPopup('<strong>Your Location</strong>');
+                    userMarker.bindPopup('<strong>You are here</strong>').openPopup();
                 }
+                
+                // Also invalidate map size after adding marker
+                map.invalidateSize();
 
                 // Check if within boundary
                 var withinBoundary = checkWithinBoundary(currentLat, currentLng);
@@ -337,12 +393,16 @@
             function(error) {
                 locationFailed = true;
                 var message = 'Location error: ';
+                var helpText = '';
                 switch(error.code) {
-                    case error.PERMISSION_DENIED: message += 'Permission denied. Please allow location access in your browser.'; break;
+                    case error.PERMISSION_DENIED: 
+                        message += 'Permission denied.'; 
+                        helpText = '<div class="mt-2 text-xs text-red-600"><strong>Note:</strong> Location access requires HTTPS. If using HTTP, click "Skip" to proceed without location verification.</div>';
+                        break;
                     case error.POSITION_UNAVAILABLE: message += 'Position unavailable. Try moving to a different location.'; break;
                     case error.TIMEOUT: message += 'Request timed out. Please retry.'; break;
                 }
-                statusEl.innerHTML = '<div class="flex items-center justify-between"><div class="flex items-center text-red-700"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' + message + '</div><div class="flex gap-2"><button type="button" onclick="retryLocation()" class="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Retry</button><button type="button" onclick="skipLocation()" class="text-sm px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">Skip</button></div></div>';
+                statusEl.innerHTML = '<div class="flex items-center justify-between"><div class="flex-1"><div class="flex items-center text-red-700"><svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' + message + '</div>' + helpText + '</div><div class="flex gap-2"><button type="button" onclick="retryLocation()" class="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Retry</button><button type="button" onclick="skipLocation()" class="text-sm px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700">Skip Location</button></div></div>';
                 statusEl.className = 'bg-red-50 border border-red-200 rounded-lg p-4 mb-6';
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -430,6 +490,138 @@
         area.classList.remove('hidden');
         inner.className = 'p-4 rounded-lg ' + (type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800');
         inner.textContent = message;
+    }
+
+    // Device Fingerprinting
+    var deviceFingerprint = null;
+    var deviceInfo = {};
+
+    function generateFingerprint() {
+        // Create a simple but effective fingerprint based on browser properties
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = '14px Arial';
+        ctx.fillText('Device Fingerprint', 2, 2);
+        var canvasData = canvas.toDataURL();
+        
+        var fingerprint = [
+            navigator.userAgent,
+            navigator.language,
+            screen.width + 'x' + screen.height,
+            screen.colorDepth,
+            new Date().getTimezoneOffset(),
+            navigator.hardwareConcurrency || 'unknown',
+            navigator.platform,
+            canvasData.substring(0, 100)
+        ].join('|');
+        
+        // Create a hash of the fingerprint
+        var hash = 0;
+        for (var i = 0; i < fingerprint.length; i++) {
+            var char = fingerprint.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        
+        return 'FP' + Math.abs(hash).toString(36) + Date.now().toString(36);
+    }
+
+    function getDeviceInfo() {
+        var ua = navigator.userAgent;
+        var browser = 'Unknown';
+        var device = 'Unknown Device';
+        
+        // Detect browser
+        if (ua.indexOf('Chrome') > -1) browser = 'Chrome';
+        else if (ua.indexOf('Firefox') > -1) browser = 'Firefox';
+        else if (ua.indexOf('Safari') > -1) browser = 'Safari';
+        else if (ua.indexOf('Edge') > -1) browser = 'Edge';
+        else if (ua.indexOf('Opera') > -1) browser = 'Opera';
+        
+        // Detect device
+        if (/Android/i.test(ua)) device = 'Android Phone';
+        else if (/iPhone/i.test(ua)) device = 'iPhone';
+        else if (/iPad/i.test(ua)) device = 'iPad';
+        else if (/Windows/i.test(ua)) device = 'Windows PC';
+        else if (/Mac/i.test(ua)) device = 'Mac';
+        else if (/Linux/i.test(ua)) device = 'Linux PC';
+        
+        return {
+            browser: browser,
+            device: device,
+            platform: navigator.platform,
+            language: navigator.language
+        };
+    }
+
+    // Initialize fingerprint on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        deviceFingerprint = generateFingerprint();
+        deviceInfo = getDeviceInfo();
+        
+        // Store fingerprint in cookie for middleware validation
+        document.cookie = 'device_fingerprint=' + deviceFingerprint + '; path=/; max-age=31536000';
+        
+        // Update device info display if registration modal exists
+        var deviceInfoEl = document.getElementById('deviceInfo');
+        if (deviceInfoEl) {
+            deviceInfoEl.innerHTML = '<div class="space-y-2">' +
+                '<p class="text-sm"><strong>Device:</strong> ' + deviceInfo.device + '</p>' +
+                '<p class="text-sm"><strong>Browser:</strong> ' + deviceInfo.browser + '</p>' +
+                '<p class="text-sm"><strong>Platform:</strong> ' + deviceInfo.platform + '</p>' +
+                '</div>';
+        }
+    });
+
+    function registerDevice() {
+        var btn = document.getElementById('registerDeviceBtn');
+        var errorEl = document.getElementById('registrationError');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="animate-spin w-5 h-5 inline mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Registering...';
+        errorEl.classList.add('hidden');
+        
+        fetch('{{ route("teacher.device.register") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Device-Fingerprint': deviceFingerprint
+            },
+            body: JSON.stringify({
+                device_id: deviceFingerprint,
+                device_name: deviceInfo.device,
+                browser: deviceInfo.browser
+            })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                document.getElementById('deviceRegistrationModal').innerHTML = 
+                    '<div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">' +
+                    '<div class="bg-green-600 px-6 py-4"><h2 class="text-xl font-bold text-white">Device Registered</h2></div>' +
+                    '<div class="p-6 text-center">' +
+                    '<div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">' +
+                    '<svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' +
+                    '</div>' +
+                    '<p class="text-gray-600 mb-6">Your device has been successfully registered!</p>' +
+                    '<button onclick="location.reload()" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg">Continue</button>' +
+                    '</div></div>';
+            } else {
+                errorEl.textContent = data.error || 'Registration failed. Please try again.';
+                errorEl.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'Register This Device';
+            }
+        })
+        .catch(function(error) {
+            errorEl.textContent = 'An error occurred. Please try again.';
+            errorEl.classList.remove('hidden');
+            btn.disabled = false;
+            btn.textContent = 'Register This Device';
+            console.error(error);
+        });
     }
 </script>
 @endsection

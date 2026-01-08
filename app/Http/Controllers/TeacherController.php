@@ -175,8 +175,12 @@ class TeacherController extends Controller
             'permanent_address' => 'required|string|max:500',
             'current_password'  => 'required',
             'password'          => 'required|string|min:8|confirmed|different:current_password',
+            'profile_picture'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ], [
             'password.different' => 'New password must be different from the default password.',
+            'profile_picture.image' => 'The file must be an image.',
+            'profile_picture.mimes' => 'The image must be a JPEG, PNG, JPG, or GIF.',
+            'profile_picture.max' => 'The image must not exceed 2MB.',
         ]);
 
         if (!Hash::check($request->current_password, $user->password)) {
@@ -184,16 +188,25 @@ class TeacherController extends Controller
         }
 
         // Handle profile picture upload
-        if ($request->hasFile('profile_picture')) {
-            $profile = Str::slug($user->name).'-'.$user->id.'.'.$request->profile_picture->getClientOriginalExtension();
-            $request->profile_picture->move(public_path('images/profile'), $profile);
+        if ($request->hasFile('profile_picture') && $request->file('profile_picture')->isValid()) {
+            $file = $request->file('profile_picture');
+            $profile = Str::slug($user->name).'-'.$user->id.'.'.$file->getClientOriginalExtension();
+            
+            // Ensure directory exists
+            $uploadPath = public_path('images/profile');
+            if (!file_exists($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            
+            $file->move($uploadPath, $profile);
             $user->update(['profile_picture' => $profile]);
         }
 
-        // Update email and password
+        // Update email, password, and mark profile as completed
         $user->update([
-            'email'    => $request->email,
-            'password' => Hash::make($request->password)
+            'email'                => $request->email,
+            'password'             => Hash::make($request->password),
+            'must_change_password' => false
         ]);
 
         // Update teacher profile details
@@ -385,7 +398,17 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
-        $classes = $teacher->classes()->withCount('students')->get();
+        // Get classes where teacher is class teacher
+        $classTeacherClasses = $teacher->classes()->withCount('students')->get();
+        
+        // Get classes through subjects the teacher teaches
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClasses = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->withCount('students')->get();
+        
+        // Merge and remove duplicates
+        $classes = $classTeacherClasses->merge($subjectClasses)->unique('id');
 
         return view('backend.teacher.student-record', compact('classes'));
     }
@@ -404,8 +427,24 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
-        // Verify the class belongs to this teacher
-        $class = $teacher->classes()->withCount('students')->findOrFail($class_id);
+        // Get classes where teacher is class teacher
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        
+        // Get classes through subjects the teacher teaches
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClassIds = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->pluck('id')->toArray();
+        
+        // Merge all class IDs
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+        
+        // Verify the class belongs to this teacher (either as class teacher or subject teacher)
+        if (!in_array($class_id, $allowedClassIds)) {
+            return redirect()->route('teacher.studentrecord')->with('error', 'You do not have access to this class.');
+        }
+        
+        $class = Grade::withCount('students')->findOrFail($class_id);
 
         // Get students in the class with their parent relationships and subjects
         $students = $class->students()->with(['user', 'parents.user', 'class.subjects'])->get();
@@ -459,8 +498,17 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
-        // Get classes taught by this teacher with student count
-        $classes = $teacher->classes()->withCount('students')->get();
+        // Get classes where teacher is class teacher
+        $classTeacherClasses = $teacher->classes()->withCount('students')->get();
+        
+        // Get classes through subjects the teacher teaches
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClasses = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->withCount('students')->get();
+        
+        // Merge and remove duplicates
+        $classes = $classTeacherClasses->merge($subjectClasses)->unique('id');
         $classIds = $classes->pluck('id')->toArray();
 
         // Get subjects taught by this teacher
@@ -533,8 +581,20 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
+        // Get allowed class IDs (class teacher + subject classes)
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClassIds = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->pluck('id')->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+        
+        if (!in_array($class_id, $allowedClassIds)) {
+            return redirect()->route('teacher.assessment')->with('error', 'You do not have access to this class.');
+        }
+        
         // Verify the class belongs to this teacher and load subjects
-        $class = $teacher->classes()->with('subjects')->findOrFail($class_id);
+        $class = Grade::with('subjects')->findOrFail($class_id);
 
         // Get assessments for this class and teacher
         $assessments = \App\Assessment::where('teacher_id', $teacher->id)
@@ -566,8 +626,20 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
+        // Get allowed class IDs (class teacher + subject classes)
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClassIds = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->pluck('id')->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+        
+        if (!in_array($class_id, $allowedClassIds)) {
+            return redirect()->route('teacher.assessment')->with('error', 'You do not have access to this class.');
+        }
+        
         // Verify the class belongs to this teacher
-        $class = $teacher->classes()->findOrFail($class_id);
+        $class = Grade::findOrFail($class_id);
 
         // Get subjects for this class
         $subjects = $class->subjects;
@@ -774,8 +846,20 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
+        // Get allowed class IDs (class teacher + subject classes)
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClassIds = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->pluck('id')->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+        
+        if (!in_array($class_id, $allowedClassIds)) {
+            return redirect()->route('teacher.assessment')->with('error', 'You do not have access to this class.');
+        }
+        
         // Verify the class belongs to this teacher
-        $class = $teacher->classes()->findOrFail($class_id);
+        $class = Grade::findOrFail($class_id);
 
         // Get all assessments for this class
         $allAssessments = \App\Assessment::where('teacher_id', $teacher->id)

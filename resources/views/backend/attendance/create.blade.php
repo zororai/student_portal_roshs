@@ -1,67 +1,170 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="create">
+<div class="container-fluid px-4 py-6">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                </div>
+                Take Attendance
+            </h1>
+            <p class="text-gray-500 mt-1 ml-13">{{ $class->class_name }} - {{ date('l, F j, Y') }}</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <a href="{{ route('home') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Home
+            </a>
+        </div>
+    </div>
 
-        <div class="flex items-center justify-between mb-6">
-            <div><!-- Log on to codeastro.com for more projects -->
-                <h2 class="text-gray-700 uppercase font-bold">Attendance for class :- {{ $class->class_name }}</h2>
-            </div>
-            <div class="flex flex-wrap items-center">
-                <a href="{{ route('home') }}" class="bg-gray-700 text-white text-sm uppercase py-2 px-4 flex items-center rounded">
-                    <svg class="w-3 h-3 fill-current" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="long-arrow-alt-left" class="svg-inline--fa fa-long-arrow-alt-left fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M134.059 296H436c6.627 0 12-5.373 12-12v-56c0-6.627-5.373-12-12-12H134.059v-46.059c0-21.382-25.851-32.09-40.971-16.971L7.029 239.029c-9.373 9.373-9.373 24.569 0 33.941l86.059 86.059c15.119 15.119 40.971 4.411 40.971-16.971V296z"></path></svg>
-                    <span class="ml-2 text-xs font-semibold">Back</span>
-                </a>
+    <!-- Alert Messages -->
+    @if($errors->any() || session('status'))
+        <div class="mb-6">
+            @error('attendences')
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg mb-4">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <p class="text-red-700 font-medium">{{ $message }}</p>
+                    </div>
+                </div>
+            @enderror
+            @if(session('status'))
+                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-amber-400 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <p class="text-amber-700 font-medium">{{ session('status') }}</p>
+                    </div>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    <!-- Attendance Form Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-green-50 to-teal-50 px-6 py-4 border-b border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Student List</h2>
+                    <p class="text-sm text-gray-600 mt-1">Mark attendance for {{ $class->students->count() }} students</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500 uppercase font-semibold">Date</p>
+                    <p class="text-sm font-bold text-gray-800">{{ date('Y-m-d') }}</p>
+                </div>
             </div>
         </div>
-        <!-- Log on to codeastro.com for more projects -->
-        <div class="w-full mt-8 bg-white rounded">
-            <div class="flex items-center justify-between px-6 py-6 pb-0">
-                <div class="text-sm text-red-600 italic">
-                    @error('attendences')
-                        <span class="border-l-4 border-red-500 px-2">{{ $message }}</span>
-                    @enderror
-                    @if(session('status'))
-                        <span class="border-l-4 border-red-500 px-2">{{ session('status') }}</span>
-                    @endif
+
+        <!-- Form -->
+        <form action="{{ route('teacher.attendance.store') }}" method="POST" id="attendanceForm">
+            @csrf
+            <input type="hidden" name="class_id" value="{{ $class->id }}">
+            <input type="hidden" name="teacher_id" value="{{ $class->teacher_id }}">
+
+            <!-- Quick Actions -->
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+                <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium text-gray-700">Quick Actions:</span>
+                    <button type="button" onclick="markAll('present')" class="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Mark All Present
+                    </button>
+                    <button type="button" onclick="markAll('absent')" class="inline-flex items-center gap-2 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Mark All Absent
+                    </button>
+                    <button type="button" onclick="clearAll()" class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Clear All
+                    </button>
                 </div>
-                <h3 class="text-gray-700 uppercase font-bold"> Date: {{ date('Y-m-d') }}</h3>
             </div>
 
-            <div class="w-full px-6 py-6">
-                <div class="flex items-center bg-gray-600 rounded-tl rounded-tr">
-                    <div class="w-4/12 text-left text-white py-2 px-4 font-semibold">Student</div>
-                    <div class="w-3/12 text-left text-white py-2 px-4 font-semibold">Roll</div>
-                    <div class="w-5/12 text-right text-white py-2 px-4 font-semibold">Actions</div>
-                </div>
-                <form action="{{ route('teacher.attendance.store') }}" method="POST">
-                    @foreach ($class->students as $student)
-                        <div class="flex items-center justify-between border border-gray-200">
-                            @csrf
-                            <div class="w-4/12 text-sm text-left text-gray-600 py-2 px-4 font-semibold">{{ $student->user->name }}</div>
-                            <div class="w-3/12 text-sm text-left text-gray-600 py-2 px-4 font-semibold">{{ $student->roll_number }}</div>
-                            <div class="w-5/12 text-sm text-right py-2 px-4 flex items-center justify-end">
-                                <label class="block text-green-500 font-semibold sm:border-r sm:pr-4">
-                                    <input name="attendences[{{ $student->id }}]" class="leading-tight" type="radio" value="present">
-                                    <span class="text-sm">Present</span>
+            <!-- Student List -->
+            <div class="divide-y divide-gray-100">
+                @foreach ($class->students as $index => $student)
+                    <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <!-- Student Info -->
+                            <div class="flex items-center gap-4 flex-1">
+                                <div class="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                                    <span class="text-sm font-bold text-indigo-600">{{ $student->roll_number }}</span>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800">{{ $student->user->name }}</p>
+                                    <p class="text-xs text-gray-500">Roll #{{ $student->roll_number }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Attendance Options -->
+                            <div class="flex items-center gap-4">
+                                <label class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all has-[:checked]:border-green-500 has-[:checked]:bg-green-50">
+                                    <input type="radio" name="attendences[{{ $student->id }}]" value="present" class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500" required>
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-700">Present</span>
                                 </label>
-                                <label class="ml-4 block text-red-500 font-semibold">
-                                    <input name="attendences[{{ $student->id }}]" class="leading-tight" type="radio" value="absent">
-                                    <span class="text-sm">Absent</span>
+
+                                <label class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all has-[:checked]:border-red-500 has-[:checked]:bg-red-50">
+                                    <input type="radio" name="attendences[{{ $student->id }}]" value="absent" class="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500">
+                                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-700">Absent</span>
                                 </label>
                             </div>
-                            <input type="hidden" name="class_id" value="{{ $student->class_id }}">
-                            <input type="hidden" name="teacher_id" value="{{ $class->teacher_id }}">
                         </div>
-                    @endforeach
-                    <div class="mt-6">
-                        <button class="shadow bg-blue-500 hover:bg-blue-400 focus:shadow-outline focus:outline-none text-white font-bold py-2 px-4 rounded" type="submit">
-                            Submit Attendance
-                        </button>
                     </div>
-                </form>
-            </div><!-- Log on to codeastro.com for more projects -->  
-        </div>
+                @endforeach
+            </div>
 
+            <!-- Submit Button -->
+            <div class="px-6 py-6 bg-gray-50 border-t border-gray-100">
+                <button type="submit" class="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all shadow-lg hover:shadow-xl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Submit Attendance
+                </button>
+            </div>
+        </form>
     </div>
+</div>
+
+@push('scripts')
+<script>
+function markAll(status) {
+    const radios = document.querySelectorAll(`input[type="radio"][value="${status}"]`);
+    radios.forEach(radio => {
+        radio.checked = true;
+    });
+}
+
+function clearAll() {
+    const radios = document.querySelectorAll('input[type="radio"]');
+    radios.forEach(radio => {
+        radio.checked = false;
+    });
+}
+</script>
+@endpush
 @endsection

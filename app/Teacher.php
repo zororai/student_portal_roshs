@@ -20,6 +20,7 @@ class Teacher extends Model
         'is_sport_director',
         'qr_code',
         'qr_code_token',
+        'device_registration_status',
     ];
 
     public function user()
@@ -45,6 +46,31 @@ class Teacher extends Model
     public function logs()
     {
         return $this->hasMany(TeacherLog::class);
+    }
+
+    public function devices()
+    {
+        return $this->hasMany(TeacherDevice::class);
+    }
+
+    public function activeDevice()
+    {
+        return $this->devices()->where('status', 'active')->first();
+    }
+
+    public function hasRegisteredDevice()
+    {
+        return $this->devices()->where('status', 'active')->exists();
+    }
+
+    public function requiresDeviceRegistration()
+    {
+        return $this->device_registration_status === 'pending';
+    }
+
+    public function isDeviceRegistrationRequired()
+    {
+        return $this->device_registration_status !== 'not_required';
     }
 
     /**
