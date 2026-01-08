@@ -910,15 +910,13 @@ class TeacherController extends Controller
         // Get students count in the class
         $studentsCount = $class->students()->count();
 
-        // Filter out assessments where all students have marks entered
-        $assessments = $allAssessments->filter(function($assessment) use ($studentsCount) {
-            // Count how many students have marks for this assessment
-            $markedStudentsCount = \App\AssessmentMark::where('assessment_id', $assessment->id)
-                ->distinct('student_id')
-                ->count('student_id');
+        // Filter out assessments that already have marks entered
+        $assessments = $allAssessments->filter(function($assessment) {
+            // Count how many marks exist for this assessment
+            $marksCount = \App\AssessmentMark::where('assessment_id', $assessment->id)->count();
             
-            // Only show assessment if not all students have been marked
-            return $markedStudentsCount < $studentsCount;
+            // Only show assessment if no marks have been entered yet
+            return $marksCount == 0;
         });
 
         // Get students in the class

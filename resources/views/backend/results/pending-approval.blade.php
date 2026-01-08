@@ -5,14 +5,14 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Approve Student Results</h1>
         <div class="flex space-x-3">
-            @if($pendingCounts->sum('count') > 0)
-            <button onclick="approveAllResultsGlobal()" id="approveAllGlobalBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
+            <button onclick="approveAllResultsGlobal()" id="approveAllGlobalBtn" 
+                class="{{ $pendingCounts->sum('count') > 0 ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed' }} text-white font-semibold py-2 px-4 rounded-lg flex items-center"
+                {{ $pendingCounts->sum('count') == 0 ? 'disabled' : '' }}>
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 Approve All ({{ $pendingCounts->sum('count') }})
             </button>
-            @endif
             <a href="{{ route('admin.view-results') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg">
                 View All Results
             </a>
