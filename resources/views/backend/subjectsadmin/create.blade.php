@@ -59,7 +59,7 @@
 
         <!-- Two Column Layout -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- LEFT: Subject List with Checkboxes -->
+            <!-- LEFT: Subject Materials with Checkboxes -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
                     <h3 class="text-lg font-semibold text-gray-900 flex items-center">

@@ -103,7 +103,7 @@ class AddsubjectController extends Controller
     // Show the form to edit a reading
     public function edit($id)
     {
-        $reading = Reading::where('subject_id', $id)->get();
+        $reading = Reading::findOrFail($id);
         return view('backend.Reading.edit', compact('reading'));
     }
 
@@ -134,21 +134,23 @@ class AddsubjectController extends Controller
         $reading->subject_id = $request->subject_id;
         $reading->save();
 
-        return redirect()->route('backend.Reading.index')->with('success', 'Reading updated successfully.');
+        return redirect()->route('subject.Reading', $reading->subject_id)->with('success', 'Reading updated successfully.');
     }
     public function destroy($id)
     {
-        $readings = Reading::where('subject_id', $id)->get(); 
+        $reading = Reading::findOrFail($id);
+        $subject_id = $reading->subject_id;
+        
+        // Delete the file from storage
+        Storage::disk('public')->delete($reading->path);
+        
+        // Delete the reading record
+        $reading->delete();
     
-        foreach ($readings as $reading) {
-            Storage::disk('public')->delete($reading->path);
-            $reading->delete();
-        }
+        // Fetch updated readings for the subject
+        $readings = Reading::where('subject_id', $subject_id)->get();
     
-        $subject_id = $id;
-        $readings = Reading::all(); // Fetch updated readings
-    
-        return view('backend.Reading.index', compact('readings', 'subject_id'));
+        return redirect()->route('subject.Reading', $subject_id)->with('success', 'Reading deleted successfully.');
     }
 }
 

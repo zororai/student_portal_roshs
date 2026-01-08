@@ -42,14 +42,14 @@
                 </div>
             </div>
 
-            <!-- Subject List -->
+            <!-- Subject Materials -->
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                     <h3 class="text-lg font-semibold text-gray-900 flex items-center">
                         <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
-                        Subject List
+                        Subject Materials
                     </h3>
                 </div>
                 
