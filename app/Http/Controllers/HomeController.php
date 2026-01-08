@@ -743,6 +743,64 @@ class HomeController extends Controller
     }
 
     /**
+     * Get filtered gender stats for AJAX requests
+     */
+    public function getFilteredGenderStats(Request $request)
+    {
+        $classId = $request->get('class_id');
+        
+        $query = DB::table('results')
+            ->join('students', 'results.student_id', '=', 'students.id');
+        
+        if ($classId && $classId !== 'all') {
+            $query->where('students.class_id', $classId);
+        }
+        
+        $resultsByGender = $query->select(
+                'students.gender',
+                DB::raw('SUM(CASE WHEN results.marks >= 50 THEN 1 ELSE 0 END) as pass_count'),
+                DB::raw('SUM(CASE WHEN results.marks < 50 THEN 1 ELSE 0 END) as fail_count'),
+                DB::raw('COUNT(*) as total_count')
+            )
+            ->groupBy('students.gender')
+            ->get();
+
+        $malePass = 0;
+        $maleFail = 0;
+        $femalePass = 0;
+        $femaleFail = 0;
+
+        foreach ($resultsByGender as $row) {
+            if (strtolower($row->gender) === 'male') {
+                $malePass = $row->pass_count;
+                $maleFail = $row->fail_count;
+            } elseif (strtolower($row->gender) === 'female') {
+                $femalePass = $row->pass_count;
+                $femaleFail = $row->fail_count;
+            }
+        }
+
+        $maleTotal = $malePass + $maleFail;
+        $femaleTotal = $femalePass + $femaleFail;
+        $malePassRate = $maleTotal > 0 ? round($malePass / $maleTotal * 100, 1) : 0;
+        $femalePassRate = $femaleTotal > 0 ? round($femalePass / $femaleTotal * 100, 1) : 0;
+
+        return response()->json([
+            'success' => true,
+            'stats' => [
+                'malePass' => $malePass,
+                'maleFail' => $maleFail,
+                'femalePass' => $femalePass,
+                'femaleFail' => $femaleFail,
+                'maleTotal' => $maleTotal,
+                'femaleTotal' => $femaleTotal,
+                'malePassRate' => $malePassRate,
+                'femalePassRate' => $femalePassRate
+            ]
+        ]);
+    }
+
+    /**
      * Get filtered assessment stats for AJAX requests
      */
     public function getFilteredAssessmentStats(Request $request)

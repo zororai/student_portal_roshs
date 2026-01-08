@@ -282,7 +282,7 @@
 
 <!-- Expandable Subject Cards with Class Filter -->
 @if(isset($subjectAssessmentMatrix) && count($subjectAssessmentMatrix) > 0)
-<div class="w-full block mt-8" x-data="{ selectedClass: 'all' }">
+<div class="w-full block mt-8" x-data="{ selectedClass: 'all', showAll: false }">
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
@@ -302,7 +302,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($subjectAssessmentMatrix as $index => $subjectData)
             <div x-data="{ expanded: false }" 
-                 x-show="selectedClass === 'all' || {{ json_encode($subjectData['class_ids'] ?? []) }}.includes(parseInt(selectedClass))"
+                 x-show="(showAll || {{ $index }} < 6) && (selectedClass === 'all' || {{ json_encode($subjectData['class_ids'] ?? []) }}.includes(parseInt(selectedClass)))"
                  class="border rounded-xl overflow-hidden transition-all duration-300 {{ $subjectData['overall_performance'] >= 50 ? 'border-green-200' : ($subjectData['overall_performance'] > 0 ? 'border-red-200' : 'border-gray-200') }}">
                 <div @click="expanded = !expanded" class="cursor-pointer p-4 {{ $subjectData['overall_performance'] >= 50 ? 'bg-green-50 hover:bg-green-100' : ($subjectData['overall_performance'] > 0 ? 'bg-red-50 hover:bg-red-100' : 'bg-gray-50 hover:bg-gray-100') }} transition-colors">
                     <div class="flex items-center justify-between">
@@ -359,6 +359,16 @@
             </div>
             @endforeach
         </div>
+        @if(count($subjectAssessmentMatrix) > 6)
+        <div class="mt-6 text-center">
+            <button @click="showAll = !showAll" class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                <span x-text="showAll ? 'Show Less' : 'Show More ({{ count($subjectAssessmentMatrix) - 6 }} more)'"></span>
+                <svg class="w-4 h-4 ml-2 transition-transform duration-300" :class="{ 'rotate-180': showAll }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+        </div>
+        @endif
     </div>
 </div>
 @endif
