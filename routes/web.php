@@ -278,6 +278,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
     // Timetable Routes
     Route::get('admin/timetable', 'AdminTimetableController@index')->name('admin.timetable.index');
+    Route::get('admin/timetable/master', 'AdminTimetableController@master')->name('admin.timetable.master');
     Route::get('admin/timetable/create', 'AdminTimetableController@create')->name('admin.timetable.create');
     Route::post('admin/timetable', 'AdminTimetableController@store')->name('admin.timetable.store');
     Route::get('admin/timetable/{id}', 'AdminTimetableController@show')->name('admin.timetable.show');

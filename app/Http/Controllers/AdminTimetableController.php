@@ -23,6 +23,79 @@ class AdminTimetableController extends Controller
         return view('backend.admin.timetable.index', compact('classes'));
     }
 
+    /**
+     * Display master timetable with all classes on one sheet
+     */
+    public function master(Request $request)
+    {
+        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        
+        // Get current term info
+        $currentTerm = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+        
+        $academicYear = $request->get('year', $currentTerm ? $currentTerm->year : date('Y'));
+        $term = $request->get('term', 1);
+        if ($currentTerm && $currentTerm->result_period) {
+            preg_match('/\d+/', $currentTerm->result_period, $matches);
+            $term = $request->get('term', $matches[0] ?? 1);
+        }
+        
+        // Get all classes with timetables
+        $classes = Grade::with(['subjects', 'teacher'])
+            ->orderBy('class_numeric')
+            ->get();
+        
+        // Build timetable data for each class
+        $classTimetables = [];
+        $allTimeSlots = [];
+        
+        foreach ($classes as $class) {
+            $timetable = Timetable::where('class_id', $class->id)
+                ->where('academic_year', $academicYear)
+                ->where('term', $term)
+                ->with(['subject', 'teacher'])
+                ->orderBy('slot_order')
+                ->get();
+            
+            if ($timetable->count() > 0) {
+                $classTimetables[$class->id] = [
+                    'class' => $class,
+                    'slots' => $timetable->groupBy('day'),
+                ];
+                
+                // Collect all unique time slots
+                foreach ($timetable as $slot) {
+                    $timeKey = $slot->start_time . '-' . $slot->end_time;
+                    if (!isset($allTimeSlots[$timeKey])) {
+                        $allTimeSlots[$timeKey] = [
+                            'start_time' => $slot->start_time,
+                            'end_time' => $slot->end_time,
+                            'slot_type' => $slot->slot_type,
+                            'slot_order' => $slot->slot_order,
+                        ];
+                    }
+                }
+            }
+        }
+        
+        // Sort time slots by start time
+        uasort($allTimeSlots, function($a, $b) {
+            return strcmp($a['start_time'], $b['start_time']);
+        });
+        
+        return view('backend.admin.timetable.master', compact(
+            'classes', 
+            'classTimetables', 
+            'days', 
+            'allTimeSlots',
+            'academicYear',
+            'term',
+            'currentTerm'
+        ));
+    }
+
     public function create()
     {
         $classes = Grade::orderBy('class_numeric')->get();
