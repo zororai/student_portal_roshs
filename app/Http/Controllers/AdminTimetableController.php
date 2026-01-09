@@ -282,10 +282,16 @@ class AdminTimetableController extends Controller
         
         // Track which lessons have been placed and on which days
         $placedLessons = []; // Array of placed lesson info
-        $subjectDayCount = []; // Track how many times each subject appears per day
-        foreach ($days as $day) {
-            $subjectDayCount[$day] = [];
-        }
+        
+        // STRICT CONSTRAINT: Track subjects used per day
+        // A subject may appear ONLY ONCE per day (as a single consecutive block)
+        $usedSubjectsByDay = [
+            'Monday'    => [],
+            'Tuesday'   => [],
+            'Wednesday' => [],
+            'Thursday'  => [],
+            'Friday'    => [],
+        ];
         
         // First pass: Generate the time structure for each day
         $dayStructure = [];
@@ -313,19 +319,18 @@ class AdminTimetableController extends Controller
             $hasMultiPeriod = $lesson['has_multi_period'] ?? false;
             
             // For multi-period lessons, try to space them across different days
-            $preferredDays = $this->getPreferredDays($days, $subjectId, $subjectDayCount, $durationPeriods);
+            $preferredDays = $this->getPreferredDays($days, $subjectId, $usedSubjectsByDay, $durationPeriods);
             
-            // Determine max lessons per day for this subject
-            // Single-only subjects: max 1 per day
-            // Subjects with multi-period: max 2 per day
-            $maxPerDay = $hasMultiPeriod ? 2 : 1;
+            // STRICT CONSTRAINT: Maximum 1 lesson block per subject per day
+            // This applies to ALL lesson types (single, double, triple, quad)
+            // A double lesson counts as 1 block, not 2 separate lessons
+            $maxBlocksPerDay = 1;
             
             $placed = false;
             foreach ($preferredDays as $day) {
-                // Check if subject has reached daily limit
-                $currentDayCount = $subjectDayCount[$day][$subjectId] ?? 0;
-                if ($currentDayCount >= $maxPerDay) {
-                    continue; // Skip this day - subject limit reached
+                // HARD CONSTRAINT: Check if subject already has a block on this day
+                if (in_array($subjectId, $usedSubjectsByDay[$day])) {
+                    continue; // Skip this day - subject already scheduled
                 }
                 
                 // Find consecutive available slots for this lesson
@@ -350,11 +355,10 @@ class AdminTimetableController extends Controller
                         $dayStructure[$day][$slotIndex]['is_continuation'] = ($i > 0);
                     }
                     
-                    // Track subject per day
-                    if (!isset($subjectDayCount[$day][$subjectId])) {
-                        $subjectDayCount[$day][$subjectId] = 0;
-                    }
-                    $subjectDayCount[$day][$subjectId]++;
+                    // STRICT CONSTRAINT: Mark subject as used for this day
+                    // This ensures the subject cannot appear again on this day
+                    // (whether consecutive or non-consecutive)
+                    $usedSubjectsByDay[$day][] = $subjectId;
                     
                     // Track lessons placed by type
                     $subjectLessonsPlaced[$subjectId][$lessonType]++;
@@ -526,42 +530,30 @@ class AdminTimetableController extends Controller
     
     /**
      * Get preferred days for placing a lesson, prioritizing days where the subject hasn't been placed yet
+     * STRICT CONSTRAINT: Only return days where the subject has NOT been scheduled
      */
-    private function getPreferredDays($days, $subjectId, $subjectDayCount, $durationPeriods)
+    private function getPreferredDays($days, $subjectId, $usedSubjectsByDay, $durationPeriods)
     {
-        // For multi-period lessons, strongly prefer days where this subject hasn't been placed
-        $daysWithSubject = [];
-        $daysWithoutSubject = [];
+        // STRICT CONSTRAINT: Only consider days where this subject hasn't been placed
+        $availableDays = [];
         
         foreach ($days as $day) {
-            $count = $subjectDayCount[$day][$subjectId] ?? 0;
-            if ($count === 0) {
-                $daysWithoutSubject[] = $day;
-            } else {
-                $daysWithSubject[] = ['day' => $day, 'count' => $count];
+            // Check if subject is already used on this day
+            if (!in_array($subjectId, $usedSubjectsByDay[$day])) {
+                $availableDays[] = $day;
             }
         }
         
-        // Shuffle days without subject for variety
-        shuffle($daysWithoutSubject);
+        // Shuffle available days for variety in distribution
+        shuffle($availableDays);
         
-        // Sort days with subject by count (ascending)
-        usort($daysWithSubject, function($a, $b) {
-            return $a['count'] - $b['count'];
-        });
-        
-        $result = $daysWithoutSubject;
-        foreach ($daysWithSubject as $item) {
-            $result[] = $item['day'];
-        }
-        
-        return $result;
+        return $availableDays;
     }
     
     /**
      * Find consecutive available slots that can fit a multi-period lesson
-     * For subjects with ONLY single lessons, avoid placing adjacent to same subject
-     * For subjects with double/triple/quad configured, ALLOW back-to-back placement
+     * STRICT CONSTRAINT: Subject can only appear once per day as a consecutive block
+     * Non-consecutive repetitions are strictly forbidden
      */
     private function findConsecutiveSlots($dayStructure, $periodsNeeded, $periodDuration, $teacherId, $day, $settings, $subjectId = null, $lessonType = 'single', $hasMultiPeriod = false, $forcePlace = false)
     {
@@ -578,29 +570,23 @@ class AdminTimetableController extends Controller
             }
         }
         
-        // Find consecutive available slots
-        for ($i = 0; $i <= count($subjectSlots) - $periodsNeeded; $i++) {
-            $consecutive = true;
-            $startIndex = $subjectSlots[$i];
-            
-            // For subjects with ONLY single lessons (no double/triple/quad configured),
-            // check if this subject is ANYWHERE on this day already
-            // This prevents single-only subjects from appearing multiple times per day
-            // Unless forcePlace is true (when all days already have this subject)
-            if ($lessonType === 'single' && $subjectId !== null && !$hasMultiPeriod && !$forcePlace) {
-                $subjectAlreadyOnDay = false;
-                foreach ($dayStructure as $slot) {
-                    if (isset($slot['subject_id']) && $slot['subject_id'] === $subjectId) {
-                        $subjectAlreadyOnDay = true;
-                        break;
-                    }
-                }
-                if ($subjectAlreadyOnDay) {
-                    // This subject already has a lesson today - skip ALL slots on this day
+        // STRICT CONSTRAINT: Check if this subject is ANYWHERE on this day already
+        // This applies to ALL lesson types (single, double, triple, quad)
+        // A subject may appear only ONCE per day as a single consecutive block
+        if ($subjectId !== null) {
+            foreach ($dayStructure as $slot) {
+                if (isset($slot['subject_id']) && $slot['subject_id'] === $subjectId) {
+                    // Subject already has a lesson block today - FORBIDDEN
                     // Return null to force trying another day
                     return null;
                 }
             }
+        }
+        
+        // Find consecutive available slots
+        for ($i = 0; $i <= count($subjectSlots) - $periodsNeeded; $i++) {
+            $consecutive = true;
+            $startIndex = $subjectSlots[$i];
             
             // Check if the next N slots are consecutive and available
             for ($j = 0; $j < $periodsNeeded; $j++) {

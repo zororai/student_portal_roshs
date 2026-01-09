@@ -517,7 +517,7 @@ class TeacherController extends Controller
         $subjects = $teacher->subjects()->get();
 
         // Assessment types to track
-        $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+        $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
 
         // Build performance data per subject
         $subjectPerformance = [];

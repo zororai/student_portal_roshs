@@ -297,7 +297,7 @@
                                 <option value="Assignment">Assignment</option>
                                 <option value="Exercise">Exercise</option>
                                 <option value="Project">Project</option>
-                                <option value="Exam">Exam</option>
+                                <option value="Fort Night">Fort Night</option>
                                 <option value="Vacation Exam">Vacation Exam</option>
                                 <option value="National Exam">National Exam</option>
                             </select>
@@ -1194,7 +1194,7 @@
                 showNotification('An error occurred while deleting the assessment', 'error');
             });
         }
-
+F
         function showNotification(message, type) {
             const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
             const notification = `

@@ -97,7 +97,7 @@ class HomeController extends Controller
                 });
 
             // Get assessment statistics by type for admin
-            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
             $assessmentStats = [];
             
             foreach ($assessmentTypes as $type) {
@@ -223,7 +223,7 @@ class HomeController extends Controller
             $teacher->setRelation('classes', $teacherClasses);
             $teacher->classes_count = $teacherClasses->count();
             
-            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
             $teacherAssessmentStats = [];
             
             foreach ($assessmentTypes as $type) {
@@ -391,7 +391,7 @@ class HomeController extends Controller
                 $recentAssessments[$child->id] = $recent;
                 
                 // Get assessment type stats for each child
-                $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+                $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
                 $childAssessmentStats = [];
                 
                 foreach ($assessmentTypes as $type) {
@@ -433,7 +433,7 @@ class HomeController extends Controller
             $student = Student::with(['user','parent','class','attendances'])->findOrFail($user->student->id); 
 
             // Get student's assessment performance by type
-            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
             $studentAssessmentStats = [];
             
             foreach ($assessmentTypes as $type) {
@@ -562,7 +562,7 @@ class HomeController extends Controller
                 });
 
             // Get assessment statistics
-            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Exam', 'Vacation Exam', 'National Exam'];
+            $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
             $assessmentStats = [];
             
             foreach ($assessmentTypes as $type) {
@@ -808,7 +808,7 @@ class HomeController extends Controller
         $classId = $request->get('class_id');
         $subjectId = $request->get('subject_id');
         
-        $assessmentTypes = ['Homework', 'Quiz', 'Test', 'Midterm Exam', 'Final Exam', 'Project', 'Presentation', 'Lab Work', 'Assignment', 'Other'];
+        $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
         $assessmentStats = [];
         
         foreach ($assessmentTypes as $type) {
