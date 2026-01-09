@@ -572,8 +572,12 @@
         deviceFingerprint = generateFingerprint();
         deviceInfo = getDeviceInfo();
         
-        // Store fingerprint in cookie for middleware validation
-        document.cookie = 'device_fingerprint=' + deviceFingerprint + '; path=/; max-age=31536000';
+        // Store fingerprint in cookie for middleware validation (with HTTPS support)
+        var cookieStr = 'device_fingerprint=' + deviceFingerprint + '; path=/; max-age=31536000; SameSite=Lax';
+        if (location.protocol === 'https:') {
+            cookieStr += '; Secure';
+        }
+        document.cookie = cookieStr;
         
         // Update device info display if registration modal exists
         var deviceInfoEl = document.getElementById('deviceInfo');

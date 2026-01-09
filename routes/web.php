@@ -486,8 +486,8 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()
 {
-    // Teacher Attendance Routes (with device validation)
-    Route::get('/teacher/attendance', 'TeacherAttendanceController@index')->name('teacher.attendance.index')->middleware('validate.teacher.device');
+    // Teacher Attendance Routes (device validation on POST only - cookie is set by JS after page load)
+    Route::get('/teacher/attendance', 'TeacherAttendanceController@index')->name('teacher.attendance.index');
     Route::post('/teacher/attendance/mark', 'TeacherAttendanceController@markAttendance')->name('teacher.attendance.mark')->middleware('validate.teacher.device');
     Route::get('/teacher/attendance/boundary', 'TeacherAttendanceController@getSchoolBoundary')->name('teacher.attendance.boundary');
 
