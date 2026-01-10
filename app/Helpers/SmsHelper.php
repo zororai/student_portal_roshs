@@ -3,9 +3,23 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\Log;
+use App\SchoolSetting;
 
 class SmsHelper
 {
+    /**
+     * Increment the SMS sent count in settings.
+     */
+    private static function incrementSmsCount()
+    {
+        try {
+            $currentCount = (int) SchoolSetting::get('sms_sent_count', 0);
+            SchoolSetting::set('sms_sent_count', $currentCount + 1, 'integer', 'Total number of SMS messages sent through the system');
+        } catch (\Exception $e) {
+            Log::warning('Failed to increment SMS count: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Send SMS using InboxIQ API
      *
@@ -94,6 +108,10 @@ class SmsHelper
 
         if ($httpCode >= 200 && $httpCode < 300) {
             Log::info('SMS sent', compact('destination', 'httpCode'));
+            
+            // Increment SMS sent count
+            self::incrementSmsCount();
+            
             return [
                 'success' => true, 
                 'message' => 'SMS sent successfully',

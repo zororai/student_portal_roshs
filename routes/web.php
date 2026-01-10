@@ -473,6 +473,12 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/api/school-geolocation', 'SchoolGeolocationController@getActive')->name('api.school-geolocation');
     Route::post('/api/school-geolocation/check-point', 'SchoolGeolocationController@checkPoint')->name('api.school-geolocation.check-point');
 
+    // SMS Settings Routes
+    Route::get('/admin/settings/sms', 'SmsSettingsController@index')->name('admin.settings.sms');
+    Route::put('/admin/settings/sms', 'SmsSettingsController@update')->name('admin.settings.sms.update');
+    Route::post('/admin/settings/sms/preview', 'SmsSettingsController@preview')->name('admin.settings.sms.preview');
+    Route::post('/admin/settings/sms/reset-count', 'SmsSettingsController@resetCount')->name('admin.settings.sms.reset-count');
+
     // Website Settings Routes
     Route::get('/admin/website', 'WebsiteSettingController@index')->name('admin.website.index');
     Route::get('/admin/website/general', 'WebsiteSettingController@general')->name('admin.website.general');

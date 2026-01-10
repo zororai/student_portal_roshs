@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Helpers\SmsHelper;
+use App\SchoolSetting;
 
 class TeacherController extends Controller
 {
@@ -127,14 +128,26 @@ class TeacherController extends Controller
     private function sendCredentialsSms($phone, $name, $email, $password)
     {
         try {
+            // Get configurable country code from settings
+            $countryCode = SchoolSetting::get('sms_country_code', '+263');
+            
             // Format phone number (ensure it has country code)
             $phone = preg_replace('/\s+/', '', $phone);
             if (!preg_match('/^\+/', $phone)) {
-                $phone = '+263' . ltrim($phone, '0');
+                $phone = $countryCode . ltrim($phone, '0');
             }
             
-            // Shorter message to avoid InboxIQ HTTP 500 error
-            $message = "RSH School: Teacher account created. Login: {$email}, Password: {$password}. Complete profile on first login.";
+            // Get message template from settings and replace placeholders
+            $messageTemplate = SchoolSetting::get(
+                'sms_teacher_credentials_template',
+                'RSH School: Teacher account created. Login: {phone}, Password: {password}. Complete profile on first login.'
+            );
+            
+            $message = str_replace(
+                ['{name}', '{phone}', '{password}'],
+                [$name, $email, $password],
+                $messageTemplate
+            );
             
             // Send SMS using SmsHelper
             $result = \App\Helpers\SmsHelper::sendSms($phone, $message);
