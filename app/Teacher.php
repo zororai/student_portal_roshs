@@ -43,9 +43,9 @@ class Teacher extends Model
         return $this->classes()->withCount('students');
     }
 
-    public function logs()
+    public function attendances()
     {
-        return $this->hasMany(TeacherLog::class);
+        return $this->hasMany(TeacherAttendance::class);
     }
 
     public function devices()
@@ -74,19 +74,19 @@ class Teacher extends Model
     }
 
     /**
-     * Get today's log entry
+     * Get today's attendance entry
      */
-    public function todayLog()
+    public function todayAttendance()
     {
-        return $this->logs()->where('log_date', today())->first();
+        return $this->attendances()->whereDate('date', today())->first();
     }
 
     /**
-     * Check if teacher is currently clocked in today
+     * Check if teacher is currently checked in today
      */
-    public function isClockedInToday()
+    public function isCheckedInToday()
     {
-        $log = $this->todayLog();
-        return $log && $log->isClockedIn();
+        $attendance = $this->todayAttendance();
+        return $attendance && $attendance->isCheckedIn();
     }
 }

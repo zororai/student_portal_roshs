@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Helpers\SmsHelper;
 use App\SchoolSetting;
+use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TeacherController extends Controller
 {
@@ -80,7 +82,7 @@ class TeacherController extends Controller
             'profile_picture' => 'avatar.png'
         ]);
 
-        $user->teacher()->create([
+        $teacher = $user->teacher()->create([
             'gender'            => $request->gender,
             'phone'             => $request->phone,
             'dateofbirth'       => null,
@@ -92,6 +94,9 @@ class TeacherController extends Controller
         ]);
 
         $user->assignRole('Teacher');
+
+        // Generate QR code for teacher attendance
+        $this->generateTeacherQrCode($teacher);
 
         // Send email notification with credentials
         $this->sendCredentialsEmail($user, $password);
@@ -165,6 +170,40 @@ class TeacherController extends Controller
             }
         } catch (\Exception $e) {
             \Log::error('Failed to send teacher credentials SMS: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Generate QR code for teacher attendance.
+     */
+    private function generateTeacherQrCode($teacher)
+    {
+        try {
+            // Generate unique QR token
+            $qrToken = Str::uuid()->toString();
+
+            // Generate QR code as PNG
+            $qrImage = QrCode::format('png')
+                ->size(300)
+                ->margin(2)
+                ->generate($qrToken);
+
+            $fileName = 'teacher_qr_' . $teacher->id . '.png';
+            $filePath = 'qrcodes/teachers/' . $fileName;
+
+            Storage::disk('public')->put($filePath, $qrImage);
+
+            $teacher->update([
+                'qr_code_token' => $qrToken,
+                'qr_code' => $filePath,
+            ]);
+
+            \Log::info('QR code generated for teacher', [
+                'teacher_id' => $teacher->id,
+                'qr_code_path' => $filePath
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to generate QR code for teacher: ' . $e->getMessage());
         }
     }
 

@@ -182,13 +182,15 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('admin/users/{id}', 'AdminUserController@update')->name('admin.users.update');
     Route::delete('admin/users/{id}', 'AdminUserController@destroy')->name('admin.users.destroy');
 
-    // Log Book Routes
-    Route::get('admin/logbook', 'AdminLogBookController@index')->name('admin.logbook.index');
-    Route::post('admin/logbook/scan', 'AdminLogBookController@scan')->name('admin.logbook.scan');
-    Route::get('admin/logbook/availability', 'AdminLogBookController@availability')->name('admin.logbook.availability');
-    Route::get('admin/logbook/teacher/{teacherId}/history', 'AdminLogBookController@teacherHistory')->name('admin.logbook.teacher.history');
-    Route::post('admin/logbook/teacher/{teacherId}/generate-qr', 'AdminLogBookController@generateQrCode')->name('admin.logbook.generate.qr');
-    Route::get('admin/logbook/teacher/{teacherId}/qr', 'AdminLogBookController@getQrCode')->name('admin.logbook.get.qr');
+    // Teacher Attendance Scanner Routes (QR Code Based)
+    Route::get('attendance/logbook', 'AttendanceScanController@index')->name('attendance.logbook');
+    Route::post('attendance/scan', 'AttendanceScanController@scan')->name('attendance.scan');
+    Route::get('attendance/availability', 'AttendanceScanController@availability')->name('attendance.availability');
+    Route::get('attendance/teacher/{teacherId}/history', 'AttendanceScanController@teacherHistory')->name('attendance.teacher.history');
+    Route::post('attendance/teacher/{teacherId}/generate-qr', 'AttendanceScanController@generateQrCode')->name('attendance.generate.qr');
+    Route::post('attendance/teacher/{teacherId}/regenerate-qr', 'AttendanceScanController@regenerateQrCode')->name('attendance.regenerate.qr');
+    Route::get('attendance/teacher/{teacherId}/qr', 'AttendanceScanController@getQrCode')->name('attendance.get.qr');
+    Route::get('attendance/teacher/{teacherId}/print-qr', 'AttendanceScanController@printQrCode')->name('attendance.print.qr');
 
     // Leave Management Routes
     Route::get('admin/leave', 'AdminLeaveController@index')->name('admin.leave.index');
@@ -493,11 +495,6 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()
 {
-    // Teacher Attendance Routes (device validation on POST only - cookie is set by JS after page load)
-    Route::get('/teacher/attendance', 'TeacherAttendanceController@index')->name('teacher.attendance.index');
-    Route::post('/teacher/attendance/mark', 'TeacherAttendanceController@markAttendance')->name('teacher.attendance.mark')->middleware('validate.teacher.device');
-    Route::get('/teacher/attendance/boundary', 'TeacherAttendanceController@getSchoolBoundary')->name('teacher.attendance.boundary');
-
     // Teacher Device Registration Routes
     Route::post('/teacher/device/register', 'TeacherDeviceController@registerDevice')->name('teacher.device.register');
     Route::get('/teacher/device/status', 'TeacherDeviceController@getDeviceStatus')->name('teacher.device.status');
@@ -584,10 +581,6 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
      Route::get('/results/student/{id}', 'ResultController@show')->name('results.show');
      Route::get('/teacher/results/{class_id}','ResultController@listResults')->name('results.results');
      Route::get('/teacher/timetable', 'TimetableController@teacherView')->name('teacher.timetable');
-
-     // Teacher Logbook
-     Route::get('/teacher/logbook', 'TeacherLogBookController@index')->name('teacher.logbook.index');
-     Route::post('/teacher/logbook/scan', 'TeacherLogBookController@scan')->name('teacher.logbook.scan');
 
 });
 
