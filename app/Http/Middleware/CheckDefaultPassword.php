@@ -34,14 +34,19 @@ class CheckDefaultPassword
             }
         }
 
-        // Check for Teacher role
+        // Check for Teacher role - only redirect if BOTH conditions are true:
+        // 1. Password is still default (12345678)
+        // 2. Email is still placeholder (teacher_*@placeholder.co.zw)
         if ($user->hasRole('Teacher')) {
-            if (Hash::check($defaultPassword, $user->password)) {
+            $isDefaultPassword = Hash::check($defaultPassword, $user->password);
+            $isPlaceholderEmail = str_contains($user->email, '@placeholder.co.zw');
+            
+            if ($isDefaultPassword && $isPlaceholderEmail) {
                 if (!$request->is('teacher/change-password') &&
                     !$request->is('teacher/update-password') &&
                     !$request->is('logout')) {
                     return redirect()->route('teacher.change-password')
-                        ->with('warning', 'Please change your default password to continue.');
+                        ->with('warning', 'Please complete your profile and change your default password to continue.');
                 }
             }
         }

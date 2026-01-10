@@ -161,13 +161,13 @@ class AttendanceScanController extends Controller
         // Generate new unique token
         $qrToken = Str::uuid()->toString();
 
-        // Generate QR code as PNG
-        $qrImage = QrCode::format('png')
+        // Generate QR code as SVG (no imagick required)
+        $qrImage = QrCode::format('svg')
             ->size(300)
             ->margin(2)
             ->generate($qrToken);
 
-        $fileName = 'teacher_qr_' . $teacher->id . '.png';
+        $fileName = 'teacher_qr_' . $teacher->id . '.svg';
         $filePath = 'qrcodes/teachers/' . $fileName;
 
         Storage::disk('public')->put($filePath, $qrImage);
@@ -204,12 +204,12 @@ class AttendanceScanController extends Controller
             // Generate QR code if it doesn't exist
             $qrToken = $teacher->qr_code_token ?: Str::uuid()->toString();
 
-            $qrImage = QrCode::format('png')
+            $qrImage = QrCode::format('svg')
                 ->size(300)
                 ->margin(2)
                 ->generate($qrToken);
 
-            $fileName = 'teacher_qr_' . $teacher->id . '.png';
+            $fileName = 'teacher_qr_' . $teacher->id . '.svg';
             $filePath = 'qrcodes/teachers/' . $fileName;
 
             Storage::disk('public')->put($filePath, $qrImage);
@@ -242,12 +242,12 @@ class AttendanceScanController extends Controller
         if (!$teacher->qr_code || !Storage::disk('public')->exists($teacher->qr_code)) {
             $qrToken = $teacher->qr_code_token ?: Str::uuid()->toString();
 
-            $qrImage = QrCode::format('png')
+            $qrImage = QrCode::format('svg')
                 ->size(300)
                 ->margin(2)
                 ->generate($qrToken);
 
-            $fileName = 'teacher_qr_' . $teacher->id . '.png';
+            $fileName = 'teacher_qr_' . $teacher->id . '.svg';
             $filePath = 'qrcodes/teachers/' . $fileName;
 
             Storage::disk('public')->put($filePath, $qrImage);

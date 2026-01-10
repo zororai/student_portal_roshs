@@ -182,13 +182,13 @@ class TeacherController extends Controller
             // Generate unique QR token
             $qrToken = Str::uuid()->toString();
 
-            // Generate QR code as PNG
-            $qrImage = QrCode::format('png')
+            // Generate QR code as SVG (no imagick required)
+            $qrImage = QrCode::format('svg')
                 ->size(300)
                 ->margin(2)
                 ->generate($qrToken);
 
-            $fileName = 'teacher_qr_' . $teacher->id . '.png';
+            $fileName = 'teacher_qr_' . $teacher->id . '.svg';
             $filePath = 'qrcodes/teachers/' . $fileName;
 
             Storage::disk('public')->put($filePath, $qrImage);
@@ -271,6 +271,44 @@ class TeacherController extends Controller
         ]);
 
         return redirect()->route('home')->with('success', 'Profile completed successfully!');
+    }
+
+    /**
+     * Show teacher's own attendance history.
+     */
+    public function myAttendance(Request $request)
+    {
+        $teacher = auth()->user()->teacher;
+        
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        $month = $request->get('month', now()->month);
+        $year = $request->get('year', now()->year);
+
+        $attendance = \App\TeacherAttendance::where('teacher_id', $teacher->id)
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->orderBy('date', 'desc')
+            ->get();
+
+        // Calculate statistics
+        $totalDays = $attendance->count();
+        $presentDays = $attendance->whereNotNull('check_in_time')->count();
+        $lateDays = $attendance->filter(function($record) {
+            return $record->check_in_time && $record->check_in_time > '08:00:00';
+        })->count();
+
+        return view('backend.teacher.my-attendance', compact(
+            'teacher', 
+            'attendance', 
+            'month', 
+            'year', 
+            'totalDays', 
+            'presentDays', 
+            'lateDays'
+        ));
     }
 
     /**

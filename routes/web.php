@@ -495,6 +495,9 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()
 {
+    // Teacher Attendance History (view only - marking done via QR scanner)
+    Route::get('/teacher/my-attendance', 'TeacherController@myAttendance')->name('teacher.my-attendance');
+
     // Teacher Device Registration Routes
     Route::post('/teacher/device/register', 'TeacherDeviceController@registerDevice')->name('teacher.device.register');
     Route::get('/teacher/device/status', 'TeacherDeviceController@getDeviceStatus')->name('teacher.device.status');
