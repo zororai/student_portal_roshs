@@ -425,4 +425,66 @@ class GroceryController extends Controller
         
         return redirect()->route('admin.groceries.index')->with('success', 'Grocery list deleted.');
     }
+
+    // Admin: View grocery block settings
+    public function blockSettings()
+    {
+        $groceryBlockEnabled = \App\SchoolSetting::get('grocery_block_enabled', 'true') === 'true';
+        $studentsWithArrears = self::getStudentsWithArrears();
+        
+        return view('backend.finance.groceries.block-settings', compact('groceryBlockEnabled', 'studentsWithArrears'));
+    }
+
+    // Admin: Update grocery block settings
+    public function updateBlockSettings(Request $request)
+    {
+        $enabled = $request->has('grocery_block_enabled') ? 'true' : 'false';
+        
+        \App\SchoolSetting::set(
+            'grocery_block_enabled',
+            $enabled,
+            'boolean',
+            'Controls whether grocery arrears block parents and students from viewing results'
+        );
+        
+        $status = $enabled === 'true' ? 'enabled' : 'disabled';
+        return redirect()->route('admin.grocery-block-settings')
+            ->with('success', "Grocery arrears blocking has been {$status}.");
+    }
+
+    // Helper: Check if grocery blocking is enabled
+    public static function isGroceryBlockEnabled()
+    {
+        return \App\SchoolSetting::get('grocery_block_enabled', 'true') === 'true';
+    }
+
+    // Admin: Toggle student grocery exemption
+    public function toggleExemption($studentId)
+    {
+        $student = Student::findOrFail($studentId);
+        $student->grocery_exempt = !$student->grocery_exempt;
+        $student->save();
+        
+        $status = $student->grocery_exempt ? 'exempted from' : 'no longer exempt from';
+        return redirect()->back()->with('success', "{$student->user->name} is now {$status} grocery blocking.");
+    }
+
+    // Helper: Get students with grocery arrears
+    public static function getStudentsWithArrears()
+    {
+        $students = Student::with(['user', 'class'])->get();
+        $studentsWithArrears = [];
+        
+        foreach ($students as $student) {
+            $arrears = self::calculateGroceryBalance($student->id);
+            if ($arrears > 0) {
+                $studentsWithArrears[] = [
+                    'student' => $student,
+                    'arrears' => $arrears
+                ];
+            }
+        }
+        
+        return $studentsWithArrears;
+    }
 }

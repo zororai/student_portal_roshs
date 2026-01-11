@@ -519,23 +519,26 @@ public function adminshowResult(Request $request)
         $totalPaid = floatval(StudentPayment::where('student_id', $studentId)->sum('amount_paid'));
         $outstandingFees = $totalFees - $totalPaid;
         
-        // Check for grocery arrears
-        $groceryArrears = GroceryController::calculateGroceryBalance($studentId);
+        // Check for grocery arrears (only if grocery blocking is enabled)
+        $groceryBlockEnabled = GroceryController::isGroceryBlockEnabled();
+        $student = Student::find($studentId);
+        $isGroceryExempt = $student ? $student->grocery_exempt : false;
+        $groceryArrears = ($groceryBlockEnabled && !$isGroceryExempt) ? GroceryController::calculateGroceryBalance($studentId) : 0;
         
-        // If student has outstanding fees OR grocery arrears, block results view
-        if ($outstandingFees > 0 || $groceryArrears > 0) {
+        // If student has outstanding fees OR grocery arrears (when enabled and not exempt), block results view
+        if ($outstandingFees > 0 || ($groceryBlockEnabled && !$isGroceryExempt && $groceryArrears > 0)) {
             $messages = [];
             if ($outstandingFees > 0) {
                 $messages[] = 'Outstanding school fees: $' . number_format($outstandingFees, 2);
             }
-            if ($groceryArrears > 0) {
+            if ($groceryBlockEnabled && $groceryArrears > 0) {
                 $messages[] = 'Outstanding groceries: $' . number_format($groceryArrears, 2);
             }
             
             return view('reports.blocked', [
                 'message' => 'You cannot view your results due to outstanding balance.',
                 'outstanding' => $outstandingFees,
-                'grocery_arrears' => $groceryArrears,
+                'grocery_arrears' => $groceryBlockEnabled ? $groceryArrears : 0,
                 'details' => $messages
             ]);
         }
@@ -593,21 +596,26 @@ public function adminshowResult(Request $request)
         $totalPaid = floatval(StudentPayment::whereIn('student_id', $studentIds)->sum('amount_paid'));
         $outstandingFees = $totalFees - $totalPaid;
         
-        // Check for grocery arrears for all children
+        // Check for grocery arrears for all children (only if grocery blocking is enabled and not exempt)
+        $groceryBlockEnabled = GroceryController::isGroceryBlockEnabled();
         $totalGroceryArrears = 0;
-        foreach ($studentIds as $studentId) {
-            $totalGroceryArrears += GroceryController::calculateGroceryBalance($studentId);
+        if ($groceryBlockEnabled) {
+            foreach ($students as $student) {
+                if (!$student->grocery_exempt) {
+                    $totalGroceryArrears += GroceryController::calculateGroceryBalance($student->id);
+                }
+            }
         }
         
-        // If there are outstanding fees OR grocery arrears, block results
-        if ($outstandingFees > 0 || $totalGroceryArrears > 0) {
+        // If there are outstanding fees OR grocery arrears (when enabled), block results
+        if ($outstandingFees > 0 || ($groceryBlockEnabled && $totalGroceryArrears > 0)) {
             // Check for verified payment for this parent (only for fees)
             $hasVerifiedPayment = PaymentVerification::where('parent_id', $parentId)
                 ->where('status', 'verified')
                 ->exists();
             
-            // If no verified payment OR has grocery arrears, block results
-            if (!$hasVerifiedPayment || $totalGroceryArrears > 0) {
+            // If no verified payment OR has grocery arrears (when enabled), block results
+            if (!$hasVerifiedPayment || ($groceryBlockEnabled && $totalGroceryArrears > 0)) {
                 // Check if there's a pending verification
                 $pendingVerification = PaymentVerification::where('parent_id', $parentId)
                     ->where('status', 'pending')
@@ -617,7 +625,7 @@ public function adminshowResult(Request $request)
                 if ($outstandingFees > 0 && !$hasVerifiedPayment) {
                     $messages[] = 'Outstanding school fees: $' . number_format($outstandingFees, 2);
                 }
-                if ($totalGroceryArrears > 0) {
+                if ($groceryBlockEnabled && $totalGroceryArrears > 0) {
                     $messages[] = 'Outstanding groceries: $' . number_format($totalGroceryArrears, 2);
                 }
                 
@@ -629,7 +637,7 @@ public function adminshowResult(Request $request)
                 return view('reports.blocked', [
                     'message' => $message,
                     'outstanding' => $outstandingFees,
-                    'grocery_arrears' => $totalGroceryArrears,
+                    'grocery_arrears' => $groceryBlockEnabled ? $totalGroceryArrears : 0,
                     'details' => $messages,
                     'show_verification_link' => $outstandingFees > 0 && !$hasVerifiedPayment,
                     'pending' => $pendingVerification

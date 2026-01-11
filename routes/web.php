@@ -420,6 +420,11 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('/admin/groceries/{id}/lock', 'GroceryController@lock')->name('admin.groceries.lock');
     Route::get('/admin/groceries/student/{studentId}/history', 'GroceryController@studentHistory')->name('admin.groceries.student-history');
     Route::delete('/admin/groceries/{id}', 'GroceryController@destroy')->name('admin.groceries.destroy');
+    
+    // Grocery Block Settings Routes
+    Route::get('/admin/grocery-block-settings', 'GroceryController@blockSettings')->name('admin.grocery-block-settings');
+    Route::post('/admin/grocery-block-settings', 'GroceryController@updateBlockSettings')->name('admin.grocery-block-settings.update');
+    Route::post('/admin/grocery-exempt/{studentId}', 'GroceryController@toggleExemption')->name('admin.grocery-exempt');
 
     // Admin View Results Routes
     Route::get('/admin/view-results', 'ResultController@adminViewResults')->name('admin.view-results');
