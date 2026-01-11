@@ -343,6 +343,11 @@ class AttendanceScanController extends Controller
         ]);
     }
 
+    // Standard work hours configuration
+    const STANDARD_CHECK_IN = '07:30:00';  // Expected check-in time
+    const STANDARD_CHECK_OUT = '16:30:00'; // Expected check-out time (9 hours work day)
+    const WORK_HOURS_PER_DAY = 9; // hours
+
     /**
      * Display teacher attendance history for admin.
      */
@@ -364,15 +369,173 @@ class AttendanceScanController extends Controller
 
         $teachers = Teacher::with('user')->orderBy('id')->get();
 
+        // Standard times for display
+        $standardCheckIn = self::STANDARD_CHECK_IN;
+        $standardCheckOut = self::STANDARD_CHECK_OUT;
+
+        // Calculate late/overtime for each attendance record
+        foreach ($attendances as $attendance) {
+            $attendance->is_late = false;
+            $attendance->late_minutes = 0;
+            $attendance->has_overtime = false;
+            $attendance->overtime_minutes = 0;
+            $attendance->worked_minutes = 0;
+
+            if ($attendance->check_in_time) {
+                $checkIn = \Carbon\Carbon::parse($attendance->check_in_time);
+                $expectedIn = \Carbon\Carbon::parse(self::STANDARD_CHECK_IN);
+                
+                if ($checkIn->gt($expectedIn)) {
+                    $attendance->is_late = true;
+                    $attendance->late_minutes = $checkIn->diffInMinutes($expectedIn);
+                }
+            }
+
+            if ($attendance->check_in_time && $attendance->check_out_time) {
+                $checkIn = \Carbon\Carbon::parse($attendance->check_in_time);
+                $checkOut = \Carbon\Carbon::parse($attendance->check_out_time);
+                $expectedOut = \Carbon\Carbon::parse(self::STANDARD_CHECK_OUT);
+                
+                $attendance->worked_minutes = $checkIn->diffInMinutes($checkOut);
+                
+                // Overtime if checked out after expected time
+                if ($checkOut->gt($expectedOut)) {
+                    $attendance->has_overtime = true;
+                    $attendance->overtime_minutes = $checkOut->diffInMinutes($expectedOut);
+                }
+            }
+        }
+
         // Statistics
         $totalRecords = $attendances->count();
-        $onTimeCount = $attendances->filter(fn($a) => $a->check_in_time && $a->check_in_time <= '08:00:00')->count();
-        $lateCount = $attendances->filter(fn($a) => $a->check_in_time && $a->check_in_time > '08:00:00')->count();
+        $onTimeCount = $attendances->filter(fn($a) => !$a->is_late && $a->check_in_time)->count();
+        $lateCount = $attendances->filter(fn($a) => $a->is_late)->count();
+        $totalWorkedMinutes = $attendances->sum('worked_minutes');
+        $totalOvertimeMinutes = $attendances->sum('overtime_minutes');
+        $totalLateMinutes = $attendances->sum('late_minutes');
+
+        // Calculate per-teacher summaries (weekly, monthly, termly)
+        $teacherSummaries = $this->calculateTeacherSummaries($year, $month);
 
         return view('backend.attendance.history', compact(
             'attendances', 'teachers', 'month', 'year', 'teacherId',
-            'totalRecords', 'onTimeCount', 'lateCount'
+            'totalRecords', 'onTimeCount', 'lateCount',
+            'totalWorkedMinutes', 'totalOvertimeMinutes', 'totalLateMinutes',
+            'standardCheckIn', 'standardCheckOut', 'teacherSummaries'
         ));
+    }
+
+    /**
+     * Calculate weekly, monthly, and termly summaries per teacher.
+     */
+    private function calculateTeacherSummaries($year, $month)
+    {
+        $teachers = Teacher::with('user')->get();
+        $summaries = [];
+
+        // Get current week start/end
+        $weekStart = now()->startOfWeek();
+        $weekEnd = now()->endOfWeek();
+
+        // Get term dates (assuming 3 terms: Jan-Apr, May-Aug, Sep-Dec)
+        $currentMonth = now()->month;
+        if ($currentMonth >= 1 && $currentMonth <= 4) {
+            $termStart = now()->setMonth(1)->startOfMonth();
+            $termEnd = now()->setMonth(4)->endOfMonth();
+        } elseif ($currentMonth >= 5 && $currentMonth <= 8) {
+            $termStart = now()->setMonth(5)->startOfMonth();
+            $termEnd = now()->setMonth(8)->endOfMonth();
+        } else {
+            $termStart = now()->setMonth(9)->startOfMonth();
+            $termEnd = now()->setMonth(12)->endOfMonth();
+        }
+
+        foreach ($teachers as $teacher) {
+            // Weekly totals
+            $weeklyAttendances = TeacherAttendance::where('teacher_id', $teacher->id)
+                ->whereBetween('date', [$weekStart, $weekEnd])
+                ->get();
+
+            $weeklyMinutes = 0;
+            $weeklyLate = 0;
+            $weeklyOvertime = 0;
+            foreach ($weeklyAttendances as $att) {
+                if ($att->check_in_time && $att->check_out_time) {
+                    $weeklyMinutes += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse($att->check_out_time));
+                }
+                if ($att->check_in_time && $att->check_in_time > self::STANDARD_CHECK_IN) {
+                    $weeklyLate += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_IN));
+                }
+                if ($att->check_out_time && $att->check_out_time > self::STANDARD_CHECK_OUT) {
+                    $weeklyOvertime += \Carbon\Carbon::parse($att->check_out_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_OUT));
+                }
+            }
+
+            // Monthly totals
+            $monthlyAttendances = TeacherAttendance::where('teacher_id', $teacher->id)
+                ->whereMonth('date', $month)
+                ->whereYear('date', $year)
+                ->get();
+
+            $monthlyMinutes = 0;
+            $monthlyLate = 0;
+            $monthlyOvertime = 0;
+            foreach ($monthlyAttendances as $att) {
+                if ($att->check_in_time && $att->check_out_time) {
+                    $monthlyMinutes += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse($att->check_out_time));
+                }
+                if ($att->check_in_time && $att->check_in_time > self::STANDARD_CHECK_IN) {
+                    $monthlyLate += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_IN));
+                }
+                if ($att->check_out_time && $att->check_out_time > self::STANDARD_CHECK_OUT) {
+                    $monthlyOvertime += \Carbon\Carbon::parse($att->check_out_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_OUT));
+                }
+            }
+
+            // Termly totals
+            $termlyAttendances = TeacherAttendance::where('teacher_id', $teacher->id)
+                ->whereBetween('date', [$termStart, $termEnd])
+                ->get();
+
+            $termlyMinutes = 0;
+            $termlyLate = 0;
+            $termlyOvertime = 0;
+            foreach ($termlyAttendances as $att) {
+                if ($att->check_in_time && $att->check_out_time) {
+                    $termlyMinutes += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse($att->check_out_time));
+                }
+                if ($att->check_in_time && $att->check_in_time > self::STANDARD_CHECK_IN) {
+                    $termlyLate += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_IN));
+                }
+                if ($att->check_out_time && $att->check_out_time > self::STANDARD_CHECK_OUT) {
+                    $termlyOvertime += \Carbon\Carbon::parse($att->check_out_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_OUT));
+                }
+            }
+
+            $summaries[$teacher->id] = [
+                'teacher' => $teacher,
+                'weekly' => [
+                    'total_minutes' => $weeklyMinutes,
+                    'late_minutes' => $weeklyLate,
+                    'overtime_minutes' => $weeklyOvertime,
+                    'days' => $weeklyAttendances->count(),
+                ],
+                'monthly' => [
+                    'total_minutes' => $monthlyMinutes,
+                    'late_minutes' => $monthlyLate,
+                    'overtime_minutes' => $monthlyOvertime,
+                    'days' => $monthlyAttendances->count(),
+                ],
+                'termly' => [
+                    'total_minutes' => $termlyMinutes,
+                    'late_minutes' => $termlyLate,
+                    'overtime_minutes' => $termlyOvertime,
+                    'days' => $termlyAttendances->count(),
+                ],
+            ];
+        }
+
+        return $summaries;
     }
 
     /**

@@ -18,48 +18,156 @@
             </button>
         </div>
 
+        <!-- Standard Work Hours Info -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-4 mb-6 text-white">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-6">
+                    <div>
+                        <p class="text-blue-100 text-xs uppercase tracking-wide">Standard Check-In</p>
+                        <p class="text-2xl font-bold">{{ \Carbon\Carbon::parse($standardCheckIn)->format('H:i') }}</p>
+                    </div>
+                    <div class="text-blue-300">→</div>
+                    <div>
+                        <p class="text-blue-100 text-xs uppercase tracking-wide">Standard Check-Out</p>
+                        <p class="text-2xl font-bold">{{ \Carbon\Carbon::parse($standardCheckOut)->format('H:i') }}</p>
+                    </div>
+                    <div class="border-l border-blue-400 pl-6">
+                        <p class="text-blue-100 text-xs uppercase tracking-wide">Work Day</p>
+                        <p class="text-2xl font-bold">9 Hours</p>
+                    </div>
+                </div>
+                <div class="text-sm text-blue-100">
+                    <p>Late = Check-in after {{ \Carbon\Carbon::parse($standardCheckIn)->format('H:i') }}</p>
+                    <p>Overtime = Check-out after {{ \Carbon\Carbon::parse($standardCheckOut)->format('H:i') }}</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="p-3 bg-blue-100 rounded-lg">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm text-gray-500">Total Records</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $totalRecords }}</p>
-                    </div>
-                </div>
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <p class="text-xs text-gray-500 uppercase">Total Records</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $totalRecords }}</p>
             </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="p-3 bg-green-100 rounded-lg">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm text-gray-500">On Time</p>
-                        <p class="text-2xl font-bold text-green-600">{{ $onTimeCount }}</p>
-                    </div>
-                </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <p class="text-xs text-gray-500 uppercase">On Time</p>
+                <p class="text-2xl font-bold text-green-600">{{ $onTimeCount }}</p>
             </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <p class="text-xs text-gray-500 uppercase">Late Arrivals</p>
+                <p class="text-2xl font-bold text-yellow-600">{{ $lateCount }}</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <p class="text-xs text-gray-500 uppercase">Total Worked</p>
+                <p class="text-2xl font-bold text-blue-600">{{ floor($totalWorkedMinutes / 60) }}h {{ $totalWorkedMinutes % 60 }}m</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <p class="text-xs text-gray-500 uppercase">Total Late</p>
+                <p class="text-2xl font-bold text-red-600">{{ floor($totalLateMinutes / 60) }}h {{ $totalLateMinutes % 60 }}m</p>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <p class="text-xs text-gray-500 uppercase">Total Overtime</p>
+                <p class="text-2xl font-bold text-purple-600">{{ floor($totalOvertimeMinutes / 60) }}h {{ $totalOvertimeMinutes % 60 }}m</p>
+            </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="p-3 bg-yellow-100 rounded-lg">
-                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm text-gray-500">Late Arrivals</p>
-                        <p class="text-2xl font-bold text-yellow-600">{{ $lateCount }}</p>
-                    </div>
-                </div>
+        <!-- Teacher Summaries -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-900">Teacher Time Summaries</h3>
+                <span class="text-sm text-gray-500">Weekly | Monthly | Termly</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teacher</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase" colspan="3">This Week</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase" colspan="3">This Month</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase" colspan="3">This Term</th>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <th></th>
+                            <th class="px-2 py-1 text-xs text-gray-400">Hours</th>
+                            <th class="px-2 py-1 text-xs text-gray-400">Late</th>
+                            <th class="px-2 py-1 text-xs text-gray-400">OT</th>
+                            <th class="px-2 py-1 text-xs text-gray-400">Hours</th>
+                            <th class="px-2 py-1 text-xs text-gray-400">Late</th>
+                            <th class="px-2 py-1 text-xs text-gray-400">OT</th>
+                            <th class="px-2 py-1 text-xs text-gray-400">Hours</th>
+                            <th class="px-2 py-1 text-xs text-gray-400">Late</th>
+                            <th class="px-2 py-1 text-xs text-gray-400">OT</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @foreach($teacherSummaries as $summary)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs">
+                                        {{ substr($summary['teacher']->user->name, 0, 1) }}
+                                    </div>
+                                    <span class="ml-2 text-sm font-medium">{{ $summary['teacher']->user->name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-2 py-2 text-center text-sm">
+                                <span class="font-medium">{{ floor($summary['weekly']['total_minutes'] / 60) }}h</span>
+                                <span class="text-gray-400 text-xs">({{ $summary['weekly']['days'] }}d)</span>
+                            </td>
+                            <td class="px-2 py-2 text-center text-sm text-red-600">
+                                @if($summary['weekly']['late_minutes'] > 0)
+                                    {{ floor($summary['weekly']['late_minutes'] / 60) }}h {{ $summary['weekly']['late_minutes'] % 60 }}m
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-2 py-2 text-center text-sm text-purple-600">
+                                @if($summary['weekly']['overtime_minutes'] > 0)
+                                    {{ floor($summary['weekly']['overtime_minutes'] / 60) }}h {{ $summary['weekly']['overtime_minutes'] % 60 }}m
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-2 py-2 text-center text-sm border-l">
+                                <span class="font-medium">{{ floor($summary['monthly']['total_minutes'] / 60) }}h</span>
+                                <span class="text-gray-400 text-xs">({{ $summary['monthly']['days'] }}d)</span>
+                            </td>
+                            <td class="px-2 py-2 text-center text-sm text-red-600">
+                                @if($summary['monthly']['late_minutes'] > 0)
+                                    {{ floor($summary['monthly']['late_minutes'] / 60) }}h {{ $summary['monthly']['late_minutes'] % 60 }}m
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-2 py-2 text-center text-sm text-purple-600">
+                                @if($summary['monthly']['overtime_minutes'] > 0)
+                                    {{ floor($summary['monthly']['overtime_minutes'] / 60) }}h {{ $summary['monthly']['overtime_minutes'] % 60 }}m
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-2 py-2 text-center text-sm border-l">
+                                <span class="font-medium">{{ floor($summary['termly']['total_minutes'] / 60) }}h</span>
+                                <span class="text-gray-400 text-xs">({{ $summary['termly']['days'] }}d)</span>
+                            </td>
+                            <td class="px-2 py-2 text-center text-sm text-red-600">
+                                @if($summary['termly']['late_minutes'] > 0)
+                                    {{ floor($summary['termly']['late_minutes'] / 60) }}h {{ $summary['termly']['late_minutes'] % 60 }}m
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-2 py-2 text-center text-sm text-purple-600">
+                                @if($summary['termly']['overtime_minutes'] > 0)
+                                    {{ floor($summary['termly']['overtime_minutes'] / 60) }}h {{ $summary['termly']['overtime_minutes'] % 60 }}m
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -113,68 +221,100 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check In</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check Out</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check In</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check Out</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Worked</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Late</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overtime</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($attendances as $attendance)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                        <tr class="hover:bg-gray-50 {{ $attendance->is_late ? 'bg-yellow-50' : '' }}">
+                            <td class="px-4 py-3 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <span class="text-blue-600 font-medium">{{ substr($attendance->teacher->user->name, 0, 1) }}</span>
+                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span class="text-blue-600 font-medium text-sm">{{ substr($attendance->teacher->user->name, 0, 1) }}</span>
                                     </div>
-                                    <div class="ml-3">
+                                    <div class="ml-2">
                                         <p class="text-sm font-medium text-gray-900">{{ $attendance->teacher->user->name }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ \Carbon\Carbon::parse($attendance->date)->format('D, M d, Y') }}
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                {{ \Carbon\Carbon::parse($attendance->date)->format('D, M d') }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-4 py-3 whitespace-nowrap">
                                 @if($attendance->check_in_time)
-                                    <span class="text-sm {{ \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s') > '08:00:00' ? 'text-yellow-600' : 'text-green-600' }}">
+                                    <span class="text-sm font-medium {{ $attendance->is_late ? 'text-red-600' : 'text-green-600' }}">
                                         {{ \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i') }}
                                     </span>
+                                    @if($attendance->is_late)
+                                        <span class="ml-1 text-xs text-red-500">LATE</span>
+                                    @endif
                                 @else
                                     <span class="text-sm text-gray-400">--:--</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-4 py-3 whitespace-nowrap">
                                 @if($attendance->check_out_time)
-                                    <span class="text-sm text-blue-600">{{ \Carbon\Carbon::parse($attendance->check_out_time)->format('H:i') }}</span>
+                                    <span class="text-sm font-medium {{ $attendance->has_overtime ? 'text-purple-600' : 'text-blue-600' }}">
+                                        {{ \Carbon\Carbon::parse($attendance->check_out_time)->format('H:i') }}
+                                    </span>
+                                    @if($attendance->has_overtime)
+                                        <span class="ml-1 text-xs text-purple-500">OT</span>
+                                    @endif
                                 @else
                                     <span class="text-sm text-gray-400">--:--</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                @if($attendance->worked_minutes > 0)
+                                    <span class="font-medium text-gray-700">{{ floor($attendance->worked_minutes / 60) }}h {{ $attendance->worked_minutes % 60 }}m</span>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                @if($attendance->late_minutes > 0)
+                                    <span class="text-red-600 font-medium">{{ floor($attendance->late_minutes / 60) }}h {{ $attendance->late_minutes % 60 }}m</span>
+                                @else
+                                    <span class="text-green-600">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                @if($attendance->overtime_minutes > 0)
+                                    <span class="text-purple-600 font-medium">{{ floor($attendance->overtime_minutes / 60) }}h {{ $attendance->overtime_minutes % 60 }}m</span>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
                                 @if($attendance->check_out_time)
-                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">Completed</span>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">Done</span>
                                 @elseif($attendance->check_in_time)
-                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Checked In</span>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">In</span>
                                 @else
-                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">No Record</span>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">-</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <div class="flex items-center space-x-2">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                <div class="flex items-center space-x-1">
                                     <button onclick="openEditModal({{ $attendance->id }}, '{{ $attendance->check_in_time ? \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i') : '' }}', '{{ $attendance->check_out_time ? \Carbon\Carbon::parse($attendance->check_out_time)->format('H:i') : '' }}')" 
                                             class="p-1 text-blue-600 hover:bg-blue-100 rounded" title="Edit">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
                                     </button>
-                                    <form action="{{ route('attendance.delete', $attendance->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                    <form action="{{ route('attendance.delete', $attendance->id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this record?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-1 text-red-600 hover:bg-red-100 rounded" title="Delete">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
                                         </button>
