@@ -187,6 +187,72 @@
                 </div>
             </div>
 
+            <!-- Teacher Session Section -->
+            <div class="px-8 py-6 border-t border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center mb-4">
+                    <span class="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 018 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </span>
+                    Work Session
+                </h3>
+                <p class="text-sm text-gray-600 mb-4">Select which session(s) this teacher works</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Morning Session -->
+                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 border-amber-500 bg-amber-50 cursor-pointer hover:border-amber-600 transition-all">
+                        <input type="radio" name="session" value="morning" class="hidden" {{ old('session', 'both') == 'morning' ? 'checked' : '' }}>
+                        <div class="session-radio w-6 h-6 border-2 border-amber-500 rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 bg-amber-500">
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                <span class="font-semibold text-gray-900">Morning Only</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Works morning session only</p>
+                        </div>
+                    </label>
+                    
+                    <!-- Afternoon Session -->
+                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all">
+                        <input type="radio" name="session" value="afternoon" class="hidden" {{ old('session', 'both') == 'afternoon' ? 'checked' : '' }}>
+                        <div class="session-radio w-6 h-6 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div class="w-2 h-2 bg-white rounded-full hidden"></div>
+                        </div>
+                        <div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                </svg>
+                                <span class="font-semibold text-gray-900">Afternoon Only</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Works afternoon session only</p>
+                        </div>
+                    </label>
+                    
+                    <!-- Both Sessions -->
+                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
+                        <input type="radio" name="session" value="both" class="hidden" {{ old('session', 'both') == 'both' ? 'checked' : '' }}>
+                        <div class="session-radio w-6 h-6 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div class="w-2 h-2 bg-white rounded-full hidden"></div>
+                        </div>
+                        <div>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="font-semibold text-gray-900">Both Sessions</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Works full day (default)</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
             <!-- Login Credentials Info -->
             <div class="px-8 py-6 border-t border-gray-100 bg-gradient-to-r from-green-50 to-blue-50">
                 <div class="flex items-start">
@@ -286,6 +352,37 @@
             $(this).closest('.role-option').trigger('click');
             $(this).closest('.role-option').trigger('click');
         });
+
+        // Session radio button functionality
+        $('.session-option').on('click', function() {
+            // Remove active state from all options
+            $('.session-option').removeClass('border-amber-500 border-indigo-500 border-purple-500 bg-amber-50 bg-indigo-50 bg-purple-50').addClass('border-gray-200');
+            $('.session-radio').removeClass('border-amber-500 border-indigo-500 border-purple-500 bg-amber-500 bg-indigo-500 bg-purple-500').addClass('border-gray-300');
+            $('.session-radio div').addClass('hidden');
+            
+            // Add active state to clicked option
+            const $input = $(this).find('input[type="radio"]');
+            $input.prop('checked', true);
+            
+            const value = $input.val();
+            const $radio = $(this).find('.session-radio');
+            
+            if (value === 'morning') {
+                $(this).removeClass('border-gray-200').addClass('border-amber-500 bg-amber-50');
+                $radio.removeClass('border-gray-300').addClass('border-amber-500 bg-amber-500');
+            } else if (value === 'afternoon') {
+                $(this).removeClass('border-gray-200').addClass('border-indigo-500 bg-indigo-50');
+                $radio.removeClass('border-gray-300').addClass('border-indigo-500 bg-indigo-500');
+            } else {
+                $(this).removeClass('border-gray-200').addClass('border-purple-500 bg-purple-50');
+                $radio.removeClass('border-gray-300').addClass('border-purple-500 bg-purple-500');
+            }
+            
+            $(this).find('.session-radio div').removeClass('hidden');
+        });
+
+        // Set initial state for session radio
+        $('input[name="session"]:checked').closest('.session-option').trigger('click');
     })
 </script>
 @endpush

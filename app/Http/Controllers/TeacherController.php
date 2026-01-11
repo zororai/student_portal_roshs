@@ -91,6 +91,7 @@ class TeacherController extends Controller
             'is_class_teacher'  => $request->has('is_class_teacher'),
             'is_hod'            => $request->has('is_hod'),
             'is_sport_director' => $request->has('is_sport_director'),
+            'session'           => $request->session ?? 'both',
         ]);
 
         $user->assignRole('Teacher');
@@ -1356,6 +1357,37 @@ class TeacherController extends Controller
             'success' => true,
             'marks' => array_values($studentMarks)
         ]);
+    }
+
+    /**
+     * Display teacher sessions management page
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function sessions()
+    {
+        $teachers = Teacher::with('user')->get();
+        return view('backend.teachers.sessions', compact('teachers'));
+    }
+
+    /**
+     * Bulk update teacher sessions
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function updateSessions(Request $request)
+    {
+        $sessions = $request->input('sessions', []);
+        
+        foreach ($sessions as $teacherId => $session) {
+            Teacher::where('id', $teacherId)->update(['session' => $session]);
+        }
+        
+        $redirect = $request->input('redirect', 'teacher.sessions');
+        
+        return redirect()->route($redirect)
+            ->with('success', 'Teacher sessions updated successfully!');
     }
 
     /**

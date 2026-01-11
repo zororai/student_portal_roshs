@@ -143,6 +143,8 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     
     Route::resource('subject', 'SubjectController');
     Route::resource('teacher', 'TeacherController')->except(['show']);
+    Route::get('teacher/sessions', 'TeacherController@sessions')->name('teacher.sessions');
+    Route::post('teacher/update-sessions', 'TeacherController@updateSessions')->name('teacher.update-sessions');
     Route::resource('parents', 'ParentsController');
     Route::post('parents/{id}/force-password-reset', 'ParentsController@forcePasswordReset')->name('parents.force-password-reset');
     Route::resource('student', 'StudentController')->except(['create', 'store']);

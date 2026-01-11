@@ -125,6 +125,11 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-2">
+                                        <button type="button" onclick="openTeacherSessionsModal({{ $resultStatus->id }}, '{{ $resultStatus->year }} {{ ucfirst($resultStatus->result_period) }} Term')" class="inline-flex items-center p-2 bg-amber-100 hover:bg-amber-200 text-amber-600 rounded-lg transition-colors" title="Manage Teacher Sessions">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </button>
                                         <a href="{{ route('results_status.edit', $resultStatus->id) }}" class="inline-flex items-center p-2 bg-green-100 hover:bg-green-200 text-green-600 rounded-lg transition-colors" title="Edit">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 448 512">
                                                 <path d="M400 480H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48v352c0 26.5-21.5 48-48 48zM238.1 177.9L102.4 313.6l-6.3 57.1c-.8 7.6 5.6 14.1 13.3 13.3l57.1-6.3L302.2 242c2.3-2.3 2.3-6.1 0-8.5L246.7 178c-2.5-2.4-6.3-2.4-8.6-.1zM345 165.1L314.9 135c-9.4-9.4-24.6-9.4-33.9 0l-23.1 23.1c-2.3 2.3-2.3 6.1 0 8.5l55.5 55.5c2.3 2.3 6.1 2.3 8.5 0L345 199c9.3-9.3 9.3-24.5 0-33.9z"/>
@@ -158,6 +163,92 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- Teacher Sessions Modal -->
+    <div id="teacherSessionsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-10 mx-auto p-5 border max-w-4xl shadow-lg rounded-lg bg-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-900">
+                    <span class="flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Manage Teacher Sessions
+                    </span>
+                </h3>
+                <button onclick="closeTeacherSessionsModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">Term: <span id="selectedTermName" class="font-semibold text-gray-900"></span></p>
+            
+            <form id="teacherSessionsForm" action="{{ route('teacher.update-sessions') }}" method="POST">
+                @csrf
+                <div class="max-h-96 overflow-y-auto border rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Teacher</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Morning</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Afternoon</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Both</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach(\App\Teacher::with('user')->get() as $teacher)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3">
+                                    <div class="text-sm font-medium text-gray-900">{{ $teacher->user->name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $teacher->phone }}</div>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="sessions[{{ $teacher->id }}]" value="morning" 
+                                            class="form-radio h-4 w-4 text-amber-500 focus:ring-amber-500"
+                                            {{ $teacher->session === 'morning' ? 'checked' : '' }}>
+                                    </label>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="sessions[{{ $teacher->id }}]" value="afternoon" 
+                                            class="form-radio h-4 w-4 text-indigo-500 focus:ring-indigo-500"
+                                            {{ $teacher->session === 'afternoon' ? 'checked' : '' }}>
+                                    </label>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="sessions[{{ $teacher->id }}]" value="both" 
+                                            class="form-radio h-4 w-4 text-purple-500 focus:ring-purple-500"
+                                            {{ $teacher->session === 'both' || $teacher->session === null ? 'checked' : '' }}>
+                                    </label>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="mt-4 flex items-center gap-2 border-t pt-4">
+                    <span class="text-sm text-gray-600">Set all to:</span>
+                    <button type="button" onclick="setAllSessions('morning')" class="px-3 py-1 text-xs font-medium bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200">Morning</button>
+                    <button type="button" onclick="setAllSessions('afternoon')" class="px-3 py-1 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-full hover:bg-indigo-200">Afternoon</button>
+                    <button type="button" onclick="setAllSessions('both')" class="px-3 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200">Both</button>
+                </div>
+                
+                <div class="flex gap-3 mt-4 pt-4 border-t">
+                    <button type="button" onclick="closeTeacherSessionsModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-300">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-md hover:bg-amber-600">
+                        Save Sessions
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -213,6 +304,23 @@
             }
         }
 
+        // Teacher Sessions Modal Functions
+        function openTeacherSessionsModal(termId, termName) {
+            document.getElementById('selectedTermName').textContent = termName;
+            document.getElementById('teacherSessionsModal').classList.remove('hidden');
+        }
+
+        function closeTeacherSessionsModal() {
+            document.getElementById('teacherSessionsModal').classList.add('hidden');
+        }
+
+        function setAllSessions(session) {
+            const radios = document.querySelectorAll('input[type="radio"][value="' + session + '"]');
+            radios.forEach(function(radio) {
+                radio.checked = true;
+            });
+        }
+
         // Close modal when clicking outside
         document.getElementById('deleteModal').addEventListener('click', function(e) {
             if (e.target === this) {
@@ -220,10 +328,17 @@
             }
         });
 
+        document.getElementById('teacherSessionsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTeacherSessionsModal();
+            }
+        });
+
         // Close modal with Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeDeleteModal();
+                closeTeacherSessionsModal();
             }
         });
     </script>
