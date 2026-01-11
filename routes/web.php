@@ -191,6 +191,12 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('attendance/teacher/{teacherId}/regenerate-qr', 'AttendanceScanController@regenerateQrCode')->name('attendance.regenerate.qr');
     Route::get('attendance/teacher/{teacherId}/qr', 'AttendanceScanController@getQrCode')->name('attendance.get.qr');
     Route::get('attendance/teacher/{teacherId}/print-qr', 'AttendanceScanController@printQrCode')->name('attendance.print.qr');
+    
+    // Teacher Attendance History Management
+    Route::get('attendance/history', 'AttendanceScanController@attendanceHistory')->name('attendance.history');
+    Route::post('attendance/store', 'AttendanceScanController@storeAttendance')->name('attendance.store');
+    Route::put('attendance/{id}/update', 'AttendanceScanController@updateAttendance')->name('attendance.update');
+    Route::delete('attendance/{id}/delete', 'AttendanceScanController@deleteAttendance')->name('attendance.delete');
 
     // Leave Management Routes
     Route::get('admin/leave', 'AdminLeaveController@index')->name('admin.leave.index');

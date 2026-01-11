@@ -342,4 +342,100 @@ class AttendanceScanController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Display teacher attendance history for admin.
+     */
+    public function attendanceHistory(Request $request)
+    {
+        $month = $request->get('month', now()->month);
+        $year = $request->get('year', now()->year);
+        $teacherId = $request->get('teacher_id');
+
+        $query = TeacherAttendance::with('teacher.user')
+            ->whereMonth('date', $month)
+            ->whereYear('date', $year);
+
+        if ($teacherId) {
+            $query->where('teacher_id', $teacherId);
+        }
+
+        $attendances = $query->orderBy('date', 'desc')->orderBy('check_in_time', 'desc')->get();
+
+        $teachers = Teacher::with('user')->orderBy('id')->get();
+
+        // Statistics
+        $totalRecords = $attendances->count();
+        $onTimeCount = $attendances->filter(fn($a) => $a->check_in_time && $a->check_in_time <= '08:00:00')->count();
+        $lateCount = $attendances->filter(fn($a) => $a->check_in_time && $a->check_in_time > '08:00:00')->count();
+
+        return view('backend.attendance.history', compact(
+            'attendances', 'teachers', 'month', 'year', 'teacherId',
+            'totalRecords', 'onTimeCount', 'lateCount'
+        ));
+    }
+
+    /**
+     * Update attendance record (check-in/out times).
+     */
+    public function updateAttendance(Request $request, $id)
+    {
+        $request->validate([
+            'check_in_time' => 'nullable|date_format:H:i',
+            'check_out_time' => 'nullable|date_format:H:i',
+        ]);
+
+        $attendance = TeacherAttendance::findOrFail($id);
+
+        $attendance->update([
+            'check_in_time' => $request->check_in_time ? $request->check_in_time . ':00' : null,
+            'check_out_time' => $request->check_out_time ? $request->check_out_time . ':00' : null,
+            'status' => $request->check_out_time ? 'OUT' : ($request->check_in_time ? 'IN' : null),
+        ]);
+
+        return redirect()->back()->with('success', 'Attendance updated successfully.');
+    }
+
+    /**
+     * Manually add attendance record.
+     */
+    public function storeAttendance(Request $request)
+    {
+        $request->validate([
+            'teacher_id' => 'required|exists:teachers,id',
+            'date' => 'required|date',
+            'check_in_time' => 'nullable|date_format:H:i',
+            'check_out_time' => 'nullable|date_format:H:i',
+        ]);
+
+        // Check if record already exists
+        $existing = TeacherAttendance::where('teacher_id', $request->teacher_id)
+            ->whereDate('date', $request->date)
+            ->first();
+
+        if ($existing) {
+            return redirect()->back()->with('error', 'Attendance record already exists for this teacher on this date.');
+        }
+
+        TeacherAttendance::create([
+            'teacher_id' => $request->teacher_id,
+            'date' => $request->date,
+            'check_in_time' => $request->check_in_time ? $request->check_in_time . ':00' : null,
+            'check_out_time' => $request->check_out_time ? $request->check_out_time . ':00' : null,
+            'status' => $request->check_out_time ? 'OUT' : ($request->check_in_time ? 'IN' : null),
+        ]);
+
+        return redirect()->back()->with('success', 'Attendance record added successfully.');
+    }
+
+    /**
+     * Delete attendance record.
+     */
+    public function deleteAttendance($id)
+    {
+        $attendance = TeacherAttendance::findOrFail($id);
+        $attendance->delete();
+
+        return redirect()->back()->with('success', 'Attendance record deleted successfully.');
+    }
 }
