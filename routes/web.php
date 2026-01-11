@@ -197,6 +197,10 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('attendance/store', 'AttendanceScanController@storeAttendance')->name('attendance.store');
     Route::put('attendance/{id}/update', 'AttendanceScanController@updateAttendance')->name('attendance.update');
     Route::delete('attendance/{id}/delete', 'AttendanceScanController@deleteAttendance')->name('attendance.delete');
+    
+    // Attendance Settings
+    Route::get('admin/attendance/settings', 'AttendanceSettingsController@index')->name('admin.attendance.settings');
+    Route::post('admin/attendance/settings', 'AttendanceSettingsController@update')->name('admin.attendance.settings.update');
 
     // Leave Management Routes
     Route::get('admin/leave', 'AdminLeaveController@index')->name('admin.leave.index');

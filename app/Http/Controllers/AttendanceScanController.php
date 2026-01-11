@@ -343,10 +343,66 @@ class AttendanceScanController extends Controller
         ]);
     }
 
-    // Standard work hours configuration
-    const STANDARD_CHECK_IN = '07:30:00';  // Expected check-in time
-    const STANDARD_CHECK_OUT = '16:30:00'; // Expected check-out time (9 hours work day)
-    const WORK_HOURS_PER_DAY = 9; // hours
+    /**
+     * Get session mode (single or dual).
+     */
+    public static function getSessionMode()
+    {
+        return \App\SchoolSetting::get('attendance_session_mode', 'single');
+    }
+
+    /**
+     * Get standard check-in time from settings.
+     * For dual mode, can specify 'morning' or 'afternoon' session.
+     */
+    public static function getStandardCheckIn($session = 'morning')
+    {
+        if ($session === 'afternoon') {
+            return \App\SchoolSetting::get('attendance_afternoon_check_in_time', '12:30') . ':00';
+        }
+        return \App\SchoolSetting::get('attendance_check_in_time', '07:30') . ':00';
+    }
+
+    /**
+     * Get standard check-out time from settings.
+     * For dual mode, can specify 'morning' or 'afternoon' session.
+     */
+    public static function getStandardCheckOut($session = 'morning')
+    {
+        if ($session === 'afternoon') {
+            return \App\SchoolSetting::get('attendance_afternoon_check_out_time', '17:30') . ':00';
+        }
+        return \App\SchoolSetting::get('attendance_check_out_time', '16:30') . ':00';
+    }
+
+    /**
+     * Get late grace period in minutes from settings.
+     */
+    public static function getLateGraceMinutes()
+    {
+        return (int) \App\SchoolSetting::get('attendance_late_grace_minutes', '0');
+    }
+
+    /**
+     * Detect which session a time belongs to (morning or afternoon).
+     * Returns 'morning' or 'afternoon' based on the check-in time.
+     */
+    public static function detectSession($checkInTime)
+    {
+        if (self::getSessionMode() === 'single') {
+            return 'morning'; // Single mode always uses morning times
+        }
+
+        $time = \Carbon\Carbon::parse($checkInTime);
+        $morningEnd = \Carbon\Carbon::parse(self::getStandardCheckOut('morning'));
+        
+        // If check-in is after morning session ends, it's afternoon
+        if ($time->gte($morningEnd)) {
+            return 'afternoon';
+        }
+        
+        return 'morning';
+    }
 
     /**
      * Display teacher attendance history for admin.
@@ -369,9 +425,13 @@ class AttendanceScanController extends Controller
 
         $teachers = Teacher::with('user')->orderBy('id')->get();
 
-        // Standard times for display
-        $standardCheckIn = self::STANDARD_CHECK_IN;
-        $standardCheckOut = self::STANDARD_CHECK_OUT;
+        // Get session mode and grace period
+        $sessionMode = self::getSessionMode();
+        $graceMinutes = self::getLateGraceMinutes();
+        
+        // Get standard times (for display - morning/single session)
+        $standardCheckIn = self::getStandardCheckIn();
+        $standardCheckOut = self::getStandardCheckOut();
 
         // Calculate late/overtime for each attendance record
         foreach ($attendances as $attendance) {
@@ -380,10 +440,14 @@ class AttendanceScanController extends Controller
             $attendance->has_overtime = false;
             $attendance->overtime_minutes = 0;
             $attendance->worked_minutes = 0;
+            $attendance->session_type = 'morning';
 
             if ($attendance->check_in_time) {
+                // Detect which session this attendance belongs to
+                $attendance->session_type = self::detectSession($attendance->check_in_time);
+                
                 $checkIn = \Carbon\Carbon::parse($attendance->check_in_time);
-                $expectedIn = \Carbon\Carbon::parse(self::STANDARD_CHECK_IN);
+                $expectedIn = \Carbon\Carbon::parse(self::getStandardCheckIn($attendance->session_type))->addMinutes($graceMinutes);
                 
                 if ($checkIn->gt($expectedIn)) {
                     $attendance->is_late = true;
@@ -394,7 +458,7 @@ class AttendanceScanController extends Controller
             if ($attendance->check_in_time && $attendance->check_out_time) {
                 $checkIn = \Carbon\Carbon::parse($attendance->check_in_time);
                 $checkOut = \Carbon\Carbon::parse($attendance->check_out_time);
-                $expectedOut = \Carbon\Carbon::parse(self::STANDARD_CHECK_OUT);
+                $expectedOut = \Carbon\Carbon::parse(self::getStandardCheckOut($attendance->session_type));
                 
                 $attendance->worked_minutes = $checkIn->diffInMinutes($checkOut);
                 
@@ -416,12 +480,17 @@ class AttendanceScanController extends Controller
 
         // Calculate per-teacher summaries (weekly, monthly, termly)
         $teacherSummaries = $this->calculateTeacherSummaries($year, $month);
+        
+        // Get afternoon session times for dual mode display
+        $afternoonCheckIn = self::getStandardCheckIn('afternoon');
+        $afternoonCheckOut = self::getStandardCheckOut('afternoon');
 
         return view('backend.attendance.history', compact(
             'attendances', 'teachers', 'month', 'year', 'teacherId',
             'totalRecords', 'onTimeCount', 'lateCount',
             'totalWorkedMinutes', 'totalOvertimeMinutes', 'totalLateMinutes',
-            'standardCheckIn', 'standardCheckOut', 'teacherSummaries'
+            'standardCheckIn', 'standardCheckOut', 'teacherSummaries',
+            'sessionMode', 'afternoonCheckIn', 'afternoonCheckOut'
         ));
     }
 
@@ -432,6 +501,10 @@ class AttendanceScanController extends Controller
     {
         $teachers = Teacher::with('user')->get();
         $summaries = [];
+
+        // Get standard times from settings
+        $standardCheckIn = self::getStandardCheckIn();
+        $standardCheckOut = self::getStandardCheckOut();
 
         // Get current week start/end
         $weekStart = now()->startOfWeek();
@@ -463,11 +536,11 @@ class AttendanceScanController extends Controller
                 if ($att->check_in_time && $att->check_out_time) {
                     $weeklyMinutes += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse($att->check_out_time));
                 }
-                if ($att->check_in_time && $att->check_in_time > self::STANDARD_CHECK_IN) {
-                    $weeklyLate += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_IN));
+                if ($att->check_in_time && $att->check_in_time > $standardCheckIn) {
+                    $weeklyLate += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse($standardCheckIn));
                 }
-                if ($att->check_out_time && $att->check_out_time > self::STANDARD_CHECK_OUT) {
-                    $weeklyOvertime += \Carbon\Carbon::parse($att->check_out_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_OUT));
+                if ($att->check_out_time && $att->check_out_time > $standardCheckOut) {
+                    $weeklyOvertime += \Carbon\Carbon::parse($att->check_out_time)->diffInMinutes(\Carbon\Carbon::parse($standardCheckOut));
                 }
             }
 
@@ -484,11 +557,11 @@ class AttendanceScanController extends Controller
                 if ($att->check_in_time && $att->check_out_time) {
                     $monthlyMinutes += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse($att->check_out_time));
                 }
-                if ($att->check_in_time && $att->check_in_time > self::STANDARD_CHECK_IN) {
-                    $monthlyLate += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_IN));
+                if ($att->check_in_time && $att->check_in_time > $standardCheckIn) {
+                    $monthlyLate += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse($standardCheckIn));
                 }
-                if ($att->check_out_time && $att->check_out_time > self::STANDARD_CHECK_OUT) {
-                    $monthlyOvertime += \Carbon\Carbon::parse($att->check_out_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_OUT));
+                if ($att->check_out_time && $att->check_out_time > $standardCheckOut) {
+                    $monthlyOvertime += \Carbon\Carbon::parse($att->check_out_time)->diffInMinutes(\Carbon\Carbon::parse($standardCheckOut));
                 }
             }
 
@@ -504,11 +577,11 @@ class AttendanceScanController extends Controller
                 if ($att->check_in_time && $att->check_out_time) {
                     $termlyMinutes += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse($att->check_out_time));
                 }
-                if ($att->check_in_time && $att->check_in_time > self::STANDARD_CHECK_IN) {
-                    $termlyLate += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_IN));
+                if ($att->check_in_time && $att->check_in_time > $standardCheckIn) {
+                    $termlyLate += \Carbon\Carbon::parse($att->check_in_time)->diffInMinutes(\Carbon\Carbon::parse($standardCheckIn));
                 }
-                if ($att->check_out_time && $att->check_out_time > self::STANDARD_CHECK_OUT) {
-                    $termlyOvertime += \Carbon\Carbon::parse($att->check_out_time)->diffInMinutes(\Carbon\Carbon::parse(self::STANDARD_CHECK_OUT));
+                if ($att->check_out_time && $att->check_out_time > $standardCheckOut) {
+                    $termlyOvertime += \Carbon\Carbon::parse($att->check_out_time)->diffInMinutes(\Carbon\Carbon::parse($standardCheckOut));
                 }
             }
 

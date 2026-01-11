@@ -20,6 +20,34 @@
 
         <!-- Standard Work Hours Info -->
         <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-sm p-4 mb-6 text-white">
+            @if($sessionMode === 'dual')
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-8">
+                    <!-- Morning Session -->
+                    <div class="bg-amber-500/20 rounded-lg p-3">
+                        <p class="text-amber-200 text-xs uppercase tracking-wide mb-1">Morning Session</p>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl font-bold">{{ \Carbon\Carbon::parse($standardCheckIn)->format('H:i') }}</span>
+                            <span class="text-blue-300">→</span>
+                            <span class="text-xl font-bold">{{ \Carbon\Carbon::parse($standardCheckOut)->format('H:i') }}</span>
+                        </div>
+                    </div>
+                    <!-- Afternoon Session -->
+                    <div class="bg-indigo-500/20 rounded-lg p-3">
+                        <p class="text-indigo-200 text-xs uppercase tracking-wide mb-1">Afternoon Session</p>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl font-bold">{{ \Carbon\Carbon::parse($afternoonCheckIn)->format('H:i') }}</span>
+                            <span class="text-blue-300">→</span>
+                            <span class="text-xl font-bold">{{ \Carbon\Carbon::parse($afternoonCheckOut)->format('H:i') }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-sm text-blue-100">
+                    <p class="flex items-center"><span class="w-2 h-2 bg-amber-400 rounded-full mr-2"></span>Morning: {{ \Carbon\Carbon::parse($standardCheckIn)->format('H:i') }} - {{ \Carbon\Carbon::parse($standardCheckOut)->format('H:i') }}</p>
+                    <p class="flex items-center"><span class="w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>Afternoon: {{ \Carbon\Carbon::parse($afternoonCheckIn)->format('H:i') }} - {{ \Carbon\Carbon::parse($afternoonCheckOut)->format('H:i') }}</p>
+                </div>
+            </div>
+            @else
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center space-x-6">
                     <div>
@@ -41,6 +69,7 @@
                     <p>Overtime = Check-out after {{ \Carbon\Carbon::parse($standardCheckOut)->format('H:i') }}</p>
                 </div>
             </div>
+            @endif
         </div>
 
         <!-- Statistics Cards -->
@@ -223,6 +252,9 @@
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            @if($sessionMode === 'dual')
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session</th>
+                            @endif
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check In</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check Out</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Worked</th>
@@ -248,6 +280,25 @@
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                                 {{ \Carbon\Carbon::parse($attendance->date)->format('D, M d') }}
                             </td>
+                            @if($sessionMode === 'dual')
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                @if($attendance->session_type === 'morning')
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                        </svg>
+                                        Morning
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                        </svg>
+                                        Afternoon
+                                    </span>
+                                @endif
+                            </td>
+                            @endif
                             <td class="px-4 py-3 whitespace-nowrap">
                                 @if($attendance->check_in_time)
                                     <span class="text-sm font-medium {{ $attendance->is_late ? 'text-red-600' : 'text-green-600' }}">

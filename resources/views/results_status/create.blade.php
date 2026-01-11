@@ -168,6 +168,101 @@
                     </div>
                 </div>
 
+                <!-- Teacher Attendance Settings Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-700 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Teacher Attendance Settings
+                        </h3>
+                    </div>
+
+                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <!-- Session Mode Toggle -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">School Session Mode</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all border-purple-500 bg-white" id="single_mode_label">
+                                    <input type="radio" name="session_mode" value="single" checked
+                                           class="h-4 w-4 text-purple-600 focus:ring-purple-500"
+                                           onchange="toggleAttendanceSessionMode()">
+                                    <div class="ml-3">
+                                        <span class="block font-medium text-gray-900">Single Session</span>
+                                        <span class="block text-xs text-gray-500">Full day schedule</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all border-gray-200 hover:border-gray-300" id="dual_mode_label">
+                                    <input type="radio" name="session_mode" value="dual"
+                                           class="h-4 w-4 text-purple-600 focus:ring-purple-500"
+                                           onchange="toggleAttendanceSessionMode()">
+                                    <div class="ml-3">
+                                        <span class="block font-medium text-gray-900">Dual Session</span>
+                                        <span class="block text-xs text-gray-500">Morning & Afternoon</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Morning/Single Session Times -->
+                        <div class="bg-white p-4 rounded border border-gray-200 mb-4">
+                            <h4 class="font-medium text-amber-700 mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                <span id="morning_session_label">Work Hours</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Check-In Time</label>
+                                    <input type="time" name="check_in_time" id="check_in_time" value="07:30"
+                                           class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Check-Out Time</label>
+                                    <input type="time" name="check_out_time" id="check_out_time" value="16:30"
+                                           class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-purple-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Afternoon Session Times (hidden by default) -->
+                        <div id="afternoon_session_section" class="bg-white p-4 rounded border border-gray-200 mb-4 hidden">
+                            <h4 class="font-medium text-indigo-700 mb-3 flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                </svg>
+                                Afternoon Session
+                            </h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Check-In Time</label>
+                                    <input type="time" name="afternoon_check_in_time" id="afternoon_check_in_time" value="12:30"
+                                           class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Check-Out Time</label>
+                                    <input type="time" name="afternoon_check_out_time" id="afternoon_check_out_time" value="17:30"
+                                           class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-purple-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grace Period -->
+                        <div class="bg-white p-4 rounded border border-gray-200">
+                            <div class="flex items-center">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Late Grace Period (minutes)</label>
+                                    <input type="number" name="late_grace_minutes" id="late_grace_minutes" value="0" min="0" max="60"
+                                           class="w-24 border rounded px-4 py-2 focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                <span class="ml-4 text-sm text-gray-500">Minutes after check-in time before marking as late</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-2">
                     <a href="{{ route('results_status.index') }}" class="btn btn-secondary bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-6 rounded">Cancel</a>
                     <button type="submit" class="btn btn-primary bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded">Create Term</button>
@@ -208,6 +303,29 @@ const feeTypeOptions = `
         <option value="{{ $type->id }}">{{ $type->name }}</option>
     @endforeach
 `;
+
+// Toggle attendance session mode
+function toggleAttendanceSessionMode() {
+    const isDual = document.querySelector('input[name="session_mode"]:checked').value === 'dual';
+    document.getElementById('afternoon_session_section').classList.toggle('hidden', !isDual);
+    document.getElementById('morning_session_label').textContent = isDual ? 'Morning Session' : 'Work Hours';
+    
+    // Update radio button styles
+    const singleLabel = document.getElementById('single_mode_label');
+    const dualLabel = document.getElementById('dual_mode_label');
+    
+    if (isDual) {
+        singleLabel.classList.remove('border-purple-500', 'bg-white');
+        singleLabel.classList.add('border-gray-200');
+        dualLabel.classList.add('border-purple-500', 'bg-white');
+        dualLabel.classList.remove('border-gray-200');
+    } else {
+        singleLabel.classList.add('border-purple-500', 'bg-white');
+        singleLabel.classList.remove('border-gray-200');
+        dualLabel.classList.remove('border-purple-500', 'bg-white');
+        dualLabel.classList.add('border-gray-200');
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const dayFeesContainer = document.getElementById('dayFeesContainer');

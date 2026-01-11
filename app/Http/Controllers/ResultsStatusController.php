@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\ResultsStatus;
 use App\FeeType;
 use App\TermFee;
+use App\SchoolSetting;
+use Carbon\Carbon;
 
 class ResultsStatusController extends Controller
 {
@@ -77,8 +79,32 @@ class ResultsStatusController extends Controller
                 'amount' => $fee['amount']
             ]);
         }
+        
+        // Save attendance settings
+        $sessionMode = $request->session_mode ?? 'single';
+        SchoolSetting::set('attendance_session_mode', $sessionMode, 'text', 'Attendance session mode (single or dual)');
+        SchoolSetting::set('attendance_check_in_time', $request->check_in_time ?? '07:30', 'time', 'Morning session check-in time');
+        SchoolSetting::set('attendance_check_out_time', $request->check_out_time ?? '16:30', 'time', 'Morning session check-out time');
+        SchoolSetting::set('attendance_late_grace_minutes', $request->late_grace_minutes ?? 0, 'number', 'Grace period in minutes before marking as late');
+        
+        // Calculate and save work hours
+        $checkIn = Carbon::parse($request->check_in_time ?? '07:30');
+        $checkOut = Carbon::parse($request->check_out_time ?? '16:30');
+        $workHours = $checkIn->diffInHours($checkOut);
+        SchoolSetting::set('attendance_work_hours', $workHours, 'number', 'Morning session work hours');
+        
+        // Save afternoon session if dual mode
+        if ($sessionMode === 'dual') {
+            SchoolSetting::set('attendance_afternoon_check_in_time', $request->afternoon_check_in_time ?? '12:30', 'time', 'Afternoon session check-in time');
+            SchoolSetting::set('attendance_afternoon_check_out_time', $request->afternoon_check_out_time ?? '17:30', 'time', 'Afternoon session check-out time');
+            
+            $afternoonIn = Carbon::parse($request->afternoon_check_in_time ?? '12:30');
+            $afternoonOut = Carbon::parse($request->afternoon_check_out_time ?? '17:30');
+            $afternoonHours = $afternoonIn->diffInHours($afternoonOut);
+            SchoolSetting::set('attendance_afternoon_work_hours', $afternoonHours, 'number', 'Afternoon session work hours');
+        }
     
-        return redirect()->route('results_status.index')->with('success', 'Term created! Day fees: $' . number_format($totalDayFees, 2) . ' | Boarding fees: $' . number_format($totalBoardingFees, 2));
+        return redirect()->route('results_status.index')->with('success', 'Term created with attendance settings! Day fees: $' . number_format($totalDayFees, 2) . ' | Boarding fees: $' . number_format($totalBoardingFees, 2));
     }
 
     public function destroy($id)
