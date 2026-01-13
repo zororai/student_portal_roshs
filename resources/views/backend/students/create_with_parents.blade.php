@@ -747,29 +747,51 @@
 
     // Generate new roll number via AJAX
     function generateNewRollNumber() {
+        console.log('Generate New Roll Number clicked');
+        
         const btn = document.getElementById('generate-new-roll');
         const display = document.getElementById('roll-number-display');
+        const emailInput = document.getElementById('student_email');
+        
+        if (!btn || !display || !emailInput) {
+            console.error('Required elements not found:', { btn, display, emailInput });
+            alert('Error: Required elements not found on page');
+            return;
+        }
         
         // Disable button and show loading
         btn.disabled = true;
         btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating...';
         
-        fetch('{{ route("student.generate-roll-number") }}', {
+        const url = '{{ route("student.generate-roll-number") }}';
+        console.log('Fetching:', url);
+        
+        fetch(url, {
             method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.status);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
             if (data.roll_number) {
                 display.textContent = data.roll_number;
+                // Also update the email field with the new roll number
+                emailInput.value = data.roll_number.toLowerCase() + '@roshs.co.zw';
+                console.log('Roll number updated to:', data.roll_number);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Failed to generate new roll number');
+            alert('Failed to generate new roll number: ' + error.message);
         })
         .finally(() => {
             // Re-enable button
