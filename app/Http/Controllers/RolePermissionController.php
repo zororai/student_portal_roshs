@@ -67,7 +67,9 @@ class RolePermissionController extends Controller
                 'sidebar-logbook' => 'Logbook',
                 'sidebar-leave-management' => 'Leave Management',
                 'sidebar-teacher-attendance' => 'Teacher Attendance',
-                'sidebar-teacher-leave' => 'Teacher Leave'
+                'sidebar-teacher-leave' => 'Teacher Leave',
+                'sidebar-teacher-schemes' => 'Teacher Schemes',
+                'sidebar-syllabus-topics' => 'Syllabus Topics'
             ],
             'Timetable & Media' => [
                 'sidebar-timetable' => 'Timetable',
@@ -289,6 +291,8 @@ class RolePermissionController extends Controller
                 'sidebar-leave-management' => 'Leave Management',
                 'sidebar-teacher-attendance' => 'Teacher - My Attendance',
                 'sidebar-teacher-leave' => 'Teacher - Leave Applications',
+                'sidebar-teacher-schemes' => 'Teacher Schemes',
+                'sidebar-syllabus-topics' => 'Syllabus Topics',
                 'sidebar-timetable' => 'Timetable',
                 'sidebar-webcam' => 'Webcam'
             ],
@@ -354,6 +358,7 @@ class RolePermissionController extends Controller
             'sidebar-disciplinary', 'sidebar-medical-reports', 'sidebar-results-management', 'sidebar-results-approval', 'sidebar-marking-scheme',
             'sidebar-attendance', 'sidebar-school-staff', 'sidebar-staff-members', 'sidebar-logbook', 'sidebar-leave-management',
             'sidebar-teacher-attendance', 'sidebar-teacher-leave',
+            'sidebar-teacher-schemes', 'sidebar-syllabus-topics',
             'sidebar-timetable', 'sidebar-webcam', 'sidebar-website', 'sidebar-banner',
             'sidebar-newsletter', 'sidebar-events', 'sidebar-finance', 'sidebar-student-payments',
             'sidebar-parents-arrears', 'sidebar-school-income', 'sidebar-school-expenses',
