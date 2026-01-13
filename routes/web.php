@@ -73,6 +73,7 @@ Route::post('/profile/changepassword', 'HomeController@changePassword')->name('p
 // Student password change routes
 Route::get('/student/change-password', 'StudentController@showChangePasswordForm')->name('student.change-password');
 Route::post('/student/update-password', 'StudentController@updatePassword')->name('student.update-password');
+Route::post('/student/update-chair-desk', 'StudentController@updateChairDesk')->name('student.update-chair-desk');
 
 // Force password change for users with must_change_password flag
 Route::get('/user/force-change-password', 'HomeController@showForceChangePasswordForm')->name('user.force-change-password')->middleware('auth');
@@ -460,6 +461,10 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('/admin/assessment-marks/get-marks', 'ResultController@getAssessmentMarksForApproval')->name('admin.assessment-marks.get-marks');
     Route::post('/admin/assessment-marks/approve', 'ResultController@approveAssessmentMarks')->name('admin.assessment-marks.approve');
     Route::post('/admin/assessment-marks/approve-all', 'ResultController@approveAllAssessmentMarks')->name('admin.assessment-marks.approve-all');
+
+    // Seat Assignment Routes (Admin)
+    Route::get('/admin/seat-assignment', 'StudentController@seatAssignmentIndex')->name('admin.seat-assignment.index');
+    Route::post('/admin/seat-assignment/{student}', 'StudentController@updateSeatAssignment')->name('admin.seat-assignment.update');
 
     // Disciplinary Records Routes (Admin)
     Route::get('/admin/disciplinary-records', 'DisciplinaryController@index')->name('admin.disciplinary.index');

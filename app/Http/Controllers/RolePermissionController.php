@@ -58,6 +58,7 @@ class RolePermissionController extends Controller
                 'sidebar-medical-reports' => 'Medical Reports',
                 'sidebar-results-management' => 'Results Management',
                 'sidebar-results-approval' => 'Results Approval',
+                'sidebar-assessment-approval' => 'Assessment Marks Approval',
                 'sidebar-marking-scheme' => 'Marking Scheme',
                 'sidebar-attendance' => 'Attendance'
             ],
@@ -135,6 +136,7 @@ class RolePermissionController extends Controller
             'sidebar-student-groceries',
             'sidebar-medical-reports',
             'sidebar-results-approval',
+            'sidebar-assessment-approval',
         ];
         
         $permissions = array_unique(array_merge($permissions, $additionalPermissions));
@@ -284,6 +286,7 @@ class RolePermissionController extends Controller
                 'sidebar-medical-reports' => 'Student Medical Records',
                 'sidebar-results-management' => 'Results Management',
                 'sidebar-results-approval' => 'Results Approval',
+                'sidebar-assessment-approval' => 'Assessment Marks Approval',
                 'sidebar-marking-scheme' => 'Marking Scheme',
                 'sidebar-attendance' => 'Attendance Register'
             ],
@@ -361,7 +364,8 @@ class RolePermissionController extends Controller
             'sidebar-home', 'sidebar-notifications', 'sidebar-onboard', 'sidebar-user-management', 'sidebar-teachers',
             'sidebar-students', 'sidebar-subjects', 'sidebar-classes', 'sidebar-parents',
             'sidebar-student-section', 'sidebar-student-record', 'sidebar-applicants',
-            'sidebar-disciplinary', 'sidebar-medical-reports', 'sidebar-results-management', 'sidebar-results-approval', 'sidebar-marking-scheme',
+            'sidebar-disciplinary', 'sidebar-medical-reports', 'sidebar-results-management', 'sidebar-results-approval', 
+            'sidebar-assessment-approval', 'sidebar-marking-scheme',
             'sidebar-attendance', 'sidebar-school-staff', 'sidebar-staff-members', 'sidebar-logbook',
             'sidebar-attendance-scanner', 'sidebar-attendance-history', 'sidebar-teacher-sessions',
             'sidebar-leave-management', 'sidebar-teacher-attendance', 'sidebar-teacher-leave',

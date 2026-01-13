@@ -623,4 +623,74 @@ class StudentController extends Controller
 
         return back()->with('success', 'Password reset required for ' . $student->user->name . '. They will be prompted to change their password on next login.');
     }
+
+    /**
+     * Update student chair and desk assignment
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateChairDesk(Request $request)
+    {
+        $request->validate([
+            'chair' => 'nullable|string|max:255',
+            'desk' => 'nullable|string|max:255',
+        ]);
+
+        $user = auth()->user();
+        $student = Student::where('user_id', $user->id)->first();
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student record not found.'
+            ], 404);
+        }
+
+        $student->update([
+            'chair' => $request->chair,
+            'desk' => $request->desk,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Chair and desk information updated successfully.',
+            'chair' => $student->chair,
+            'desk' => $student->desk,
+        ]);
+    }
+
+    /**
+     * Display seat assignment management page
+     */
+    public function seatAssignmentIndex()
+    {
+        $classes = Grade::all();
+        $students = Student::with(['user', 'class'])->orderBy('class_id')->get();
+        
+        return view('backend.students.seat-assignment', compact('classes', 'students'));
+    }
+
+    /**
+     * Update student seat assignment
+     */
+    public function updateSeatAssignment(Request $request, Student $student)
+    {
+        $request->validate([
+            'chair' => 'nullable|string|max:255',
+            'desk' => 'nullable|string|max:255',
+        ]);
+
+        $student->update([
+            'chair' => $request->chair,
+            'desk' => $request->desk,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Seat assignment updated successfully.',
+            'chair' => $student->chair,
+            'desk' => $student->desk,
+        ]);
+    }
 }
