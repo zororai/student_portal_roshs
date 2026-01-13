@@ -192,6 +192,12 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('admin/users/{id}', 'AdminUserController@update')->name('admin.users.update');
     Route::delete('admin/users/{id}', 'AdminUserController@destroy')->name('admin.users.destroy');
 
+    // Admin Teacher Schemes & Syllabus Overview Routes
+    Route::get('admin/teacher-schemes', 'AdminSchemeController@index')->name('admin.schemes.index');
+    Route::get('admin/teacher-schemes/{id}', 'AdminSchemeController@show')->name('admin.schemes.show');
+    Route::get('admin/teacher-syllabus', 'AdminSchemeController@syllabusIndex')->name('admin.teacher-syllabus.index');
+    Route::get('admin/teacher/{teacherId}/schemes', 'AdminSchemeController@teacherSchemes')->name('admin.schemes.teacher');
+
     // Teacher Attendance Scanner Routes (QR Code Based)
     Route::get('attendance/logbook', 'AttendanceScanController@index')->name('attendance.logbook');
     Route::post('attendance/scan', 'AttendanceScanController@scan')->name('attendance.scan');
