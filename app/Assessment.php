@@ -10,10 +10,13 @@ class Assessment extends Model
         'teacher_id',
         'class_id',
         'subject_id',
+        'syllabus_topic_id',
         'topic',
         'assessment_type',
         'date',
         'due_date',
+        'term',
+        'academic_year',
         'exam',
         'papers'
     ];
@@ -42,5 +45,10 @@ class Assessment extends Model
     public function marks()
     {
         return $this->hasMany(AssessmentMark::class);
+    }
+
+    public function syllabusTopic()
+    {
+        return $this->belongsTo(SyllabusTopic::class, 'syllabus_topic_id');
     }
 }

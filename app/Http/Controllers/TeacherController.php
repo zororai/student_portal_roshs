@@ -773,6 +773,7 @@ class TeacherController extends Controller
         $validated = $request->validate([
             'class_id' => 'required|exists:grades,id',
             'subject_id' => 'required|exists:subjects,id',
+            'syllabus_topic_id' => 'nullable|exists:syllabus_topics,id',
             'topic' => 'required|string|min:3|max:255',
             'assessment_type' => 'required|string|in:Quiz,Test,In Class Test,Monthly Test,Assignment,Exercise,Project,Exam,Vacation Exam,National Exam',
             'date' => 'required|date',
@@ -848,6 +849,7 @@ class TeacherController extends Controller
             'teacher_id' => $teacher->id,
             'class_id' => $request->class_id,
             'subject_id' => $request->subject_id,
+            'syllabus_topic_id' => $request->syllabus_topic_id,
             'topic' => trim($request->topic),
             'assessment_type' => $request->assessment_type,
             'date' => $request->date,
@@ -1142,7 +1144,13 @@ class TeacherController extends Controller
         $class = $assessment->class;
         $subjects = $class->subjects;
 
-        return view('backend.teacher.assessment-edit', compact('assessment', 'class', 'subjects', 'teacher'));
+        // Get syllabus topics for the current subject
+        $syllabusTopics = \App\SyllabusTopic::where('subject_id', $assessment->subject_id)
+            ->active()
+            ->ordered()
+            ->get();
+
+        return view('backend.teacher.assessment-edit', compact('assessment', 'class', 'subjects', 'syllabusTopics', 'teacher'));
     }
 
     /**
@@ -1170,6 +1178,7 @@ class TeacherController extends Controller
 
         $validated = $request->validate([
             'subject_id' => 'required|exists:subjects,id',
+            'syllabus_topic_id' => 'nullable|exists:syllabus_topics,id',
             'topic' => 'required|string|min:3|max:255',
             'assessment_type' => 'required|string|in:Quiz,Test,In Class Test,Monthly Test,Assignment,Exercise,Project,Exam,Vacation Exam,National Exam',
             'date' => 'required|date',
@@ -1191,6 +1200,7 @@ class TeacherController extends Controller
 
         $assessment->update([
             'subject_id' => $request->subject_id,
+            'syllabus_topic_id' => $request->syllabus_topic_id,
             'topic' => trim($request->topic),
             'assessment_type' => $request->assessment_type,
             'date' => $request->date,

@@ -278,11 +278,11 @@
                     <!-- Subject and Assessment Type Row -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
-                            <select name="subject_id"
+                            <select name="subject_id" id="assessmentSubjectId" onchange="loadSyllabusTopics(this.value)"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                                 <option value="">Select Subject</option>
                                 @foreach($class->subjects as $subject)
-                                    <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                                    <option value="{{ $subject->id }}">{{ $subject->subject_code ?? '' }} - {{ $subject->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -302,6 +302,18 @@
                                 <option value="National Exam">National Exam</option>
                             </select>
                         </div>
+                    </div>
+
+                    <!-- Syllabus Topic Selection (for data analytics) -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Syllabus Topic <span class="text-gray-400">(optional - for performance tracking)</span>
+                        </label>
+                        <select name="syllabus_topic_id" id="syllabusTopicSelect"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                            <option value="">Select a syllabus topic (select subject first)</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Linking to a syllabus topic enables performance analytics in Schemes of Work</p>
                     </div>
 
                     <!-- Exam Field -->
@@ -1371,6 +1383,37 @@ F
             const modal = document.getElementById('marksModal');
             if (modal) {
                 modal.remove();
+            }
+        }
+
+        // Load syllabus topics for the selected subject
+        async function loadSyllabusTopics(subjectId) {
+            const topicSelect = document.getElementById('syllabusTopicSelect');
+            
+            if (!subjectId) {
+                topicSelect.innerHTML = '<option value="">Select a syllabus topic (select subject first)</option>';
+                return;
+            }
+
+            topicSelect.innerHTML = '<option value="">Loading topics...</option>';
+
+            try {
+                const response = await fetch(`{{ route('teacher.schemes.syllabus-topics') }}?subject_id=${subjectId}`);
+                const data = await response.json();
+                
+                if (data.success && data.topics.length > 0) {
+                    let options = '<option value="">Select a syllabus topic (optional)</option>';
+                    data.topics.forEach(topic => {
+                        const diffBadge = topic.difficulty_level === 'hard' ? '🔴' : (topic.difficulty_level === 'medium' ? '🟡' : '🟢');
+                        options += `<option value="${topic.id}">${diffBadge} ${topic.name} (${topic.term || 'N/A'})</option>`;
+                    });
+                    topicSelect.innerHTML = options;
+                } else {
+                    topicSelect.innerHTML = '<option value="">No syllabus topics found for this subject</option>';
+                }
+            } catch (error) {
+                console.error('Failed to load syllabus topics:', error);
+                topicSelect.innerHTML = '<option value="">Error loading topics</option>';
             }
         }
     </script>

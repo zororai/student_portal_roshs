@@ -53,12 +53,12 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-                        <select name="subject_id" required
+                        <select name="subject_id" id="editSubjectId" onchange="loadEditSyllabusTopics(this.value)" required
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
                             <option value="">Select Subject</option>
                             @foreach($subjects as $subject)
                                 <option value="{{ $subject->id }}" {{ old('subject_id', $assessment->subject_id) == $subject->id ? 'selected' : '' }}>
-                                    {{ $subject->name }}
+                                    {{ $subject->subject_code ?? '' }} - {{ $subject->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -75,6 +75,25 @@
                             @endforeach
                         </select>
                     </div>
+                </div>
+
+                <!-- Syllabus Topic Selection (for data analytics) -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Syllabus Topic <span class="text-gray-400">(optional - for performance tracking)</span>
+                    </label>
+                    <select name="syllabus_topic_id" id="editSyllabusTopicSelect"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white">
+                        <option value="">Select a syllabus topic</option>
+                        @if(isset($syllabusTopics))
+                            @foreach($syllabusTopics as $topic)
+                                <option value="{{ $topic->id }}" {{ old('syllabus_topic_id', $assessment->syllabus_topic_id) == $topic->id ? 'selected' : '' }}>
+                                    {{ $topic->name }} ({{ $topic->term ?? 'N/A' }})
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Linking to a syllabus topic enables performance analytics in Schemes of Work</p>
                 </div>
 
                 <!-- Exam Field -->
@@ -212,5 +231,38 @@
         document.addEventListener('DOMContentLoaded', function() {
             updateTotalWeight();
         });
+
+        // Load syllabus topics for the selected subject (edit form)
+        async function loadEditSyllabusTopics(subjectId) {
+            const topicSelect = document.getElementById('editSyllabusTopicSelect');
+            const currentTopicId = '{{ old('syllabus_topic_id', $assessment->syllabus_topic_id) }}';
+            
+            if (!subjectId) {
+                topicSelect.innerHTML = '<option value="">Select a syllabus topic (select subject first)</option>';
+                return;
+            }
+
+            topicSelect.innerHTML = '<option value="">Loading topics...</option>';
+
+            try {
+                const response = await fetch(`{{ route('teacher.schemes.syllabus-topics') }}?subject_id=${subjectId}`);
+                const data = await response.json();
+                
+                if (data.success && data.topics.length > 0) {
+                    let options = '<option value="">Select a syllabus topic (optional)</option>';
+                    data.topics.forEach(topic => {
+                        const selected = topic.id == currentTopicId ? 'selected' : '';
+                        const diffBadge = topic.difficulty_level === 'hard' ? '🔴' : (topic.difficulty_level === 'medium' ? '🟡' : '🟢');
+                        options += `<option value="${topic.id}" ${selected}>${diffBadge} ${topic.name} (${topic.term || 'N/A'})</option>`;
+                    });
+                    topicSelect.innerHTML = options;
+                } else {
+                    topicSelect.innerHTML = '<option value="">No syllabus topics found for this subject</option>';
+                }
+            } catch (error) {
+                console.error('Failed to load syllabus topics:', error);
+                topicSelect.innerHTML = '<option value="">Error loading topics</option>';
+            }
+        }
     </script>
 @endsection

@@ -135,6 +135,14 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::put('admin/subjects/{subject}', 'AdminSubjectController@update')->name('admin.subjects.update');
     Route::delete('admin/subjects/{subject}', 'AdminSubjectController@destroy')->name('admin.subjects.destroy');
     
+    // Admin Syllabus Topics Management Routes
+    Route::get('admin/syllabus', 'AdminSyllabusController@index')->name('admin.syllabus.index');
+    Route::get('admin/syllabus/create', 'AdminSyllabusController@create')->name('admin.syllabus.create');
+    Route::post('admin/syllabus', 'AdminSyllabusController@store')->name('admin.syllabus.store');
+    Route::get('admin/syllabus/{id}/edit', 'AdminSyllabusController@edit')->name('admin.syllabus.edit');
+    Route::put('admin/syllabus/{id}', 'AdminSyllabusController@update')->name('admin.syllabus.update');
+    Route::delete('admin/syllabus/{id}', 'AdminSyllabusController@destroy')->name('admin.syllabus.destroy');
+    
     // Onboard Subject Routes
     Route::get('admin/onboard-subjects', 'OnboardSubjectController@index')->name('admin.onboard-subjects.index');
     Route::post('admin/onboard-subjects', 'OnboardSubjectController@store')->name('admin.onboard-subjects.store');
@@ -574,6 +582,28 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::get('/api/assessment/{id}/marks', 'TeacherController@getAssessmentMarks');
     Route::post('/teacher/assessment/comment/store', 'TeacherController@storeAssessmentComment')->name('teacher.assessment.comment.store');
     Route::delete('/teacher/assessment/comment/{id}', 'TeacherController@deleteAssessmentComment')->name('teacher.assessment.comment.delete');
+
+    // Teacher Syllabus Topics Management Routes
+    Route::get('/teacher/syllabus', 'TeacherSyllabusController@index')->name('teacher.syllabus.index');
+    Route::get('/teacher/syllabus/create', 'TeacherSyllabusController@create')->name('teacher.syllabus.create');
+    Route::post('/teacher/syllabus', 'TeacherSyllabusController@store')->name('teacher.syllabus.store');
+    Route::get('/teacher/syllabus/{id}/edit', 'TeacherSyllabusController@edit')->name('teacher.syllabus.edit');
+    Route::put('/teacher/syllabus/{id}', 'TeacherSyllabusController@update')->name('teacher.syllabus.update');
+    Route::delete('/teacher/syllabus/{id}', 'TeacherSyllabusController@destroy')->name('teacher.syllabus.destroy');
+
+    // Data-Driven Schemes of Work Routes
+    Route::get('/teacher/schemes', 'SchemeController@index')->name('teacher.schemes.index');
+    Route::get('/teacher/schemes/create', 'SchemeController@create')->name('teacher.schemes.create');
+    Route::get('/teacher/schemes/syllabus-topics', 'SchemeController@getSyllabusTopics')->name('teacher.schemes.syllabus-topics');
+    Route::post('/teacher/schemes', 'SchemeController@store')->name('teacher.schemes.store');
+    Route::post('/teacher/schemes/topic/{topicId}/status', 'SchemeController@updateTopicStatus')->name('teacher.schemes.topic.status');
+    Route::post('/teacher/schemes/topic/{topicId}/remedial', 'SchemeController@createRemedial')->name('teacher.schemes.remedial.create');
+    Route::post('/teacher/schemes/remedial/{remedialId}/complete', 'SchemeController@completeRemedial')->name('teacher.schemes.remedial.complete');
+    Route::get('/teacher/schemes/{id}', 'SchemeController@show')->name('teacher.schemes.show');
+    Route::get('/teacher/schemes/{id}/edit', 'SchemeController@edit')->name('teacher.schemes.edit');
+    Route::put('/teacher/schemes/{id}', 'SchemeController@update')->name('teacher.schemes.update');
+    Route::delete('/teacher/schemes/{id}', 'SchemeController@destroy')->name('teacher.schemes.destroy');
+    Route::get('/teacher/schemes/{id}/evaluation-report', 'SchemeController@evaluationReport')->name('teacher.schemes.evaluation-report');
 
     Route::get('/results', 'ResultController@index')->name('results.index');
     Route::get('/viewresults', 'ResultController@recordindex')->name('results.record');
