@@ -227,6 +227,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
                                 <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
                             </tr>
                         </thead>
                         <tbody id="payment_history_body" class="bg-white divide-y divide-gray-200">
@@ -558,12 +559,52 @@
                         </div>
                         <div class="flex justify-between mt-4">
                             <button type="button" onclick="prevStep(4)" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Previous</button>
-                            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
+                            <button type="button" onclick="submitPayment()" id="submitPaymentBtn" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
                                 <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                 </svg>
                                 Record Payment
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Success with Print Receipt -->
+                    <div class="step-content" id="step5" style="display: none;">
+                        <div class="text-center py-6">
+                            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Payment Recorded!</h3>
+                            <p class="text-gray-600 mb-4" id="success_message">Payment has been recorded successfully.</p>
+                            
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-sm mx-auto">
+                                <p class="text-sm text-gray-600">Amount Paid</p>
+                                <p class="text-3xl font-bold text-green-600" id="success_amount">$0.00</p>
+                                <p class="text-sm text-gray-500 mt-2">Remaining Balance: <span id="success_remaining" class="font-semibold">$0.00</span></p>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row justify-center gap-3">
+                                <button type="button" onclick="printNewReceipt()" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                    </svg>
+                                    Print Receipt
+                                </button>
+                                <button type="button" onclick="printViaBluetooth()" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
+                                    </svg>
+                                    Bluetooth Printer
+                                </button>
+                                <button type="button" onclick="recordAnotherPayment()" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold">
+                                    Record Another Payment
+                                </button>
+                                <button type="button" onclick="closePaymentModal(); location.reload();" class="px-6 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200">
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -575,6 +616,9 @@
 <script>
     let currentBalance = 0;
     let currentStep = 1;
+    let currentStudentName = '';
+    let currentPayments = [];
+    let lastReceiptData = null;
 
     function openPaymentModal() {
         // Reset form and stepper
@@ -592,14 +636,15 @@
         // Show current step
         document.getElementById('step' + step).style.display = 'block';
         
-        // Update stepper UI
+        // Update stepper UI (step 5 is success - mark all as complete)
+        const compareStep = step === 5 ? 5 : step;
         for (let i = 1; i <= 4; i++) {
             const circle = document.getElementById('step' + i + '-circle');
             const label = document.getElementById('step' + i + '-label');
             const line = document.getElementById('line' + i);
             
-            if (i < step) {
-                // Completed steps
+            if (i < compareStep || step === 5) {
+                // Completed steps (or all complete if step 5)
                 circle.className = 'rounded-full transition duration-500 ease-in-out h-10 w-10 flex items-center justify-center border-2 border-green-600 bg-green-600 text-white font-bold';
                 circle.innerHTML = '✓';
                 label.className = 'absolute top-0 -ml-10 text-center mt-12 w-32 text-xs font-medium text-green-600';
@@ -659,6 +704,8 @@
             noPaymentsMsg.classList.add('hidden');
             
             let totalPaid = 0;
+            currentStudentName = studentName;
+            currentPayments = payments;
             payments.forEach((payment, index) => {
                 totalPaid += parseFloat(payment.amount) || 0;
                 const row = `
@@ -670,6 +717,13 @@
                         <td class="px-4 py-3 text-sm text-gray-600">${payment.method || '-'}</td>
                         <td class="px-4 py-3 text-sm text-gray-600">${payment.reference || '-'}</td>
                         <td class="px-4 py-3 text-sm text-green-600 font-semibold text-right">$${parseFloat(payment.amount).toFixed(2)}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <button onclick="printReceipt(${index})" class="text-blue-600 hover:text-blue-800" title="Print Receipt">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
+                            </button>
+                        </td>
                     </tr>
                 `;
                 tbody.insertAdjacentHTML('beforeend', row);
@@ -747,6 +801,100 @@
                 </table>
                 <div class="footer">
                     <p>This is a computer-generated document.</p>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
+    }
+
+    function printReceipt(paymentIndex) {
+        const payment = currentPayments[paymentIndex];
+        if (!payment) return;
+
+        const receiptNo = 'RCP-' + String(payment.id).padStart(6, '0');
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt - ${receiptNo}</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background: #fff; }
+                    .receipt { max-width: 400px; margin: 0 auto; border: 2px solid #1e40af; border-radius: 12px; padding: 25px; }
+                    .header { text-align: center; border-bottom: 2px dashed #e5e7eb; padding-bottom: 15px; margin-bottom: 15px; }
+                    .header h1 { color: #1e40af; font-size: 22px; margin-bottom: 5px; }
+                    .header p { color: #6b7280; font-size: 12px; }
+                    .receipt-no { background: #1e40af; color: #fff; padding: 8px 15px; border-radius: 20px; display: inline-block; font-size: 14px; font-weight: bold; margin: 10px 0; }
+                    .details { margin: 20px 0; }
+                    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+                    .row:last-child { border-bottom: none; }
+                    .label { color: #6b7280; font-size: 13px; }
+                    .value { color: #111827; font-size: 14px; font-weight: 600; text-align: right; }
+                    .amount-section { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: center; }
+                    .amount-label { color: #166534; font-size: 12px; text-transform: uppercase; }
+                    .amount-value { color: #166534; font-size: 28px; font-weight: bold; }
+                    .footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #e5e7eb; }
+                    .footer p { color: #9ca3af; font-size: 11px; margin: 3px 0; }
+                    .thank-you { color: #1e40af; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+                    @media print { 
+                        body { padding: 0; } 
+                        .receipt { border: 1px solid #000; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="receipt">
+                    <div class="header">
+                        <h1>ROSHS</h1>
+                        <p>Robert Sobukwe High School</p>
+                        <p>Payment Receipt</p>
+                        <div class="receipt-no">${receiptNo}</div>
+                    </div>
+                    
+                    <div class="details">
+                        <div class="row">
+                            <span class="label">Student Name</span>
+                            <span class="value">${currentStudentName}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Payment Date</span>
+                            <span class="value">${payment.date}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Term</span>
+                            <span class="value">${payment.term || '-'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Fee Type</span>
+                            <span class="value">${payment.fee_type}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Payment Method</span>
+                            <span class="value">${payment.method || '-'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Reference No.</span>
+                            <span class="value">${payment.reference || '-'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="amount-section">
+                        <div class="amount-label">Amount Paid</div>
+                        <div class="amount-value">$${parseFloat(payment.amount).toFixed(2)}</div>
+                    </div>
+                    
+                    <div class="footer">
+                        <p class="thank-you">Thank You!</p>
+                        <p>This is a computer-generated receipt.</p>
+                        <p>Printed on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
                 </div>
             </body>
             </html>
@@ -926,6 +1074,298 @@
     function closePaymentModal() {
         document.getElementById('paymentModal').classList.add('hidden');
         document.getElementById('paymentForm').reset();
+    }
+
+    function submitPayment() {
+        const form = document.getElementById('paymentForm');
+        const formData = new FormData(form);
+        const submitBtn = document.getElementById('submitPaymentBtn');
+        
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<svg class="w-5 h-5 inline mr-2 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Store receipt data for printing
+                lastReceiptData = data.receipt;
+                
+                // Update success screen
+                document.getElementById('success_message').textContent = data.message;
+                document.getElementById('success_amount').textContent = '$' + parseFloat(data.total_paid).toFixed(2);
+                document.getElementById('success_remaining').textContent = '$' + parseFloat(data.remaining_balance).toFixed(2);
+                
+                // Show step 5 (success)
+                showStep(5);
+            } else {
+                showAlert(data.message || 'Error recording payment');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Record Payment';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('An error occurred. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Record Payment';
+        });
+    }
+
+    function printNewReceipt() {
+        if (!lastReceiptData) return;
+        
+        const receipt = lastReceiptData;
+        const receiptNo = 'RCP-' + String(receipt.id).padStart(6, '0');
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt - ${receiptNo}</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background: #fff; }
+                    .receipt { max-width: 400px; margin: 0 auto; border: 2px solid #1e40af; border-radius: 12px; padding: 25px; }
+                    .header { text-align: center; border-bottom: 2px dashed #e5e7eb; padding-bottom: 15px; margin-bottom: 15px; }
+                    .header h1 { color: #1e40af; font-size: 22px; margin-bottom: 5px; }
+                    .header p { color: #6b7280; font-size: 12px; }
+                    .receipt-no { background: #1e40af; color: #fff; padding: 8px 15px; border-radius: 20px; display: inline-block; font-size: 14px; font-weight: bold; margin: 10px 0; }
+                    .details { margin: 20px 0; }
+                    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+                    .row:last-child { border-bottom: none; }
+                    .label { color: #6b7280; font-size: 13px; }
+                    .value { color: #111827; font-size: 14px; font-weight: 600; text-align: right; max-width: 60%; }
+                    .amount-section { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: center; }
+                    .amount-label { color: #166534; font-size: 12px; text-transform: uppercase; }
+                    .amount-value { color: #166534; font-size: 28px; font-weight: bold; }
+                    .footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #e5e7eb; }
+                    .footer p { color: #9ca3af; font-size: 11px; margin: 3px 0; }
+                    .thank-you { color: #1e40af; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+                    @media print { body { padding: 0; } .receipt { border: 1px solid #000; } }
+                </style>
+            </head>
+            <body>
+                <div class="receipt">
+                    <div class="header">
+                        <h1>ROSHS</h1>
+                        <p>Robert Sobukwe High School</p>
+                        <p>Payment Receipt</p>
+                        <div class="receipt-no">${receiptNo}</div>
+                    </div>
+                    <div class="details">
+                        <div class="row">
+                            <span class="label">Student Name</span>
+                            <span class="value">${receipt.student_name}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Payment Date</span>
+                            <span class="value">${receipt.date}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Term</span>
+                            <span class="value">${receipt.term || '-'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Fees Paid For</span>
+                            <span class="value">${receipt.fees}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Payment Method</span>
+                            <span class="value">${receipt.method || '-'}</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Reference No.</span>
+                            <span class="value">${receipt.reference || '-'}</span>
+                        </div>
+                    </div>
+                    <div class="amount-section">
+                        <div class="amount-label">Amount Paid</div>
+                        <div class="amount-value">$${parseFloat(receipt.amount).toFixed(2)}</div>
+                    </div>
+                    <div class="footer">
+                        <p class="thank-you">Thank You!</p>
+                        <p>This is a computer-generated receipt.</p>
+                        <p>Printed on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
+    }
+
+    function recordAnotherPayment() {
+        // Reset form and go back to step 1
+        document.getElementById('paymentForm').reset();
+        lastReceiptData = null;
+        currentStep = 1;
+        showStep(1);
+        
+        // Re-enable submit button
+        const submitBtn = document.getElementById('submitPaymentBtn');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Record Payment';
+    }
+
+    // Bluetooth Thermal Printer Support
+    let bluetoothDevice = null;
+    let bluetoothCharacteristic = null;
+
+    async function printViaBluetooth() {
+        if (!lastReceiptData) {
+            alert('No receipt data available');
+            return;
+        }
+
+        // Check if Web Bluetooth is supported
+        if (!navigator.bluetooth) {
+            alert('Web Bluetooth is not supported in this browser. Please use Chrome or Edge on HTTPS.');
+            return;
+        }
+
+        try {
+            // Request Bluetooth device
+            if (!bluetoothDevice) {
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+                });
+            }
+
+            // Connect to GATT Server
+            const server = await bluetoothDevice.gatt.connect();
+            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+            bluetoothCharacteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+            // Generate ESC/POS commands for thermal printer
+            const receipt = lastReceiptData;
+            const receiptNo = 'RCP-' + String(receipt.id).padStart(6, '0');
+            
+            const escPosCommands = generateESCPOS(receipt, receiptNo);
+            
+            // Send to printer
+            await bluetoothCharacteristic.writeValue(escPosCommands);
+            
+            alert('Receipt sent to Bluetooth printer!');
+        } catch (error) {
+            console.error('Bluetooth printing error:', error);
+            alert('Failed to print via Bluetooth: ' + error.message);
+        }
+    }
+
+    function generateESCPOS(receipt, receiptNo) {
+        // ESC/POS Commands
+        const ESC = 0x1B;
+        const GS = 0x1D;
+        const LF = 0x0A;
+        const commands = [];
+
+        // Helper functions
+        function addText(text) {
+            for (let i = 0; i < text.length; i++) {
+                commands.push(text.charCodeAt(i));
+            }
+        }
+
+        function addLine(text = '') {
+            addText(text);
+            commands.push(LF);
+        }
+
+        function center() {
+            commands.push(ESC, 0x61, 0x01); // Center align
+        }
+
+        function left() {
+            commands.push(ESC, 0x61, 0x00); // Left align
+        }
+
+        function bold(on = true) {
+            commands.push(ESC, 0x45, on ? 0x01 : 0x00);
+        }
+
+        function doubleHeight(on = true) {
+            commands.push(GS, 0x21, on ? 0x11 : 0x00);
+        }
+
+        function cut() {
+            commands.push(GS, 0x56, 0x00); // Full cut
+        }
+
+        // Initialize printer
+        commands.push(ESC, 0x40); // Initialize
+
+        // Header
+        center();
+        bold(true);
+        doubleHeight(true);
+        addLine('ROSHS');
+        doubleHeight(false);
+        addLine('Robert Sobukwe High School');
+        bold(false);
+        addLine('Payment Receipt');
+        addLine('');
+        
+        // Receipt Number
+        bold(true);
+        addLine(receiptNo);
+        bold(false);
+        addLine('================================');
+        
+        // Details
+        left();
+        addLine('');
+        addLine('Student: ' + receipt.student_name);
+        addLine('Date: ' + receipt.date);
+        addLine('Term: ' + (receipt.term || '-'));
+        addLine('');
+        addLine('Fees Paid For:');
+        addLine(receipt.fees);
+        addLine('');
+        addLine('Payment Method: ' + (receipt.method || '-'));
+        addLine('Reference: ' + (receipt.reference || '-'));
+        addLine('');
+        addLine('================================');
+        
+        // Amount
+        center();
+        bold(true);
+        doubleHeight(true);
+        addLine('AMOUNT PAID');
+        addLine('$' + parseFloat(receipt.amount).toFixed(2));
+        doubleHeight(false);
+        bold(false);
+        addLine('================================');
+        
+        // Footer
+        addLine('');
+        addLine('Thank You!');
+        addLine('');
+        left();
+        const now = new Date();
+        addLine('Printed: ' + now.toLocaleString());
+        addLine('');
+        addLine('');
+        addLine('');
+
+        // Cut paper
+        cut();
+
+        return new Uint8Array(commands);
     }
 
     function filterStudents() {

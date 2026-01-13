@@ -258,6 +258,34 @@
                             @enderror
                         </div>
 
+                        <div class="grid md:grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Chair Number (Optional)</label>
+                                <input name="chair" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" value="{{ old('chair') }}" placeholder="Enter chair number">
+                                @error('chair')
+                                    <p class="text-red-500 text-xs mt-1 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Desk Number (Optional)</label>
+                                <input name="desk" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" value="{{ old('desk') }}" placeholder="Enter desk number">
+                                @error('desk')
+                                    <p class="text-red-500 text-xs mt-1 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+                        </div>
+
                     </div>
 
                     <div class="flex justify-end mt-8">
@@ -273,7 +301,7 @@
                         <svg class="w-6 h-6 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
                         </svg>
-                        Parent Information
+                        Parent Information (Optional)
                     </h3>
 
                     <div class="max-w-3xl">
@@ -283,8 +311,8 @@
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                                 </svg>
                                 <div>
-                                    <p class="font-medium text-blue-800">Parent Registration via SMS</p>
-                                    <p class="text-sm text-blue-700 mt-1">Enter parent details below. Each parent will receive an SMS with a secure link to complete their registration (set password, email, and addresses).</p>
+                                    <p class="font-medium text-blue-800">Parent Registration via SMS (Optional)</p>
+                                    <p class="text-sm text-blue-700 mt-1">You can skip this step or add parent details. Each parent will receive an SMS with a secure link to complete their registration (set password, email, and addresses).</p>
                                 </div>
                             </div>
                         </div>
@@ -300,19 +328,19 @@
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                                    <input name="parents[0][name]" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name" required>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                                    <input name="parents[0][name]" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name">
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
                                     <div class="flex items-center">
                                         <span class="inline-flex items-center px-3 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
                                             </svg>
                                         </span>
-                                        <input name="parents[0][phone]" id="parent-phone-0" class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789" required>
+                                        <input name="parents[0][phone]" id="parent-phone-0" class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789">
                                         <button type="button" onclick="testSms(0)" class="ml-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium rounded-lg shadow-sm transition duration-200" title="Test SMS">
                                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
@@ -452,7 +480,8 @@
             }
 
             if (currentStep === 2) {
-                // Validate Step 2: Parent Information
+                // Validate Step 2: Parent Information (Optional)
+                // Only validate if parent has started entering data
                 let isValid = true;
 
                 $('.parent-block').each(function(index) {
@@ -462,14 +491,17 @@
                     const parentName = $nameInput.val().trim();
                     const parentPhone = $phoneInput.val().trim();
 
-                    if (!parentName) {
-                        isValid = false;
-                        showParentError($nameInput, `Parent #${index + 1} Name is required`);
-                    }
+                    // Only validate if either field has data (partial entry validation)
+                    if (parentName || parentPhone) {
+                        if (!parentName) {
+                            isValid = false;
+                            showParentError($nameInput, `Parent #${index + 1} Name is required if phone is provided`);
+                        }
 
-                    if (!parentPhone) {
-                        isValid = false;
-                        showParentError($phoneInput, `Parent #${index + 1} Phone Number is required`);
+                        if (!parentPhone) {
+                            isValid = false;
+                            showParentError($phoneInput, `Parent #${index + 1} Phone Number is required if name is provided`);
+                        }
                     }
                 });
 
@@ -556,19 +588,19 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                        <input name="parents[${parentCount}][name]" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name" required>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                        <input name="parents[${parentCount}][name]" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="Enter parent's full name">
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
                         <div class="flex items-center">
                             <span class="inline-flex items-center px-3 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
                                 </svg>
                             </span>
-                            <input name="parents[${parentCount}][phone]" class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789" required>
+                            <input name="parents[${parentCount}][phone]" class="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-r-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" type="text" placeholder="+27123456789">
                             <button type="button" onclick="testSms(${parentCount})" class="ml-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium rounded-lg shadow-sm transition duration-200" title="Test SMS">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>

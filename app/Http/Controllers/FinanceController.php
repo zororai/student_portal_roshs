@@ -207,6 +207,31 @@ class FinanceController extends Controller
             $cashEntry->postToLedger();
         }
 
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            // Get the last payment created for receipt data
+            $lastPayment = \App\StudentPayment::where('student_id', $validated['student_id'])
+                ->orderBy('id', 'desc')
+                ->first();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment of $' . number_format($totalPaid, 2) . ' recorded successfully!',
+                'remaining_balance' => $remainingBalance,
+                'total_paid' => $totalPaid,
+                'receipt' => [
+                    'id' => $lastPayment->id,
+                    'student_name' => $student->user->name ?? ($student->name . ' ' . $student->surname),
+                    'amount' => $totalPaid,
+                    'date' => $validated['payment_date'],
+                    'method' => $validated['payment_method'],
+                    'reference' => $validated['reference_number'],
+                    'term' => $currentTerm ? ucfirst($currentTerm->result_period) . ' ' . $currentTerm->year : '',
+                    'fees' => implode(', ', $feesPaidFor),
+                ]
+            ]);
+        }
+
         return redirect()->route('finance.student-payments')
             ->with('success', 'Payment of $' . number_format($totalPaid, 2) . ' recorded successfully! Remaining balance: $' . number_format($remainingBalance, 2));
     }

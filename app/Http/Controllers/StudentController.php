@@ -303,15 +303,14 @@ class StudentController extends Controller
         try {
             // Validate student data
             $request->validate([
-            'student_name'              => 'required|string|max:255',
-            'student_email'             => 'required|string|email|max:255|unique:users,email',
+                'student_name'              => 'required|string|max:255',
+                'student_email'             => 'required|string|email|max:255|unique:users,email',
                 'student_phone'             => 'nullable|string|max:255',
                 'student_gender'            => 'required|string',
                 'dateofbirth'               => 'required|date',
                 'class_id'                  => 'required|numeric',
-                'parents'                   => 'required|array|min:1',
-                'parents.*.name'            => 'required|string|max:255',
-                'parents.*.phone'           => 'required|string|max:255',
+                'chair'                     => 'nullable|string|max:255',
+                'desk'                      => 'nullable|string|max:255',
             ]);
 
         \Log::info('Validation passed successfully');
@@ -337,43 +336,50 @@ class StudentController extends Controller
 
         \Log::info('Student user created:', ['id' => $studentUser->id, 'name' => $studentUser->name]);
 
-        // Create parents and collect their IDs
+        // Create parents and collect their IDs (only if parents data is provided)
         $parentIds = [];
         $parentPhones = [];
 
-        foreach ($request->parents as $index => $parentData) {
-            // Generate unique registration token
-            $registrationToken = \Illuminate\Support\Str::random(60);
+        if ($request->has('parents') && is_array($request->parents) && count($request->parents) > 0) {
+            // Filter out empty parent entries
+            $validParents = array_filter($request->parents, function($parent) {
+                return !empty($parent['name']) && !empty($parent['phone']);
+            });
 
-            // Create a temporary email for parent (will be updated when they register)
-            $tempEmail = 'pending_' . time() . '_' . $index . '@temp.parent';
+            foreach ($validParents as $index => $parentData) {
+                // Generate unique registration token
+                $registrationToken = \Illuminate\Support\Str::random(60);
 
-            // Create parent user with temporary data
-            $parentUser = User::create([
-                'name'      => $parentData['name'],
-                'email'     => $tempEmail,
-                'password'  => Hash::make(\Illuminate\Support\Str::random(16)) // Temporary password
-            ]);
+                // Create a temporary email for parent (will be updated when they register)
+                $tempEmail = 'pending_' . time() . '_' . $index . '@temp.parent';
 
-            // Set default profile picture
-            $parentUser->update([
-                'profile_picture' => 'avatar.png'
-            ]);
+                // Create parent user with temporary data
+                $parentUser = User::create([
+                    'name'      => $parentData['name'],
+                    'email'     => $tempEmail,
+                    'password'  => Hash::make(\Illuminate\Support\Str::random(16)) // Temporary password
+                ]);
 
-            // Create parent record with registration token
-            $parent = $parentUser->parent()->create([
-                'gender'                    => 'male', // Temporary default, will be updated by parent during registration
-                'phone'                     => $parentData['phone'],
-                'current_address'           => 'Pending', // Will be filled by parent
-                'permanent_address'         => 'Pending', // Will be filled by parent
-                'registration_token'        => $registrationToken,
-                'token_expires_at'          => now()->addDays(7), // Token valid for 7 days
-                'registration_completed'    => false
-            ]);
+                // Set default profile picture
+                $parentUser->update([
+                    'profile_picture' => 'avatar.png'
+                ]);
 
-            $parentUser->assignRole('Parent');
-            $parentIds[] = $parent->id;
-            $parentPhones[] = $parentData['phone'];
+                // Create parent record with registration token
+                $parent = $parentUser->parent()->create([
+                    'gender'                    => 'male', // Temporary default, will be updated by parent during registration
+                    'phone'                     => $parentData['phone'],
+                    'current_address'           => 'Pending', // Will be filled by parent
+                    'permanent_address'         => 'Pending', // Will be filled by parent
+                    'registration_token'        => $registrationToken,
+                    'token_expires_at'          => now()->addDays(7), // Token valid for 7 days
+                    'registration_completed'    => false
+                ]);
+
+                $parentUser->assignRole('Parent');
+                $parentIds[] = $parent->id;
+                $parentPhones[] = $parentData['phone'];
+            }
         }
 
         // Get the roll number from session (generated when form was opened)
@@ -384,7 +390,7 @@ class StudentController extends Controller
 
         // Create student record with dummy values for fields that will be updated on password change
         $student = $studentUser->student()->create([
-            'parent_id'         => $parentIds[0], // First parent for backward compatibility
+            'parent_id'         => !empty($parentIds) ? $parentIds[0] : null, // First parent for backward compatibility, null if no parents
             'class_id'          => $request->class_id,
             'roll_number'       => $rollNumber,
             'gender'            => $request->student_gender,
@@ -392,49 +398,55 @@ class StudentController extends Controller
             'dateofbirth'       => $request->dateofbirth,
             'current_address'   => 'To be updated', // Dummy value - student will update on first login
             'permanent_address' => 'To be updated', // Dummy value - student will update on first login
-            'student_type'      => $request->student_type ?? 'day' // Day or Boarding student
+            'student_type'      => $request->student_type ?? 'day', // Day or Boarding student
+            'chair'             => $request->chair ?? null,
+            'desk'              => $request->desk ?? null,
         ]);
 
-        // Attach all parents to the student
-        $student->parents()->attach($parentIds);
+        // Attach all parents to the student (only if parents exist)
+        if (!empty($parentIds)) {
+            $student->parents()->attach($parentIds);
+        }
 
         \Log::info('Student record created:', ['student_id' => $student->id, 'roll_number' => $rollNumber]);
         \Log::info('Parents attached:', ['parent_ids' => $parentIds]);
 
         $studentUser->assignRole('Student');
 
-        // Send SMS to all parents with registration link and student roll number
+        // Send SMS to all parents with registration link and student roll number (only if parents were created)
         $smsSentCount = 0;
         $smsFailedCount = 0;
         
-        foreach ($request->parents as $index => $parentData) {
-            $parent = \App\Parents::where('phone', $parentData['phone'])->latest()->first();
+        if (!empty($parentPhones)) {
+            foreach ($parentPhones as $index => $phone) {
+                $parent = \App\Parents::where('phone', $phone)->latest()->first();
 
-            if ($parent && $parent->registration_token) {
-                $registrationUrl = url('/parent/register/' . $parent->registration_token);
+                if ($parent && $parent->registration_token) {
+                    $registrationUrl = url('/parent/register/' . $parent->registration_token);
 
-                // Shorter message to avoid InboxIQ HTTP 500 error
-                $message = "RSH School: {$request->student_name} registered. Complete parent registration: {$registrationUrl}";
+                    // Shorter message to avoid InboxIQ HTTP 500 error
+                    $message = "RSH School: {$request->student_name} registered. Complete parent registration: {$registrationUrl}";
 
-                // Send SMS directly using SmsHelper (same as test page)
-                $smsResult = SmsHelper::sendSms($parentData['phone'], $message);
-                
-                if ($smsResult['success']) {
-                    $smsSentCount++;
-                    \Log::info('SMS sent successfully to parent', [
-                        'phone' => $parentData['phone'],
-                        'parent_id' => $parent->id,
-                        'student_id' => $student->id,
-                        'response' => $smsResult['response'] ?? null
-                    ]);
-                } else {
-                    $smsFailedCount++;
-                    \Log::warning('Failed to send SMS to parent', [
-                        'phone' => $parentData['phone'],
-                        'parent_id' => $parent->id,
-                        'student_id' => $student->id,
-                        'error' => $smsResult['message'] ?? 'Unknown error'
-                    ]);
+                    // Send SMS directly using SmsHelper (same as test page)
+                    $smsResult = SmsHelper::sendSms($phone, $message);
+                    
+                    if ($smsResult['success']) {
+                        $smsSentCount++;
+                        \Log::info('SMS sent successfully to parent', [
+                            'phone' => $phone,
+                            'parent_id' => $parent->id,
+                            'student_id' => $student->id,
+                            'response' => $smsResult['response'] ?? null
+                        ]);
+                    } else {
+                        $smsFailedCount++;
+                        \Log::warning('Failed to send SMS to parent', [
+                            'phone' => $phone,
+                            'parent_id' => $parent->id,
+                            'student_id' => $student->id,
+                            'error' => $smsResult['message'] ?? 'Unknown error'
+                        ]);
+                    }
                 }
             }
         }
@@ -442,12 +454,20 @@ class StudentController extends Controller
         \Log::info('Process completed successfully');
         \Log::info('=== END DEBUG ===');
 
+        // Prepare success message based on whether parents were added
+        $successMessage = 'Student created successfully!';
+        if ($smsSentCount > 0) {
+            $successMessage .= " SMS sent to {$smsSentCount} parent(s) for registration completion.";
+        } elseif (empty($parentIds)) {
+            $successMessage .= ' No parent information was provided.';
+        }
+
         // Redirect based on user role
         if (auth()->user()->hasRole('Admin')) {
-            return redirect()->route('student.index')->with('success', 'Student created successfully! SMS sent to parent(s) for registration completion.');
+            return redirect()->route('student.index')->with('success', $successMessage);
         } else {
             // Class teacher redirect - show students of the class where student was added
-            return redirect('/teacher/student-record/' . $request->class_id)->with('success', 'Student created successfully! SMS sent to parent(s) for registration completion.');
+            return redirect('/teacher/student-record/' . $request->class_id)->with('success', $successMessage);
         }
 
         } catch (\Illuminate\Validation\ValidationException $e) {
