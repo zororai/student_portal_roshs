@@ -27,7 +27,13 @@
                     </select>
                 </form>
             @endif
-            <button onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+            <button id="notificationBtn" onclick="toggleNotifications()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl font-semibold hover:bg-emerald-200 transition-colors no-print">
+                <svg id="notificationIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span id="notificationText">Enable Reminders</span>
+            </button>
+            <button onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors no-print">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
@@ -175,4 +181,124 @@
         body { background: white !important; }
     }
 </style>
+
+<script>
+const VAPID_PUBLIC_KEY = '{{ config("services.webpush.public_key") }}';
+let swRegistration = null;
+let isSubscribed = false;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        document.getElementById('notificationBtn').style.display = 'none';
+        return;
+    }
+
+    try {
+        swRegistration = await navigator.serviceWorker.register('/sw.js');
+        const subscription = await swRegistration.pushManager.getSubscription();
+        isSubscribed = !!subscription;
+        updateUI();
+    } catch (error) {
+        console.error('Service worker registration failed:', error);
+    }
+});
+
+function updateUI() {
+    const btn = document.getElementById('notificationBtn');
+    const text = document.getElementById('notificationText');
+    
+    if (isSubscribed) {
+        btn.classList.remove('bg-emerald-100', 'text-emerald-700', 'hover:bg-emerald-200');
+        btn.classList.add('bg-red-100', 'text-red-700', 'hover:bg-red-200');
+        text.textContent = 'Disable Reminders';
+    } else {
+        btn.classList.remove('bg-red-100', 'text-red-700', 'hover:bg-red-200');
+        btn.classList.add('bg-emerald-100', 'text-emerald-700', 'hover:bg-emerald-200');
+        text.textContent = 'Enable Reminders';
+    }
+}
+
+async function toggleNotifications() {
+    if (!swRegistration) {
+        alert('Push notifications are not supported in this browser.');
+        return;
+    }
+
+    if (isSubscribed) {
+        await unsubscribeUser();
+    } else {
+        await subscribeUser();
+    }
+}
+
+async function subscribeUser() {
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            alert('Please allow notifications to receive lesson reminders.');
+            return;
+        }
+
+        const subscription = await swRegistration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+
+        const response = await fetch('{{ route("push.subscribe") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(subscription)
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            isSubscribed = true;
+            updateUI();
+            alert('🔔 Lesson reminders enabled! You will receive notifications 5 minutes before each lesson.');
+        }
+    } catch (error) {
+        console.error('Subscription failed:', error);
+        alert('Failed to enable notifications. Please try again.');
+    }
+}
+
+async function unsubscribeUser() {
+    try {
+        const subscription = await swRegistration.pushManager.getSubscription();
+        if (subscription) {
+            await subscription.unsubscribe();
+            
+            await fetch('{{ route("push.unsubscribe") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ endpoint: subscription.endpoint })
+            });
+        }
+        
+        isSubscribed = false;
+        updateUI();
+        alert('Lesson reminders have been disabled.');
+    } catch (error) {
+        console.error('Unsubscribe failed:', error);
+    }
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+</script>
 @endsection

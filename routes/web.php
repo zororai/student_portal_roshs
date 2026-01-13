@@ -646,6 +646,11 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
      Route::get('/teacher/results/{class_id}','ResultController@listResults')->name('results.results');
      Route::get('/teacher/timetable', 'TimetableController@teacherView')->name('teacher.timetable');
 
+     // Push Notification Routes
+     Route::post('/push/subscribe', 'PushNotificationController@subscribe')->name('push.subscribe');
+     Route::post('/push/unsubscribe', 'PushNotificationController@unsubscribe')->name('push.unsubscribe');
+     Route::get('/push/vapid-key', 'PushNotificationController@getVapidPublicKey')->name('push.vapid-key');
+
 });
 
 Route::group(['middleware' => ['auth','role:Parent']], function ()
