@@ -152,7 +152,7 @@ class AttendanceScanController extends Controller
     }
 
     /**
-     * Generate QR code for a teacher.
+     * Generate QR code for a teacher using external API (no Composer/CLI required).
      */
     public function generateQrCode($teacherId)
     {
@@ -161,26 +161,19 @@ class AttendanceScanController extends Controller
         // Generate new unique token
         $qrToken = Str::uuid()->toString();
 
-        // Generate QR code as SVG (no imagick required)
-        $qrImage = QrCode::format('svg')
-            ->size(300)
-            ->margin(2)
-            ->generate($qrToken);
-
-        $fileName = 'teacher_qr_' . $teacher->id . '.svg';
-        $filePath = 'qrcodes/teachers/' . $fileName;
-
-        Storage::disk('public')->put($filePath, $qrImage);
-
+        // Save token to teacher (QR code will be generated via external API)
         $teacher->update([
             'qr_code_token' => $qrToken,
-            'qr_code' => $filePath,
+            'qr_code' => 'external_api', // Flag to indicate external API usage
         ]);
+
+        // Generate QR code URL using external API
+        $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrToken);
 
         return response()->json([
             'success' => true,
             'message' => 'QR code generated successfully!',
-            'qr_code_url' => asset('storage/' . $filePath),
+            'qr_code_url' => $qrCodeUrl,
             'qr_code_token' => $qrToken,
         ]);
     }
@@ -200,25 +193,17 @@ class AttendanceScanController extends Controller
     {
         $teacher = Teacher::with('user')->findOrFail($teacherId);
 
-        if (!$teacher->qr_code || !Storage::disk('public')->exists($teacher->qr_code)) {
-            // Generate QR code if it doesn't exist
-            $qrToken = $teacher->qr_code_token ?: Str::uuid()->toString();
-
-            $qrImage = QrCode::format('svg')
-                ->size(300)
-                ->margin(2)
-                ->generate($qrToken);
-
-            $fileName = 'teacher_qr_' . $teacher->id . '.svg';
-            $filePath = 'qrcodes/teachers/' . $fileName;
-
-            Storage::disk('public')->put($filePath, $qrImage);
-
+        // Generate token if it doesn't exist
+        if (!$teacher->qr_code_token) {
+            $qrToken = Str::uuid()->toString();
             $teacher->update([
                 'qr_code_token' => $qrToken,
-                'qr_code' => $filePath,
+                'qr_code' => 'external_api',
             ]);
         }
+
+        // Generate QR code URL using external API
+        $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($teacher->qr_code_token);
 
         return response()->json([
             'success' => true,
@@ -226,7 +211,7 @@ class AttendanceScanController extends Controller
                 'id' => $teacher->id,
                 'name' => $teacher->user->name,
             ],
-            'qr_code_url' => asset('storage/' . $teacher->qr_code),
+            'qr_code_url' => $qrCodeUrl,
             'qr_code_token' => $teacher->qr_code_token,
         ]);
     }
@@ -238,27 +223,20 @@ class AttendanceScanController extends Controller
     {
         $teacher = Teacher::with('user')->findOrFail($teacherId);
 
-        // Ensure QR code exists
-        if (!$teacher->qr_code || !Storage::disk('public')->exists($teacher->qr_code)) {
-            $qrToken = $teacher->qr_code_token ?: Str::uuid()->toString();
-
-            $qrImage = QrCode::format('svg')
-                ->size(300)
-                ->margin(2)
-                ->generate($qrToken);
-
-            $fileName = 'teacher_qr_' . $teacher->id . '.svg';
-            $filePath = 'qrcodes/teachers/' . $fileName;
-
-            Storage::disk('public')->put($filePath, $qrImage);
-
+        // Generate token if it doesn't exist
+        if (!$teacher->qr_code_token) {
+            $qrToken = Str::uuid()->toString();
             $teacher->update([
                 'qr_code_token' => $qrToken,
-                'qr_code' => $filePath,
+                'qr_code' => 'external_api',
             ]);
+            $teacher->refresh();
         }
 
-        return view('backend.attendance.print-qr', compact('teacher'));
+        // Generate QR code URL using external API
+        $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($teacher->qr_code_token);
+
+        return view('backend.attendance.print-qr', compact('teacher', 'qrCodeUrl'));
     }
 
     /**

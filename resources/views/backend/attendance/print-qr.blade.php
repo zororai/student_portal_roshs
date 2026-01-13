@@ -114,7 +114,7 @@
         <span class="badge">STAFF ID CARD</span>
         
         <div class="qr-image">
-            <img src="{{ asset('storage/' . $teacher->qr_code) }}" alt="QR Code">
+            <img src="{{ $qrCodeUrl ?? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($teacher->qr_code_token) }}" alt="QR Code">
         </div>
         
         <div class="teacher-name">{{ $teacher->user->name }}</div>

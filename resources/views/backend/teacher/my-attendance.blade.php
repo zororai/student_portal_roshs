@@ -16,9 +16,9 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4 text-center">My QR Code</h3>
                 <div class="flex flex-col items-center">
-                    @if($teacher->qr_code && Storage::disk('public')->exists($teacher->qr_code))
+                    @if($teacher->qr_code_token)
                         <div class="bg-white p-3 rounded-lg border-2 border-gray-200">
-                            <img src="{{ asset('storage/' . $teacher->qr_code) }}" alt="QR Code" class="w-40 h-40">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode($teacher->qr_code_token) }}" alt="QR Code" class="w-40 h-40">
                         </div>
                         <p class="text-xs text-gray-500 mt-3 text-center">Scan this code for attendance</p>
                         
