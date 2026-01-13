@@ -10,6 +10,56 @@
             <p class="text-gray-600 mt-1">View your attendance history</p>
         </div>
 
+        <!-- Today's Attendance Status -->
+        @php
+            $todayAttendance = $attendance->where('date', today()->format('Y-m-d'))->first();
+            $isCheckedIn = $todayAttendance && $todayAttendance->check_in_time && !$todayAttendance->check_out_time;
+            $isCheckedOut = $todayAttendance && $todayAttendance->check_out_time;
+        @endphp
+        @if($isCheckedIn)
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="p-2 bg-green-100 rounded-lg mr-3">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-green-800">You are currently checked in</p>
+                        <p class="text-sm text-green-600">Check-in time: {{ \Carbon\Carbon::parse($todayAttendance->check_in_time)->format('H:i') }}</p>
+                    </div>
+                </div>
+                <button onclick="openCheckoutModal()" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Check Out
+                </button>
+            </div>
+        </div>
+        @elseif($isCheckedOut)
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-100 rounded-lg mr-3">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-medium text-blue-800">Attendance complete for today</p>
+                    <p class="text-sm text-blue-600">
+                        Check-in: {{ \Carbon\Carbon::parse($todayAttendance->check_in_time)->format('H:i') }} | 
+                        Check-out: {{ \Carbon\Carbon::parse($todayAttendance->check_out_time)->format('H:i') }}
+                        @if($todayAttendance->checkout_reason)
+                            <span class="ml-2 text-xs">(Reason: {{ Str::limit($todayAttendance->checkout_reason, 30) }})</span>
+                        @endif
+                    </p>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- QR Code and Statistics -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
             <!-- QR Code Card -->
@@ -213,8 +263,72 @@
     </div>
 </div>
 
+<!-- Checkout Modal -->
+<div id="checkoutModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+        <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onclick="closeCheckoutModal()"></div>
+        <div class="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-xl sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-6">
+            <div id="checkoutFormSection">
+                <div class="text-center mb-4">
+                    <div class="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full">
+                        <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 text-xl font-semibold text-gray-900">Check Out</h3>
+                    <p class="mt-2 text-sm text-gray-500">Are you sure you want to check out now?</p>
+                </div>
+                
+                <!-- Reason Section (shown when early checkout) -->
+                <div id="reasonSection" class="hidden mb-4">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                        <p class="text-sm text-yellow-800">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span id="earlyCheckoutMessage">You are checking out early. Please provide a reason.</span>
+                        </p>
+                    </div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Reason for Early Checkout <span class="text-red-500">*</span></label>
+                    <textarea id="checkoutReason" rows="3" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500" placeholder="Enter your reason for checking out early..."></textarea>
+                </div>
+
+                <div class="mt-6 flex justify-center space-x-3">
+                    <button onclick="closeCheckoutModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="submitCheckout()" id="checkoutBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-2 hidden" id="checkoutSpinner" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Confirm Check Out
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Success Section -->
+            <div id="checkoutSuccessSection" class="hidden text-center">
+                <div class="flex items-center justify-center w-16 h-16 mx-auto bg-green-100 rounded-full">
+                    <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h3 class="mt-4 text-xl font-semibold text-gray-900">Checked Out Successfully!</h3>
+                <p id="checkoutSuccessMessage" class="mt-2 text-sm text-gray-500"></p>
+                <button onclick="window.location.reload()" class="mt-4 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
+    const csrfToken = '{{ csrf_token() }}';
+    let requiresReason = false;
+
     function copyToken() {
         const tokenInput = document.getElementById('qrToken');
         tokenInput.select();
@@ -224,6 +338,75 @@
         }).catch(err => {
             document.execCommand('copy');
             alert('QR Token copied! Paste it in the scanner page.');
+        });
+    }
+
+    function openCheckoutModal() {
+        document.getElementById('checkoutModal').classList.remove('hidden');
+        document.getElementById('checkoutFormSection').classList.remove('hidden');
+        document.getElementById('checkoutSuccessSection').classList.add('hidden');
+        document.getElementById('reasonSection').classList.add('hidden');
+        document.getElementById('checkoutReason').value = '';
+        requiresReason = false;
+    }
+
+    function closeCheckoutModal() {
+        document.getElementById('checkoutModal').classList.add('hidden');
+    }
+
+    function submitCheckout() {
+        const btn = document.getElementById('checkoutBtn');
+        const spinner = document.getElementById('checkoutSpinner');
+        const reason = document.getElementById('checkoutReason').value.trim();
+        
+        // Validate reason if required
+        if (requiresReason && !reason) {
+            alert('Please provide a reason for early checkout.');
+            return;
+        }
+
+        // Disable button and show spinner
+        btn.disabled = true;
+        spinner.classList.remove('hidden');
+        spinner.classList.add('animate-spin');
+
+        fetch('{{ route("teacher.self-checkout") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ checkout_reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                document.getElementById('checkoutFormSection').classList.add('hidden');
+                document.getElementById('checkoutSuccessSection').classList.remove('hidden');
+                document.getElementById('checkoutSuccessMessage').textContent = data.message;
+            } else if (data.requires_reason) {
+                // Show reason section
+                requiresReason = true;
+                document.getElementById('reasonSection').classList.remove('hidden');
+                document.getElementById('earlyCheckoutMessage').textContent = data.message;
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                spinner.classList.remove('animate-spin');
+            } else {
+                alert(data.message || 'Failed to check out. Please try again.');
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                spinner.classList.remove('animate-spin');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            btn.disabled = false;
+            spinner.classList.add('hidden');
+            spinner.classList.remove('animate-spin');
         });
     }
 </script>

@@ -205,6 +205,8 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('attendance/teacher/{teacherId}/history', 'AttendanceScanController@teacherHistory')->name('attendance.teacher.history');
     Route::post('attendance/teacher/{teacherId}/generate-qr', 'AttendanceScanController@generateQrCode')->name('attendance.generate.qr');
     Route::post('attendance/teacher/{teacherId}/regenerate-qr', 'AttendanceScanController@regenerateQrCode')->name('attendance.regenerate.qr');
+    Route::post('attendance/teacher/{teacherId}/clear-qr', 'AttendanceScanController@clearQrCode')->name('attendance.clear.qr');
+    Route::post('attendance/clear-all-qr', 'AttendanceScanController@clearAllQrCodes')->name('attendance.clear.all.qr');
     Route::get('attendance/teacher/{teacherId}/qr', 'AttendanceScanController@getQrCode')->name('attendance.get.qr');
     Route::get('attendance/teacher/{teacherId}/print-qr', 'AttendanceScanController@printQrCode')->name('attendance.print.qr');
     
@@ -528,6 +530,7 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
 {
     // Teacher Attendance History (view only - marking done via QR scanner)
     Route::get('/teacher/my-attendance', 'TeacherController@myAttendance')->name('teacher.my-attendance');
+    Route::post('/teacher/self-checkout', 'TeacherController@selfCheckout')->name('teacher.self-checkout');
 
     // Teacher Device Registration Routes
     Route::post('/teacher/device/register', 'TeacherDeviceController@registerDevice')->name('teacher.device.register');

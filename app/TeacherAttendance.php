@@ -13,6 +13,8 @@ class TeacherAttendance extends Model
         'date',
         'check_in_time',
         'check_out_time',
+        'checkout_reason',
+        'expected_checkout_time',
         'status',
         'device_id',
     ];

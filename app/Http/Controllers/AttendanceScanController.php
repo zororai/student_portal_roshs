@@ -187,6 +187,44 @@ class AttendanceScanController extends Controller
     }
 
     /**
+     * Clear QR code for a teacher.
+     */
+    public function clearQrCode($teacherId)
+    {
+        $teacher = Teacher::with('user')->findOrFail($teacherId);
+
+        // Clear the QR code token
+        $teacher->update([
+            'qr_code_token' => null,
+            'qr_code' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'QR code cleared successfully for ' . $teacher->user->name,
+        ]);
+    }
+
+    /**
+     * Clear all QR codes for all teachers.
+     */
+    public function clearAllQrCodes()
+    {
+        $count = Teacher::whereNotNull('qr_code_token')->count();
+        
+        Teacher::whereNotNull('qr_code_token')->update([
+            'qr_code_token' => null,
+            'qr_code' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cleared QR codes for ' . $count . ' teachers.',
+            'count' => $count,
+        ]);
+    }
+
+    /**
      * Get QR code for a teacher.
      */
     public function getQrCode($teacherId)

@@ -5,9 +5,17 @@
 <div class="min-h-screen bg-gray-100">
     <div class="container mx-auto px-4 py-6">
         <!-- Header -->
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-900">Teacher Attendance Scanner</h1>
-            <p class="text-gray-600 mt-1">Scan teacher QR codes for automatic check-in/check-out</p>
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Teacher Attendance Scanner</h1>
+                <p class="text-gray-600 mt-1">Scan teacher QR codes for automatic check-in/check-out</p>
+            </div>
+            <button onclick="clearAllQrCodes()" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Clear All QR Codes
+            </button>
         </div>
 
         <!-- Statistics Cards -->
@@ -526,6 +534,34 @@
         .catch(error => {
             console.error('Error:', error);
             showErrorModal('Error generating QR code. Please try again.');
+        });
+    }
+
+    function clearAllQrCodes() {
+        if (!confirm('Are you sure you want to clear ALL QR codes for all teachers? They will need to be regenerated.')) {
+            return;
+        }
+
+        fetch('/attendance/clear-all-qr', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                showErrorModal('Failed to clear QR codes: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorModal('Error clearing QR codes. Please try again.');
         });
     }
 

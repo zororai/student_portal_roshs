@@ -313,6 +313,84 @@ class TeacherController extends Controller
     }
 
     /**
+     * Teacher self-checkout with reason if early checkout.
+     */
+    public function selfCheckout(Request $request)
+    {
+        $teacher = auth()->user()->teacher;
+        
+        if (!$teacher) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Teacher profile not found.'
+            ], 404);
+        }
+
+        $today = today();
+        $now = now();
+        
+        // Find today's attendance record
+        $attendance = \App\TeacherAttendance::where('teacher_id', $teacher->id)
+            ->whereDate('date', $today)
+            ->first();
+
+        if (!$attendance) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No check-in record found for today. Please check in first.'
+            ], 400);
+        }
+
+        if ($attendance->check_out_time) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You have already checked out today at ' . \Carbon\Carbon::parse($attendance->check_out_time)->format('H:i')
+            ], 400);
+        }
+
+        // Define expected checkout time based on teacher session
+        $expectedCheckoutTime = '16:30'; // Default 4:30 PM
+        if ($teacher->session === 'morning') {
+            $expectedCheckoutTime = '13:00'; // 1:00 PM for morning session
+        } elseif ($teacher->session === 'afternoon') {
+            $expectedCheckoutTime = '17:00'; // 5:00 PM for afternoon session
+        }
+
+        $currentTime = $now->format('H:i');
+        $isEarlyCheckout = $currentTime < $expectedCheckoutTime;
+
+        // Require reason if early checkout
+        if ($isEarlyCheckout && empty($request->checkout_reason)) {
+            return response()->json([
+                'success' => false,
+                'requires_reason' => true,
+                'message' => 'You are checking out early (before ' . $expectedCheckoutTime . '). Please provide a reason.',
+                'expected_time' => $expectedCheckoutTime,
+                'current_time' => $currentTime
+            ], 400);
+        }
+
+        // Update attendance with checkout
+        $attendance->update([
+            'check_out_time' => $now,
+            'checkout_reason' => $request->checkout_reason,
+            'expected_checkout_time' => $expectedCheckoutTime,
+            'status' => 'OUT',
+        ]);
+
+        $checkIn = \Carbon\Carbon::parse($attendance->check_in_time);
+        $duration = $now->diffForHumans($checkIn, true);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Successfully checked out! Duration: ' . $duration,
+            'check_out_time' => $now->format('H:i'),
+            'duration' => $duration,
+            'was_early' => $isEarlyCheckout
+        ]);
+    }
+
+    /**
      * Show students in the class where the logged-in teacher is the class teacher.
      */
     public function myClassStudents()
