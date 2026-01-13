@@ -825,27 +825,28 @@
             <head>
                 <title>Receipt - ${receiptNo}</title>
                 <style>
+                    @page { size: 58mm auto; margin: 0; }
                     * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background: #fff; }
-                    .receipt { max-width: 400px; margin: 0 auto; border: 2px solid #1e40af; border-radius: 12px; padding: 25px; }
-                    .header { text-align: center; border-bottom: 2px dashed #e5e7eb; padding-bottom: 15px; margin-bottom: 15px; }
-                    .header h1 { color: #1e40af; font-size: 22px; margin-bottom: 5px; }
-                    .header p { color: #6b7280; font-size: 12px; }
-                    .receipt-no { background: #1e40af; color: #fff; padding: 8px 15px; border-radius: 20px; display: inline-block; font-size: 14px; font-weight: bold; margin: 10px 0; }
-                    .details { margin: 20px 0; }
-                    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+                    body { font-family: 'Courier New', monospace; font-size: 9px; width: 58mm; max-width: 58mm; margin: 0 auto; padding: 2mm; background: #fff; }
+                    .receipt { width: 100%; border: 1px dashed #000; padding: 3mm; }
+                    .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 3mm; margin-bottom: 3mm; }
+                    .header h1 { font-size: 12px; margin-bottom: 2px; font-weight: bold; }
+                    .header p { font-size: 8px; }
+                    .receipt-no { font-size: 10px; font-weight: bold; margin: 3px 0; }
+                    .details { margin: 3mm 0; }
+                    .row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted #ccc; font-size: 8px; }
                     .row:last-child { border-bottom: none; }
-                    .label { color: #6b7280; font-size: 13px; }
-                    .value { color: #111827; font-size: 14px; font-weight: 600; text-align: right; }
-                    .amount-section { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: center; }
-                    .amount-label { color: #166534; font-size: 12px; text-transform: uppercase; }
-                    .amount-value { color: #166534; font-size: 28px; font-weight: bold; }
-                    .footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #e5e7eb; }
-                    .footer p { color: #9ca3af; font-size: 11px; margin: 3px 0; }
-                    .thank-you { color: #1e40af; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+                    .label { font-size: 8px; }
+                    .value { font-size: 8px; font-weight: 600; text-align: right; max-width: 55%; }
+                    .amount-section { border: 1px solid #000; padding: 3mm; margin: 3mm 0; text-align: center; }
+                    .amount-label { font-size: 8px; text-transform: uppercase; }
+                    .amount-value { font-size: 14px; font-weight: bold; }
+                    .footer { text-align: center; margin-top: 3mm; padding-top: 3mm; border-top: 1px dashed #000; }
+                    .footer p { font-size: 7px; margin: 1px 0; }
+                    .thank-you { font-weight: bold; font-size: 9px; margin-bottom: 2px; }
                     @media print { 
-                        body { padding: 0; } 
-                        .receipt { border: 1px solid #000; }
+                        html, body { width: 58mm; max-width: 58mm; }
+                        body { padding: 1mm; } 
                     }
                 </style>
             </head>
@@ -1132,25 +1133,26 @@
             <head>
                 <title>Receipt - ${receiptNo}</title>
                 <style>
+                    @page { size: 58mm auto; margin: 0; }
                     * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background: #fff; }
-                    .receipt { max-width: 400px; margin: 0 auto; border: 2px solid #1e40af; border-radius: 12px; padding: 25px; }
-                    .header { text-align: center; border-bottom: 2px dashed #e5e7eb; padding-bottom: 15px; margin-bottom: 15px; }
-                    .header h1 { color: #1e40af; font-size: 22px; margin-bottom: 5px; }
-                    .header p { color: #6b7280; font-size: 12px; }
-                    .receipt-no { background: #1e40af; color: #fff; padding: 8px 15px; border-radius: 20px; display: inline-block; font-size: 14px; font-weight: bold; margin: 10px 0; }
-                    .details { margin: 20px 0; }
-                    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; }
+                    body { font-family: 'Courier New', monospace; font-size: 9px; width: 58mm; max-width: 58mm; margin: 0 auto; padding: 2mm; background: #fff; }
+                    .receipt { width: 100%; border: 1px dashed #000; padding: 3mm; }
+                    .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 3mm; margin-bottom: 3mm; }
+                    .header h1 { font-size: 12px; margin-bottom: 2px; font-weight: bold; }
+                    .header p { font-size: 8px; }
+                    .receipt-no { font-size: 10px; font-weight: bold; margin: 3px 0; }
+                    .details { margin: 3mm 0; }
+                    .row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted #ccc; font-size: 8px; }
                     .row:last-child { border-bottom: none; }
-                    .label { color: #6b7280; font-size: 13px; }
-                    .value { color: #111827; font-size: 14px; font-weight: 600; text-align: right; max-width: 60%; }
-                    .amount-section { background: #f0fdf4; border: 2px solid #22c55e; border-radius: 10px; padding: 15px; margin: 20px 0; text-align: center; }
-                    .amount-label { color: #166534; font-size: 12px; text-transform: uppercase; }
-                    .amount-value { color: #166534; font-size: 28px; font-weight: bold; }
-                    .footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #e5e7eb; }
-                    .footer p { color: #9ca3af; font-size: 11px; margin: 3px 0; }
-                    .thank-you { color: #1e40af; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
-                    @media print { body { padding: 0; } .receipt { border: 1px solid #000; } }
+                    .label { font-size: 8px; }
+                    .value { font-size: 8px; font-weight: 600; text-align: right; max-width: 55%; }
+                    .amount-section { border: 1px solid #000; padding: 3mm; margin: 3mm 0; text-align: center; }
+                    .amount-label { font-size: 8px; text-transform: uppercase; }
+                    .amount-value { font-size: 14px; font-weight: bold; }
+                    .footer { text-align: center; margin-top: 3mm; padding-top: 3mm; border-top: 1px dashed #000; }
+                    .footer p { font-size: 7px; margin: 1px 0; }
+                    .thank-you { font-weight: bold; font-size: 9px; margin-bottom: 2px; }
+                    @media print { html, body { width: 58mm; max-width: 58mm; } body { padding: 1mm; } }
                 </style>
             </head>
             <body>

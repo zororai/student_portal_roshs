@@ -53,6 +53,7 @@ class RolePermissionController extends Controller
             'Student Management' => [
                 'sidebar-student-section' => 'Student Section',
                 'sidebar-student-record' => 'Student Record',
+                'sidebar-seat-assignment' => 'Seat Assignment',
                 'sidebar-applicants' => 'Applicants',
                 'sidebar-disciplinary' => 'Disciplinary',
                 'sidebar-medical-reports' => 'Medical Reports',
@@ -137,6 +138,7 @@ class RolePermissionController extends Controller
             'sidebar-medical-reports',
             'sidebar-results-approval',
             'sidebar-assessment-approval',
+            'sidebar-seat-assignment',
         ];
         
         $permissions = array_unique(array_merge($permissions, $additionalPermissions));
@@ -281,6 +283,7 @@ class RolePermissionController extends Controller
             'Student Management' => [
                 'sidebar-student-section' => 'Student Section',
                 'sidebar-student-record' => 'Student Record',
+                'sidebar-seat-assignment' => 'Seat Assignment',
                 'sidebar-applicants' => 'Applicants',
                 'sidebar-disciplinary' => 'Disciplinary Records',
                 'sidebar-medical-reports' => 'Student Medical Records',
@@ -363,7 +366,7 @@ class RolePermissionController extends Controller
         $sidebarPermissions = [
             'sidebar-home', 'sidebar-notifications', 'sidebar-onboard', 'sidebar-user-management', 'sidebar-teachers',
             'sidebar-students', 'sidebar-subjects', 'sidebar-classes', 'sidebar-parents',
-            'sidebar-student-section', 'sidebar-student-record', 'sidebar-applicants',
+            'sidebar-student-section', 'sidebar-student-record', 'sidebar-seat-assignment', 'sidebar-applicants',
             'sidebar-disciplinary', 'sidebar-medical-reports', 'sidebar-results-management', 'sidebar-results-approval', 
             'sidebar-assessment-approval', 'sidebar-marking-scheme',
             'sidebar-attendance', 'sidebar-school-staff', 'sidebar-staff-members', 'sidebar-logbook',

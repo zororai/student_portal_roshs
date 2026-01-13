@@ -4,18 +4,24 @@
     <meta charset="utf-8">
     <title>Receipt - {{ $sale->sale_number }}</title>
     <style>
-        body { font-family: 'Courier New', monospace; font-size: 12px; max-width: 300px; margin: 0 auto; padding: 20px; }
-        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-        .header h1 { font-size: 16px; margin: 0; }
-        .header p { margin: 5px 0; }
-        .details { margin-bottom: 10px; }
-        .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; }
-        .item { display: flex; justify-content: space-between; margin: 5px 0; }
-        .totals { padding-top: 10px; }
-        .total-row { display: flex; justify-content: space-between; }
-        .total-row.grand { font-weight: bold; font-size: 14px; border-top: 1px solid #000; padding-top: 5px; margin-top: 5px; }
-        .footer { text-align: center; margin-top: 20px; font-size: 10px; }
-        @media print { body { max-width: 100%; } }
+        @page { size: 58mm auto; margin: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; font-size: 10px; width: 58mm; max-width: 58mm; margin: 0 auto; padding: 3mm; }
+        .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 5px; }
+        .header h1 { font-size: 12px; margin: 0; font-weight: bold; }
+        .header p { margin: 2px 0; font-size: 9px; }
+        .details { margin-bottom: 5px; font-size: 9px; }
+        .details div { margin: 2px 0; }
+        .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 5px 0; }
+        .item { display: flex; justify-content: space-between; margin: 2px 0; font-size: 9px; }
+        .totals { padding-top: 5px; }
+        .total-row { display: flex; justify-content: space-between; font-size: 9px; }
+        .total-row.grand { font-weight: bold; font-size: 11px; border-top: 1px solid #000; padding-top: 3px; margin-top: 3px; }
+        .footer { text-align: center; margin-top: 10px; font-size: 8px; border-top: 1px dashed #000; padding-top: 5px; }
+        @media print { 
+            html, body { width: 58mm; max-width: 58mm; }
+            body { padding: 2mm; }
+        }
     </style>
 </head>
 <body>
