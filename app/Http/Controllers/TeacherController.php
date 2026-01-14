@@ -13,7 +13,6 @@ use Illuminate\Support\Str;
 use App\Helpers\SmsHelper;
 use App\SchoolSetting;
 use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TeacherController extends Controller
 {
@@ -183,13 +182,15 @@ class TeacherController extends Controller
             // Generate unique QR token
             $qrToken = Str::uuid()->toString();
 
-            // Generate QR code as SVG (no imagick required)
-            $qrImage = QrCode::format('svg')
-                ->size(300)
-                ->margin(2)
-                ->generate($qrToken);
+            // Use external API to generate QR code
+            $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrToken);
+            $qrImage = file_get_contents($qrApiUrl);
 
-            $fileName = 'teacher_qr_' . $teacher->id . '.svg';
+            if ($qrImage === false) {
+                throw new \Exception('Failed to fetch QR code from external API');
+            }
+
+            $fileName = 'teacher_qr_' . $teacher->id . '.png';
             $filePath = 'qrcodes/teachers/' . $fileName;
 
             Storage::disk('public')->put($filePath, $qrImage);

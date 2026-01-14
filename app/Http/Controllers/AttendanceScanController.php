@@ -7,7 +7,6 @@ use App\TeacherAttendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class AttendanceScanController extends Controller
 {
