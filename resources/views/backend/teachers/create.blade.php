@@ -84,6 +84,27 @@
                         @enderror
                         <p class="mt-1 text-xs text-gray-500">This will be used as the login username</p>
                     </div>
+                </div>
+                
+                <!-- Email Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address <span class="text-gray-400">(optional)</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <input type="email" name="email" value="{{ old('email') }}" 
+                                class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('email') border-red-500 @enderror"
+                                placeholder="teacher@example.com">
+                        </div>
+                        @error('email')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1 text-xs text-gray-500">Login credentials will be sent to this email</p>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Gender <span class="text-red-500">*</span></label>
                         <div class="flex flex-wrap gap-3">
@@ -188,11 +209,11 @@
             </div>
 
             <!-- Teacher Session Section -->
-            <div class="px-8 py-6 border-t border-gray-100">
+            <div class="px-8 py-6 border-t border-gray-100 relative" style="z-index: 10;">
                 <h3 class="text-lg font-semibold text-gray-900 flex items-center mb-4">
                     <span class="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center mr-3">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 018 0 9 9 0 0118 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </span>
                     Work Session
@@ -201,8 +222,8 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Morning Session -->
-                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'morning' ? 'border-amber-500 bg-amber-50' : 'border-gray-200' }} cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-all">
-                        <input type="radio" name="session" value="morning" class="hidden" {{ old('session', 'both') == 'morning' ? 'checked' : '' }}>
+                    <div class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'morning' ? 'border-amber-500 bg-amber-50' : 'border-gray-200' }} cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-all">
+                        <input type="radio" name="session" value="morning" id="session_morning" class="sr-only" {{ old('session', 'both') == 'morning' ? 'checked' : '' }}>
                         <div class="session-radio w-6 h-6 border-2 {{ old('session', 'both') == 'morning' ? 'border-amber-500 bg-amber-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'both') == 'morning' ? '' : 'hidden' }}"></div>
                         </div>
@@ -215,11 +236,11 @@
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Works morning session only</p>
                         </div>
-                    </label>
+                    </div>
                     
                     <!-- Afternoon Session -->
-                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'afternoon' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200' }} cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all">
-                        <input type="radio" name="session" value="afternoon" class="hidden" {{ old('session', 'both') == 'afternoon' ? 'checked' : '' }}>
+                    <div class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'afternoon' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200' }} cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all">
+                        <input type="radio" name="session" value="afternoon" id="session_afternoon" class="sr-only" {{ old('session', 'both') == 'afternoon' ? 'checked' : '' }}>
                         <div class="session-radio w-6 h-6 border-2 {{ old('session', 'both') == 'afternoon' ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'both') == 'afternoon' ? '' : 'hidden' }}"></div>
                         </div>
@@ -232,11 +253,11 @@
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Works afternoon session only</p>
                         </div>
-                    </label>
+                    </div>
                     
                     <!-- Both Sessions -->
-                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'both' ? 'border-purple-500 bg-purple-50' : 'border-gray-200' }} cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
-                        <input type="radio" name="session" value="both" class="hidden" {{ old('session', 'both') == 'both' ? 'checked' : '' }}>
+                    <div class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'both' ? 'border-purple-500 bg-purple-50' : 'border-gray-200' }} cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
+                        <input type="radio" name="session" value="both" id="session_both" class="sr-only" {{ old('session', 'both') == 'both' ? 'checked' : '' }}>
                         <div class="session-radio w-6 h-6 border-2 {{ old('session', 'both') == 'both' ? 'border-purple-500 bg-purple-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'both') == 'both' ? '' : 'hidden' }}"></div>
                         </div>
@@ -249,7 +270,7 @@
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Works full day (default)</p>
                         </div>
-                    </label>
+                    </div>
                 </div>
             </div>
 

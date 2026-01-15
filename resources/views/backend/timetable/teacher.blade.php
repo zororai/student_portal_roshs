@@ -45,8 +45,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             @foreach($days as $day)
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600">
-                        <h3 class="font-semibold text-white text-center">{{ $day }}</h3>
+                    <div class="px-4 py-3 bg-gradient-to-r from-emerald-500 to-teal-600" style="background: linear-gradient(to right, #10b981, #0d9488);">
+                        <h3 class="font-semibold text-center" style="color: #ffffff;">{{ $day }}</h3>
                     </div>
                     <div class="p-3 space-y-3">
                         @if(isset($timetable[$day]) && count($timetable[$day]) > 0)

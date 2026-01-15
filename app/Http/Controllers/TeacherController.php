@@ -49,18 +49,24 @@ class TeacherController extends Controller
         $request->validate([
             'name'   => 'required|string|max:255',
             'gender' => 'required|string',
-            'phone'  => 'required|string|max:255|unique:teachers,phone'
+            'phone'  => 'required|string|max:255|unique:teachers,phone',
+            'email'  => 'nullable|email|max:255|unique:users,email'
         ]);
 
         // Default password for first login
         $password = '12345678';
         
-        // Generate placeholder email from phone number (will be updated on first login)
-        $cleanPhone = preg_replace('/[^0-9]/', '', $request->phone);
-        $placeholderEmail = 'teacher_' . $cleanPhone . '@placeholder.co.zw';
+        // Use provided email or generate placeholder from phone number
+        $hasRealEmail = !empty($request->email);
+        if ($hasRealEmail) {
+            $userEmail = $request->email;
+        } else {
+            $cleanPhone = preg_replace('/[^0-9]/', '', $request->phone);
+            $userEmail = 'teacher_' . $cleanPhone . '@placeholder.co.zw';
+        }
 
-        // Check if user with this placeholder email already exists (from failed previous attempt)
-        $existingUser = User::where('email', $placeholderEmail)->first();
+        // Check if user with this email already exists (from failed previous attempt)
+        $existingUser = User::where('email', $userEmail)->first();
         
         if ($existingUser) {
             // Check if this user already has a teacher profile
@@ -76,7 +82,7 @@ class TeacherController extends Controller
 
         $user = User::create([
             'name'      => $request->name,
-            'email'     => $placeholderEmail,
+            'email'     => $userEmail,
             'password'  => Hash::make($password),
             'profile_picture' => 'avatar.png'
         ]);
@@ -98,14 +104,21 @@ class TeacherController extends Controller
         // Generate QR code for teacher attendance
         $this->generateTeacherQrCode($teacher);
 
-        // Send email notification with credentials
-        $this->sendCredentialsEmail($user, $password);
+        // Send email notification with credentials (only if real email provided)
+        if ($hasRealEmail) {
+            $this->sendCredentialsEmail($user, $password);
+        }
 
-        // Send SMS notification with credentials (phone is username)
-        $this->sendCredentialsSms($request->phone, $user->name, $request->phone, $password);
+        // Send SMS notification with credentials (email is username)
+        $this->sendCredentialsSms($request->phone, $user->name, $userEmail, $password);
+
+        $successMessage = 'Teacher created successfully! Login credentials have been sent via SMS.';
+        if ($hasRealEmail) {
+            $successMessage = 'Teacher created successfully! Login credentials have been sent via email and SMS.';
+        }
 
         return redirect()->route('teacher.index')
-            ->with('success', 'Teacher created successfully! Login credentials have been sent via email and SMS.');
+            ->with('success', $successMessage);
     }
 
     /**
