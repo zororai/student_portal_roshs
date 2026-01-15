@@ -63,57 +63,115 @@
                         </h3>
                     </div>
                     <div class="px-6 py-6 space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Assign Teacher</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                        </svg>
-                                    </div>
-                                    <select name="teacher_id" class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white @error('teacher_id') border-red-500 @enderror">
-                                        <option value="">-- Select Teacher --</option>
-                                        @foreach ($teachers as $teacher)
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Assign Teacher</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                                <select name="teacher_id" class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white @error('teacher_id') border-red-500 @enderror">
+                                    <option value="">-- Select Teacher --</option>
+                                    @foreach ($teachers as $teacher)
+                                        @if($teacher->user)
                                             <option value="{{ $teacher->id }}" {{ ($teacher->id === $subject->teacher_id) ? 'selected' : '' }}>
                                                 {{ $teacher->user->name }}
                                             </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                        </svg>
-                                    </div>
+                                        @endif
+                                    @endforeach
+                                </select>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
                                 </div>
-                                @error('teacher_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Periods Per Week <span class="text-red-500">*</span></label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                    </div>
-                                    <select name="periods_per_week" class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white @error('periods_per_week') border-red-500 @enderror">
-                                        <option value="">-- Select Periods --</option>
-                                        @for ($i = 1; $i <= 10; $i++)
-                                            <option value="{{ $i }}" {{ $subject->periods_per_week == $i ? 'selected' : '' }}>{{ $i }} {{ $i == 1 ? 'Period' : 'Periods' }}</option>
-                                        @endfor
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                        </svg>
-                                    </div>
-                                </div>
-                                @error('periods_per_week')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                                <p class="mt-1 text-xs text-gray-500">Number of periods for timetable generation</p>
-                            </div>
+                            @error('teacher_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
                 </div>
+
+                <!-- Lesson Periods Card -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-amber-500 to-orange-500">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Lesson Periods Per Week
+                        </h3>
+                    </div>
+                    <div class="px-6 py-6">
+                        <p class="text-sm text-gray-600 mb-4">Configure how many lessons of each type this subject has per week</p>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Single Lessons</label>
+                                <input name="single_lessons_per_week" type="number" min="0" max="20" 
+                                       value="{{ old('single_lessons_per_week', $subject->single_lessons_per_week ?? 0) }}" 
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors duration-200 text-center"
+                                       placeholder="0">
+                                <p class="mt-1 text-xs text-gray-500 text-center">1 period each</p>
+                                @error('single_lessons_per_week')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Double Lessons</label>
+                                <input name="double_lessons_per_week" type="number" min="0" max="10" 
+                                       value="{{ old('double_lessons_per_week', $subject->double_lessons_per_week ?? 0) }}" 
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors duration-200 text-center"
+                                       placeholder="0">
+                                <p class="mt-1 text-xs text-gray-500 text-center">2 periods each</p>
+                                @error('double_lessons_per_week')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Triple Lessons</label>
+                                <input name="triple_lessons_per_week" type="number" min="0" max="5" 
+                                       value="{{ old('triple_lessons_per_week', $subject->triple_lessons_per_week ?? 0) }}" 
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors duration-200 text-center"
+                                       placeholder="0">
+                                <p class="mt-1 text-xs text-gray-500 text-center">3 periods each</p>
+                                @error('triple_lessons_per_week')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quad Lessons</label>
+                                <input name="quad_lessons_per_week" type="number" min="0" max="5" 
+                                       value="{{ old('quad_lessons_per_week', $subject->quad_lessons_per_week ?? 0) }}" 
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors duration-200 text-center"
+                                       placeholder="0">
+                                <p class="mt-1 text-xs text-gray-500 text-center">4 periods each</p>
+                                @error('quad_lessons_per_week')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-600">
+                                <strong>Total periods/week:</strong> 
+                                <span id="totalPeriods" class="text-lg font-bold text-amber-600">{{ $subject->periods_per_week ?? 0 }}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const single = document.querySelector('input[name="single_lessons_per_week"]');
+                        const double = document.querySelector('input[name="double_lessons_per_week"]');
+                        const triple = document.querySelector('input[name="triple_lessons_per_week"]');
+                        const quad = document.querySelector('input[name="quad_lessons_per_week"]');
+                        const totalDisplay = document.getElementById('totalPeriods');
+                        
+                        function calculateTotal() {
+                            const total = (parseInt(single.value) || 0) * 1 
+                                        + (parseInt(double.value) || 0) * 2 
+                                        + (parseInt(triple.value) || 0) * 3 
+                                        + (parseInt(quad.value) || 0) * 4;
+                            totalDisplay.textContent = total;
+                        }
+                        
+                        [single, double, triple, quad].forEach(input => {
+                            input.addEventListener('input', calculateTotal);
+                        });
+                    });
+                </script>
 
                 <!-- Submit Buttons -->
                 <div class="flex items-center justify-end space-x-4">

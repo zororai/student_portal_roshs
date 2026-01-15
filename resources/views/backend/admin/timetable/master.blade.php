@@ -15,7 +15,21 @@
             </h1>
             <p class="text-gray-500 mt-1 ml-13">All class schedules on one sheet - {{ $academicYear }} Term {{ $term }}</p>
         </div>
-        <div class="mt-4 md:mt-0 flex gap-3">
+        <div class="mt-4 md:mt-0 flex flex-wrap gap-3 items-center no-print">
+            <!-- Font Size Control -->
+            <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2">
+                <span class="text-sm text-gray-600 font-medium">Font:</span>
+                <button onclick="changeFontSize('decrease')" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-bold transition-colors" title="Decrease font size">
+                    A-
+                </button>
+                <span id="fontSizeDisplay" class="text-sm font-semibold text-gray-700 min-w-[40px] text-center">100%</span>
+                <button onclick="changeFontSize('increase')" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-bold transition-colors" title="Increase font size">
+                    A+
+                </button>
+                <button onclick="changeFontSize('reset')" class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600 transition-colors" title="Reset font size">
+                    Reset
+                </button>
+            </div>
             <button onclick="window.print()" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -93,6 +107,8 @@
                                         <th class="px-2 py-2 text-center font-medium text-gray-600 border-b border-gray-200 min-w-[90px]
                                             @if($timeSlot['slot_type'] === 'break') bg-amber-50
                                             @elseif($timeSlot['slot_type'] === 'lunch') bg-orange-50
+                                            @elseif($timeSlot['slot_type'] === 'clubs') bg-pink-50
+                                            @elseif($timeSlot['slot_type'] === 'special') bg-cyan-50
                                             @endif">
                                             <div class="text-xs">
                                                 {{ \Carbon\Carbon::parse($timeSlot['start_time'])->format('H:i') }}
@@ -104,6 +120,10 @@
                                                 <span class="text-xs text-amber-600 font-semibold">BREAK</span>
                                             @elseif($timeSlot['slot_type'] === 'lunch')
                                                 <span class="text-xs text-orange-600 font-semibold">LUNCH</span>
+                                            @elseif($timeSlot['slot_type'] === 'clubs')
+                                                <span class="text-xs text-pink-600 font-semibold">CLUBS</span>
+                                            @elseif($timeSlot['slot_type'] === 'special')
+                                                <span class="text-xs text-cyan-600 font-semibold">SPECIAL</span>
                                             @endif
                                         </th>
                                     @endforeach
@@ -125,19 +145,29 @@
                                             <td class="px-1 py-1 text-center border-r border-gray-50
                                                 @if($timeSlot['slot_type'] === 'break') bg-amber-50
                                                 @elseif($timeSlot['slot_type'] === 'lunch') bg-orange-50
+                                                @elseif($timeSlot['slot_type'] === 'clubs') bg-pink-50
+                                                @elseif($timeSlot['slot_type'] === 'special') bg-cyan-50
                                                 @endif">
                                                 @if($slot)
                                                     @if($slot->slot_type === 'break')
                                                         <span class="text-amber-600 text-xs font-medium">Break</span>
                                                     @elseif($slot->slot_type === 'lunch')
                                                         <span class="text-orange-600 text-xs font-medium">Lunch</span>
+                                                    @elseif($slot->slot_type === 'clubs')
+                                                        <div class="bg-pink-100 rounded-lg px-1 py-1">
+                                                            <span class="text-pink-700 text-xs font-medium">{{ $slot->slot_name ?? 'Clubs' }}</span>
+                                                        </div>
+                                                    @elseif($slot->slot_type === 'special')
+                                                        <div class="bg-cyan-100 rounded-lg px-1 py-1">
+                                                            <span class="text-cyan-700 text-xs font-medium">{{ $slot->slot_name ?? 'Special' }}</span>
+                                                        </div>
                                                     @elseif($slot->subject)
                                                         <div class="bg-gradient-to-br from-emerald-100 to-teal-100 rounded-lg px-1 py-1">
-                                                            <div class="font-semibold text-emerald-800 text-xs truncate" title="{{ $slot->subject->name }}">
+                                                            <div class="font-semibold text-emerald-800 text-xs" title="{{ $slot->subject->name }}">
                                                                 {{ \Illuminate\Support\Str::limit($slot->subject->name, 12) }}
                                                             </div>
                                                             @if($slot->teacher && $slot->teacher->user)
-                                                                <div class="text-emerald-600 text-xs truncate" title="{{ $slot->teacher->user->name }}">
+                                                                <div class="text-emerald-600 text-xs" title="{{ $slot->teacher->user->name }}">
                                                                     {{ \Illuminate\Support\Str::limit($slot->teacher->user->name, 10) }}
                                                                 </div>
                                                             @endif
@@ -176,6 +206,14 @@
                     <span class="text-sm text-gray-600">Lunch</span>
                 </div>
                 <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 bg-pink-100 rounded border border-pink-200"></div>
+                    <span class="text-sm text-gray-600">Clubs</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 bg-cyan-100 rounded border border-cyan-200"></div>
+                    <span class="text-sm text-gray-600">Special Activity</span>
+                </div>
+                <div class="flex items-center gap-2">
                     <div class="w-6 h-6 bg-gray-100 rounded border border-gray-200"></div>
                     <span class="text-sm text-gray-600">Free Period</span>
                 </div>
@@ -187,7 +225,7 @@
 <style>
     @page {
         size: A4 landscape;
-        margin: 10mm;
+        margin: 3mm;
     }
     
     @media print {
@@ -199,14 +237,23 @@
         html, body {
             width: 100%;
             height: auto;
-            font-size: 7px !important;
+            font-size: 8pt !important;
             overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
         .no-print { display: none !important; }
         
+        /* Hide website header, navigation, and legend */
+        header, nav, .page-header, .legend, .mt-6.flex-wrap { display: none !important; }
+        
+        /* Hide the main header section with logo */
+        .flex.flex-col.md\:flex-row.md\:items-center.md\:justify-between.mb-6 > div:first-child { display: none !important; }
+        
         .container-fluid { 
             padding: 0 !important; 
+            margin: 0 !important;
             width: 100% !important;
             max-width: none !important;
         }
@@ -214,45 +261,91 @@
         .rounded-2xl { border-radius: 0 !important; }
         .shadow-sm, .shadow-lg, .shadow-xl { box-shadow: none !important; }
         
-        /* Hide filter section and buttons when printing */
+        /* Hide filter section, buttons, and legend */
         form, button, a.inline-flex { display: none !important; }
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.p-4.mt-6 { display: none !important; }
         
-        /* Keep header visible but compact */
-        h1 { font-size: 14px !important; margin-bottom: 5px !important; }
-        h2 { font-size: 11px !important; margin-bottom: 3px !important; }
-        p { font-size: 8px !important; }
+        /* Day headers */
+        h2 { 
+            font-size: 12pt !important; 
+            margin-bottom: 3px !important;
+            margin-top: 5px !important;
+        }
         
-        /* Table fits page width */
+        /* Hide page title and subtitle */
+        h1, .text-gray-500.mt-1 { display: none !important; }
+        p.text-gray-500 { display: none !important; }
+        
+        /* Table container - full width */
         .overflow-x-auto {
             overflow: visible !important;
             width: 100% !important;
         }
         
+        .bg-white.rounded-2xl.shadow-sm.border.border-gray-100.overflow-hidden {
+            border: 1px solid #ccc !important;
+            margin-bottom: 8px !important;
+        }
+        
+        /* Table - full width, fixed layout to fit all columns */
         table {
             width: 100% !important;
             table-layout: fixed !important;
-            font-size: 6px !important;
+            font-size: 8pt !important;
             page-break-inside: auto;
+            border-collapse: collapse !important;
         }
         
-        th, td {
-            padding: 2px 1px !important;
-            font-size: 6px !important;
+        /* Table headers */
+        th {
+            padding: 4px 2px !important;
+            font-size: 8pt !important;
+            font-weight: bold !important;
             word-wrap: break-word !important;
-            min-width: auto !important;
+            white-space: normal !important;
+            border: 1px solid #ddd !important;
+            background-color: #f5f5f5 !important;
+            vertical-align: top !important;
+            overflow: hidden !important;
         }
         
+        /* Table cells */
+        td {
+            padding: 4px 2px !important;
+            font-size: 8pt !important;
+            word-wrap: break-word !important;
+            white-space: normal !important;
+            border: 1px solid #ddd !important;
+            vertical-align: top !important;
+            overflow: hidden !important;
+        }
+        
+        /* Class name column */
         th:first-child, td:first-child {
             width: 60px !important;
             min-width: 60px !important;
+            font-weight: bold !important;
+        }
+        
+        /* Remove text truncation */
+        .truncate {
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: normal !important;
         }
         
         tr { page-break-inside: avoid; page-break-after: auto; }
         
-        /* Each day section on new page if needed */
+        /* Each day section - one page per day */
         .mb-8 { 
-            page-break-inside: avoid;
-            margin-bottom: 10px !important;
+            page-break-after: always !important;
+            page-break-inside: avoid !important;
+            margin-bottom: 0 !important;
+        }
+        
+        /* Don't break after last day */
+        .mb-8:last-of-type {
+            page-break-after: auto !important;
         }
         
         /* Hide sticky positioning for print */
@@ -266,9 +359,61 @@
             print-color-adjust: exact !important;
         }
         
-        /* Legend compact */
-        .flex-wrap.gap-4 { gap: 10px !important; }
-        .w-6.h-6 { width: 12px !important; height: 12px !important; }
+        /* Subject cells */
+        .bg-gradient-to-br.from-emerald-100.to-teal-100 {
+            padding: 2px !important;
+        }
+        
+        .bg-gradient-to-br.from-emerald-100.to-teal-100 .font-semibold,
+        .bg-gradient-to-br.from-emerald-100.to-teal-100 .text-xs,
+        .font-semibold.text-emerald-800,
+        .text-emerald-600 {
+            font-size: 7pt !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+        
+        /* Time header text */
+        .text-xs {
+            font-size: 6pt !important;
+        }
+        
+        /* Break/Lunch labels */
+        span.text-amber-600, span.text-orange-600 {
+            font-size: 7pt !important;
+        }
     }
 </style>
+
+<script>
+    let currentFontSize = 100;
+    const timetableContainer = document.querySelector('.container-fluid');
+    
+    function changeFontSize(action) {
+        if (action === 'increase' && currentFontSize < 150) {
+            currentFontSize += 10;
+        } else if (action === 'decrease' && currentFontSize > 60) {
+            currentFontSize -= 10;
+        } else if (action === 'reset') {
+            currentFontSize = 100;
+        }
+        
+        document.getElementById('fontSizeDisplay').textContent = currentFontSize + '%';
+        
+        // Apply font size to tables
+        const tables = document.querySelectorAll('table');
+        tables.forEach(table => {
+            table.style.fontSize = (currentFontSize / 100) * 0.875 + 'rem';
+        });
+        
+        // Apply to table cells
+        const cells = document.querySelectorAll('th, td');
+        cells.forEach(cell => {
+            if (currentFontSize >= 100) {
+                cell.style.padding = (currentFontSize / 100) * 0.5 + 'rem ' + (currentFontSize / 100) * 0.25 + 'rem';
+            }
+        });
+    }
+</script>
 @endsection

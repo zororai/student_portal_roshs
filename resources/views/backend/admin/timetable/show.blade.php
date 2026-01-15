@@ -15,7 +15,13 @@
             </h1>
             <p class="text-gray-500 mt-1 ml-13">Weekly schedule for Form {{ $class->class_numeric }}</p>
         </div>
-        <div class="mt-4 md:mt-0 flex items-center gap-3">
+        <div class="mt-4 md:mt-0 flex items-center gap-3 no-print">
+            <button onclick="window.print()" class="inline-flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-gray-700 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Print
+            </button>
             <a href="{{ route('admin.timetable.edit', $class->id) }}" 
                class="inline-flex items-center gap-2 bg-amber-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-amber-600 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,6 +270,14 @@
                                                 <div class="bg-orange-100 border border-orange-200 rounded-xl p-3 text-center">
                                                     <p class="font-semibold text-orange-700">🍽️ Lunch</p>
                                                 </div>
+                                            @elseif($slot->slot_type == 'clubs')
+                                                <div class="bg-pink-100 border border-pink-200 rounded-xl p-3 text-center">
+                                                    <p class="font-semibold text-pink-700">🎭 {{ $slot->slot_name ?? 'Clubs' }}</p>
+                                                </div>
+                                            @elseif($slot->slot_type == 'special')
+                                                <div class="bg-cyan-100 border border-cyan-200 rounded-xl p-3 text-center">
+                                                    <p class="font-semibold text-cyan-700">⭐ {{ $slot->slot_name ?? 'Special' }}</p>
+                                                </div>
                                             @elseif($slot->slot_type == 'subject')
                                                 @if($slot->subject_id)
                                                     <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl p-3 hover:shadow-md transition-shadow h-full">
@@ -325,6 +339,14 @@
         <div class="flex items-center gap-2">
             <div class="w-4 h-4 bg-orange-100 border border-orange-200 rounded"></div>
             <span class="text-sm text-gray-600">Lunch</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-pink-100 border border-pink-200 rounded"></div>
+            <span class="text-sm text-gray-600">Clubs</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-cyan-100 border border-cyan-200 rounded"></div>
+            <span class="text-sm text-gray-600">Special Activity</span>
         </div>
     </div>
 

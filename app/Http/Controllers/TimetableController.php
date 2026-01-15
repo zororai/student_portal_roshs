@@ -73,43 +73,36 @@ class TimetableController extends Controller
             return redirect()->back()->with('error', 'Teacher record not found.');
         }
 
-        // Get classes where this teacher is assigned
-        $classes = Grade::where('teacher_id', $teacher->id)->get();
+        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         
-        // If teacher has assigned classes, show the first one by default
-        $classId = request('class_id') ?? ($classes->first() ? $classes->first()->id : null);
+        // Get all timetable entries where this teacher is assigned
+        $teacherSlots = Timetable::where('teacher_id', $teacher->id)
+            ->where('slot_type', 'subject')
+            ->with(['subject', 'grade'])
+            ->orderBy('start_time')
+            ->get();
         
-        if (!$classId) {
+        if ($teacherSlots->isEmpty()) {
             return view('backend.timetable.teacher', [
-                'class' => null,
-                'classes' => $classes,
-                'settings' => null,
+                'teacher' => $teacher,
                 'timetable' => [],
-                'days' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+                'days' => $days,
+                'hasSchedule' => false
             ]);
         }
 
-        $class = Grade::find($classId);
-        $settings = TimetableSetting::where('class_id', $classId)
-            ->orderBy('academic_year', 'desc')
-            ->orderBy('term', 'desc')
-            ->first();
-        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        // Group by day
         $timetable = [];
-        
-        if ($settings) {
-            foreach ($days as $day) {
-                $timetable[$day] = Timetable::where('class_id', $classId)
-                    ->where('academic_year', $settings->academic_year)
-                    ->where('term', $settings->term)
-                    ->where('day', $day)
-                    ->with(['subject', 'teacher.user'])
-                    ->orderBy('slot_order')
-                    ->get();
-            }
+        foreach ($days as $day) {
+            $timetable[$day] = $teacherSlots->where('day', $day)->sortBy('start_time')->values();
         }
 
-        return view('backend.timetable.teacher', compact('class', 'classes', 'settings', 'timetable', 'days'));
+        return view('backend.timetable.teacher', [
+            'teacher' => $teacher,
+            'timetable' => $timetable,
+            'days' => $days,
+            'hasSchedule' => true
+        ]);
     }
 
     public function parentView()

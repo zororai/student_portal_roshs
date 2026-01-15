@@ -160,6 +160,168 @@
                     </div>
                 </div>
 
+                <!-- Clubs Section -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Clubs / Activities
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" name="include_clubs" id="include_clubs" value="1" 
+                                   class="w-4 h-4 text-pink-600 focus:ring-pink-500 rounded"
+                                   {{ old('include_clubs') ? 'checked' : '' }}>
+                            <label for="include_clubs" class="ml-3 text-sm font-medium text-gray-700">Include Clubs Period</label>
+                        </div>
+                        
+                        <div id="clubs-options" class="grid grid-cols-1 md:grid-cols-2 gap-4 {{ old('include_clubs') ? '' : 'hidden' }}">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Clubs Days</label>
+                                <div class="flex flex-wrap gap-4">
+                                    @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as $day)
+                                        <label class="inline-flex items-center">
+                                            <input type="checkbox" name="clubs_days[]" value="{{ $day }}" 
+                                                   class="w-4 h-4 text-pink-600 focus:ring-pink-500 rounded"
+                                                   {{ (is_array(old('clubs_days')) && in_array($day, old('clubs_days'))) || (!old('clubs_days') && $day == 'Wednesday') ? 'checked' : '' }}>
+                                            <span class="ml-2 text-sm text-gray-700">{{ $day }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Clubs Position</label>
+                                <select name="clubs_position" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                                    <option value="after_lunch" {{ old('clubs_position', 'after_lunch') == 'after_lunch' ? 'selected' : '' }}>After Lunch</option>
+                                    <option value="end_of_day" {{ old('clubs_position') == 'end_of_day' ? 'selected' : '' }}>End of Day</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Clubs Start Time</label>
+                                <input type="time" name="clubs_start" value="{{ old('clubs_start', '14:00') }}" 
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Clubs End Time</label>
+                                <input type="time" name="clubs_end" value="{{ old('clubs_end', '15:00') }}" 
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Number of Periods</label>
+                                <select name="clubs_periods" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+                                    <option value="1" {{ old('clubs_periods', '2') == '1' ? 'selected' : '' }}>1 Period</option>
+                                    <option value="2" {{ old('clubs_periods', '2') == '2' ? 'selected' : '' }}>2 Periods</option>
+                                    <option value="3" {{ old('clubs_periods') == '3' ? 'selected' : '' }}>3 Periods</option>
+                                    <option value="4" {{ old('clubs_periods') == '4' ? 'selected' : '' }}>4 Periods</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Clubs will span this many consecutive periods</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Special Slots Section -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                        </svg>
+                        Special Time Slots
+                    </h2>
+                    <p class="text-sm text-gray-500 mb-4">Add special periods like assembly, sports, or prep time</p>
+                    
+                    <div class="space-y-4">
+                        <!-- Before Break Slot -->
+                        <div class="p-4 border border-amber-200 rounded-xl bg-amber-50">
+                            <div class="flex items-center mb-3">
+                                <input type="checkbox" name="include_before_break" id="include_before_break" value="1" 
+                                       class="w-4 h-4 text-amber-600 focus:ring-amber-500 rounded"
+                                       {{ old('include_before_break') ? 'checked' : '' }}>
+                                <label for="include_before_break" class="ml-3 text-sm font-semibold text-amber-800">Before Break Slot (e.g., Assembly)</label>
+                            </div>
+                            <div id="before-break-options" class="grid grid-cols-1 md:grid-cols-4 gap-3 {{ old('include_before_break') ? '' : 'hidden' }}">
+                                <input type="text" name="before_break_name" value="{{ old('before_break_name', 'Assembly') }}" 
+                                       placeholder="Name (e.g., Assembly)"
+                                       class="px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                                <select name="before_break_days[]" multiple 
+                                        class="px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                                    <option value="Monday" {{ is_array(old('before_break_days')) && in_array('Monday', old('before_break_days')) ? 'selected' : '' }}>Monday</option>
+                                    <option value="Tuesday" {{ is_array(old('before_break_days')) && in_array('Tuesday', old('before_break_days')) ? 'selected' : '' }}>Tuesday</option>
+                                    <option value="Wednesday" {{ is_array(old('before_break_days')) && in_array('Wednesday', old('before_break_days')) ? 'selected' : '' }}>Wednesday</option>
+                                    <option value="Thursday" {{ is_array(old('before_break_days')) && in_array('Thursday', old('before_break_days')) ? 'selected' : '' }}>Thursday</option>
+                                    <option value="Friday" {{ is_array(old('before_break_days')) && in_array('Friday', old('before_break_days')) ? 'selected' : '' }}>Friday</option>
+                                </select>
+                                <select name="before_break_periods" class="px-3 py-2 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                                    <option value="1" {{ old('before_break_periods', '1') == '1' ? 'selected' : '' }}>1 Period</option>
+                                    <option value="2" {{ old('before_break_periods') == '2' ? 'selected' : '' }}>2 Periods</option>
+                                    <option value="3" {{ old('before_break_periods') == '3' ? 'selected' : '' }}>3 Periods</option>
+                                </select>
+                                <p class="text-xs text-amber-600">Hold Ctrl/Cmd to select multiple days</p>
+                            </div>
+                        </div>
+
+                        <!-- After Break Slot -->
+                        <div class="p-4 border border-green-200 rounded-xl bg-green-50">
+                            <div class="flex items-center mb-3">
+                                <input type="checkbox" name="include_after_break" id="include_after_break" value="1" 
+                                       class="w-4 h-4 text-green-600 focus:ring-green-500 rounded"
+                                       {{ old('include_after_break') ? 'checked' : '' }}>
+                                <label for="include_after_break" class="ml-3 text-sm font-semibold text-green-800">After Break Slot (e.g., Sports)</label>
+                            </div>
+                            <div id="after-break-options" class="grid grid-cols-1 md:grid-cols-4 gap-3 {{ old('include_after_break') ? '' : 'hidden' }}">
+                                <input type="text" name="after_break_name" value="{{ old('after_break_name', 'Sports') }}" 
+                                       placeholder="Name (e.g., Sports)"
+                                       class="px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                                <select name="after_break_days[]" multiple 
+                                        class="px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                                    <option value="Monday" {{ is_array(old('after_break_days')) && in_array('Monday', old('after_break_days')) ? 'selected' : '' }}>Monday</option>
+                                    <option value="Tuesday" {{ is_array(old('after_break_days')) && in_array('Tuesday', old('after_break_days')) ? 'selected' : '' }}>Tuesday</option>
+                                    <option value="Wednesday" {{ is_array(old('after_break_days')) && in_array('Wednesday', old('after_break_days')) ? 'selected' : '' }}>Wednesday</option>
+                                    <option value="Thursday" {{ is_array(old('after_break_days')) && in_array('Thursday', old('after_break_days')) ? 'selected' : '' }}>Thursday</option>
+                                    <option value="Friday" {{ is_array(old('after_break_days')) && in_array('Friday', old('after_break_days')) ? 'selected' : '' }}>Friday</option>
+                                </select>
+                                <select name="after_break_periods" class="px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                                    <option value="1" {{ old('after_break_periods', '1') == '1' ? 'selected' : '' }}>1 Period</option>
+                                    <option value="2" {{ old('after_break_periods') == '2' ? 'selected' : '' }}>2 Periods</option>
+                                    <option value="3" {{ old('after_break_periods') == '3' ? 'selected' : '' }}>3 Periods</option>
+                                </select>
+                                <p class="text-xs text-green-600">Hold Ctrl/Cmd to select multiple days</p>
+                            </div>
+                        </div>
+
+                        <!-- After Lunch Slot -->
+                        <div class="p-4 border border-blue-200 rounded-xl bg-blue-50">
+                            <div class="flex items-center mb-3">
+                                <input type="checkbox" name="include_after_lunch" id="include_after_lunch" value="1" 
+                                       class="w-4 h-4 text-blue-600 focus:ring-blue-500 rounded"
+                                       {{ old('include_after_lunch') ? 'checked' : '' }}>
+                                <label for="include_after_lunch" class="ml-3 text-sm font-semibold text-blue-800">After Lunch Slot (e.g., Reading)</label>
+                            </div>
+                            <div id="after-lunch-options" class="grid grid-cols-1 md:grid-cols-4 gap-3 {{ old('include_after_lunch') ? '' : 'hidden' }}">
+                                <input type="text" name="after_lunch_name" value="{{ old('after_lunch_name', 'Reading') }}" 
+                                       placeholder="Name (e.g., Reading)"
+                                       class="px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                <select name="after_lunch_days[]" multiple 
+                                        class="px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="Monday" {{ is_array(old('after_lunch_days')) && in_array('Monday', old('after_lunch_days')) ? 'selected' : '' }}>Monday</option>
+                                    <option value="Tuesday" {{ is_array(old('after_lunch_days')) && in_array('Tuesday', old('after_lunch_days')) ? 'selected' : '' }}>Tuesday</option>
+                                    <option value="Wednesday" {{ is_array(old('after_lunch_days')) && in_array('Wednesday', old('after_lunch_days')) ? 'selected' : '' }}>Wednesday</option>
+                                    <option value="Thursday" {{ is_array(old('after_lunch_days')) && in_array('Thursday', old('after_lunch_days')) ? 'selected' : '' }}>Thursday</option>
+                                    <option value="Friday" {{ is_array(old('after_lunch_days')) && in_array('Friday', old('after_lunch_days')) ? 'selected' : '' }}>Friday</option>
+                                </select>
+                                <select name="after_lunch_periods" class="px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="1" {{ old('after_lunch_periods', '1') == '1' ? 'selected' : '' }}>1 Period</option>
+                                    <option value="2" {{ old('after_lunch_periods') == '2' ? 'selected' : '' }}>2 Periods</option>
+                                    <option value="3" {{ old('after_lunch_periods') == '3' ? 'selected' : '' }}>3 Periods</option>
+                                </select>
+                                <p class="text-xs text-blue-600">Hold Ctrl/Cmd to select multiple days</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Academic Period -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -259,5 +421,33 @@
     
     // Initialize styles on page load
     updateLabelStyles();
+    
+    // Toggle Clubs options
+    const includeClubs = document.getElementById('include_clubs');
+    const clubsOptions = document.getElementById('clubs-options');
+    includeClubs.addEventListener('change', function() {
+        clubsOptions.classList.toggle('hidden', !this.checked);
+    });
+    
+    // Toggle Before Break options
+    const includeBeforeBreak = document.getElementById('include_before_break');
+    const beforeBreakOptions = document.getElementById('before-break-options');
+    includeBeforeBreak.addEventListener('change', function() {
+        beforeBreakOptions.classList.toggle('hidden', !this.checked);
+    });
+    
+    // Toggle After Break options
+    const includeAfterBreak = document.getElementById('include_after_break');
+    const afterBreakOptions = document.getElementById('after-break-options');
+    includeAfterBreak.addEventListener('change', function() {
+        afterBreakOptions.classList.toggle('hidden', !this.checked);
+    });
+    
+    // Toggle After Lunch options
+    const includeAfterLunch = document.getElementById('include_after_lunch');
+    const afterLunchOptions = document.getElementById('after-lunch-options');
+    includeAfterLunch.addEventListener('change', function() {
+        afterLunchOptions.classList.toggle('hidden', !this.checked);
+    });
 </script>
 @endsection

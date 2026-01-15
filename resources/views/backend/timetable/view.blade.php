@@ -110,6 +110,14 @@
                                                 <div class="bg-orange-100 border border-orange-200 rounded-xl p-3 text-center">
                                                     <p class="font-semibold text-orange-700">🍽️ Lunch</p>
                                                 </div>
+                                            @elseif($slot->slot_type == 'clubs')
+                                                <div class="bg-pink-100 border border-pink-200 rounded-xl p-3 text-center">
+                                                    <p class="font-semibold text-pink-700">🎭 {{ $slot->slot_name ?? 'Clubs' }}</p>
+                                                </div>
+                                            @elseif($slot->slot_type == 'special')
+                                                <div class="bg-cyan-100 border border-cyan-200 rounded-xl p-3 text-center">
+                                                    <p class="font-semibold text-cyan-700">⭐ {{ $slot->slot_name ?? 'Special' }}</p>
+                                                </div>
                                             @elseif($slot->slot_type == 'subject')
                                                 <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl p-3 hover:shadow-md transition-shadow">
                                                     <p class="font-semibold text-gray-800 text-sm truncate">
@@ -149,6 +157,14 @@
             <div class="flex items-center gap-2">
                 <div class="w-4 h-4 bg-orange-100 border border-orange-200 rounded"></div>
                 <span class="text-sm text-gray-600">Lunch</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-pink-100 border border-pink-200 rounded"></div>
+                <span class="text-sm text-gray-600">Clubs</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 bg-cyan-100 border border-cyan-200 rounded"></div>
+                <span class="text-sm text-gray-600">Special Activity</span>
             </div>
         </div>
     @endif

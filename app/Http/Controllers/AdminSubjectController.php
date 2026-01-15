@@ -225,17 +225,30 @@ class AdminSubjectController extends Controller
     {
         $request->validate([
             'name'          => 'required|string|max:255|unique:subjects,name,'.$subject->id,
-            'subject_code'  => 'required|numeric',
-            'teacher_id'    => 'required|numeric',
-            'periods_per_week' => 'required|integer|min:1|max:10'
+            'subject_code'  => 'required|string|max:20',
+            'teacher_id'    => 'nullable|numeric',
+            'single_lessons_per_week' => 'nullable|numeric|min:0|max:20',
+            'double_lessons_per_week' => 'nullable|numeric|min:0|max:10',
+            'triple_lessons_per_week' => 'nullable|numeric|min:0|max:5',
+            'quad_lessons_per_week'   => 'nullable|numeric|min:0|max:5',
         ]);
+
+        // Calculate total periods per week
+        $totalPeriods = (intval($request->single_lessons_per_week) * 1) 
+                      + (intval($request->double_lessons_per_week) * 2) 
+                      + (intval($request->triple_lessons_per_week) * 3) 
+                      + (intval($request->quad_lessons_per_week) * 4);
 
         $subject->update([
             'name'          => $request->name,
             'slug'          => Str::slug($request->name),
             'subject_code'  => $request->subject_code,
             'teacher_id'    => $request->teacher_id,
-            'periods_per_week' => $request->periods_per_week
+            'single_lessons_per_week' => intval($request->single_lessons_per_week),
+            'double_lessons_per_week' => intval($request->double_lessons_per_week),
+            'triple_lessons_per_week' => intval($request->triple_lessons_per_week),
+            'quad_lessons_per_week'   => intval($request->quad_lessons_per_week),
+            'periods_per_week' => $totalPeriods
         ]);
 
         return redirect()->route('admin.subjects.index')->with('success', 'Subject updated successfully.');

@@ -124,16 +124,69 @@ class AdminTimetableController extends Controller
             'subject_duration' => 'required|integer|min:20|max:120',
             'academic_year' => 'required|string|max:10',
             'term' => 'required|integer|min:1|max:3',
+            // Clubs
+            'include_clubs' => 'nullable',
+            'clubs_days' => 'nullable|array',
+            'clubs_days.*' => 'nullable|string',
+            'clubs_position' => 'nullable|string',
+            'clubs_start' => 'nullable|date_format:H:i',
+            'clubs_end' => 'nullable|date_format:H:i',
+            'clubs_periods' => 'nullable|integer|min:1|max:4',
+            // Special slots
+            'include_before_break' => 'nullable',
+            'before_break_name' => 'nullable|string|max:50',
+            'before_break_days' => 'nullable|array',
+            'before_break_periods' => 'nullable|integer|min:1|max:3',
+            'include_after_break' => 'nullable',
+            'after_break_name' => 'nullable|string|max:50',
+            'after_break_days' => 'nullable|array',
+            'after_break_periods' => 'nullable|integer|min:1|max:3',
+            'include_after_lunch' => 'nullable',
+            'after_lunch_name' => 'nullable|string|max:50',
+            'after_lunch_days' => 'nullable|array',
+            'after_lunch_periods' => 'nullable|integer|min:1|max:3',
         ]);
 
         $classIds = $validated['class_ids'];
         $generatedCount = 0;
+
+        // Prepare special slots config
+        $specialSlots = [
+            'clubs' => $request->include_clubs ? [
+                'days' => $request->clubs_days ?? ['Wednesday'],
+                'position' => $request->clubs_position ?? 'after_lunch',
+                'start' => $request->clubs_start ?? '14:00',
+                'end' => $request->clubs_end ?? '15:00',
+                'periods' => intval($request->clubs_periods ?? 2),
+            ] : null,
+            'before_break' => $request->include_before_break ? [
+                'name' => $request->before_break_name ?? 'Assembly',
+                'days' => $request->before_break_days ?? [],
+                'periods' => intval($request->before_break_periods ?? 1),
+            ] : null,
+            'after_break' => $request->include_after_break ? [
+                'name' => $request->after_break_name ?? 'Sports',
+                'days' => $request->after_break_days ?? [],
+                'periods' => intval($request->after_break_periods ?? 1),
+            ] : null,
+            'after_lunch' => $request->include_after_lunch ? [
+                'name' => $request->after_lunch_name ?? 'Reading',
+                'days' => $request->after_lunch_days ?? [],
+                'periods' => intval($request->after_lunch_periods ?? 1),
+            ] : null,
+        ];
 
         foreach ($classIds as $classId) {
             // Prepare settings data for this class
             $settingsData = $validated;
             $settingsData['class_id'] = $classId;
             unset($settingsData['class_ids']);
+            // Remove special slot fields from settings
+            unset($settingsData['include_clubs'], $settingsData['clubs_day'], $settingsData['clubs_position'], 
+                  $settingsData['clubs_start'], $settingsData['clubs_end'], $settingsData['include_before_break'],
+                  $settingsData['before_break_name'], $settingsData['before_break_days'], $settingsData['include_after_break'],
+                  $settingsData['after_break_name'], $settingsData['after_break_days'], $settingsData['include_after_lunch'],
+                  $settingsData['after_lunch_name'], $settingsData['after_lunch_days']);
 
             // Save or update timetable settings
             $settings = TimetableSetting::updateOrCreate(
@@ -145,8 +198,8 @@ class AdminTimetableController extends Controller
                 $settingsData
             );
 
-            // Generate timetable
-            $this->generateTimetable($settings);
+            // Generate timetable with special slots
+            $this->generateTimetable($settings, $specialSlots);
             $generatedCount++;
         }
 
@@ -289,7 +342,7 @@ class AdminTimetableController extends Controller
             ->with('success', 'Timetable deleted successfully!');
     }
 
-    private function generateTimetable(TimetableSetting $settings)
+    private function generateTimetable(TimetableSetting $settings, $specialSlots = [])
     {
         // Delete existing timetable for this class, academic year, and term
         Timetable::where('class_id', $settings->class_id)
@@ -369,7 +422,7 @@ class AdminTimetableController extends Controller
         // First pass: Generate the time structure for each day
         $dayStructure = [];
         foreach ($days as $day) {
-            $dayStructure[$day] = $this->generateDayStructure($settings, $day);
+            $dayStructure[$day] = $this->generateDayStructure($settings, $day, $specialSlots);
         }
         
         // Track how many lessons of each type have been placed for each subject
@@ -461,6 +514,7 @@ class AdminTimetableController extends Controller
                     'start_time' => $slot['start_time'],
                     'end_time' => $slot['end_time'],
                     'slot_type' => $slot['slot_type'],
+                    'slot_name' => $slot['slot_name'] ?? null,
                     'slot_order' => $slotOrder,
                     'academic_year' => $settings->academic_year,
                     'term' => $settings->term,
@@ -473,7 +527,7 @@ class AdminTimetableController extends Controller
      * Generate the basic time structure for a day (breaks, lunch, subject slots)
      * Break and Lunch are FIXED at their configured times and never move
      */
-    private function generateDayStructure(TimetableSetting $settings, $day)
+    private function generateDayStructure(TimetableSetting $settings, $day, $specialSlots = [])
     {
         $structure = [];
         
@@ -485,6 +539,39 @@ class AdminTimetableController extends Controller
         $lunchStart = $settings->lunch_start;
         $lunchEnd = $settings->lunch_end;
         $periodDuration = $settings->subject_duration;
+        
+        // Check for clubs on this day
+        $clubsOnThisDay = false;
+        $clubsStart = null;
+        $clubsEnd = null;
+        $clubsPeriods = 1;
+        if (!empty($specialSlots['clubs']) && in_array($day, $specialSlots['clubs']['days'] ?? [])) {
+            $clubsOnThisDay = true;
+            $clubsStart = $specialSlots['clubs']['start'];
+            $clubsEnd = $specialSlots['clubs']['end'];
+            $clubsPeriods = $specialSlots['clubs']['periods'] ?? 2;
+        }
+        
+        // Check for special slots on this day
+        $beforeBreakName = null;
+        $beforeBreakPeriods = 1;
+        $afterBreakName = null;
+        $afterBreakPeriods = 1;
+        $afterLunchName = null;
+        $afterLunchPeriods = 1;
+        
+        if (!empty($specialSlots['before_break']) && in_array($day, $specialSlots['before_break']['days'] ?? [])) {
+            $beforeBreakName = $specialSlots['before_break']['name'];
+            $beforeBreakPeriods = $specialSlots['before_break']['periods'] ?? 1;
+        }
+        if (!empty($specialSlots['after_break']) && in_array($day, $specialSlots['after_break']['days'] ?? [])) {
+            $afterBreakName = $specialSlots['after_break']['name'];
+            $afterBreakPeriods = $specialSlots['after_break']['periods'] ?? 1;
+        }
+        if (!empty($specialSlots['after_lunch']) && in_array($day, $specialSlots['after_lunch']['days'] ?? [])) {
+            $afterLunchName = $specialSlots['after_lunch']['name'];
+            $afterLunchPeriods = $specialSlots['after_lunch']['periods'] ?? 1;
+        }
         
         // Convert times to minutes from midnight for easier comparison
         $toMinutes = function($time) {
@@ -507,7 +594,68 @@ class AdminTimetableController extends Controller
         
         $currentMins = $startMins;
         
+        // Clubs timing
+        $clubsStartMins = $clubsOnThisDay ? $toMinutes($clubsStart) : null;
+        $clubsEndMins = $clubsOnThisDay ? $toMinutes($clubsEnd) : null;
+        
+        // Track if we've added special slots
+        $addedBeforeBreak = false;
+        $addedAfterBreak = false;
+        $addedAfterLunch = false;
+        $addedClubs = false;
+        
         while ($currentMins < $endMins) {
+            // Check if we're at clubs time (if clubs is on this day)
+            if ($clubsOnThisDay && !$addedClubs && $currentMins >= $clubsStartMins && $currentMins < $clubsEndMins) {
+                // Create multiple slots for clubs based on number of periods
+                $clubSlotStart = $clubsStartMins;
+                for ($p = 0; $p < $clubsPeriods; $p++) {
+                    $clubSlotEnd = $clubSlotStart + $periodDuration;
+                    if ($clubSlotEnd > $clubsEndMins) {
+                        $clubSlotEnd = $clubsEndMins;
+                    }
+                    $structure[] = [
+                        'start_time' => $fromMinutes($clubSlotStart),
+                        'end_time' => $fromMinutes($clubSlotEnd),
+                        'slot_type' => 'clubs',
+                        'slot_name' => 'Clubs',
+                        'subject_id' => null,
+                        'teacher_id' => null,
+                    ];
+                    $clubSlotStart = $clubSlotEnd;
+                    if ($clubSlotStart >= $clubsEndMins) break;
+                }
+                $currentMins = $clubsEndMins;
+                $addedClubs = true;
+                continue;
+            }
+            
+            // Check if we need to add "before break" slot
+            if ($beforeBreakName && !$addedBeforeBreak && $currentMins + $periodDuration >= $breakStartMins && $currentMins < $breakStartMins) {
+                // Create multiple periods for before break slot
+                $beforeBreakStart = $breakStartMins - ($periodDuration * $beforeBreakPeriods);
+                if ($beforeBreakStart < $currentMins) $beforeBreakStart = $currentMins;
+                
+                for ($p = 0; $p < $beforeBreakPeriods; $p++) {
+                    $slotEnd = $beforeBreakStart + $periodDuration;
+                    if ($slotEnd > $breakStartMins) $slotEnd = $breakStartMins;
+                    
+                    $structure[] = [
+                        'start_time' => $fromMinutes($beforeBreakStart),
+                        'end_time' => $fromMinutes($slotEnd),
+                        'slot_type' => 'special',
+                        'slot_name' => $beforeBreakName,
+                        'subject_id' => null,
+                        'teacher_id' => null,
+                    ];
+                    $beforeBreakStart = $slotEnd;
+                    if ($beforeBreakStart >= $breakStartMins) break;
+                }
+                $currentMins = $breakStartMins;
+                $addedBeforeBreak = true;
+                continue;
+            }
+            
             // Check if we're at break time
             if ($currentMins >= $breakStartMins && $currentMins < $breakEndMins) {
                 $structure[] = [
@@ -518,6 +666,23 @@ class AdminTimetableController extends Controller
                     'teacher_id' => null,
                 ];
                 $currentMins = $breakEndMins;
+                
+                // Add "after break" slot immediately after break
+                if ($afterBreakName && !$addedAfterBreak) {
+                    for ($p = 0; $p < $afterBreakPeriods; $p++) {
+                        $afterBreakEnd = $currentMins + $periodDuration;
+                        $structure[] = [
+                            'start_time' => $fromMinutes($currentMins),
+                            'end_time' => $fromMinutes($afterBreakEnd),
+                            'slot_type' => 'special',
+                            'slot_name' => $afterBreakName,
+                            'subject_id' => null,
+                            'teacher_id' => null,
+                        ];
+                        $currentMins = $afterBreakEnd;
+                    }
+                    $addedAfterBreak = true;
+                }
                 continue;
             }
             
@@ -531,15 +696,47 @@ class AdminTimetableController extends Controller
                     'teacher_id' => null,
                 ];
                 $currentMins = $lunchEndMins;
+                
+                // Add "after lunch" slot immediately after lunch
+                if ($afterLunchName && !$addedAfterLunch) {
+                    for ($p = 0; $p < $afterLunchPeriods; $p++) {
+                        $afterLunchEnd = $currentMins + $periodDuration;
+                        $structure[] = [
+                            'start_time' => $fromMinutes($currentMins),
+                            'end_time' => $fromMinutes($afterLunchEnd),
+                            'slot_type' => 'special',
+                            'slot_name' => $afterLunchName,
+                            'subject_id' => null,
+                            'teacher_id' => null,
+                        ];
+                        $currentMins = $afterLunchEnd;
+                    }
+                    $addedAfterLunch = true;
+                }
                 continue;
             }
             
             // Calculate slot end time
             $slotEndMins = $currentMins + $periodDuration;
             
+            // Check if slot would overlap with clubs
+            if ($clubsOnThisDay && !$addedClubs && $currentMins < $clubsStartMins && $slotEndMins > $clubsStartMins) {
+                if ($clubsStartMins - $currentMins >= 10) {
+                    $structure[] = [
+                        'start_time' => $fromMinutes($currentMins),
+                        'end_time' => $fromMinutes($clubsStartMins),
+                        'slot_type' => 'subject',
+                        'subject_id' => null,
+                        'teacher_id' => null,
+                        'is_gap' => true,
+                    ];
+                }
+                $currentMins = $clubsStartMins;
+                continue;
+            }
+            
             // Check if slot would overlap with break
             if ($currentMins < $breakStartMins && $slotEndMins > $breakStartMins) {
-                // Create shorter slot before break if there's meaningful time
                 if ($breakStartMins - $currentMins >= 10) {
                     $structure[] = [
                         'start_time' => $fromMinutes($currentMins),
@@ -556,7 +753,6 @@ class AdminTimetableController extends Controller
             
             // Check if slot would overlap with lunch
             if ($currentMins < $lunchStartMins && $slotEndMins > $lunchStartMins) {
-                // Create shorter slot before lunch if there's meaningful time
                 if ($lunchStartMins - $currentMins >= 10) {
                     $structure[] = [
                         'start_time' => $fromMinutes($currentMins),

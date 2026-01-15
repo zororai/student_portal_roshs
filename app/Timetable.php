@@ -14,6 +14,7 @@ class Timetable extends Model
         'start_time',
         'end_time',
         'slot_type',
+        'slot_name',
         'slot_order',
         'academic_year',
         'term'
