@@ -201,10 +201,10 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Morning Session -->
-                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 border-amber-500 bg-amber-50 cursor-pointer hover:border-amber-600 transition-all">
+                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'morning' ? 'border-amber-500 bg-amber-50' : 'border-gray-200' }} cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-all">
                         <input type="radio" name="session" value="morning" class="hidden" {{ old('session', 'both') == 'morning' ? 'checked' : '' }}>
-                        <div class="session-radio w-6 h-6 border-2 border-amber-500 rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 bg-amber-500">
-                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'both') == 'morning' ? 'border-amber-500 bg-amber-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'both') == 'morning' ? '' : 'hidden' }}"></div>
                         </div>
                         <div>
                             <div class="flex items-center">
@@ -218,10 +218,10 @@
                     </label>
                     
                     <!-- Afternoon Session -->
-                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all">
+                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'afternoon' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200' }} cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all">
                         <input type="radio" name="session" value="afternoon" class="hidden" {{ old('session', 'both') == 'afternoon' ? 'checked' : '' }}>
-                        <div class="session-radio w-6 h-6 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div class="w-2 h-2 bg-white rounded-full hidden"></div>
+                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'both') == 'afternoon' ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'both') == 'afternoon' ? '' : 'hidden' }}"></div>
                         </div>
                         <div>
                             <div class="flex items-center">
@@ -235,10 +235,10 @@
                     </label>
                     
                     <!-- Both Sessions -->
-                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 border-gray-200 cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
+                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'both' ? 'border-purple-500 bg-purple-50' : 'border-gray-200' }} cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
                         <input type="radio" name="session" value="both" class="hidden" {{ old('session', 'both') == 'both' ? 'checked' : '' }}>
-                        <div class="session-radio w-6 h-6 border-2 border-gray-300 rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div class="w-2 h-2 bg-white rounded-full hidden"></div>
+                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'both') == 'both' ? 'border-purple-500 bg-purple-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'both') == 'both' ? '' : 'hidden' }}"></div>
                         </div>
                         <div>
                             <div class="flex items-center">
