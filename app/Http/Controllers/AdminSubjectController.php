@@ -224,7 +224,7 @@ class AdminSubjectController extends Controller
     public function update(Request $request, Subject $subject)
     {
         $request->validate([
-            'name'          => 'required|string|max:255|unique:subjects,name,'.$subject->id,
+            'name'          => 'required|string|max:255',
             'subject_code'  => 'required|string|max:20',
             'teacher_id'    => 'nullable|numeric',
             'single_lessons_per_week' => 'nullable|numeric|min:0|max:20',

@@ -35,16 +35,16 @@
                     <div class="px-6 py-6 space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Subject Name</label>
-                                <input name="name" type="text" value="{{ $subject->name }}" 
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Subject Name <span class="text-red-500">*</span></label>
+                                <input name="name" type="text" value="{{ old('name', $subject->name) }}" required
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 @error('name') border-red-500 @enderror"
                                        placeholder="Enter subject name">
                                 @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Subject Code</label>
-                                <input name="subject_code" type="text" value="{{ $subject->subject_code }}" 
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Subject Code <span class="text-red-500">*</span></label>
+                                <input name="subject_code" type="text" value="{{ old('subject_code', $subject->subject_code) }}" required
+                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 @error('subject_code') border-red-500 @enderror"
                                        placeholder="Enter subject code">
                                 @error('subject_code')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                             </div>
