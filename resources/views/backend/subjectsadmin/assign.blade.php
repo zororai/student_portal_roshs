@@ -49,7 +49,9 @@
                     <select name="teacher_id" required class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors @error('teacher_id') border-red-500 @enderror">
                         <option value="">-- Choose a Teacher --</option>
                         @foreach ($teachers as $teacher)
-                            <option value="{{ $teacher->id }}">{{ $teacher->user->name }}</option>
+                            @if($teacher->user)
+                                <option value="{{ $teacher->id }}">{{ $teacher->user->name }}</option>
+                            @endif
                         @endforeach
                     </select>
                     @error('teacher_id')
@@ -133,21 +135,21 @@
             
             <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto" id="assignmentList">
                 @forelse ($assignedSubjects as $subject)
-                    <div class="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between assignment-item" data-subject-name="{{ strtolower($subject->name) }}" data-teacher-name="{{ strtolower($subject->teacher->user->name) }}" data-subject-code="{{ strtolower($subject->subject_code) }}">
+                    <div class="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between assignment-item" data-subject-name="{{ strtolower($subject->name) }}" data-teacher-name="{{ strtolower(optional(optional($subject->teacher)->user)->name ?? 'Unknown') }}" data-subject-code="{{ strtolower($subject->subject_code) }}">
                         <div class="flex items-center space-x-3 flex-1">
                             <input type="checkbox" class="assignment-checkbox w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500" value="{{ $subject->id }}" onchange="updateBulkActions()">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold">
-                                {{ strtoupper(substr($subject->teacher->user->name, 0, 1)) }}
+                                {{ strtoupper(substr(optional(optional($subject->teacher)->user)->name ?? 'U', 0, 1)) }}
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-900">{{ $subject->name }}</p>
-                                <p class="text-xs text-gray-500">{{ $subject->teacher->user->name }} • Code: {{ $subject->subject_code }}</p>
+                                <p class="text-xs text-gray-500">{{ optional(optional($subject->teacher)->user)->name ?? 'Unknown Teacher' }} • Code: {{ $subject->subject_code }}</p>
                             </div>
                         </div>
                         <form action="{{ route('admin.subjects.unassign', $subject->id) }}" method="POST" id="unassignForm{{ $subject->id }}">
                             @csrf
                             @method('DELETE')
-                            <button type="button" onclick="showUnassignDialog('{{ $subject->id }}', '{{ $subject->name }}', '{{ $subject->teacher->user->name }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove Assignment">
+                            <button type="button" onclick="showUnassignDialog('{{ $subject->id }}', '{{ $subject->name }}', '{{ optional(optional($subject->teacher)->user)->name ?? 'Unknown Teacher' }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove Assignment">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
