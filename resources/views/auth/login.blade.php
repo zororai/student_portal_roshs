@@ -55,18 +55,18 @@
             <form action="{{ route('login') }}" method="POST" class="space-y-5">
                 @csrf
                 
-                <!-- Username/Email Input -->
+                <!-- Email or Phone Input -->
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email or Phone Number</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </div>
-                        <input type="email" name="email" id="email" 
+                        <input type="text" name="email" id="email" 
                             class="block w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:bg-white transition-all @error('email') ring-2 ring-red-500 @enderror" 
-                            placeholder="Enter your email" 
+                            placeholder="Enter your email or phone number" 
                             value="{{ old('email') }}" 
                             required>
                     </div>

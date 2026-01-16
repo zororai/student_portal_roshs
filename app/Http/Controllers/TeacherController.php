@@ -109,8 +109,8 @@ class TeacherController extends Controller
             $this->sendCredentialsEmail($user, $password);
         }
 
-        // Send SMS notification with credentials (email is username)
-        $this->sendCredentialsSms($request->phone, $user->name, $userEmail, $password);
+        // Send SMS notification with credentials (phone number is username for login)
+        $this->sendCredentialsSms($request->phone, $user->name, $request->phone, $password);
 
         $successMessage = 'Teacher created successfully! Login credentials have been sent via SMS.';
         if ($hasRealEmail) {

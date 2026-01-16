@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\User;
 use App\Teacher;
+use App\Parents;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -61,6 +62,15 @@ class LoginController extends Controller
         $teacher = Teacher::where('phone', $login)->first();
         if ($teacher) {
             $user = User::find($teacher->user_id);
+            if ($user && $user->is_active && Auth::attempt(['email' => $user->email, 'password' => $password, 'is_active' => true])) {
+                return true;
+            }
+        }
+
+        // If teacher phone login fails, try to find user by phone number (for parents)
+        $parent = Parents::where('phone', $login)->first();
+        if ($parent) {
+            $user = User::find($parent->user_id);
             if ($user && $user->is_active && Auth::attempt(['email' => $user->email, 'password' => $password, 'is_active' => true])) {
                 return true;
             }
