@@ -369,10 +369,15 @@ class AdminTimetableController extends Controller
         }
         
         foreach ($subjects as $subject) {
+            $validTeacherId = null;
+            if ($subject->teacher_id && $subject->teacher) {
+                $validTeacherId = $subject->teacher_id;
+            }
+            
             $subjectInfo = [
                 'id' => $subject->id,
                 'name' => $subject->name,
-                'teacher_id' => $subject->teacher_id,
+                'teacher_id' => $validTeacherId,
                 'has_multi_period' => $subjectsWithMultiPeriod[$subject->id],
             ];
             
