@@ -20,23 +20,15 @@
         </div>
     </div>
 
-    @role('Admin')
+    @if(Auth::user()->hasRole('Admin'))
         @include('dashboard.admin')
-    @endrole
-
-    @role('Parent')
+    @elseif(Auth::user()->hasRole('Parent'))
         @include('dashboard.parents')
-    @endrole
-
-    @role('Teacher')
+    @elseif(Auth::user()->hasRole('Teacher'))
         @include('dashboard.teacher')
-    @endrole
-
-    @role('Student')
+    @elseif(Auth::user()->hasRole('Student'))
         @include('dashboard.student')
-    @endrole
-
-    @if(!Auth::user()->hasAnyRole(['Admin', 'Parent', 'Teacher', 'Student']))
+    @else
         @include('dashboard.admin')
     @endif
 </div>

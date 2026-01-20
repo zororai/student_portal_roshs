@@ -38,7 +38,7 @@ class HomeController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         if ($user->hasRole('Admin')) {
 
             $parents = Parents::latest()->get();
@@ -99,15 +99,15 @@ class HomeController extends Controller
             // Get assessment statistics by type for admin
             $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
             $assessmentStats = [];
-            
+
             foreach ($assessmentTypes as $type) {
                 $assessments = Assessment::where('assessment_type', $type)->get();
                 $totalGiven = $assessments->count();
-                
+
                 $totalMarks = 0;
                 $obtainedMarks = 0;
                 $marksCount = 0;
-                
+
                 foreach ($assessments as $assessment) {
                     $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                     foreach ($marks as $mark) {
@@ -118,9 +118,9 @@ class HomeController extends Controller
                         }
                     }
                 }
-                
+
                 $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
-                
+
                 $assessmentStats[] = [
                     'type' => $type,
                     'given' => $totalGiven,
@@ -131,18 +131,18 @@ class HomeController extends Controller
             // Get subject-wise assessment performance for admin
             $subjectPerformanceData = [];
             $subjectAssessmentMatrix = [];
-            
+
             foreach ($subjects as $subject) {
                 $subjectTotalMarks = 0;
                 $subjectObtainedMarks = 0;
                 $subjectAssessmentCount = 0;
-                
+
                 // Get all assessments for this subject
                 $subjectAssessments = Assessment::where('subject_id', $subject->id)->get();
-                
+
                 // Get unique class IDs for this subject
                 $subjectClassIds = $subjectAssessments->pluck('class_id')->unique()->filter()->toArray();
-                
+
                 foreach ($subjectAssessments as $assessment) {
                     $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                     foreach ($marks as $mark) {
@@ -153,9 +153,9 @@ class HomeController extends Controller
                         }
                     }
                 }
-                
+
                 $subjectPerformance = $subjectTotalMarks > 0 ? round(($subjectObtainedMarks / $subjectTotalMarks) * 100, 1) : 0;
-                
+
                 $subjectPerformanceData[] = [
                     'subject' => $subject->name,
                     'subject_id' => $subject->id,
@@ -164,18 +164,18 @@ class HomeController extends Controller
                     'performance' => $subjectPerformance,
                     'class_ids' => $subjectClassIds
                 ];
-                
+
                 // Build matrix: subject vs assessment types
                 $typeStats = [];
                 foreach ($assessmentTypes as $type) {
                     $typeAssessments = Assessment::where('subject_id', $subject->id)
                         ->where('assessment_type', $type)
                         ->get();
-                    
+
                     $typeTotalMarks = 0;
                     $typeObtainedMarks = 0;
                     $typeCount = $typeAssessments->count();
-                    
+
                     foreach ($typeAssessments as $assessment) {
                         $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                         foreach ($marks as $mark) {
@@ -185,15 +185,15 @@ class HomeController extends Controller
                             }
                         }
                     }
-                    
+
                     $typePerformance = $typeTotalMarks > 0 ? round(($typeObtainedMarks / $typeTotalMarks) * 100, 1) : 0;
-                    
+
                     $typeStats[$type] = [
                         'given' => $typeCount,
                         'performance' => $typePerformance
                     ];
                 }
-                
+
                 $subjectAssessmentMatrix[] = [
                     'subject' => $subject->name,
                     'subject_id' => $subject->id,
@@ -208,35 +208,46 @@ class HomeController extends Controller
         } elseif ($user->hasRole('Teacher')) {
 
             $teacher = Teacher::with(['user','subjects'])->withCount('subjects')->findOrFail($user->teacher->id);
-            
-            // Get classes through the subjects the teacher teaches (not direct class assignment)
+
+            // Get classes either through the subjects the teacher teaches OR
+            // where the teacher is assigned as the class teacher (grade.teacher_id)
             $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
-            
-            // Get all classes associated with the teacher's subjects
-            $teacherClasses = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
-                $query->whereIn('subjects.id', $teacherSubjectIds);
-            })->get();
-            
+
+            $teacherClasses = Grade::where(function($q) use ($teacherSubjectIds, $teacher) {
+                if (!empty($teacherSubjectIds)) {
+                    $q->whereHas('subjects', function($query) use ($teacherSubjectIds) {
+                        $query->whereIn('subjects.id', $teacherSubjectIds);
+                    });
+                }
+
+                // include classes where teacher is explicitly assigned
+                $q->orWhere('teacher_id', $teacher->id);
+            })
+            ->with(['students.user'])
+            ->withCount('students')
+            ->get();
+
             $teacherClassIds = $teacherClasses->pluck('id')->toArray();
-            
+
             // Add classes and classes_count to teacher object for the view
             $teacher->setRelation('classes', $teacherClasses);
             $teacher->classes_count = $teacherClasses->count();
-            
+            $teacher->total_students_count = $teacherClasses->sum('students_count');
+
             $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
             $teacherAssessmentStats = [];
-            
+
             foreach ($assessmentTypes as $type) {
                 $assessments = Assessment::where('assessment_type', $type)
                     ->whereIn('subject_id', $teacherSubjectIds)
                     ->whereIn('class_id', $teacherClassIds)
                     ->get();
-                    
+
                 $totalGiven = $assessments->count();
-                
+
                 $totalMarks = 0;
                 $obtainedMarks = 0;
-                
+
                 foreach ($assessments as $assessment) {
                     $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                     foreach ($marks as $mark) {
@@ -246,16 +257,16 @@ class HomeController extends Controller
                         }
                     }
                 }
-                
+
                 $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
-                
+
                 $teacherAssessmentStats[] = [
                     'type' => $type,
                     'given' => $totalGiven,
                     'performance' => $performance
                 ];
             }
-            
+
             // Get subject-wise assessment data for cards like in the image
             $subjectAssessmentData = [];
             foreach ($teacher->subjects as $subject) {
@@ -267,11 +278,11 @@ class HomeController extends Controller
                             ->where('subject_id', $subject->id)
                             ->where('class_id', $class->id)
                             ->get();
-                            
+
                         $given = $assessments->count();
                         $totalMarks = 0;
                         $obtainedMarks = 0;
-                        
+
                         foreach ($assessments as $assessment) {
                             $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                             foreach ($marks as $mark) {
@@ -281,16 +292,16 @@ class HomeController extends Controller
                                 }
                             }
                         }
-                        
+
                         $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
-                        
+
                         $subjectStats[] = [
                             'type' => $type,
                             'given' => $given,
                             'performance' => $performance > 0 ? $performance . '%' : '--%'
                         ];
                     }
-                    
+
                     $subjectAssessmentData[] = [
                         'subject' => $subject->name,
                         'class' => $class->class_name,
@@ -302,17 +313,17 @@ class HomeController extends Controller
             return view('home', compact('teacher', 'teacherAssessmentStats', 'subjectAssessmentData'));
 
         } elseif ($user->hasRole('Parent')) {
-            
+
             $parents = Parents::with(['children.user', 'children.class'])->withCount('children')->findOrFail($user->parent->id);
-            
+
             // Get children IDs
             $childrenIds = $parents->children->pluck('id')->toArray();
-            
+
             // Get assessment marks for all children grouped by subject
             $assessmentData = [];
             $attendanceData = [];
             $recentAssessments = [];
-            
+
             foreach ($parents->children as $child) {
                 // Get assessment marks with subject info (only approved)
                 $childAssessments = AssessmentMark::with(['assessment.subject', 'assessment.class'])
@@ -320,7 +331,7 @@ class HomeController extends Controller
                     ->where('approved', true)
                     ->whereHas('assessment')
                     ->get();
-                
+
                 // Group by subject for chart
                 $subjectMarks = [];
                 foreach ($childAssessments as $mark) {
@@ -347,29 +358,29 @@ class HomeController extends Controller
                         ];
                     }
                 }
-                
+
                 // Calculate percentages per subject
                 $subjectPercentages = [];
                 foreach ($subjectMarks as $subject => $data) {
-                    $percentage = $data['total_marks'] > 0 
-                        ? round(($data['obtained_marks'] / $data['total_marks']) * 100, 1) 
+                    $percentage = $data['total_marks'] > 0
+                        ? round(($data['obtained_marks'] / $data['total_marks']) * 100, 1)
                         : 0;
                     $subjectPercentages[$subject] = $percentage;
                 }
-                
+
                 $assessmentData[$child->id] = [
                     'student_name' => $child->user->name ?? 'Unknown',
                     'class' => $child->class->class_name ?? 'N/A',
                     'subject_marks' => $subjectMarks,
                     'subject_percentages' => $subjectPercentages
                 ];
-                
+
                 // Get attendance data
                 $totalAttendance = Attendance::where('student_id', $child->id)->count();
                 $presentCount = Attendance::where('student_id', $child->id)->where('attendence_status', 'present')->count();
                 $absentCount = Attendance::where('student_id', $child->id)->where('attendence_status', 'absent')->count();
                 $lateCount = Attendance::where('student_id', $child->id)->where('attendence_status', 'late')->count();
-                
+
                 $attendanceData[$child->id] = [
                     'student_name' => $child->user->name ?? 'Unknown',
                     'total' => $totalAttendance,
@@ -378,7 +389,7 @@ class HomeController extends Controller
                     'late' => $lateCount,
                     'percentage' => $totalAttendance > 0 ? round(($presentCount / $totalAttendance) * 100, 1) : 0
                 ];
-                
+
                 // Get recent assessments (only approved)
                 $recent = AssessmentMark::with(['assessment.subject'])
                     ->where('student_id', $child->id)
@@ -387,13 +398,13 @@ class HomeController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->take(5)
                     ->get();
-                    
+
                 $recentAssessments[$child->id] = $recent;
-                
+
                 // Get assessment type stats for each child
                 $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
                 $childAssessmentStats = [];
-                
+
                 foreach ($assessmentTypes as $type) {
                     $typeMarks = AssessmentMark::where('student_id', $child->id)
                         ->where('approved', true)
@@ -401,11 +412,11 @@ class HomeController extends Controller
                             $q->where('assessment_type', $type);
                         })
                         ->get();
-                    
+
                     $totalMarks = 0;
                     $obtainedMarks = 0;
                     $count = 0;
-                    
+
                     foreach ($typeMarks as $mark) {
                         if ($mark->mark !== null && $mark->total_marks > 0) {
                             $totalMarks += $mark->total_marks;
@@ -413,29 +424,29 @@ class HomeController extends Controller
                             $count++;
                         }
                     }
-                    
+
                     $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
-                    
+
                     $childAssessmentStats[] = [
                         'type' => $type,
                         'given' => $count,
                         'performance' => $performance
                     ];
                 }
-                
+
                 $assessmentData[$child->id]['assessment_stats'] = $childAssessmentStats;
             }
 
             return view('home', compact('parents', 'assessmentData', 'attendanceData', 'recentAssessments'));
 
         } elseif ($user->hasRole('Student')) {
-            
-            $student = Student::with(['user','parent','class','attendances'])->findOrFail($user->student->id); 
+
+            $student = Student::with(['user','parent','class','attendances'])->findOrFail($user->student->id);
 
             // Get student's assessment performance by type
             $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
             $studentAssessmentStats = [];
-            
+
             foreach ($assessmentTypes as $type) {
                 $marks = AssessmentMark::where('student_id', $student->id)
                     ->where('approved', true)
@@ -443,11 +454,11 @@ class HomeController extends Controller
                         $q->where('assessment_type', $type);
                     })
                     ->get();
-                
+
                 $totalMarks = 0;
                 $obtainedMarks = 0;
                 $count = 0;
-                
+
                 foreach ($marks as $mark) {
                     if ($mark->mark !== null && $mark->total_marks > 0) {
                         $totalMarks += $mark->total_marks;
@@ -455,16 +466,16 @@ class HomeController extends Controller
                         $count++;
                     }
                 }
-                
+
                 $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
-                
+
                 $studentAssessmentStats[] = [
                     'type' => $type,
                     'given' => $count,
                     'performance' => $performance
                 ];
             }
-            
+
             // Get subject-wise performance for this student
             $subjectPerformance = [];
             $studentMarks = AssessmentMark::with(['assessment.subject'])
@@ -472,7 +483,7 @@ class HomeController extends Controller
                 ->where('approved', true)
                 ->whereHas('assessment.subject')
                 ->get();
-            
+
             foreach ($studentMarks as $mark) {
                 $subjectName = $mark->assessment->subject->name;
                 if (!isset($subjectPerformance[$subjectName])) {
@@ -488,12 +499,12 @@ class HomeController extends Controller
                     $subjectPerformance[$subjectName]['count']++;
                 }
             }
-            
+
             // Calculate percentages
             $subjectStats = [];
             foreach ($subjectPerformance as $subject => $data) {
-                $percentage = $data['total_marks'] > 0 
-                    ? round(($data['obtained_marks'] / $data['total_marks']) * 100, 1) 
+                $percentage = $data['total_marks'] > 0
+                    ? round(($data['obtained_marks'] / $data['total_marks']) * 100, 1)
                     : 0;
                 $subjectStats[] = [
                     'subject' => $subject,
@@ -564,15 +575,15 @@ class HomeController extends Controller
             // Get assessment statistics
             $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
             $assessmentStats = [];
-            
+
             foreach ($assessmentTypes as $type) {
                 $assessments = Assessment::where('assessment_type', $type)->get();
                 $totalGiven = $assessments->count();
-                
+
                 $totalMarks = 0;
                 $obtainedMarks = 0;
                 $marksCount = 0;
-                
+
                 foreach ($assessments as $assessment) {
                     $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                     foreach ($marks as $mark) {
@@ -583,9 +594,9 @@ class HomeController extends Controller
                         }
                     }
                 }
-                
+
                 $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
-                
+
                 $assessmentStats[] = [
                     'type' => $type,
                     'given' => $totalGiven,
@@ -596,15 +607,15 @@ class HomeController extends Controller
             // Get subject-wise performance
             $subjectPerformanceData = [];
             $subjectAssessmentMatrix = [];
-            
+
             foreach ($subjects as $subject) {
                 $subjectTotalMarks = 0;
                 $subjectObtainedMarks = 0;
                 $subjectAssessmentCount = 0;
-                
+
                 $subjectAssessments = Assessment::where('subject_id', $subject->id)->get();
                 $subjectClassIds = $subjectAssessments->pluck('class_id')->unique()->filter()->toArray();
-                
+
                 foreach ($subjectAssessments as $assessment) {
                     $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                     foreach ($marks as $mark) {
@@ -615,9 +626,9 @@ class HomeController extends Controller
                         }
                     }
                 }
-                
+
                 $subjectPerformance = $subjectTotalMarks > 0 ? round(($subjectObtainedMarks / $subjectTotalMarks) * 100, 1) : 0;
-                
+
                 $subjectPerformanceData[] = [
                     'subject' => $subject->name,
                     'subject_id' => $subject->id,
@@ -626,17 +637,17 @@ class HomeController extends Controller
                     'performance' => $subjectPerformance,
                     'class_ids' => $subjectClassIds
                 ];
-                
+
                 $typeStats = [];
                 foreach ($assessmentTypes as $type) {
                     $typeAssessments = Assessment::where('subject_id', $subject->id)
                         ->where('assessment_type', $type)
                         ->get();
-                    
+
                     $typeTotalMarks = 0;
                     $typeObtainedMarks = 0;
                     $typeCount = $typeAssessments->count();
-                    
+
                     foreach ($typeAssessments as $assessment) {
                         $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                         foreach ($marks as $mark) {
@@ -646,15 +657,15 @@ class HomeController extends Controller
                             }
                         }
                     }
-                    
+
                     $typePerformance = $typeTotalMarks > 0 ? round(($typeObtainedMarks / $typeTotalMarks) * 100, 1) : 0;
-                    
+
                     $typeStats[$type] = [
                         'given' => $typeCount,
                         'performance' => $typePerformance
                     ];
                 }
-                
+
                 $subjectAssessmentMatrix[] = [
                     'subject' => $subject->name,
                     'subject_id' => $subject->id,
@@ -666,23 +677,23 @@ class HomeController extends Controller
 
             return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation','assessmentStats','subjectPerformanceData','subjectAssessmentMatrix','assessmentTypes'));
         }
-        
+
     }
 
     /**
      * PROFILE
      */
-    public function profile() 
+    public function profile()
     {
         return view('profile.index');
     }
 
-    public function profileEdit() 
+    public function profileEdit()
     {
         return view('profile.edit');
     }
 
-    public function profileUpdate(Request $request) 
+    public function profileUpdate(Request $request)
     {
         $request->validate([
             'name'  => 'required|string|max:255',
@@ -711,12 +722,12 @@ class HomeController extends Controller
      * CHANGE PASSWORD
      */
     public function changePasswordForm()
-    {  
+    {
         return view('profile.changepassword');
     }
 
     public function changePassword(Request $request)
-    {     
+    {
         if (!(Hash::check($request->get('currentpassword'), Auth::user()->password))) {
             return back()->with([
                 'msg_currentpassword' => 'Your current password does not matches with the password you provided! Please try again.'
@@ -748,14 +759,14 @@ class HomeController extends Controller
     public function getFilteredGenderStats(Request $request)
     {
         $classId = $request->get('class_id');
-        
+
         $query = DB::table('results')
             ->join('students', 'results.student_id', '=', 'students.id');
-        
+
         if ($classId && $classId !== 'all') {
             $query->where('students.class_id', $classId);
         }
-        
+
         $resultsByGender = $query->select(
                 'students.gender',
                 DB::raw('SUM(CASE WHEN results.marks >= 50 THEN 1 ELSE 0 END) as pass_count'),
@@ -807,26 +818,26 @@ class HomeController extends Controller
     {
         $classId = $request->get('class_id');
         $subjectId = $request->get('subject_id');
-        
+
         $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
         $assessmentStats = [];
-        
+
         foreach ($assessmentTypes as $type) {
             $query = Assessment::where('assessment_type', $type);
-            
+
             if ($classId && $classId !== 'all') {
                 $query->where('class_id', $classId);
             }
-            
+
             if ($subjectId && $subjectId !== 'all') {
                 $query->where('subject_id', $subjectId);
             }
-            
+
             $assessments = $query->get();
             $totalMarks = 0;
             $obtainedMarks = 0;
             $count = 0;
-            
+
             foreach ($assessments as $assessment) {
                 $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
                 foreach ($marks as $mark) {
@@ -837,16 +848,16 @@ class HomeController extends Controller
                     }
                 }
             }
-            
+
             $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
-            
+
             $assessmentStats[] = [
                 'type' => $type,
                 'given' => $assessments->count(),
                 'performance' => $performance
             ];
         }
-        
+
         return response()->json([
             'success' => true,
             'stats' => $assessmentStats
