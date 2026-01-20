@@ -255,7 +255,8 @@
                                    data-student="${studentId}"
                                    data-paper="${paperIndex}"
                                    data-total-marks="${paper.total_marks}"
-                                   onchange="autoPopulateComment(this)">
+                                   onchange="validateAndPopulateComment(this)"
+                                   oninput="enforceMaxMark(this)">
                             <textarea name="marks[${studentId}][${paperIndex}][comment]"
                                       placeholder="Comment (optional)"
                                       rows="2"
@@ -306,6 +307,31 @@
             if (percentage >= 50) return 'D';
             if (percentage >= 40) return 'E';
             return 'F';
+        }
+
+        function enforceMaxMark(input) {
+            const max = parseFloat(input.dataset.totalMarks);
+            const value = parseFloat(input.value);
+            
+            if (value > max) {
+                input.value = max;
+                input.style.borderColor = '#EF4444';
+                setTimeout(() => {
+                    input.style.borderColor = '';
+                }, 1000);
+            }
+        }
+
+        function validateAndPopulateComment(markInput) {
+            const mark = parseFloat(markInput.value);
+            const totalMarks = parseFloat(markInput.dataset.totalMarks);
+            
+            if (mark > totalMarks) {
+                markInput.value = totalMarks;
+                alert('Mark cannot exceed total marks (' + totalMarks + ')');
+            }
+            
+            autoPopulateComment(markInput);
         }
 
         function autoPopulateComment(markInput) {

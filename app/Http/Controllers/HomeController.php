@@ -238,27 +238,55 @@ class HomeController extends Controller
             $teacherAssessmentStats = [];
 
             foreach ($assessmentTypes as $type) {
+                // Query assessments by teacher_id only - the teacher created these assessments
                 $assessments = Assessment::where('assessment_type', $type)
-                    ->whereIn('subject_id', $teacherSubjectIds)
-                    ->whereIn('class_id', $teacherClassIds)
+                    ->where('teacher_id', $teacher->id)
                     ->get();
 
                 $totalGiven = $assessments->count();
-
-                $totalMarks = 0;
-                $obtainedMarks = 0;
+                $allPercentages = [];
 
                 foreach ($assessments as $assessment) {
+                    $papers = $assessment->papers ?? [];
                     $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
-                    foreach ($marks as $mark) {
-                        if ($mark->mark !== null && $mark->total_marks > 0) {
-                            $totalMarks += $mark->total_marks;
-                            $obtainedMarks += $mark->mark;
+                    
+                    // Group marks by student to calculate per-student percentage
+                    $studentMarks = $marks->groupBy('student_id');
+                    
+                    foreach ($studentMarks as $studentId => $studentPaperMarks) {
+                        $studentWeightedTotal = 0;
+                        $totalWeight = 0;
+                        
+                        foreach ($studentPaperMarks as $mark) {
+                            if ($mark->mark !== null && $mark->total_marks > 0) {
+                                // Get paper weight from assessment papers array
+                                $paperWeight = 100; // default if no weight found
+                                if (isset($papers[$mark->paper_index]['weight'])) {
+                                    $paperWeight = (float) $papers[$mark->paper_index]['weight'];
+                                }
+                                
+                                // Calculate percentage for this paper: (mark/total_marks) * 100
+                                $paperPercentage = ($mark->mark / $mark->total_marks) * 100;
+                                // Cap at 100% per paper
+                                $paperPercentage = min($paperPercentage, 100);
+                                
+                                // Add weighted contribution
+                                $studentWeightedTotal += $paperPercentage * ($paperWeight / 100);
+                                $totalWeight += $paperWeight;
+                            }
+                        }
+                        
+                        // Calculate student's overall percentage for this assessment
+                        if ($totalWeight > 0) {
+                            // Normalize if weights don't add to 100
+                            $studentPercentage = ($studentWeightedTotal / $totalWeight) * 100;
+                            $allPercentages[] = min($studentPercentage, 100);
                         }
                     }
                 }
 
-                $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
+                // Average percentage across all students
+                $performance = count($allPercentages) > 0 ? round(array_sum($allPercentages) / count($allPercentages), 1) : 0;
 
                 $teacherAssessmentStats[] = [
                     'type' => $type,
@@ -267,47 +295,89 @@ class HomeController extends Controller
                 ];
             }
 
-            // Get subject-wise assessment data for cards like in the image
+            // Get subject-wise assessment data based on actual assessments created by this teacher
             $subjectAssessmentData = [];
-            foreach ($teacher->subjects as $subject) {
-                $subjectClasses = $teacher->classes;
-                foreach ($subjectClasses as $class) {
-                    $subjectStats = [];
-                    foreach ($assessmentTypes as $type) {
-                        $assessments = Assessment::where('assessment_type', $type)
-                            ->where('subject_id', $subject->id)
-                            ->where('class_id', $class->id)
-                            ->get();
+            
+            // Get unique subject/class combinations from teacher's assessments
+            $teacherAssessments = Assessment::where('teacher_id', $teacher->id)
+                ->with(['subject', 'class'])
+                ->get();
+            
+            $subjectClassCombos = $teacherAssessments->map(function($a) {
+                return $a->subject_id . '-' . $a->class_id;
+            })->unique();
+            
+            foreach ($subjectClassCombos as $combo) {
+                list($subjectId, $classId) = explode('-', $combo);
+                $subject = \App\Subject::find($subjectId);
+                $class = \App\Grade::find($classId);
+                
+                if (!$subject || !$class) continue;
+                
+                $subjectStats = [];
+                foreach ($assessmentTypes as $type) {
+                    $assessments = Assessment::where('assessment_type', $type)
+                        ->where('subject_id', $subjectId)
+                        ->where('class_id', $classId)
+                        ->where('teacher_id', $teacher->id)
+                        ->get();
 
-                        $given = $assessments->count();
-                        $totalMarks = 0;
-                        $obtainedMarks = 0;
+                    $given = $assessments->count();
+                    $allPercentages = [];
 
-                        foreach ($assessments as $assessment) {
-                            $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
-                            foreach ($marks as $mark) {
+                    foreach ($assessments as $assessment) {
+                        $papers = $assessment->papers ?? [];
+                        $marks = AssessmentMark::where('assessment_id', $assessment->id)->get();
+                        
+                        // Group marks by student to calculate per-student percentage
+                        $studentMarks = $marks->groupBy('student_id');
+                        
+                        foreach ($studentMarks as $studentId => $studentPaperMarks) {
+                            $studentWeightedTotal = 0;
+                            $totalWeight = 0;
+                            
+                            foreach ($studentPaperMarks as $mark) {
                                 if ($mark->mark !== null && $mark->total_marks > 0) {
-                                    $totalMarks += $mark->total_marks;
-                                    $obtainedMarks += $mark->mark;
+                                    // Get paper weight from assessment papers array
+                                    $paperWeight = 100; // default if no weight found
+                                    if (isset($papers[$mark->paper_index]['weight'])) {
+                                        $paperWeight = (float) $papers[$mark->paper_index]['weight'];
+                                    }
+                                    
+                                    // Calculate percentage for this paper: (mark/total_marks) * 100
+                                    $paperPercentage = ($mark->mark / $mark->total_marks) * 100;
+                                    // Cap at 100% per paper
+                                    $paperPercentage = min($paperPercentage, 100);
+                                    
+                                    // Add weighted contribution
+                                    $studentWeightedTotal += $paperPercentage * ($paperWeight / 100);
+                                    $totalWeight += $paperWeight;
                                 }
                             }
+                            
+                            // Calculate student's overall percentage for this assessment
+                            if ($totalWeight > 0) {
+                                $studentPercentage = ($studentWeightedTotal / $totalWeight) * 100;
+                                $allPercentages[] = min($studentPercentage, 100);
+                            }
                         }
-
-                        $performance = $totalMarks > 0 ? round(($obtainedMarks / $totalMarks) * 100, 1) : 0;
-
-                        $subjectStats[] = [
-                            'type' => $type,
-                            'given' => $given,
-                            'performance' => $performance > 0 ? $performance . '%' : '--%'
-                        ];
                     }
 
-                    $subjectAssessmentData[] = [
-                        'subject' => $subject->name,
-                        'class' => $class->class_name,
-                        'stats' => $subjectStats
+                    // Average percentage across all students
+                    $performance = count($allPercentages) > 0 ? round(array_sum($allPercentages) / count($allPercentages), 1) : 0;
+
+                    $subjectStats[] = [
+                        'type' => $type,
+                        'given' => $given,
+                        'performance' => $performance > 0 ? $performance . '%' : '--%'
                     ];
                 }
+
+                $subjectAssessmentData[] = [
+                    'subject' => $subject->name,
+                    'class' => $class->class_name,
+                    'stats' => $subjectStats
+                ];
             }
 
             return view('home', compact('teacher', 'teacherAssessmentStats', 'subjectAssessmentData'));

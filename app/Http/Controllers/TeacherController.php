@@ -1145,9 +1145,12 @@ class TeacherController extends Controller
             'student_id' => 'required|exists:students,id',
             'paper_name' => 'required|string|max:100',
             'paper_index' => 'required|integer|min:0',
-            'mark' => 'required|numeric|min:0',
-            'total_marks' => 'required|numeric|min:0',
+            'mark' => 'required|numeric|min:0|lte:total_marks',
+            'total_marks' => 'required|numeric|min:1',
             'comment' => 'nullable|string|max:500'
+        ], [
+            'mark.lte' => 'Mark cannot exceed total marks.',
+            'total_marks.min' => 'Total marks must be at least 1.'
         ]);
 
         // Verify the assessment belongs to this teacher
