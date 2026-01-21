@@ -8,6 +8,8 @@ use App\FeeType;
 use App\TermFee;
 use App\SchoolSetting;
 use Carbon\Carbon;
+use App\Grade;
+use App\LevelFeeAdjustment;
 
 class ResultsStatusController extends Controller
 {
@@ -15,7 +17,9 @@ class ResultsStatusController extends Controller
     public function create()
     {
         $feeTypes = FeeType::where('is_active', true)->get();
-        return view('results_status.create', compact('feeTypes'));
+        $classes = Grade::orderBy('class_numeric', 'asc')->get();
+        $upgradeDirection = SchoolSetting::get('upgrade_direction', 'ascending');
+        return view('results_status.create', compact('feeTypes', 'classes', 'upgradeDirection'));
     }
     public function index()
     {
@@ -118,6 +122,56 @@ class ResultsStatusController extends Controller
                 'curriculum_type' => 'cambridge',
                 'amount' => $fee['amount']
             ]);
+        }
+        
+        // Save level-based fee adjustments
+        if ($request->has('level_adjustments')) {
+            foreach ($request->level_adjustments as $level => $adjustments) {
+                // ZIMSEC Day
+                if (!empty($adjustments['zimsec_day']) && floatval($adjustments['zimsec_day']) > 0) {
+                    LevelFeeAdjustment::create([
+                        'results_status_id' => $resultsStatus->id,
+                        'class_level' => $level,
+                        'curriculum_type' => 'zimsec',
+                        'student_type' => 'day',
+                        'adjustment_amount' => floatval($adjustments['zimsec_day']),
+                        'adjustment_type' => 'fixed'
+                    ]);
+                }
+                // ZIMSEC Boarding
+                if (!empty($adjustments['zimsec_boarding']) && floatval($adjustments['zimsec_boarding']) > 0) {
+                    LevelFeeAdjustment::create([
+                        'results_status_id' => $resultsStatus->id,
+                        'class_level' => $level,
+                        'curriculum_type' => 'zimsec',
+                        'student_type' => 'boarding',
+                        'adjustment_amount' => floatval($adjustments['zimsec_boarding']),
+                        'adjustment_type' => 'fixed'
+                    ]);
+                }
+                // Cambridge Day
+                if (!empty($adjustments['cambridge_day']) && floatval($adjustments['cambridge_day']) > 0) {
+                    LevelFeeAdjustment::create([
+                        'results_status_id' => $resultsStatus->id,
+                        'class_level' => $level,
+                        'curriculum_type' => 'cambridge',
+                        'student_type' => 'day',
+                        'adjustment_amount' => floatval($adjustments['cambridge_day']),
+                        'adjustment_type' => 'fixed'
+                    ]);
+                }
+                // Cambridge Boarding
+                if (!empty($adjustments['cambridge_boarding']) && floatval($adjustments['cambridge_boarding']) > 0) {
+                    LevelFeeAdjustment::create([
+                        'results_status_id' => $resultsStatus->id,
+                        'class_level' => $level,
+                        'curriculum_type' => 'cambridge',
+                        'student_type' => 'boarding',
+                        'adjustment_amount' => floatval($adjustments['cambridge_boarding']),
+                        'adjustment_type' => 'fixed'
+                    ]);
+                }
+            }
         }
         
         // Save attendance settings

@@ -275,6 +275,77 @@
                     <p class="text-xs text-gray-500 mt-2">Scholarship students get percentage discounts applied to these rates.</p>
                 </div>
 
+                <!-- Level-Based Fee Adjustments Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-700 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Level-Based Fee Adjustments
+                        </h3>
+                        <span class="text-xs text-gray-500">Optional: Add extra fees for specific class levels</span>
+                    </div>
+
+                    <div class="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                        <p class="text-sm text-gray-600 mb-4">
+                            <svg class="w-4 h-4 inline mr-1 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            Set additional fees for specific class levels. New students or students upgrading to a new level may pay more.
+                        </p>
+
+                        @if(isset($classes) && $classes->count() > 0)
+                        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                                <h4 class="text-sm font-semibold text-gray-700">Class Levels ({{ ucfirst($upgradeDirection ?? 'ascending') }} Order)</h4>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Level</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ZIMSEC Day +</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ZIMSEC Board +</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Camb Day +</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Camb Board +</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-100">
+                                        @foreach($classes as $class)
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-2">
+                                                <div class="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+                                                    <span class="text-teal-600 font-bold text-sm">{{ $class->class_numeric }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-2 text-sm font-medium text-gray-900">{{ $class->class_name }}</td>
+                                            <td class="px-4 py-2">
+                                                <input type="number" name="level_adjustments[{{ $class->class_numeric }}][zimsec_day]" step="0.01" min="0" value="0" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm">
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <input type="number" name="level_adjustments[{{ $class->class_numeric }}][zimsec_boarding]" step="0.01" min="0" value="0" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm">
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <input type="number" name="level_adjustments[{{ $class->class_numeric }}][cambridge_day]" step="0.01" min="0" value="0" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm">
+                                            </td>
+                                            <td class="px-4 py-2">
+                                                <input type="number" name="level_adjustments[{{ $class->class_numeric }}][cambridge_boarding]" step="0.01" min="0" value="0" class="w-20 border border-gray-300 rounded px-2 py-1 text-sm">
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <p class="text-xs text-amber-600 mt-2">Level adjustments are ADDED to base fees. Enter 0 for no adjustment.</p>
+                        @else
+                        <p class="text-center text-gray-500 py-4">No classes defined yet.</p>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- Teacher Attendance Settings Section -->
                 <div class="mb-6">
                     <div class="flex items-center justify-between mb-4">
