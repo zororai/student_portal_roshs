@@ -222,12 +222,12 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Morning Session -->
-                    <label for="session_morning" class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'morning' ? 'border-amber-500 bg-amber-50' : 'border-gray-200' }} cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-all">
-                        <input type="radio" name="session" value="morning" id="session_morning" class="sr-only peer" {{ old('session', 'both') == 'morning' ? 'checked' : '' }}>
-                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'both') == 'morning' ? 'border-amber-500 bg-amber-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'both') == 'morning' ? '' : 'hidden' }}"></div>
+                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'dual') == 'morning' ? 'border-amber-500 bg-amber-50' : 'border-gray-200' }} cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-all">
+                        <input type="radio" name="session" value="morning" id="session_morning" class="absolute opacity-0 w-full h-full left-0 top-0 cursor-pointer z-10" {{ old('session', 'dual') == 'morning' ? 'checked' : '' }}>
+                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'dual') == 'morning' ? 'border-amber-500 bg-amber-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 pointer-events-none relative z-0">
+                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'dual') == 'morning' ? '' : 'hidden' }}"></div>
                         </div>
-                        <div>
+                        <div class="pointer-events-none relative z-0">
                             <div class="flex items-center">
                                 <svg class="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -240,12 +240,12 @@
                     
                     
                     <!-- Afternoon Session -->
-                    <label for="session_afternoon" class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'afternoon' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200' }} cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all">
-                        <input type="radio" name="session" value="afternoon" id="session_afternoon" class="sr-only peer" {{ old('session', 'both') == 'afternoon' ? 'checked' : '' }}>
-                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'both') == 'afternoon' ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'both') == 'afternoon' ? '' : 'hidden' }}"></div>
+                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'dual') == 'afternoon' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200' }} cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all">
+                        <input type="radio" name="session" value="afternoon" id="session_afternoon" class="absolute opacity-0 w-full h-full left-0 top-0 cursor-pointer z-10" {{ old('session', 'dual') == 'afternoon' ? 'checked' : '' }}>
+                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'dual') == 'afternoon' ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 pointer-events-none relative z-0">
+                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'dual') == 'afternoon' ? '' : 'hidden' }}"></div>
                         </div>
-                        <div>
+                        <div class="pointer-events-none relative z-0">
                             <div class="flex items-center">
                                 <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
@@ -256,18 +256,18 @@
                         </div>
                     </label>
                     
-                    <!-- Both Sessions -->
-                    <label for="session_both" class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'both') == 'both' ? 'border-purple-500 bg-purple-50' : 'border-gray-200' }} cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
-                        <input type="radio" name="session" value="both" id="session_both" class="sr-only peer" {{ old('session', 'both') == 'both' ? 'checked' : '' }}>
-                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'both') == 'both' ? 'border-purple-500 bg-purple-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'both') == 'both' ? '' : 'hidden' }}"></div>
+                    <!-- Dual Sessions -->
+                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'dual') == 'dual' ? 'border-purple-500 bg-purple-50' : 'border-gray-200' }} cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
+                        <input type="radio" name="session" value="dual" id="session_dual" class="absolute opacity-0 w-full h-full left-0 top-0 cursor-pointer z-10" {{ old('session', 'dual') == 'dual' ? 'checked' : '' }}>
+                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'dual') == 'dual' ? 'border-purple-500 bg-purple-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 pointer-events-none relative z-0">
+                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'dual') == 'dual' ? '' : 'hidden' }}"></div>
                         </div>
-                        <div>
+                        <div class="pointer-events-none relative z-0">
                             <div class="flex items-center">
                                 <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
-                                <span class="font-semibold text-gray-900">Both Sessions</span>
+                                <span class="font-semibold text-gray-900">Dual Session</span>
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Works full day (default)</p>
                         </div>
@@ -373,6 +373,12 @@
         $('.role-option input[type="checkbox"]:checked').each(function() {
             $(this).closest('.role-option').trigger('click');
             $(this).closest('.role-option').trigger('click');
+        });
+
+        // Session radio button functionality
+        $('.session-option').on('click', function() {
+            const $input = $(this).find('input[type="radio"]');
+            $input.prop('checked', true).trigger('change');
         });
 
         function updateSessionRadio() {

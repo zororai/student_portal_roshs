@@ -96,7 +96,7 @@ class TeacherController extends Controller
             'is_class_teacher'  => $request->has('is_class_teacher'),
             'is_hod'            => $request->has('is_hod'),
             'is_sport_director' => $request->has('is_sport_director'),
-            'session'           => $request->session ?? 'both',
+            'session'           => $request->session ?? 'dual',
         ]);
 
         $user->assignRole('Teacher');
