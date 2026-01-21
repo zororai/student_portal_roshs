@@ -220,58 +220,35 @@
                 </h3>
                 <p class="text-sm text-gray-600 mb-4">Select which session(s) this teacher works</p>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Morning Session -->
-                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'dual') == 'morning' ? 'border-amber-500 bg-amber-50' : 'border-gray-200' }} cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-all">
-                        <input type="radio" name="session" value="morning" id="session_morning" class="absolute opacity-0 w-full h-full left-0 top-0 cursor-pointer z-10" {{ old('session', 'dual') == 'morning' ? 'checked' : '' }}>
-                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'dual') == 'morning' ? 'border-amber-500 bg-amber-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 pointer-events-none relative z-0">
-                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'dual') == 'morning' ? '' : 'hidden' }}"></div>
-                        </div>
-                        <div class="pointer-events-none relative z-0">
-                            <div class="flex items-center">
-                                <svg class="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                </svg>
-                                <span class="font-semibold text-gray-900">Morning Only</span>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Works morning session only</p>
-                        </div>
-                    </label>
+                <input type="hidden" name="session" id="session_input" value="{{ old('session', 'dual') }}">
+                
+                <div class="flex flex-wrap gap-3">
+                    <!-- Morning Button -->
+                    <button type="button" data-session="morning" 
+                        class="session-btn flex items-center px-5 py-3 rounded-lg border-2 font-medium transition-all {{ old('session', 'dual') == 'morning' ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-300 bg-white text-gray-700 hover:border-amber-400 hover:bg-amber-50' }}">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        Morning Only
+                    </button>
                     
+                    <!-- Afternoon Button -->
+                    <button type="button" data-session="afternoon" 
+                        class="session-btn flex items-center px-5 py-3 rounded-lg border-2 font-medium transition-all {{ old('session', 'dual') == 'afternoon' ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-gray-300 bg-white text-gray-700 hover:border-indigo-400 hover:bg-indigo-50' }}">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                        Afternoon Only
+                    </button>
                     
-                    <!-- Afternoon Session -->
-                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'dual') == 'afternoon' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200' }} cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all">
-                        <input type="radio" name="session" value="afternoon" id="session_afternoon" class="absolute opacity-0 w-full h-full left-0 top-0 cursor-pointer z-10" {{ old('session', 'dual') == 'afternoon' ? 'checked' : '' }}>
-                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'dual') == 'afternoon' ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 pointer-events-none relative z-0">
-                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'dual') == 'afternoon' ? '' : 'hidden' }}"></div>
-                        </div>
-                        <div class="pointer-events-none relative z-0">
-                            <div class="flex items-center">
-                                <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                                </svg>
-                                <span class="font-semibold text-gray-900">Afternoon Only</span>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Works afternoon session only</p>
-                        </div>
-                    </label>
-                    
-                    <!-- Dual Sessions -->
-                    <label class="session-option relative flex items-start p-4 rounded-xl border-2 {{ old('session', 'dual') == 'dual' ? 'border-purple-500 bg-purple-50' : 'border-gray-200' }} cursor-pointer hover:border-purple-400 hover:bg-purple-50 transition-all">
-                        <input type="radio" name="session" value="dual" id="session_dual" class="absolute opacity-0 w-full h-full left-0 top-0 cursor-pointer z-10" {{ old('session', 'dual') == 'dual' ? 'checked' : '' }}>
-                        <div class="session-radio w-6 h-6 border-2 {{ old('session', 'dual') == 'dual' ? 'border-purple-500 bg-purple-500' : 'border-gray-300' }} rounded-full mr-3 flex items-center justify-center flex-shrink-0 mt-0.5 pointer-events-none relative z-0">
-                            <div class="w-2 h-2 bg-white rounded-full {{ old('session', 'dual') == 'dual' ? '' : 'hidden' }}"></div>
-                        </div>
-                        <div class="pointer-events-none relative z-0">
-                            <div class="flex items-center">
-                                <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                <span class="font-semibold text-gray-900">Dual Session</span>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Works full day (default)</p>
-                        </div>
-                    </label>
+                    <!-- Dual Button -->
+                    <button type="button" data-session="dual" 
+                        class="session-btn flex items-center px-5 py-3 rounded-lg border-2 font-medium transition-all {{ old('session', 'dual') == 'dual' ? 'border-purple-500 bg-purple-500 text-white' : 'border-gray-300 bg-white text-gray-700 hover:border-purple-400 hover:bg-purple-50' }}">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Dual Session
+                    </button>
                 </div>
             </div>
 
@@ -375,46 +352,24 @@
             $(this).closest('.role-option').trigger('click');
         });
 
-        // Session radio button functionality
-        $('.session-option').on('click', function() {
-            const $input = $(this).find('input[type="radio"]');
-            $input.prop('checked', true).trigger('change');
-        });
-
-        function updateSessionRadio() {
-            // Remove active state from all options
-            $('.session-option').each(function() {
-                $(this).removeClass('border-amber-500 border-indigo-500 border-purple-500 bg-amber-50 bg-indigo-50 bg-purple-50').addClass('border-gray-200');
-                $(this).find('.session-radio').removeClass('border-amber-500 border-indigo-500 border-purple-500 bg-amber-500 bg-indigo-500 bg-purple-500').addClass('border-gray-300');
-                $(this).find('.session-radio div').addClass('hidden');
-            });
+        // Session button functionality
+        $('.session-btn').on('click', function() {
+            const session = $(this).data('session');
+            $('#session_input').val(session);
             
-            // Add active state to checked option
-            $('input[name="session"]:checked').each(function() {
-                const $label = $(this).closest('.session-option');
-                const value = $(this).val();
-                const $radio = $label.find('.session-radio');
-                
-                if (value === 'morning') {
-                    $label.removeClass('border-gray-200').addClass('border-amber-500 bg-amber-50');
-                    $radio.removeClass('border-gray-300').addClass('border-amber-500 bg-amber-500');
-                } else if (value === 'afternoon') {
-                    $label.removeClass('border-gray-200').addClass('border-indigo-500 bg-indigo-50');
-                    $radio.removeClass('border-gray-300').addClass('border-indigo-500 bg-indigo-500');
-                } else {
-                    $label.removeClass('border-gray-200').addClass('border-purple-500 bg-purple-50');
-                    $radio.removeClass('border-gray-300').addClass('border-purple-500 bg-purple-500');
-                }
-                
-                $radio.find('div').removeClass('hidden');
-            });
-        }
-        
-        // Attach change event listener
-        $('input[name="session"]').on('change', updateSessionRadio);
-        
-        // Set initial state
-        updateSessionRadio();
+            // Reset all buttons
+            $('.session-btn').removeClass('border-amber-500 border-indigo-500 border-purple-500 bg-amber-500 bg-indigo-500 bg-purple-500 text-white')
+                .addClass('border-gray-300 bg-white text-gray-700');
+            
+            // Activate clicked button
+            if (session === 'morning') {
+                $(this).removeClass('border-gray-300 bg-white text-gray-700').addClass('border-amber-500 bg-amber-500 text-white');
+            } else if (session === 'afternoon') {
+                $(this).removeClass('border-gray-300 bg-white text-gray-700').addClass('border-indigo-500 bg-indigo-500 text-white');
+            } else {
+                $(this).removeClass('border-gray-300 bg-white text-gray-700').addClass('border-purple-500 bg-purple-500 text-white');
+            }
+        });
     })
 </script>
 @endpush
