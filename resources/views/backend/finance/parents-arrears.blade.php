@@ -50,7 +50,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-500">Total Arrears</p>
-                    <p class="text-2xl font-bold text-red-600">${{ number_format($parentsWithArrears->sum('arrears'), 2) }}</p>
+                    <p class="text-2xl font-bold text-red-600">${{ number_format($parentsWithArrears->sum('arrears') + (isset($orphanParent) ? $orphanParent->arrears : 0), 2) }}</p>
                 </div>
             </div>
         </div>
@@ -76,7 +76,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-500">Total Paid</p>
-                    <p class="text-2xl font-bold text-green-600">${{ number_format($parentsWithArrears->sum('total_paid'), 2) }}</p>
+                    <p class="text-2xl font-bold text-green-600">${{ number_format($parentsWithArrears->sum('total_paid') + (isset($orphanParent) ? $orphanParent->total_paid : 0), 2) }}</p>
                 </div>
             </div>
         </div>
@@ -157,6 +157,57 @@
                         </td>
                     </tr>
                     @endforelse
+                    
+                    {{-- Students without parents --}}
+                    @if(isset($orphanParent) && $orphanParent)
+                    <tr class="hover:bg-yellow-50 bg-yellow-25">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-orange-700">
+                                <svg class="w-4 h-4 inline-block mr-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                {{ $orphanParent->user->name }}
+                            </div>
+                            <div class="text-xs text-orange-500">Students not linked to any parent</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">-</td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-wrap gap-1">
+                                @foreach($orphanParent->filtered_students as $student)
+                                    <div class="inline-flex flex-col items-start px-2 py-1 rounded-lg text-xs font-medium bg-orange-100 text-orange-800 mb-1">
+                                        <span class="font-semibold">{{ $student->user->name ?? $student->name }}</span>
+                                        <span class="text-orange-600">{{ $student->class->class_name ?? 'N/A' }} | {{ strtoupper($student->curriculum_type ?? 'zimsec') }}</span>
+                                        @if(($student->scholarship_percentage ?? 0) > 0)
+                                            <span class="text-green-600">{{ $student->scholarship_percentage }}% Scholarship</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                            ${{ number_format($orphanParent->total_fees, 2) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
+                            ${{ number_format($orphanParent->total_paid, 2) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-sm leading-5 font-bold rounded-full bg-orange-100 text-orange-800">
+                                ${{ number_format($orphanParent->arrears, 2) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button type="button" 
+                                    onclick="showArrearsDetails(0, 'Students Without Parents', {{ json_encode($orphanParent->arrears_breakdown) }})"
+                                    class="text-orange-600 hover:text-orange-900" title="View Arrears Details">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    @endif
                 </tbody>
             </table>
         </div>

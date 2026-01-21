@@ -418,6 +418,7 @@
                                             data-class="{{ $student->class->id ?? '' }}"
                                             data-roll="{{ $student->roll_number }}"
                                             data-student-type="{{ $student->student_type ?? 'day' }}"
+                                            data-curriculum-type="{{ $student->curriculum_type ?? 'zimsec' }}"
                                             class="student-option">
                                         {{ $student->user->name ?? 'Unknown' }} ({{ $student->roll_number }}) - {{ $student->class->class_name ?? 'N/A' }} - Balance: ${{ number_format($balance, 2) }}
                                     </option>
@@ -958,34 +959,40 @@
         
         if (!feeTypesContainer) return;
         
-        // Get selected student's type
+        // Get selected student's type and curriculum
         const studentSelect = document.getElementById('modal_student_id');
         const selectedStudent = studentSelect.options[studentSelect.selectedIndex];
         const studentType = selectedStudent && selectedStudent.value ? (selectedStudent.dataset.studentType || 'day') : 'day';
+        const curriculumType = selectedStudent && selectedStudent.value ? (selectedStudent.dataset.curriculumType || 'zimsec') : 'zimsec';
         
         if (selectedOption.value && selectedOption.dataset.fees) {
             try {
                 const fees = JSON.parse(selectedOption.dataset.fees);
                 
-                // Filter fees based on student type
+                // Filter fees based on student type AND curriculum type
                 const filteredFees = fees.filter(fee => {
-                    // If fee has no student_type specified, show it to all
-                    if (!fee.student_type) return true;
-                    
-                    // If student is boarder, show boarding fees
-                    if (studentType === 'boarding') {
-                        return fee.student_type === 'boarding';
+                    // Check student type (day/boarding)
+                    let typeMatch = true;
+                    if (fee.student_type) {
+                        typeMatch = fee.student_type === studentType;
                     }
                     
-                    // If student is day, show day fees
-                    return fee.student_type === 'day';
+                    // Check curriculum type (zimsec/cambridge)
+                    let curriculumMatch = true;
+                    if (fee.curriculum_type) {
+                        curriculumMatch = fee.curriculum_type === curriculumType;
+                    }
+                    
+                    return typeMatch && curriculumMatch;
                 });
                 
                 // Clear existing fee checkboxes
                 feeTypesContainer.innerHTML = '';
                 
                 if (filteredFees.length === 0) {
-                    feeTypesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No fee types available for ' + (studentType === 'boarding' ? 'boarding' : 'day') + ' students in selected term</p>';
+                    const typeLabel = studentType === 'boarding' ? 'Boarding' : 'Day';
+                    const currLabel = curriculumType === 'cambridge' ? 'Cambridge' : 'ZIMSEC';
+                    feeTypesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No fee types available for ' + typeLabel + ' / ' + currLabel + ' students in selected term</p>';
                     return;
                 }
                 

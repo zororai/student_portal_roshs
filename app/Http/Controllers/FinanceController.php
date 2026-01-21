@@ -356,7 +356,105 @@ class FinanceController extends Controller
             })
             ->sortByDesc('arrears');
         
-        return view('backend.finance.parents-arrears', compact('parentsWithArrears', 'classes'));
+        // Get students without parents (check both pivot table and direct parent_id)
+        $studentsInPivot = \DB::table('student_parent')->pluck('student_id')->toArray();
+        $orphanStudentsQuery = \App\Student::with(['user', 'class', 'payments.termFee.feeType', 'payments.resultsStatus'])
+            ->whereNotIn('id', $studentsInPivot)
+            ->whereNull('parent_id');
+        
+        // Apply filters to orphan students
+        if ($request->has('class_id') && $request->class_id != '') {
+            $orphanStudentsQuery->where('class_id', $request->class_id);
+        }
+        if ($request->has('student_type') && $request->student_type != '') {
+            $orphanStudentsQuery->where('student_type', $request->student_type);
+        }
+        
+        $orphanStudents = $orphanStudentsQuery->get();
+        
+        // Create a virtual "No Parent" entry for orphan students with arrears
+        $orphanArrearsBreakdown = [];
+        $orphanTotalFees = 0;
+        $orphanTotalPaid = 0;
+        
+        foreach ($orphanStudents as $student) {
+            $studentType = $student->student_type ?? 'day';
+            $curriculumType = $student->curriculum_type ?? 'zimsec';
+            $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
+            $studentFees = 0;
+            $studentArrears = [];
+            
+            foreach ($allTerms as $term) {
+                $termFees = 0;
+                if ($curriculumType === 'cambridge') {
+                    $termFees = $studentType === 'boarding' 
+                        ? floatval($term->cambridge_boarding_fees ?? 0) 
+                        : floatval($term->cambridge_day_fees ?? 0);
+                } else {
+                    $termFees = $studentType === 'boarding' 
+                        ? floatval($term->zimsec_boarding_fees ?? $term->total_boarding_fees ?? $term->total_fees) 
+                        : floatval($term->zimsec_day_fees ?? $term->total_day_fees ?? $term->total_fees);
+                }
+                
+                if ($scholarshipPercentage > 0 && $scholarshipPercentage <= 100) {
+                    $termFees = $termFees - ($termFees * ($scholarshipPercentage / 100));
+                }
+                
+                $studentFees += $termFees;
+                
+                $termPaid = floatval(\App\StudentPayment::where('student_id', $student->id)
+                    ->where('results_status_id', $term->id)
+                    ->sum('amount_paid'));
+                $termArrears = $termFees - $termPaid;
+                
+                if ($termArrears > 0) {
+                    $studentArrears[] = [
+                        'term' => ucfirst($term->result_period) . ' ' . $term->year,
+                        'term_id' => $term->id,
+                        'fees' => $termFees,
+                        'paid' => $termPaid,
+                        'arrears' => $termArrears
+                    ];
+                }
+            }
+            
+            $studentPaid = floatval(\App\StudentPayment::where('student_id', $student->id)->sum('amount_paid'));
+            $orphanTotalFees += $studentFees;
+            $orphanTotalPaid += $studentPaid;
+            
+            if (!empty($studentArrears)) {
+                $orphanArrearsBreakdown[$student->id] = [
+                    'student_name' => $student->user->name ?? $student->name,
+                    'class' => $student->class->class_name ?? 'N/A',
+                    'student_type' => ucfirst($studentType),
+                    'curriculum_type' => strtoupper($curriculumType),
+                    'scholarship' => $scholarshipPercentage . '%',
+                    'terms' => $studentArrears,
+                    'total_arrears' => array_sum(array_column($studentArrears, 'arrears'))
+                ];
+            }
+        }
+        
+        $orphanArrears = $orphanTotalFees - $orphanTotalPaid;
+        
+        // Create virtual parent object for orphan students if there are any with arrears
+        $orphanParent = null;
+        if ($orphanArrears > 0 && !empty($orphanArrearsBreakdown)) {
+            $orphanParent = new \stdClass();
+            $orphanParent->id = 0;
+            $orphanParent->user = new \stdClass();
+            $orphanParent->user->name = 'No Parent Assigned';
+            $orphanParent->user->email = '-';
+            $orphanParent->phone = '-';
+            $orphanParent->filtered_students = $orphanStudents;
+            $orphanParent->total_fees = $orphanTotalFees;
+            $orphanParent->total_paid = $orphanTotalPaid;
+            $orphanParent->arrears = $orphanArrears;
+            $orphanParent->arrears_breakdown = $orphanArrearsBreakdown;
+            $orphanParent->is_orphan = true;
+        }
+        
+        return view('backend.finance.parents-arrears', compact('parentsWithArrears', 'classes', 'orphanParent'));
     }
 
     public function exportParentsArrears(Request $request)
@@ -888,11 +986,35 @@ class FinanceController extends Controller
 
             // Calculate fees and balances per term
             $termSummary = [];
+            $studentType = $child->student_type ?? 'day';
+            $curriculumType = $child->curriculum_type ?? 'zimsec';
+            $scholarshipPercentage = floatval($child->scholarship_percentage ?? 0);
+            
             foreach ($allTerms as $term) {
-                $studentType = $child->student_type ?? 'day';
-                $termFees = $studentType === 'boarding' 
-                    ? floatval($term->total_boarding_fees) 
-                    : floatval($term->total_day_fees);
+                // Get base fee based on curriculum and student type
+                $termFees = 0;
+                if ($curriculumType === 'cambridge') {
+                    $termFees = $studentType === 'boarding' 
+                        ? floatval($term->cambridge_boarding_fees ?? 0) 
+                        : floatval($term->cambridge_day_fees ?? 0);
+                } else {
+                    $termFees = $studentType === 'boarding' 
+                        ? floatval($term->zimsec_boarding_fees ?? $term->total_boarding_fees ?? 0) 
+                        : floatval($term->zimsec_day_fees ?? $term->total_day_fees ?? 0);
+                }
+                
+                // Apply level-based fee adjustment if exists
+                if ($child->class && $child->class->level) {
+                    $levelAdjustment = \App\LevelFeeAdjustment::where('level', $child->class->level)->first();
+                    if ($levelAdjustment) {
+                        $termFees += floatval($levelAdjustment->adjustment_amount ?? 0);
+                    }
+                }
+                
+                // Apply scholarship discount
+                if ($scholarshipPercentage > 0 && $scholarshipPercentage <= 100) {
+                    $termFees = $termFees - ($termFees * ($scholarshipPercentage / 100));
+                }
                 
                 $termPaid = StudentPayment::where('student_id', $child->id)
                     ->where('results_status_id', $term->id)

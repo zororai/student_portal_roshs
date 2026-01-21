@@ -7,7 +7,37 @@
     foreach ($parents->children as $child) {
         $childFees = 0;
         foreach ($allTerms as $term) {
-            $childFees += floatval($term->total_fees);
+                // Get base fee based on curriculum and student type
+            $studentType = $child->student_type ?? 'day';
+            $curriculumType = $child->curriculum_type ?? 'zimsec';
+            $scholarshipPercentage = floatval($child->scholarship_percentage ?? 0);
+            
+            $baseFee = 0;
+            if ($curriculumType === 'cambridge') {
+                $baseFee = $studentType === 'boarding' 
+                    ? floatval($term->cambridge_boarding_fees ?? 0) 
+                    : floatval($term->cambridge_day_fees ?? 0);
+            } else {
+                $baseFee = $studentType === 'boarding' 
+                    ? floatval($term->zimsec_boarding_fees ?? $term->total_boarding_fees ?? 0) 
+                    : floatval($term->zimsec_day_fees ?? $term->total_day_fees ?? 0);
+            }
+            
+            // Apply level-based fee adjustment if exists
+            if ($child->class && $child->class->level) {
+                $levelAdjustment = \App\LevelFeeAdjustment::where('level', $child->class->level)->first();
+                if ($levelAdjustment) {
+                    $baseFee += floatval($levelAdjustment->adjustment_amount ?? 0);
+                }
+            }
+            
+            // Apply scholarship discount
+            if ($scholarshipPercentage > 0 && $scholarshipPercentage <= 100) {
+                $discount = $baseFee * ($scholarshipPercentage / 100);
+                $baseFee = $baseFee - $discount;
+            }
+            
+            $childFees += $baseFee;
         }
         $childPaid = floatval(\App\StudentPayment::where('student_id', $child->id)->sum('amount_paid'));
         $totalArrears += ($childFees - $childPaid);
@@ -60,7 +90,32 @@
                     $childArrears = [];
                     $childTotalArrears = 0;
                     foreach ($allTerms as $term) {
-                        $termFees = floatval($term->total_fees);
+                        // Calculate proper term fees based on student attributes
+                        $studentType = $child->student_type ?? 'day';
+                        $curriculumType = $child->curriculum_type ?? 'zimsec';
+                        $scholarshipPct = floatval($child->scholarship_percentage ?? 0);
+                        
+                        $termFees = 0;
+                        if ($curriculumType === 'cambridge') {
+                            $termFees = $studentType === 'boarding' 
+                                ? floatval($term->cambridge_boarding_fees ?? 0) 
+                                : floatval($term->cambridge_day_fees ?? 0);
+                        } else {
+                            $termFees = $studentType === 'boarding' 
+                                ? floatval($term->zimsec_boarding_fees ?? $term->total_boarding_fees ?? 0) 
+                                : floatval($term->zimsec_day_fees ?? $term->total_day_fees ?? 0);
+                        }
+                        
+                        // Apply level-based fee adjustment
+                        if ($child->class && $child->class->level) {
+                            $levelAdj = \App\LevelFeeAdjustment::where('level', $child->class->level)->first();
+                            if ($levelAdj) { $termFees += floatval($levelAdj->adjustment_amount ?? 0); }
+                        }
+                        
+                        // Apply scholarship discount
+                        if ($scholarshipPct > 0 && $scholarshipPct <= 100) {
+                            $termFees = $termFees - ($termFees * ($scholarshipPct / 100));
+                        }
                         $termPaid = floatval(\App\StudentPayment::where('student_id', $child->id)
                             ->where('results_status_id', $term->id)
                             ->sum('amount_paid'));
