@@ -22,6 +22,7 @@ class Student extends Model
         'student_type',
         'curriculum_type',
         'scholarship_percentage',
+        'is_new_student',
         'chair',
         'desk',
     ];

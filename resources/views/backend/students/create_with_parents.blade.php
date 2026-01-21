@@ -327,6 +327,52 @@
                             @enderror
                         </div>
 
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Student Status</label>
+                            <div class="grid grid-cols-2 gap-4" id="new-student-selector">
+                                <button type="button" class="new-student-card relative flex items-center p-4 border-2 rounded-lg focus:outline-none transition-colors {{ old('is_new_student', '1') == '1' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-300' }}" data-status="new" onclick="selectNewStudentStatus(true)" aria-pressed="{{ old('is_new_student', '1') == '1' ? 'true' : 'false' }}">
+                                    <input name="is_new_student" id="is_new_student_yes" type="radio" value="1" class="hidden" {{ old('is_new_student', '1') == '1' ? 'checked' : '' }}>
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-900 font-semibold">New Student</span>
+                                            <p class="text-xs text-gray-500">First time enrolling</p>
+                                        </div>
+                                    </div>
+                                    <div class="new-check-indicator absolute top-2 right-2 w-5 h-5 border-2 rounded-full {{ old('is_new_student', '1') == '1' ? 'bg-emerald-500 border-emerald-500 flex items-center justify-center' : 'border-gray-300 hidden' }}">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </button>
+
+                                <button type="button" class="new-student-card relative flex items-center p-4 border-2 rounded-lg focus:outline-none transition-colors {{ old('is_new_student') == '0' ? 'border-amber-500 bg-amber-50' : 'border-gray-300' }}" data-status="existing" onclick="selectNewStudentStatus(false)" aria-pressed="{{ old('is_new_student') == '0' ? 'true' : 'false' }}">
+                                    <input name="is_new_student" id="is_new_student_no" type="radio" value="0" class="hidden" {{ old('is_new_student') == '0' ? 'checked' : '' }}>
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-900 font-semibold">Existing Student</span>
+                                            <p class="text-xs text-gray-500">Returning / continuing</p>
+                                        </div>
+                                    </div>
+                                    <div class="new-check-indicator absolute top-2 right-2 w-5 h-5 border-2 rounded-full {{ old('is_new_student') == '0' ? 'bg-amber-500 border-amber-500 flex items-center justify-center' : 'border-gray-300 hidden' }}">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">New students may have additional registration fees applied.</p>
+                        </div>
+
                         <div class="grid md:grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Chair Number (Optional)</label>
@@ -788,7 +834,7 @@
             dayCard.classList.add('border-blue-500', 'bg-blue-50');
             dayIndicator.classList.remove('hidden', 'border-gray-300');
             dayIndicator.classList.add('bg-blue-500', 'border-blue-500');
-            
+
             // Deselect boarding
             boardingRadio.checked = false;
             boardingCard.classList.remove('border-green-500', 'bg-green-50');
@@ -803,7 +849,7 @@
             boardingCard.classList.add('border-green-500', 'bg-green-50');
             boardingIndicator.classList.remove('hidden', 'border-gray-300');
             boardingIndicator.classList.add('bg-green-500', 'border-green-500');
-            
+
             // Deselect day
             dayRadio.checked = false;
             dayCard.classList.remove('border-blue-500', 'bg-blue-50');
@@ -829,7 +875,7 @@
             zimsecCard.classList.add('border-indigo-500', 'bg-indigo-50');
             zimsecIndicator.classList.remove('hidden', 'border-gray-300');
             zimsecIndicator.classList.add('bg-indigo-500', 'border-indigo-500');
-            
+
             cambridgeRadio.checked = false;
             cambridgeCard.classList.remove('border-purple-500', 'bg-purple-50');
             cambridgeCard.classList.add('border-gray-300');
@@ -842,7 +888,7 @@
             cambridgeCard.classList.add('border-purple-500', 'bg-purple-50');
             cambridgeIndicator.classList.remove('hidden', 'border-gray-300');
             cambridgeIndicator.classList.add('bg-purple-500', 'border-purple-500');
-            
+
             zimsecRadio.checked = false;
             zimsecCard.classList.remove('border-indigo-500', 'bg-indigo-50');
             zimsecCard.classList.add('border-gray-300');
@@ -852,27 +898,103 @@
         }
     }
 
+    // New student status selection function
+    window.selectNewStudentStatus = function(isNew) {
+        try {
+            const newCard = document.querySelector('.new-student-card[data-status="new"]');
+            const existingCard = document.querySelector('.new-student-card[data-status="existing"]');
+            const newRadio = document.getElementById('is_new_student_yes');
+            const existingRadio = document.getElementById('is_new_student_no');
+
+            if (!newCard || !existingCard || !newRadio || !existingRadio) {
+                console.error('New student selector elements not found');
+                return;
+            }
+
+            const newIndicator = newCard.querySelector('.new-check-indicator');
+            const existingIndicator = existingCard.querySelector('.new-check-indicator');
+
+            if (isNew) {
+                newRadio.checked = true;
+                if (newCard.setAttribute) newCard.setAttribute('aria-pressed', 'true');
+                if (existingCard.setAttribute) existingCard.setAttribute('aria-pressed', 'false');
+                // apply inline colors to ensure they show even if Tailwind utilities were purged
+                newCard.classList.remove('border-gray-300');
+                newCard.style.borderColor = '#10B981'; // emerald-500
+                newCard.style.backgroundColor = '#ECFDF5'; // emerald-50
+                if (newIndicator) {
+                    newIndicator.classList.remove('hidden', 'border-gray-300');
+                    newIndicator.style.backgroundColor = '#10B981';
+                    newIndicator.style.borderColor = '#10B981';
+                }
+
+                existingRadio.checked = false;
+                // reset existing card inline styles
+                existingCard.classList.remove('border-amber-500', 'bg-amber-50');
+                existingCard.classList.add('border-gray-300');
+                existingCard.style.borderColor = '';
+                existingCard.style.backgroundColor = '';
+                if (existingIndicator) {
+                    existingIndicator.classList.add('hidden');
+                    existingIndicator.classList.remove('bg-amber-500', 'border-amber-500');
+                    existingIndicator.classList.add('border-gray-300');
+                    existingIndicator.style.backgroundColor = '';
+                    existingIndicator.style.borderColor = '';
+                }
+            } else {
+                existingRadio.checked = true;
+                if (existingCard.setAttribute) existingCard.setAttribute('aria-pressed', 'true');
+                if (newCard.setAttribute) newCard.setAttribute('aria-pressed', 'false');
+                // apply inline amber colors
+                existingCard.classList.remove('border-gray-300');
+                existingCard.style.borderColor = '#D97706'; // amber-500
+                existingCard.style.backgroundColor = '#FFFBEB'; // amber-50
+                if (existingIndicator) {
+                    existingIndicator.classList.remove('hidden', 'border-gray-300');
+                    existingIndicator.style.backgroundColor = '#D97706';
+                    existingIndicator.style.borderColor = '#D97706';
+                }
+
+                newRadio.checked = false;
+                // reset new card inline styles
+                newCard.classList.remove('border-emerald-500', 'bg-emerald-50');
+                newCard.classList.add('border-gray-300');
+                newCard.style.borderColor = '';
+                newCard.style.backgroundColor = '';
+                if (newIndicator) {
+                    newIndicator.classList.add('hidden');
+                    newIndicator.classList.remove('bg-emerald-500', 'border-emerald-500');
+                    newIndicator.classList.add('border-gray-300');
+                    newIndicator.style.backgroundColor = '';
+                    newIndicator.style.borderColor = '';
+                }
+            }
+        } catch (error) {
+            console.error('Error in selectNewStudentStatus:', error);
+        }
+    };
+
     // Generate new roll number via AJAX
     function generateNewRollNumber() {
         console.log('Generate New Roll Number clicked');
-        
+
         const btn = document.getElementById('generate-new-roll');
         const display = document.getElementById('roll-number-display');
         const emailInput = document.getElementById('student_email');
-        
+
         if (!btn || !display || !emailInput) {
             console.error('Required elements not found:', { btn, display, emailInput });
             alert('Error: Required elements not found on page');
             return;
         }
-        
+
         // Disable button and show loading
         btn.disabled = true;
         btn.innerHTML = '<svg class="animate-spin w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating...';
-        
+
         const url = '{{ route("student.generate-roll-number") }}';
         console.log('Fetching:', url);
-        
+
         fetch(url, {
             method: 'GET',
             headers: {

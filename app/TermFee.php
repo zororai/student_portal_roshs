@@ -11,7 +11,8 @@ class TermFee extends Model
         'fee_type_id',
         'student_type',
         'curriculum_type',
-        'amount'
+        'amount',
+        'is_for_new_student'
     ];
 
     protected $casts = [

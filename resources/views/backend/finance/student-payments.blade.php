@@ -419,6 +419,7 @@
                                             data-roll="{{ $student->roll_number }}"
                                             data-student-type="{{ $student->student_type ?? 'day' }}"
                                             data-curriculum-type="{{ $student->curriculum_type ?? 'zimsec' }}"
+                                            data-is-new-student="{{ $student->is_new_student ?? 1 }}"
                                             class="student-option">
                                         {{ $student->user->name ?? 'Unknown' }} ({{ $student->roll_number }}) - {{ $student->class->class_name ?? 'N/A' }} - Balance: ${{ number_format($balance, 2) }}
                                     </option>
@@ -459,7 +460,10 @@
                         <div class="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto" id="fee_types_container">
                             @if(isset($currentTerm) && $currentTerm->termFees->count() > 0)
                                 @foreach($currentTerm->termFees as $termFee)
-                                <div class="py-3 border-b border-gray-200 last:border-0 fee-item">
+                                <div class="py-3 border-b border-gray-200 last:border-0 fee-item"
+                                     data-student-type="{{ $termFee->student_type ?? 'day' }}"
+                                     data-curriculum-type="{{ $termFee->curriculum_type ?? 'zimsec' }}"
+                                     data-is-for-new-student="{{ $termFee->is_for_new_student ?? 0 }}">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center flex-1">
                                             <input type="checkbox" 
@@ -470,6 +474,9 @@
                                                    onchange="toggleFeeAmount({{ $termFee->id }})">
                                             <label for="fee_{{ $termFee->id }}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
                                                 {{ $termFee->feeType->name }}
+                                                @if($termFee->is_for_new_student)
+                                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student Only</span>
+                                                @endif
                                             </label>
                                             <span class="text-sm font-semibold text-gray-600">Full: ${{ number_format($termFee->amount, 2) }}</span>
                                         </div>
@@ -959,17 +966,18 @@
         
         if (!feeTypesContainer) return;
         
-        // Get selected student's type and curriculum
+        // Get selected student's type, curriculum, and new student status
         const studentSelect = document.getElementById('modal_student_id');
         const selectedStudent = studentSelect.options[studentSelect.selectedIndex];
         const studentType = selectedStudent && selectedStudent.value ? (selectedStudent.dataset.studentType || 'day') : 'day';
         const curriculumType = selectedStudent && selectedStudent.value ? (selectedStudent.dataset.curriculumType || 'zimsec') : 'zimsec';
+        const isNewStudent = selectedStudent && selectedStudent.value ? (parseInt(selectedStudent.dataset.isNewStudent) === 1) : true;
         
         if (selectedOption.value && selectedOption.dataset.fees) {
             try {
                 const fees = JSON.parse(selectedOption.dataset.fees);
                 
-                // Filter fees based on student type AND curriculum type
+                // Filter fees based on student type, curriculum type, AND new student status
                 const filteredFees = fees.filter(fee => {
                     // Check student type (day/boarding)
                     let typeMatch = true;
@@ -983,7 +991,13 @@
                         curriculumMatch = fee.curriculum_type === curriculumType;
                     }
                     
-                    return typeMatch && curriculumMatch;
+                    // Check new student status - if fee is for new students only, only show if student is new
+                    let newStudentMatch = true;
+                    if (fee.is_for_new_student && parseInt(fee.is_for_new_student) === 1) {
+                        newStudentMatch = isNewStudent;
+                    }
+                    
+                    return typeMatch && curriculumMatch && newStudentMatch;
                 });
                 
                 // Clear existing fee checkboxes
@@ -1010,6 +1024,7 @@
                                            onchange="toggleFeeAmount(${fee.id})">
                                     <label for="fee_${fee.id}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
                                         ${fee.fee_type ? fee.fee_type.name : 'Fee'}
+                                        ${fee.is_for_new_student && parseInt(fee.is_for_new_student) === 1 ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student Only</span>' : ''}
                                     </label>
                                     <span class="text-sm font-semibold text-gray-600">Full: $${parseFloat(fee.amount).toFixed(2)}</span>
                                 </div>
@@ -1442,9 +1457,13 @@
             totalFees = parseFloat(selectedOption.dataset.totalFees) || 0;
             amountAlreadyPaid = parseFloat(selectedOption.dataset.amountPaid) || 0;
             const balance = totalFees - amountAlreadyPaid;
+            const isNewStudent = parseInt(selectedOption.dataset.isNewStudent) === 1;
             
-            // Update student info
-            document.getElementById('modal_student_name').textContent = studentName;
+            // Update student info with new student badge
+            const newStudentBadge = isNewStudent 
+                ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student</span>'
+                : '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">Existing Student</span>';
+            document.getElementById('modal_student_name').innerHTML = studentName + newStudentBadge;
             document.getElementById('modal_balance').textContent = '$' + balance.toFixed(2);
             document.getElementById('modal_original_balance').textContent = '$' + balance.toFixed(2);
             currentBalance = balance;

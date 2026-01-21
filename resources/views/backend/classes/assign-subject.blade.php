@@ -35,7 +35,16 @@
                             @csrf
                             <div class="px-6 py-6">
                                 <p class="text-sm text-gray-500 mb-4">Choose subjects to assign to this class:</p>
-                                <div class="space-y-2 max-h-96 overflow-y-auto">
+                                <!-- Search Bar -->
+                                <div class="relative mb-4">
+                                    <input type="text" id="subjectSearch" placeholder="Search subjects..." 
+                                           class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+                                           onkeyup="filterSubjects()">
+                                    <svg class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="space-y-2 max-h-96 overflow-y-auto" id="subjectList">
                                     @foreach ($subjects as $subject)
                                         @php
                                             $isAssigned = $assigned->subjects->contains('id', $subject->id);
@@ -125,4 +134,23 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function filterSubjects() {
+            const searchText = document.getElementById('subjectSearch').value.toLowerCase();
+            const subjectList = document.getElementById('subjectList');
+            const labels = subjectList.querySelectorAll('label');
+            
+            labels.forEach(label => {
+                const subjectName = label.querySelector('.text-gray-900').textContent.toLowerCase();
+                const subjectCode = label.querySelector('.text-gray-500').textContent.toLowerCase();
+                
+                if (subjectName.includes(searchText) || subjectCode.includes(searchText)) {
+                    label.style.display = 'flex';
+                } else {
+                    label.style.display = 'none';
+                }
+            });
+        }
+    </script>
 @endsection

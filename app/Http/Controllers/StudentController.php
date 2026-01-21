@@ -425,6 +425,7 @@ class StudentController extends Controller
             'student_type'          => $request->student_type ?? 'day', // Day or Boarding student
             'curriculum_type'       => $request->curriculum_type ?? 'zimsec', // ZIMSEC or Cambridge curriculum
             'scholarship_percentage' => $request->scholarship_percentage ?? 0, // Scholarship discount percentage
+            'is_new_student'        => $request->is_new_student ?? true, // New student flag for fee structure
             'chair'                 => $request->chair ?? null,
             'desk'                  => $request->desk ?? null,
         ]);

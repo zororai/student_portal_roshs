@@ -87,7 +87,8 @@ class ResultsStatusController extends Controller
                 'fee_type_id' => $fee['fee_type_id'],
                 'student_type' => 'day',
                 'curriculum_type' => 'zimsec',
-                'amount' => $fee['amount']
+                'amount' => $fee['amount'],
+                'is_for_new_student' => isset($fee['is_for_new_student']) ? true : false
             ]);
         }
         
@@ -98,7 +99,8 @@ class ResultsStatusController extends Controller
                 'fee_type_id' => $fee['fee_type_id'],
                 'student_type' => 'boarding',
                 'curriculum_type' => 'zimsec',
-                'amount' => $fee['amount']
+                'amount' => $fee['amount'],
+                'is_for_new_student' => isset($fee['is_for_new_student']) ? true : false
             ]);
         }
         
@@ -109,7 +111,8 @@ class ResultsStatusController extends Controller
                 'fee_type_id' => $fee['fee_type_id'],
                 'student_type' => 'day',
                 'curriculum_type' => 'cambridge',
-                'amount' => $fee['amount']
+                'amount' => $fee['amount'],
+                'is_for_new_student' => isset($fee['is_for_new_student']) ? true : false
             ]);
         }
         
@@ -120,7 +123,8 @@ class ResultsStatusController extends Controller
                 'fee_type_id' => $fee['fee_type_id'],
                 'student_type' => 'boarding',
                 'curriculum_type' => 'cambridge',
-                'amount' => $fee['amount']
+                'amount' => $fee['amount'],
+                'is_for_new_student' => isset($fee['is_for_new_student']) ? true : false
             ]);
         }
         

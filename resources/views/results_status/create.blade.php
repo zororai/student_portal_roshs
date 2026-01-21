@@ -102,7 +102,7 @@
                                 @if($feeTypes->count() > 0)
                                     <div class="fee-type-row bg-white p-3 rounded border border-gray-200">
                                         <div class="grid grid-cols-12 gap-3">
-                                            <div class="col-span-5">
+                                            <div class="col-span-4">
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Fee Type</label>
                                                 <select name="zimsec_day_fees[0][fee_type_id]" class="w-full border rounded px-3 py-2 text-sm" required>
                                                     <option value="">Select Fee Type</option>
@@ -111,9 +111,15 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div class="col-span-5">
+                                            <div class="col-span-3">
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
                                                 <input type="number" name="zimsec_day_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-3 py-2 text-sm zimsec-day-fee-amount" placeholder="0.00" required>
+                                            </div>
+                                            <div class="col-span-3 flex items-end">
+                                                <label class="flex items-center cursor-pointer bg-emerald-50 border border-emerald-200 rounded px-2 py-2 hover:bg-emerald-100">
+                                                    <input type="checkbox" name="zimsec_day_fees[0][is_for_new_student]" value="1" class="w-4 h-4 text-emerald-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-xs text-emerald-700 font-medium">New Only</span>
+                                                </label>
                                             </div>
                                             <div class="col-span-2 flex items-end gap-1">
                                                 <button type="button" class="add-zimsec-day-fee bg-green-500 hover:bg-green-600 text-white px-2 py-2 rounded text-xs" title="Add">+</button>
@@ -140,7 +146,7 @@
                                 @if($feeTypes->count() > 0)
                                     <div class="fee-type-row bg-white p-3 rounded border border-gray-200">
                                         <div class="grid grid-cols-12 gap-3">
-                                            <div class="col-span-5">
+                                            <div class="col-span-4">
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Fee Type</label>
                                                 <select name="zimsec_boarding_fees[0][fee_type_id]" class="w-full border rounded px-3 py-2 text-sm" required>
                                                     <option value="">Select Fee Type</option>
@@ -149,9 +155,15 @@
                                                     @endforeach
                                                 </select>
                                             </div>
-                                            <div class="col-span-5">
+                                            <div class="col-span-3">
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
                                                 <input type="number" name="zimsec_boarding_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-3 py-2 text-sm zimsec-boarding-fee-amount" placeholder="0.00" required>
+                                            </div>
+                                            <div class="col-span-3 flex items-end">
+                                                <label class="flex items-center cursor-pointer bg-emerald-50 border border-emerald-200 rounded px-2 py-2 hover:bg-emerald-100">
+                                                    <input type="checkbox" name="zimsec_boarding_fees[0][is_for_new_student]" value="1" class="w-4 h-4 text-emerald-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-xs text-emerald-700 font-medium">New Only</span>
+                                                </label>
                                             </div>
                                             <div class="col-span-2 flex items-end gap-1">
                                                 <button type="button" class="add-zimsec-boarding-fee bg-green-500 hover:bg-green-600 text-white px-2 py-2 rounded text-xs" title="Add">+</button>
@@ -194,6 +206,12 @@
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
                                                 <input type="number" name="cambridge_day_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-3 py-2 text-sm cambridge-day-fee-amount" placeholder="0.00" required>
                                             </div>
+                                            <div class="col-span-2 flex items-end">
+                                                <label class="flex items-center cursor-pointer bg-emerald-50 border border-emerald-200 rounded px-2 py-2 hover:bg-emerald-100">
+                                                    <input type="checkbox" name="cambridge_day_fees[0][is_for_new_student]" value="1" class="w-4 h-4 text-emerald-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-xs text-emerald-700 font-medium">New Only</span>
+                                                </label>
+                                            </div>
                                             <div class="col-span-2 flex items-end gap-1">
                                                 <button type="button" class="add-cambridge-day-fee bg-green-500 hover:bg-green-600 text-white px-2 py-2 rounded text-xs" title="Add">+</button>
                                                 <button type="button" class="remove-cambridge-day-fee bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded text-xs" title="Remove">-</button>
@@ -231,6 +249,12 @@
                                             <div class="col-span-5">
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
                                                 <input type="number" name="cambridge_boarding_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-3 py-2 text-sm cambridge-boarding-fee-amount" placeholder="0.00" required>
+                                            </div>
+                                            <div class="col-span-2 flex items-end">
+                                                <label class="flex items-center cursor-pointer bg-emerald-50 border border-emerald-200 rounded px-2 py-2 hover:bg-emerald-100">
+                                                    <input type="checkbox" name="cambridge_boarding_fees[0][is_for_new_student]" value="1" class="w-4 h-4 text-emerald-600 border-gray-300 rounded">
+                                                    <span class="ml-2 text-xs text-emerald-700 font-medium">New Only</span>
+                                                </label>
                                             </div>
                                             <div class="col-span-2 flex items-end gap-1">
                                                 <button type="button" class="add-cambridge-boarding-fee bg-green-500 hover:bg-green-600 text-white px-2 py-2 rounded text-xs" title="Add">+</button>
