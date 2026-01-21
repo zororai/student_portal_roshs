@@ -110,8 +110,18 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $student->class->class_name ?? 'N/A' }}
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ $student->class->class_name ?? 'N/A' }}</div>
+                            <div class="flex gap-1 mt-1">
+                                <span class="px-2 py-0.5 text-xs rounded-full {{ ($student->curriculum_type ?? 'zimsec') == 'cambridge' ? 'bg-purple-100 text-purple-800' : 'bg-indigo-100 text-indigo-800' }}">
+                                    {{ strtoupper($student->curriculum_type ?? 'zimsec') }}
+                                </span>
+                                @if(($student->scholarship_percentage ?? 0) > 0)
+                                    <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
+                                        {{ $student->scholarship_percentage }}% Off
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $student->parent->user->name ?? 'N/A' }}

@@ -12,6 +12,10 @@ class ResultsStatus extends Model
         'total_fees',
         'total_day_fees',
         'total_boarding_fees',
+        'zimsec_day_fees',
+        'zimsec_boarding_fees',
+        'cambridge_day_fees',
+        'cambridge_boarding_fees',
 
     ];
 
@@ -19,6 +23,10 @@ class ResultsStatus extends Model
         'total_fees' => 'decimal:2',
         'total_day_fees' => 'decimal:2',
         'total_boarding_fees' => 'decimal:2',
+        'zimsec_day_fees' => 'decimal:2',
+        'zimsec_boarding_fees' => 'decimal:2',
+        'cambridge_day_fees' => 'decimal:2',
+        'cambridge_boarding_fees' => 'decimal:2',
     ];
 
     // A result status belongs to ONE class (grade)

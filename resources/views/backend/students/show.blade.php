@@ -85,6 +85,27 @@
                                     <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</dt>
                                     <dd class="mt-1 text-sm font-semibold text-gray-900">{{ \Carbon\Carbon::parse($student->dateofbirth)->format('M d, Y') }}</dd>
                                 </div>
+                                <div class="bg-gray-50 rounded-lg px-4 py-3">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Student Type</dt>
+                                    <dd class="mt-1">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ ($student->student_type ?? 'day') == 'boarding' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
+                                            {{ ucfirst($student->student_type ?? 'Day') }}
+                                        </span>
+                                    </dd>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg px-4 py-3">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Curriculum</dt>
+                                    <dd class="mt-1">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ ($student->curriculum_type ?? 'zimsec') == 'cambridge' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800' }}">
+                                            {{ strtoupper($student->curriculum_type ?? 'ZIMSEC') }}
+                                        </span>
+                                        @if(($student->scholarship_percentage ?? 0) > 0)
+                                            <span class="ml-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                {{ $student->scholarship_percentage }}% Scholarship
+                                            </span>
+                                        @endif
+                                    </dd>
+                                </div>
                                 <div class="bg-gray-50 rounded-lg px-4 py-3 sm:col-span-2">
                                     <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Current Address</dt>
                                     <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $student->current_address }}</dd>
@@ -225,6 +246,68 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                                     </svg>
                                     <p class="mt-2 text-sm text-gray-500">No subjects assigned to this class</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Payment History Card -->
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                                Payment History
+                                @if(isset($payments) && $payments->count() > 0)
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        ${{ number_format($payments->sum('amount_paid'), 2) }} Total
+                                    </span>
+                                @endif
+                            </h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            @if(isset($payments) && $payments->count() > 0)
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Term</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Reference</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-100">
+                                        @foreach ($payments as $payment)
+                                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    {{ $payment->created_at->format('M d, Y') }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                        {{ ucfirst($payment->resultsStatus->result_period ?? 'N/A') }} {{ $payment->resultsStatus->year ?? '' }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="text-sm font-bold text-green-600">${{ number_format($payment->amount_paid, 2) }}</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                    {{ ucfirst($payment->payment_method ?? 'Cash') }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {{ $payment->reference ?? '-' }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @else
+                                <div class="text-center py-12">
+                                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                    <p class="mt-2 text-sm text-gray-500">No payment records found</p>
                                 </div>
                             @endif
                         </div>

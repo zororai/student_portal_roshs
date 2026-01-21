@@ -258,6 +258,75 @@
                             @enderror
                         </div>
 
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Curriculum Type *</label>
+                            <div class="grid grid-cols-2 gap-4" id="curriculum-type-selector">
+                                <div class="curriculum-type-card relative flex items-center p-4 border-2 rounded-lg cursor-pointer hover:border-indigo-400 transition-colors border-indigo-500 bg-indigo-50" data-type="zimsec" onclick="selectCurriculumType('zimsec')">
+                                    <input name="curriculum_type" id="curriculum_type_zimsec" type="radio" value="zimsec" class="hidden" {{ old('curriculum_type', 'zimsec') == 'zimsec' ? 'checked' : '' }}>
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-900 font-semibold">ZIMSEC</span>
+                                            <p class="text-xs text-gray-500">Zimbabwe curriculum</p>
+                                        </div>
+                                    </div>
+                                    <div class="curriculum-check-indicator absolute top-2 right-2 w-5 h-5 border-2 rounded-full bg-indigo-500 border-indigo-500 flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="curriculum-type-card relative flex items-center p-4 border-2 rounded-lg cursor-pointer hover:border-purple-400 transition-colors border-gray-300" data-type="cambridge" onclick="selectCurriculumType('cambridge')">
+                                    <input name="curriculum_type" id="curriculum_type_cambridge" type="radio" value="cambridge" class="hidden" {{ old('curriculum_type') == 'cambridge' ? 'checked' : '' }}>
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-900 font-semibold">Cambridge</span>
+                                            <p class="text-xs text-gray-500">International curriculum</p>
+                                        </div>
+                                    </div>
+                                    <div class="curriculum-check-indicator absolute top-2 right-2 w-5 h-5 border-2 rounded-full border-gray-300 flex items-center justify-center hidden">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            @error('curriculum_type')
+                                <p class="text-red-500 text-xs mt-1 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Scholarship Percentage (Optional)</label>
+                            <div class="flex items-center">
+                                <input name="scholarship_percentage" type="number" min="0" max="100" step="0.01" class="w-32 px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 hover:border-gray-400" value="{{ old('scholarship_percentage', 0) }}" placeholder="0">
+                                <span class="ml-2 text-gray-600 font-medium">%</span>
+                                <span class="ml-4 text-xs text-gray-500">Enter 0-100. E.g., 50 = 50% discount on fees</span>
+                            </div>
+                            @error('scholarship_percentage')
+                                <p class="text-red-500 text-xs mt-1 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
                         <div class="grid md:grid-cols-2 gap-3 mb-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Chair Number (Optional)</label>
@@ -742,6 +811,44 @@
             dayIndicator.classList.add('hidden');
             dayIndicator.classList.remove('bg-blue-500', 'border-blue-500');
             dayIndicator.classList.add('border-gray-300');
+        }
+    }
+
+    // Curriculum type selection function
+    function selectCurriculumType(type) {
+        const zimsecCard = document.querySelector('.curriculum-type-card[data-type="zimsec"]');
+        const cambridgeCard = document.querySelector('.curriculum-type-card[data-type="cambridge"]');
+        const zimsecRadio = document.getElementById('curriculum_type_zimsec');
+        const cambridgeRadio = document.getElementById('curriculum_type_cambridge');
+        const zimsecIndicator = zimsecCard.querySelector('.curriculum-check-indicator');
+        const cambridgeIndicator = cambridgeCard.querySelector('.curriculum-check-indicator');
+
+        if (type === 'zimsec') {
+            zimsecRadio.checked = true;
+            zimsecCard.classList.remove('border-gray-300');
+            zimsecCard.classList.add('border-indigo-500', 'bg-indigo-50');
+            zimsecIndicator.classList.remove('hidden', 'border-gray-300');
+            zimsecIndicator.classList.add('bg-indigo-500', 'border-indigo-500');
+            
+            cambridgeRadio.checked = false;
+            cambridgeCard.classList.remove('border-purple-500', 'bg-purple-50');
+            cambridgeCard.classList.add('border-gray-300');
+            cambridgeIndicator.classList.add('hidden');
+            cambridgeIndicator.classList.remove('bg-purple-500', 'border-purple-500');
+            cambridgeIndicator.classList.add('border-gray-300');
+        } else {
+            cambridgeRadio.checked = true;
+            cambridgeCard.classList.remove('border-gray-300');
+            cambridgeCard.classList.add('border-purple-500', 'bg-purple-50');
+            cambridgeIndicator.classList.remove('hidden', 'border-gray-300');
+            cambridgeIndicator.classList.add('bg-purple-500', 'border-purple-500');
+            
+            zimsecRadio.checked = false;
+            zimsecCard.classList.remove('border-indigo-500', 'bg-indigo-50');
+            zimsecCard.classList.add('border-gray-300');
+            zimsecIndicator.classList.add('hidden');
+            zimsecIndicator.classList.remove('bg-indigo-500', 'border-indigo-500');
+            zimsecIndicator.classList.add('border-gray-300');
         }
     }
 

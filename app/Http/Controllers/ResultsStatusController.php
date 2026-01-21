@@ -29,12 +29,18 @@ class ResultsStatusController extends Controller
         $validatedData = $request->validate([
             'year' => 'required|integer',
             'result_period' => 'required|string',
-            'day_fees' => 'required|array',
-            'day_fees.*.fee_type_id' => 'required|exists:fee_types,id',
-            'day_fees.*.amount' => 'required|numeric|min:0',
-            'boarding_fees' => 'required|array',
-            'boarding_fees.*.fee_type_id' => 'required|exists:fee_types,id',
-            'boarding_fees.*.amount' => 'required|numeric|min:0',
+            'zimsec_day_fees' => 'required|array',
+            'zimsec_day_fees.*.fee_type_id' => 'required|exists:fee_types,id',
+            'zimsec_day_fees.*.amount' => 'required|numeric|min:0',
+            'zimsec_boarding_fees' => 'required|array',
+            'zimsec_boarding_fees.*.fee_type_id' => 'required|exists:fee_types,id',
+            'zimsec_boarding_fees.*.amount' => 'required|numeric|min:0',
+            'cambridge_day_fees' => 'required|array',
+            'cambridge_day_fees.*.fee_type_id' => 'required|exists:fee_types,id',
+            'cambridge_day_fees.*.amount' => 'required|numeric|min:0',
+            'cambridge_boarding_fees' => 'required|array',
+            'cambridge_boarding_fees.*.fee_type_id' => 'required|exists:fee_types,id',
+            'cambridge_boarding_fees.*.amount' => 'required|numeric|min:0',
         ]);
     
         // Attempt to create a new record only if it doesn't already exist
@@ -46,9 +52,15 @@ class ResultsStatusController extends Controller
             return redirect()->back()->withErrors(['duplicate' => 'A record with the same year and result period already exists.']);
         }
     
-        // Calculate total fees for day and boarding separately
-        $totalDayFees = array_sum(array_column($validatedData['day_fees'], 'amount'));
-        $totalBoardingFees = array_sum(array_column($validatedData['boarding_fees'], 'amount'));
+        // Calculate total fees for each curriculum and student type
+        $zimsecDayFees = array_sum(array_column($validatedData['zimsec_day_fees'], 'amount'));
+        $zimsecBoardingFees = array_sum(array_column($validatedData['zimsec_boarding_fees'], 'amount'));
+        $cambridgeDayFees = array_sum(array_column($validatedData['cambridge_day_fees'], 'amount'));
+        $cambridgeBoardingFees = array_sum(array_column($validatedData['cambridge_boarding_fees'], 'amount'));
+        
+        // Legacy totals (use ZIMSEC as default for backward compatibility)
+        $totalDayFees = $zimsecDayFees;
+        $totalBoardingFees = $zimsecBoardingFees;
         $totalFees = $totalDayFees + $totalBoardingFees;
         
         // Create a new ResultsStatus record
@@ -57,47 +69,90 @@ class ResultsStatusController extends Controller
             'result_period' => $validatedData['result_period'],
             'total_fees' => $totalFees,
             'total_day_fees' => $totalDayFees,
-            'total_boarding_fees' => $totalBoardingFees
+            'total_boarding_fees' => $totalBoardingFees,
+            'zimsec_day_fees' => $zimsecDayFees,
+            'zimsec_boarding_fees' => $zimsecBoardingFees,
+            'cambridge_day_fees' => $cambridgeDayFees,
+            'cambridge_boarding_fees' => $cambridgeBoardingFees,
         ]);
         
-        // Create day fees
-        foreach ($validatedData['day_fees'] as $fee) {
+        // Create ZIMSEC day fees
+        foreach ($validatedData['zimsec_day_fees'] as $fee) {
             TermFee::create([
                 'results_status_id' => $resultsStatus->id,
                 'fee_type_id' => $fee['fee_type_id'],
                 'student_type' => 'day',
+                'curriculum_type' => 'zimsec',
                 'amount' => $fee['amount']
             ]);
         }
         
-        // Create boarding fees
-        foreach ($validatedData['boarding_fees'] as $fee) {
+        // Create ZIMSEC boarding fees
+        foreach ($validatedData['zimsec_boarding_fees'] as $fee) {
             TermFee::create([
                 'results_status_id' => $resultsStatus->id,
                 'fee_type_id' => $fee['fee_type_id'],
                 'student_type' => 'boarding',
+                'curriculum_type' => 'zimsec',
+                'amount' => $fee['amount']
+            ]);
+        }
+        
+        // Create Cambridge day fees
+        foreach ($validatedData['cambridge_day_fees'] as $fee) {
+            TermFee::create([
+                'results_status_id' => $resultsStatus->id,
+                'fee_type_id' => $fee['fee_type_id'],
+                'student_type' => 'day',
+                'curriculum_type' => 'cambridge',
+                'amount' => $fee['amount']
+            ]);
+        }
+        
+        // Create Cambridge boarding fees
+        foreach ($validatedData['cambridge_boarding_fees'] as $fee) {
+            TermFee::create([
+                'results_status_id' => $resultsStatus->id,
+                'fee_type_id' => $fee['fee_type_id'],
+                'student_type' => 'boarding',
+                'curriculum_type' => 'cambridge',
                 'amount' => $fee['amount']
             ]);
         }
         
         // Save attendance settings
-        $sessionMode = $request->session_mode ?? 'single';
-        SchoolSetting::set('attendance_session_mode', $sessionMode, 'text', 'Attendance session mode (single or dual)');
-        SchoolSetting::set('attendance_check_in_time', $request->check_in_time ?? '07:30', 'time', 'Morning session check-in time');
-        SchoolSetting::set('attendance_check_out_time', $request->check_out_time ?? '16:30', 'time', 'Morning session check-out time');
+        $sessionMode = $request->session_mode ?? 'morning';
+        SchoolSetting::set('attendance_session_mode', $sessionMode, 'text', 'Attendance session mode (morning, afternoon, or dual)');
         SchoolSetting::set('attendance_late_grace_minutes', $request->late_grace_minutes ?? 0, 'number', 'Grace period in minutes before marking as late');
         
-        // Calculate and save work hours
-        $checkIn = Carbon::parse($request->check_in_time ?? '07:30');
-        $checkOut = Carbon::parse($request->check_out_time ?? '16:30');
-        $workHours = $checkIn->diffInHours($checkOut);
-        SchoolSetting::set('attendance_work_hours', $workHours, 'number', 'Morning session work hours');
-        
-        // Save afternoon session if dual mode
-        if ($sessionMode === 'dual') {
+        // Save session times based on mode
+        if ($sessionMode === 'morning') {
+            // Morning session only
+            SchoolSetting::set('attendance_check_in_time', $request->check_in_time ?? '07:30', 'time', 'Morning session check-in time');
+            SchoolSetting::set('attendance_check_out_time', $request->check_out_time ?? '12:30', 'time', 'Morning session check-out time');
+            $checkIn = Carbon::parse($request->check_in_time ?? '07:30');
+            $checkOut = Carbon::parse($request->check_out_time ?? '12:30');
+            $workHours = $checkIn->diffInHours($checkOut);
+            SchoolSetting::set('attendance_work_hours', $workHours, 'number', 'Morning session work hours');
+        } elseif ($sessionMode === 'afternoon') {
+            // Afternoon session only (use main check_in/check_out fields)
+            SchoolSetting::set('attendance_check_in_time', $request->check_in_time ?? '12:30', 'time', 'Afternoon session check-in time');
+            SchoolSetting::set('attendance_check_out_time', $request->check_out_time ?? '17:30', 'time', 'Afternoon session check-out time');
+            $checkIn = Carbon::parse($request->check_in_time ?? '12:30');
+            $checkOut = Carbon::parse($request->check_out_time ?? '17:30');
+            $workHours = $checkIn->diffInHours($checkOut);
+            SchoolSetting::set('attendance_work_hours', $workHours, 'number', 'Afternoon session work hours');
+        } elseif ($sessionMode === 'dual') {
+            // Dual session - morning and afternoon
+            SchoolSetting::set('attendance_check_in_time', $request->check_in_time ?? '07:30', 'time', 'Morning session check-in time');
+            SchoolSetting::set('attendance_check_out_time', $request->check_out_time ?? '12:30', 'time', 'Morning session check-out time');
+            $checkIn = Carbon::parse($request->check_in_time ?? '07:30');
+            $checkOut = Carbon::parse($request->check_out_time ?? '12:30');
+            $morningHours = $checkIn->diffInHours($checkOut);
+            SchoolSetting::set('attendance_work_hours', $morningHours, 'number', 'Morning session work hours');
+            
             SchoolSetting::set('attendance_afternoon_check_in_time', $request->afternoon_check_in_time ?? '12:30', 'time', 'Afternoon session check-in time');
             SchoolSetting::set('attendance_afternoon_check_out_time', $request->afternoon_check_out_time ?? '17:30', 'time', 'Afternoon session check-out time');
-            
             $afternoonIn = Carbon::parse($request->afternoon_check_in_time ?? '12:30');
             $afternoonOut = Carbon::parse($request->afternoon_check_out_time ?? '17:30');
             $afternoonHours = $afternoonIn->diffInHours($afternoonOut);

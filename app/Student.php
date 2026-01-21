@@ -20,6 +20,8 @@ class Student extends Model
         'permanent_address',
         'is_transferred',
         'student_type',
+        'curriculum_type',
+        'scholarship_percentage',
         'chair',
         'desk',
     ];

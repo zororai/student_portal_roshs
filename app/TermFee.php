@@ -10,6 +10,7 @@ class TermFee extends Model
         'results_status_id',
         'fee_type_id',
         'student_type',
+        'curriculum_type',
         'amount'
     ];
 

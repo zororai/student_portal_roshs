@@ -27,14 +27,9 @@ class FinanceController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Calculate total fees and amount paid for modal students based on student type
+        // Calculate total fees and amount paid for modal students based on student type, curriculum, and scholarship
         foreach ($allStudentsForModal as $student) {
-            $studentType = $student->student_type ?? 'day';
-            if ($studentType === 'boarding') {
-                $student->total_fees = $currentTerm ? floatval($currentTerm->total_boarding_fees) : 0;
-            } else {
-                $student->total_fees = $currentTerm ? floatval($currentTerm->total_day_fees) : 0;
-            }
+            $student->total_fees = $this->calculateStudentFees($student, $currentTerm);
             $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)
                 ->sum('amount_paid'));
             $student->balance = $student->total_fees - $student->amount_paid;
@@ -55,14 +50,9 @@ class FinanceController extends Controller
         
         $filteredStudents = $query->orderBy('created_at', 'desc')->get();
         
-        // Calculate total fees and amount paid for filtered students based on student type
+        // Calculate total fees and amount paid for filtered students based on student type, curriculum, and scholarship
         foreach ($filteredStudents as $student) {
-            $studentType = $student->student_type ?? 'day';
-            if ($studentType === 'boarding') {
-                $student->total_fees = $currentTerm ? floatval($currentTerm->total_boarding_fees) : 0;
-            } else {
-                $student->total_fees = $currentTerm ? floatval($currentTerm->total_day_fees) : 0;
-            }
+            $student->total_fees = $this->calculateStudentFees($student, $currentTerm);
             $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)
                 ->sum('amount_paid'));
             $student->balance = $student->total_fees - $student->amount_paid;
@@ -262,16 +252,32 @@ class FinanceController extends Controller
                     });
                 }
                 
-                // Calculate cumulative fees from ALL terms based on student type
+                // Calculate cumulative fees from ALL terms based on student type, curriculum, and scholarship
                 $totalFees = 0;
                 foreach ($students as $student) {
                     $studentType = $student->student_type ?? 'day';
+                    $curriculumType = $student->curriculum_type ?? 'zimsec';
+                    $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
+                    
                     foreach ($allTerms as $term) {
-                        if ($studentType === 'boarding') {
-                            $totalFees += floatval($term->total_boarding_fees ?? $term->total_fees);
+                        // Get base fee based on curriculum and student type
+                        $baseFee = 0;
+                        if ($curriculumType === 'cambridge') {
+                            $baseFee = $studentType === 'boarding' 
+                                ? floatval($term->cambridge_boarding_fees ?? 0) 
+                                : floatval($term->cambridge_day_fees ?? 0);
                         } else {
-                            $totalFees += floatval($term->total_day_fees ?? $term->total_fees);
+                            $baseFee = $studentType === 'boarding' 
+                                ? floatval($term->zimsec_boarding_fees ?? $term->total_boarding_fees ?? $term->total_fees) 
+                                : floatval($term->zimsec_day_fees ?? $term->total_day_fees ?? $term->total_fees);
                         }
+                        
+                        // Apply scholarship discount
+                        if ($scholarshipPercentage > 0 && $scholarshipPercentage <= 100) {
+                            $baseFee = $baseFee - ($baseFee * ($scholarshipPercentage / 100));
+                        }
+                        
+                        $totalFees += $baseFee;
                     }
                 }
                 
@@ -292,14 +298,28 @@ class FinanceController extends Controller
                 $arrearsBreakdown = [];
                 foreach ($students as $student) {
                     $studentType = $student->student_type ?? 'day';
+                    $curriculumType = $student->curriculum_type ?? 'zimsec';
+                    $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
                     $studentArrears = [];
+                    
                     foreach ($allTerms as $term) {
-                        // Get fees based on student type
-                        if ($studentType === 'boarding') {
-                            $termFees = floatval($term->total_boarding_fees ?? $term->total_fees);
+                        // Get fees based on curriculum and student type
+                        $termFees = 0;
+                        if ($curriculumType === 'cambridge') {
+                            $termFees = $studentType === 'boarding' 
+                                ? floatval($term->cambridge_boarding_fees ?? 0) 
+                                : floatval($term->cambridge_day_fees ?? 0);
                         } else {
-                            $termFees = floatval($term->total_day_fees ?? $term->total_fees);
+                            $termFees = $studentType === 'boarding' 
+                                ? floatval($term->zimsec_boarding_fees ?? $term->total_boarding_fees ?? $term->total_fees) 
+                                : floatval($term->zimsec_day_fees ?? $term->total_day_fees ?? $term->total_fees);
                         }
+                        
+                        // Apply scholarship discount
+                        if ($scholarshipPercentage > 0 && $scholarshipPercentage <= 100) {
+                            $termFees = $termFees - ($termFees * ($scholarshipPercentage / 100));
+                        }
+                        
                         $termPaid = floatval(\App\StudentPayment::where('student_id', $student->id)
                             ->where('results_status_id', $term->id)
                             ->sum('amount_paid'));
@@ -320,6 +340,8 @@ class FinanceController extends Controller
                             'student_name' => $student->user->name ?? $student->name,
                             'class' => $student->class->class_name ?? 'N/A',
                             'student_type' => ucfirst($studentType),
+                            'curriculum_type' => strtoupper($curriculumType),
+                            'scholarship' => $scholarshipPercentage . '%',
                             'terms' => $studentArrears,
                             'total_arrears' => array_sum(array_column($studentArrears, 'arrears'))
                         ];
@@ -901,5 +923,40 @@ class FinanceController extends Controller
         }
 
         return view('parent.payment-history', compact('paymentData', 'children'));
+    }
+
+    /**
+     * Calculate total fees for a student based on curriculum type, student type, and scholarship percentage
+     */
+    private function calculateStudentFees($student, $currentTerm)
+    {
+        if (!$currentTerm) {
+            return 0;
+        }
+
+        $studentType = $student->student_type ?? 'day';
+        $curriculumType = $student->curriculum_type ?? 'zimsec';
+        $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
+
+        // Get base fee based on curriculum and student type
+        $baseFee = 0;
+        if ($curriculumType === 'cambridge') {
+            $baseFee = $studentType === 'boarding' 
+                ? floatval($currentTerm->cambridge_boarding_fees ?? 0) 
+                : floatval($currentTerm->cambridge_day_fees ?? 0);
+        } else {
+            // Default to ZIMSEC
+            $baseFee = $studentType === 'boarding' 
+                ? floatval($currentTerm->zimsec_boarding_fees ?? $currentTerm->total_boarding_fees ?? 0) 
+                : floatval($currentTerm->zimsec_day_fees ?? $currentTerm->total_day_fees ?? 0);
+        }
+
+        // Apply scholarship discount
+        if ($scholarshipPercentage > 0 && $scholarshipPercentage <= 100) {
+            $discount = $baseFee * ($scholarshipPercentage / 100);
+            $baseFee = $baseFee - $discount;
+        }
+
+        return $baseFee;
     }
 }

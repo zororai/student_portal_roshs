@@ -112,9 +112,13 @@
                         <td class="px-6 py-4">
                             <div class="flex flex-wrap gap-1">
                                 @foreach($parent->filtered_students as $student)
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {{ $student->user->name ?? $student->name }} ({{ $student->class->class_name ?? 'N/A' }})
-                                    </span>
+                                    <div class="inline-flex flex-col items-start px-2 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-800 mb-1">
+                                        <span class="font-semibold">{{ $student->user->name ?? $student->name }}</span>
+                                        <span class="text-blue-600">{{ $student->class->class_name ?? 'N/A' }} | {{ strtoupper($student->curriculum_type ?? 'zimsec') }}</span>
+                                        @if(($student->scholarship_percentage ?? 0) > 0)
+                                            <span class="text-green-600">{{ $student->scholarship_percentage }}% Scholarship</span>
+                                        @endif
+                                    </div>
                                 @endforeach
                             </div>
                         </td>

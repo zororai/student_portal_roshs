@@ -65,132 +65,214 @@
                     @enderror
                 </div>
 
-                <!-- Day Scholar Fees Section -->
+                <!-- Curriculum Fee Structure Tabs -->
                 <div class="mb-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-bold text-gray-700 flex items-center">
-                            <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            <svg class="w-6 h-6 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                             </svg>
-                            Day Scholar Fees
+                            Fee Structure by Curriculum
                         </h3>
                     </div>
 
-                    <div id="dayFeesContainer" class="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        @if($feeTypes->count() > 0)
-                            <div class="fee-type-row bg-white p-4 rounded border border-gray-200">
-                                <div class="grid grid-cols-12 gap-4">
-                                    <div class="col-span-5">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Fee Type</label>
-                                        <select name="day_fees[0][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500" required>
-                                            <option value="">Select Fee Type</option>
-                                            @foreach($feeTypes as $type)
-                                                <option value="{{ $type->id }}">{{ $type->name }}</option>
-                                            @endforeach
-                                        </select>
+                    <!-- Curriculum Tabs -->
+                    <div class="border-b border-gray-200 mb-4">
+                        <nav class="-mb-px flex space-x-8">
+                            <button type="button" onclick="switchCurriculumTab('zimsec')" id="zimsec-tab" class="curriculum-tab border-b-2 border-indigo-500 py-2 px-1 text-sm font-medium text-indigo-600">
+                                ZIMSEC Curriculum
+                            </button>
+                            <button type="button" onclick="switchCurriculumTab('cambridge')" id="cambridge-tab" class="curriculum-tab border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                Cambridge Curriculum
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- ZIMSEC Fees Panel -->
+                    <div id="zimsec-panel" class="curriculum-panel">
+                        <!-- ZIMSEC Day Scholar Fees -->
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-gray-700 mb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                ZIMSEC Day Scholar Fees
+                            </h4>
+                            <div id="zimsecDayFeesContainer" class="space-y-3 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                @if($feeTypes->count() > 0)
+                                    <div class="fee-type-row bg-white p-3 rounded border border-gray-200">
+                                        <div class="grid grid-cols-12 gap-3">
+                                            <div class="col-span-5">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Fee Type</label>
+                                                <select name="zimsec_day_fees[0][fee_type_id]" class="w-full border rounded px-3 py-2 text-sm" required>
+                                                    <option value="">Select Fee Type</option>
+                                                    @foreach($feeTypes as $type)
+                                                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-span-5">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                                                <input type="number" name="zimsec_day_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-3 py-2 text-sm zimsec-day-fee-amount" placeholder="0.00" required>
+                                            </div>
+                                            <div class="col-span-2 flex items-end gap-1">
+                                                <button type="button" class="add-zimsec-day-fee bg-green-500 hover:bg-green-600 text-white px-2 py-2 rounded text-xs" title="Add">+</button>
+                                                <button type="button" class="remove-zimsec-day-fee bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded text-xs" title="Remove">-</button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-span-5">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-                                        <input type="number" name="day_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 day-fee-amount" placeholder="0.00" required>
-                                    </div>
-                                    <div class="col-span-2 flex items-end gap-2">
-                                        <button type="button" class="add-day-fee bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                            </svg>
-                                        </button>
-                                        <button type="button" class="remove-day-fee bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
-                                    </div>
+                                @endif
+                                <div class="text-right font-semibold text-blue-700 text-sm">
+                                    Total: <span id="zimsecDayTotalDisplay">$0.00</span>
                                 </div>
                             </div>
-                        @else
-                            <div class="text-center py-8 text-gray-500">
-                                <p>No fee types available. Please add fee types first.</p>
+                        </div>
+
+                        <!-- ZIMSEC Boarding Fees -->
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-gray-700 mb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                </svg>
+                                ZIMSEC Boarding Fees
+                            </h4>
+                            <div id="zimsecBoardingFeesContainer" class="space-y-3 bg-green-50 p-4 rounded-lg border border-green-200">
+                                @if($feeTypes->count() > 0)
+                                    <div class="fee-type-row bg-white p-3 rounded border border-gray-200">
+                                        <div class="grid grid-cols-12 gap-3">
+                                            <div class="col-span-5">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Fee Type</label>
+                                                <select name="zimsec_boarding_fees[0][fee_type_id]" class="w-full border rounded px-3 py-2 text-sm" required>
+                                                    <option value="">Select Fee Type</option>
+                                                    @foreach($feeTypes as $type)
+                                                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-span-5">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                                                <input type="number" name="zimsec_boarding_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-3 py-2 text-sm zimsec-boarding-fee-amount" placeholder="0.00" required>
+                                            </div>
+                                            <div class="col-span-2 flex items-end gap-1">
+                                                <button type="button" class="add-zimsec-boarding-fee bg-green-500 hover:bg-green-600 text-white px-2 py-2 rounded text-xs" title="Add">+</button>
+                                                <button type="button" class="remove-zimsec-boarding-fee bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded text-xs" title="Remove">-</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                                <div class="text-right font-semibold text-green-700 text-sm">
+                                    Total: <span id="zimsecBoardingTotalDisplay">$0.00</span>
+                                </div>
                             </div>
-                        @endif
-                        <div class="text-right font-semibold text-blue-700">
-                            Day Total: <span id="dayTotalDisplay">$0.00</span>
                         </div>
                     </div>
 
-                    @error('day_fees')
-                        <div class="text-danger text-red-500 text-sm mt-2">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <!-- Boarding Fees Section -->
-                <div class="mb-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-gray-700 flex items-center">
-                            <svg class="w-6 h-6 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                            </svg>
-                            Boarding Fees
-                        </h3>
-                    </div>
-
-                    <div id="boardingFeesContainer" class="space-y-4 bg-green-50 p-4 rounded-lg border border-green-200">
-                        @if($feeTypes->count() > 0)
-                            <div class="fee-type-row bg-white p-4 rounded border border-gray-200">
-                                <div class="grid grid-cols-12 gap-4">
-                                    <div class="col-span-5">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Fee Type</label>
-                                        <select name="boarding_fees[0][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-500" required>
-                                            <option value="">Select Fee Type</option>
-                                            @foreach($feeTypes as $type)
-                                                <option value="{{ $type->id }}">{{ $type->name }}</option>
-                                            @endforeach
-                                        </select>
+                    <!-- Cambridge Fees Panel (hidden by default) -->
+                    <div id="cambridge-panel" class="curriculum-panel hidden">
+                        <!-- Cambridge Day Scholar Fees -->
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-gray-700 mb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                Cambridge Day Scholar Fees
+                            </h4>
+                            <div id="cambridgeDayFeesContainer" class="space-y-3 bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                @if($feeTypes->count() > 0)
+                                    <div class="fee-type-row bg-white p-3 rounded border border-gray-200">
+                                        <div class="grid grid-cols-12 gap-3">
+                                            <div class="col-span-5">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Fee Type</label>
+                                                <select name="cambridge_day_fees[0][fee_type_id]" class="w-full border rounded px-3 py-2 text-sm" required>
+                                                    <option value="">Select Fee Type</option>
+                                                    @foreach($feeTypes as $type)
+                                                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-span-5">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                                                <input type="number" name="cambridge_day_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-3 py-2 text-sm cambridge-day-fee-amount" placeholder="0.00" required>
+                                            </div>
+                                            <div class="col-span-2 flex items-end gap-1">
+                                                <button type="button" class="add-cambridge-day-fee bg-green-500 hover:bg-green-600 text-white px-2 py-2 rounded text-xs" title="Add">+</button>
+                                                <button type="button" class="remove-cambridge-day-fee bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded text-xs" title="Remove">-</button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-span-5">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-                                        <input type="number" name="boarding_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-500 boarding-fee-amount" placeholder="0.00" required>
-                                    </div>
-                                    <div class="col-span-2 flex items-end gap-2">
-                                        <button type="button" class="add-boarding-fee bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                            </svg>
-                                        </button>
-                                        <button type="button" class="remove-boarding-fee bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
-                                    </div>
+                                @endif
+                                <div class="text-right font-semibold text-purple-700 text-sm">
+                                    Total: <span id="cambridgeDayTotalDisplay">$0.00</span>
                                 </div>
                             </div>
-                        @else
-                            <div class="text-center py-8 text-gray-500">
-                                <p>No fee types available. Please add fee types first.</p>
+                        </div>
+
+                        <!-- Cambridge Boarding Fees -->
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-gray-700 mb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                </svg>
+                                Cambridge Boarding Fees
+                            </h4>
+                            <div id="cambridgeBoardingFeesContainer" class="space-y-3 bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                @if($feeTypes->count() > 0)
+                                    <div class="fee-type-row bg-white p-3 rounded border border-gray-200">
+                                        <div class="grid grid-cols-12 gap-3">
+                                            <div class="col-span-5">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Fee Type</label>
+                                                <select name="cambridge_boarding_fees[0][fee_type_id]" class="w-full border rounded px-3 py-2 text-sm" required>
+                                                    <option value="">Select Fee Type</option>
+                                                    @foreach($feeTypes as $type)
+                                                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-span-5">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                                                <input type="number" name="cambridge_boarding_fees[0][amount]" step="0.01" min="0" class="w-full border rounded px-3 py-2 text-sm cambridge-boarding-fee-amount" placeholder="0.00" required>
+                                            </div>
+                                            <div class="col-span-2 flex items-end gap-1">
+                                                <button type="button" class="add-cambridge-boarding-fee bg-green-500 hover:bg-green-600 text-white px-2 py-2 rounded text-xs" title="Add">+</button>
+                                                <button type="button" class="remove-cambridge-boarding-fee bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded text-xs" title="Remove">-</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                                <div class="text-right font-semibold text-orange-700 text-sm">
+                                    Total: <span id="cambridgeBoardingTotalDisplay">$0.00</span>
+                                </div>
                             </div>
-                        @endif
-                        <div class="text-right font-semibold text-green-700">
-                            Boarding Total: <span id="boardingTotalDisplay">$0.00</span>
                         </div>
                     </div>
 
-                    @error('boarding_fees')
+                    @error('zimsec_day_fees')
                         <div class="text-danger text-red-500 text-sm mt-2">{{ $message }}</div>
                     @enderror
                 </div>
 
                 <!-- Total Fees Summary -->
-                <div class="mb-6 grid grid-cols-2 gap-4">
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                        <h4 class="text-lg font-bold text-gray-800">Day Scholar Total</h4>
-                        <p class="text-sm text-gray-600">Total fees for day students</p>
-                        <div id="totalDayFeesDisplay" class="text-2xl font-bold text-blue-600 mt-2">$0.00</div>
+                <div class="mb-6">
+                    <h4 class="text-md font-bold text-gray-700 mb-3">Fee Summary</h4>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                            <p class="text-xs text-gray-600">ZIMSEC Day</p>
+                            <div id="totalZimsecDayDisplay" class="text-lg font-bold text-blue-600">$0.00</div>
+                        </div>
+                        <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded">
+                            <p class="text-xs text-gray-600">ZIMSEC Boarding</p>
+                            <div id="totalZimsecBoardingDisplay" class="text-lg font-bold text-green-600">$0.00</div>
+                        </div>
+                        <div class="bg-purple-50 border-l-4 border-purple-500 p-3 rounded">
+                            <p class="text-xs text-gray-600">Cambridge Day</p>
+                            <div id="totalCambridgeDayDisplay" class="text-lg font-bold text-purple-600">$0.00</div>
+                        </div>
+                        <div class="bg-orange-50 border-l-4 border-orange-500 p-3 rounded">
+                            <p class="text-xs text-gray-600">Cambridge Boarding</p>
+                            <div id="totalCambridgeBoardingDisplay" class="text-lg font-bold text-orange-600">$0.00</div>
+                        </div>
                     </div>
-                    <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
-                        <h4 class="text-lg font-bold text-gray-800">Boarding Total</h4>
-                        <p class="text-sm text-gray-600">Total fees for boarding students</p>
-                        <div id="totalBoardingFeesDisplay" class="text-2xl font-bold text-green-600 mt-2">$0.00</div>
-                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Scholarship students get percentage discounts applied to these rates.</p>
                 </div>
 
                 <!-- Teacher Attendance Settings Section -->
@@ -208,14 +290,23 @@
                         <!-- Session Mode Toggle -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-3">School Session Mode</label>
-                            <div class="flex space-x-4">
-                                <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all border-purple-500 bg-white" id="single_mode_label">
-                                    <input type="radio" name="session_mode" value="single" checked
-                                           class="h-4 w-4 text-purple-600 focus:ring-purple-500"
+                            <div class="flex flex-wrap gap-3">
+                                <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all border-amber-500 bg-amber-50" id="morning_mode_label">
+                                    <input type="radio" name="session_mode" value="morning" checked
+                                           class="h-4 w-4 text-amber-600 focus:ring-amber-500"
                                            onchange="toggleAttendanceSessionMode()">
                                     <div class="ml-3">
-                                        <span class="block font-medium text-gray-900">Single Session</span>
-                                        <span class="block text-xs text-gray-500">Full day schedule</span>
+                                        <span class="block font-medium text-gray-900">Morning Session</span>
+                                        <span class="block text-xs text-gray-500">Morning only (e.g., 07:30 - 12:30)</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all border-gray-200 hover:border-gray-300" id="afternoon_mode_label">
+                                    <input type="radio" name="session_mode" value="afternoon"
+                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                                           onchange="toggleAttendanceSessionMode()">
+                                    <div class="ml-3">
+                                        <span class="block font-medium text-gray-900">Afternoon Session</span>
+                                        <span class="block text-xs text-gray-500">Afternoon only (e.g., 12:30 - 17:30)</span>
                                     </div>
                                 </label>
                                 <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all border-gray-200 hover:border-gray-300" id="dual_mode_label">
@@ -224,7 +315,7 @@
                                            onchange="toggleAttendanceSessionMode()">
                                     <div class="ml-3">
                                         <span class="block font-medium text-gray-900">Dual Session</span>
-                                        <span class="block text-xs text-gray-500">Morning & Afternoon</span>
+                                        <span class="block text-xs text-gray-500">Morning & Afternoon sessions</span>
                                     </div>
                                 </label>
                             </div>
@@ -299,174 +390,146 @@
 
 @push('scripts')
 <script>
-let dayFeeIndex = 1;
-let boardingFeeIndex = 1;
+let zimsecDayFeeIndex = 1;
+let zimsecBoardingFeeIndex = 1;
+let cambridgeDayFeeIndex = 1;
+let cambridgeBoardingFeeIndex = 1;
+
+// Switch curriculum tab
+function switchCurriculumTab(curriculum) {
+    document.querySelectorAll('.curriculum-panel').forEach(panel => panel.classList.add('hidden'));
+    document.querySelectorAll('.curriculum-tab').forEach(tab => {
+        tab.classList.remove('border-indigo-500', 'text-indigo-600');
+        tab.classList.add('border-transparent', 'text-gray-500');
+    });
+    document.getElementById(curriculum + '-panel').classList.remove('hidden');
+    const activeTab = document.getElementById(curriculum + '-tab');
+    activeTab.classList.add('border-indigo-500', 'text-indigo-600');
+    activeTab.classList.remove('border-transparent', 'text-gray-500');
+}
 
 // Function to calculate totals
 function updateTotals() {
-    // Calculate Day fees total
-    let dayTotal = 0;
-    document.querySelectorAll('.day-fee-amount').forEach(input => {
-        dayTotal += parseFloat(input.value) || 0;
-    });
-    document.getElementById('dayTotalDisplay').textContent = '$' + dayTotal.toFixed(2);
-    document.getElementById('totalDayFeesDisplay').textContent = '$' + dayTotal.toFixed(2);
+    let zimsecDayTotal = 0;
+    document.querySelectorAll('.zimsec-day-fee-amount').forEach(input => { zimsecDayTotal += parseFloat(input.value) || 0; });
+    document.getElementById('zimsecDayTotalDisplay').textContent = '$' + zimsecDayTotal.toFixed(2);
+    document.getElementById('totalZimsecDayDisplay').textContent = '$' + zimsecDayTotal.toFixed(2);
     
-    // Calculate Boarding fees total
-    let boardingTotal = 0;
-    document.querySelectorAll('.boarding-fee-amount').forEach(input => {
-        boardingTotal += parseFloat(input.value) || 0;
-    });
-    document.getElementById('boardingTotalDisplay').textContent = '$' + boardingTotal.toFixed(2);
-    document.getElementById('totalBoardingFeesDisplay').textContent = '$' + boardingTotal.toFixed(2);
+    let zimsecBoardingTotal = 0;
+    document.querySelectorAll('.zimsec-boarding-fee-amount').forEach(input => { zimsecBoardingTotal += parseFloat(input.value) || 0; });
+    document.getElementById('zimsecBoardingTotalDisplay').textContent = '$' + zimsecBoardingTotal.toFixed(2);
+    document.getElementById('totalZimsecBoardingDisplay').textContent = '$' + zimsecBoardingTotal.toFixed(2);
+    
+    let cambridgeDayTotal = 0;
+    document.querySelectorAll('.cambridge-day-fee-amount').forEach(input => { cambridgeDayTotal += parseFloat(input.value) || 0; });
+    document.getElementById('cambridgeDayTotalDisplay').textContent = '$' + cambridgeDayTotal.toFixed(2);
+    document.getElementById('totalCambridgeDayDisplay').textContent = '$' + cambridgeDayTotal.toFixed(2);
+    
+    let cambridgeBoardingTotal = 0;
+    document.querySelectorAll('.cambridge-boarding-fee-amount').forEach(input => { cambridgeBoardingTotal += parseFloat(input.value) || 0; });
+    document.getElementById('cambridgeBoardingTotalDisplay').textContent = '$' + cambridgeBoardingTotal.toFixed(2);
+    document.getElementById('totalCambridgeBoardingDisplay').textContent = '$' + cambridgeBoardingTotal.toFixed(2);
 }
 
-// Fee type options HTML
-const feeTypeOptions = `
-    <option value="">Select Fee Type</option>
-    @foreach($feeTypes as $type)
-        <option value="{{ $type->id }}">{{ $type->name }}</option>
-    @endforeach
-`;
+const feeTypeOptions = `<option value="">Select Fee Type</option>@foreach($feeTypes as $type)<option value="{{ $type->id }}">{{ $type->name }}</option>@endforeach`;
 
-// Toggle attendance session mode
 function toggleAttendanceSessionMode() {
-    const isDual = document.querySelector('input[name="session_mode"]:checked').value === 'dual';
-    document.getElementById('afternoon_session_section').classList.toggle('hidden', !isDual);
-    document.getElementById('morning_session_label').textContent = isDual ? 'Morning Session' : 'Work Hours';
-    
-    // Update radio button styles
-    const singleLabel = document.getElementById('single_mode_label');
+    const mode = document.querySelector('input[name="session_mode"]:checked').value;
+    const morningSection = document.querySelector('#morning_session_label').closest('.bg-white');
+    const afternoonSection = document.getElementById('afternoon_session_section');
+    const morningLabel = document.getElementById('morning_mode_label');
+    const afternoonLabel = document.getElementById('afternoon_mode_label');
     const dualLabel = document.getElementById('dual_mode_label');
     
-    if (isDual) {
-        singleLabel.classList.remove('border-purple-500', 'bg-white');
-        singleLabel.classList.add('border-gray-200');
-        dualLabel.classList.add('border-purple-500', 'bg-white');
+    // Reset all labels
+    [morningLabel, afternoonLabel, dualLabel].forEach(label => {
+        label.classList.remove('border-amber-500', 'bg-amber-50', 'border-indigo-500', 'bg-indigo-50', 'border-purple-500', 'bg-purple-50');
+        label.classList.add('border-gray-200');
+    });
+    
+    // Hide both sections initially
+    morningSection.classList.add('hidden');
+    afternoonSection.classList.add('hidden');
+    
+    if (mode === 'morning') {
+        morningLabel.classList.remove('border-gray-200');
+        morningLabel.classList.add('border-amber-500', 'bg-amber-50');
+        morningSection.classList.remove('hidden');
+        document.getElementById('morning_session_label').textContent = 'Morning Session';
+        document.getElementById('check_in_time').value = '07:30';
+        document.getElementById('check_out_time').value = '12:30';
+    } else if (mode === 'afternoon') {
+        afternoonLabel.classList.remove('border-gray-200');
+        afternoonLabel.classList.add('border-indigo-500', 'bg-indigo-50');
+        morningSection.classList.remove('hidden');
+        document.getElementById('morning_session_label').textContent = 'Afternoon Session';
+        document.getElementById('check_in_time').value = '12:30';
+        document.getElementById('check_out_time').value = '17:30';
+    } else if (mode === 'dual') {
         dualLabel.classList.remove('border-gray-200');
-    } else {
-        singleLabel.classList.add('border-purple-500', 'bg-white');
-        singleLabel.classList.remove('border-gray-200');
-        dualLabel.classList.remove('border-purple-500', 'bg-white');
-        dualLabel.classList.add('border-gray-200');
+        dualLabel.classList.add('border-purple-500', 'bg-purple-50');
+        morningSection.classList.remove('hidden');
+        afternoonSection.classList.remove('hidden');
+        document.getElementById('morning_session_label').textContent = 'Morning Session';
+        document.getElementById('check_in_time').value = '07:30';
+        document.getElementById('check_out_time').value = '12:30';
+        document.getElementById('afternoon_check_in_time').value = '12:30';
+        document.getElementById('afternoon_check_out_time').value = '17:30';
     }
 }
 
+function createFeeRow(prefix, index, colorClass) {
+    return `<div class="fee-type-row bg-white p-3 rounded border border-gray-200">
+        <div class="grid grid-cols-12 gap-3">
+            <div class="col-span-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fee Type</label>
+                <select name="${prefix}[${index}][fee_type_id]" class="w-full border rounded px-3 py-2 text-sm" required>${feeTypeOptions}</select>
+            </div>
+            <div class="col-span-5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                <input type="number" name="${prefix}[${index}][amount]" step="0.01" min="0" class="w-full border rounded px-3 py-2 text-sm ${prefix.replace('_', '-')}-amount" placeholder="0.00" required>
+            </div>
+            <div class="col-span-2 flex items-end gap-1">
+                <button type="button" class="add-${prefix.replace('_', '-')} bg-green-500 hover:bg-green-600 text-white px-2 py-2 rounded text-xs" title="Add">+</button>
+                <button type="button" class="remove-${prefix.replace('_', '-')} bg-red-500 hover:bg-red-600 text-white px-2 py-2 rounded text-xs" title="Remove">-</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+function setupFeeContainer(containerId, addBtnClass, removeBtnClass, prefix, indexVar) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.' + addBtnClass)) {
+            const idx = window[indexVar]++;
+            const row = createFeeRow(prefix, idx, '');
+            e.target.closest('.fee-type-row').insertAdjacentHTML('afterend', row);
+            updateTotals();
+        }
+        if (e.target.closest('.' + removeBtnClass)) {
+            const rows = container.querySelectorAll('.fee-type-row');
+            if (rows.length > 1) { e.target.closest('.fee-type-row').remove(); updateTotals(); }
+            else { alert('You must have at least one fee type.'); }
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    const dayFeesContainer = document.getElementById('dayFeesContainer');
-    const boardingFeesContainer = document.getElementById('boardingFeesContainer');
-    
-    // Update totals on any input change
     document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('day-fee-amount') || e.target.classList.contains('boarding-fee-amount')) {
+        if (e.target.classList.contains('zimsec-day-fee-amount') || 
+            e.target.classList.contains('zimsec-boarding-fee-amount') ||
+            e.target.classList.contains('cambridge-day-fee-amount') ||
+            e.target.classList.contains('cambridge-boarding-fee-amount')) {
             updateTotals();
         }
     });
-    
-    // Initial calculation
     updateTotals();
     
-    // Day Fees - Add row
-    dayFeesContainer.addEventListener('click', function(e) {
-        const addBtn = e.target.closest('.add-day-fee');
-        if (addBtn) {
-            const newRow = `
-                <div class="fee-type-row bg-white p-4 rounded border border-gray-200">
-                    <div class="grid grid-cols-12 gap-4">
-                        <div class="col-span-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Fee Type</label>
-                            <select name="day_fees[${dayFeeIndex}][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500" required>
-                                ${feeTypeOptions}
-                            </select>
-                        </div>
-                        <div class="col-span-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-                            <input type="number" name="day_fees[${dayFeeIndex}][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-blue-500 day-fee-amount" placeholder="0.00" required>
-                        </div>
-                        <div class="col-span-2 flex items-end gap-2">
-                            <button type="button" class="add-day-fee bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                </svg>
-                            </button>
-                            <button type="button" class="remove-day-fee bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            const currentRow = addBtn.closest('.fee-type-row');
-            currentRow.insertAdjacentHTML('afterend', newRow);
-            dayFeeIndex++;
-        }
-        
-        // Remove day fee row
-        const removeBtn = e.target.closest('.remove-day-fee');
-        if (removeBtn) {
-            const row = removeBtn.closest('.fee-type-row');
-            const allRows = dayFeesContainer.querySelectorAll('.fee-type-row');
-            if (allRows.length > 1 && row) {
-                row.remove();
-                updateTotals();
-            } else {
-                alert('You must have at least one day fee type.');
-            }
-        }
-    });
-    
-    // Boarding Fees - Add row
-    boardingFeesContainer.addEventListener('click', function(e) {
-        const addBtn = e.target.closest('.add-boarding-fee');
-        if (addBtn) {
-            const newRow = `
-                <div class="fee-type-row bg-white p-4 rounded border border-gray-200">
-                    <div class="grid grid-cols-12 gap-4">
-                        <div class="col-span-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Fee Type</label>
-                            <select name="boarding_fees[${boardingFeeIndex}][fee_type_id]" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-500" required>
-                                ${feeTypeOptions}
-                            </select>
-                        </div>
-                        <div class="col-span-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
-                            <input type="number" name="boarding_fees[${boardingFeeIndex}][amount]" step="0.01" min="0" class="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-500 boarding-fee-amount" placeholder="0.00" required>
-                        </div>
-                        <div class="col-span-2 flex items-end gap-2">
-                            <button type="button" class="add-boarding-fee bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Add another fee">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                </svg>
-                            </button>
-                            <button type="button" class="remove-boarding-fee bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded flex items-center justify-center" title="Remove fee">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            const currentRow = addBtn.closest('.fee-type-row');
-            currentRow.insertAdjacentHTML('afterend', newRow);
-            boardingFeeIndex++;
-        }
-        
-        // Remove boarding fee row
-        const removeBtn = e.target.closest('.remove-boarding-fee');
-        if (removeBtn) {
-            const row = removeBtn.closest('.fee-type-row');
-            const allRows = boardingFeesContainer.querySelectorAll('.fee-type-row');
-            if (allRows.length > 1 && row) {
-                row.remove();
-                updateTotals();
-            } else {
-                alert('You must have at least one boarding fee type.');
-            }
-        }
-    });
+    setupFeeContainer('zimsecDayFeesContainer', 'add-zimsec-day-fee', 'remove-zimsec-day-fee', 'zimsec_day_fees', 'zimsecDayFeeIndex');
+    setupFeeContainer('zimsecBoardingFeesContainer', 'add-zimsec-boarding-fee', 'remove-zimsec-boarding-fee', 'zimsec_boarding_fees', 'zimsecBoardingFeeIndex');
+    setupFeeContainer('cambridgeDayFeesContainer', 'add-cambridge-day-fee', 'remove-cambridge-day-fee', 'cambridge_day_fees', 'cambridgeDayFeeIndex');
+    setupFeeContainer('cambridgeBoardingFeesContainer', 'add-cambridge-boarding-fee', 'remove-cambridge-boarding-fee', 'cambridge_boarding_fees', 'cambridgeBoardingFeeIndex');
 });
 </script>
 @endpush

@@ -22,20 +22,36 @@ class StudentController extends Controller
      */
     private function generateRollNumber()
     {
-        // Get the last student's roll number
+        // Get the highest roll number from students table
         $lastStudent = Student::orderBy('id', 'desc')->first();
-
+        
         if (!$lastStudent || empty($lastStudent->roll_number)) {
-            // First student
-            return 'RSH0001';
+            $newNumber = 1;
+        } else {
+            // Extract the numeric part from the last roll number
+            $newNumber = (int) substr($lastStudent->roll_number, 3) + 1;
         }
 
-        // Extract the numeric part from the last roll number
-        $lastNumber = (int) substr($lastStudent->roll_number, 3);
+        // Keep incrementing until we find a roll number whose email is not taken
+        $maxAttempts = 1000;
+        $attempts = 0;
+        
+        while ($attempts < $maxAttempts) {
+            $rollNumber = 'RSH' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+            $email = strtolower($rollNumber) . '@roshs.co.zw';
+            
+            // Check if this email already exists in users table
+            $emailExists = \App\User::where('email', $email)->exists();
+            
+            if (!$emailExists) {
+                return $rollNumber;
+            }
+            
+            $newNumber++;
+            $attempts++;
+        }
 
-        // Increment and format with leading zeros
-        $newNumber = $lastNumber + 1;
-
+        // Fallback: use timestamp-based roll number
         return 'RSH' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
     }
 
@@ -155,8 +171,14 @@ class StudentController extends Controller
     public function show(Student $student)
     {
         $class = Grade::with('subjects')->where('id', $student->class_id)->first();
+        
+        // Get student payment history
+        $payments = \App\StudentPayment::where('student_id', $student->id)
+            ->with('resultsStatus')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return view('backend.students.show', compact('class','student'));
+        return view('backend.students.show', compact('class', 'student', 'payments'));
     }
 
     /**
@@ -311,6 +333,8 @@ class StudentController extends Controller
                 'class_id'                  => 'required|numeric',
                 'chair'                     => 'nullable|string|max:255',
                 'desk'                      => 'nullable|string|max:255',
+                'curriculum_type'           => 'nullable|in:zimsec,cambridge',
+                'scholarship_percentage'    => 'nullable|numeric|min:0|max:100',
             ]);
 
         \Log::info('Validation passed successfully');
@@ -390,17 +414,19 @@ class StudentController extends Controller
 
         // Create student record with dummy values for fields that will be updated on password change
         $student = $studentUser->student()->create([
-            'parent_id'         => !empty($parentIds) ? $parentIds[0] : null, // First parent for backward compatibility, null if no parents
-            'class_id'          => $request->class_id,
-            'roll_number'       => $rollNumber,
-            'gender'            => $request->student_gender,
-            'phone'             => $request->student_phone ?? '',
-            'dateofbirth'       => $request->dateofbirth,
-            'current_address'   => 'To be updated', // Dummy value - student will update on first login
-            'permanent_address' => 'To be updated', // Dummy value - student will update on first login
-            'student_type'      => $request->student_type ?? 'day', // Day or Boarding student
-            'chair'             => $request->chair ?? null,
-            'desk'              => $request->desk ?? null,
+            'parent_id'             => !empty($parentIds) ? $parentIds[0] : null, // First parent for backward compatibility, null if no parents
+            'class_id'              => $request->class_id,
+            'roll_number'           => $rollNumber,
+            'gender'                => $request->student_gender,
+            'phone'                 => $request->student_phone ?? '',
+            'dateofbirth'           => $request->dateofbirth,
+            'current_address'       => 'To be updated', // Dummy value - student will update on first login
+            'permanent_address'     => 'To be updated', // Dummy value - student will update on first login
+            'student_type'          => $request->student_type ?? 'day', // Day or Boarding student
+            'curriculum_type'       => $request->curriculum_type ?? 'zimsec', // ZIMSEC or Cambridge curriculum
+            'scholarship_percentage' => $request->scholarship_percentage ?? 0, // Scholarship discount percentage
+            'chair'                 => $request->chair ?? null,
+            'desk'                  => $request->desk ?? null,
         ]);
 
         // Attach all parents to the student (only if parents exist)
