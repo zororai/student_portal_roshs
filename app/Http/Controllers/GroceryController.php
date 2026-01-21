@@ -480,10 +480,26 @@ class GroceryController extends Controller
             'Controls whether grocery arrears block parents and students from viewing results'
         );
 
-        // Save which student types should be subject to grocery blocking
+        // Save which student types should be subject to grocery blocking.
+        // NOTE: once a type is enabled for blocking it cannot be removed via this form (add-only).
         $blockTypes = $request->input('block_types'); // expected as array
+        $existingRaw = \App\SchoolSetting::get('grocery_block_types', null);
+        $existing = [];
+        if ($existingRaw) {
+            $decoded = json_decode($existingRaw, true);
+            if (is_array($decoded)) $existing = $decoded;
+            else $existing = array_filter(array_map('trim', explode(',', $existingRaw)));
+        }
+
         if (is_array($blockTypes)) {
-            \App\SchoolSetting::set('grocery_block_types', json_encode(array_values($blockTypes)), 'string', 'Student types subject to grocery blocking (day, boarder)');
+            // Union existing and newly selected types so types cannot be unselected once added
+            $merged = array_values(array_unique(array_merge($existing, $blockTypes)));
+            \App\SchoolSetting::set('grocery_block_types', json_encode($merged), 'string', 'Student types subject to grocery blocking (day, boarder)');
+        } else {
+            // if no new types provided, keep existing
+            if (!empty($existing)) {
+                \App\SchoolSetting::set('grocery_block_types', json_encode(array_values($existing)), 'string', 'Student types subject to grocery blocking (day, boarder)');
+            }
         }
 
         $status = $enabled === 'true' ? 'enabled' : 'disabled';

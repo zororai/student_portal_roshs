@@ -29,17 +29,17 @@ class ResultController extends Controller
 
         // Get all subjects taught by this teacher
         $teacherSubjects = $teacher->subjects;
-        
+
         // Get all unique class IDs from the subjects this teacher teaches
         $classIds = [];
         foreach ($teacherSubjects as $subject) {
             $subjectClassIds = $subject->grades()->pluck('grades.id')->toArray();
             $classIds = array_merge($classIds, $subjectClassIds);
         }
-        
+
         // Remove duplicates
         $classIds = array_unique($classIds);
-        
+
         // Get all classes where teacher teaches subjects, with student count
         $classes = Grade::whereIn('id', $classIds)
             ->withCount('students')
@@ -78,20 +78,20 @@ class ResultController extends Controller
 
         // Get all subjects taught by this teacher
         $teacherSubjects = $teacher->subjects;
-        
+
         // Get all unique class IDs from the subjects this teacher teaches
         $classIds = [];
         foreach ($teacherSubjects as $subject) {
             $subjectClassIds = $subject->grades()->pluck('grades.id')->toArray();
             $classIds = array_merge($classIds, $subjectClassIds);
         }
-        
+
         // Remove duplicates
         $classIds = array_unique($classIds);
-        
+
         // Get all classes where teacher teaches subjects
         $classes = Grade::whereIn('id', $classIds)->get();
-        
+
         $years = ResultsStatus::select('year')->distinct()->pluck('year');
 
         return view('backend.results.resultsrecord', compact('classes','years'));
@@ -109,7 +109,7 @@ class ResultController extends Controller
         // Check if current user is the class teacher
         $user = Auth::user();
         $isClassTeacher = false;
-        
+
         if ($user && $user->hasRole('Teacher') && $user->teacher) {
             $isClassTeacher = $classes->teacher_id === $user->teacher->id;
         }
@@ -118,7 +118,7 @@ class ResultController extends Controller
         $classResults = null;
         $subjects = collect();
         $years = collect();
-        
+
         if ($isClassTeacher) {
             // Get all unique subjects and years from results
             $subjects = $results->pluck('subject')->unique('id')->filter();
@@ -126,7 +126,7 @@ class ResultController extends Controller
                 ->distinct()
                 ->orderBy('year', 'desc')
                 ->get();
-            
+
             // Group results by student for easier display
             $classResults = $results->groupBy('student_id');
         }
@@ -168,14 +168,14 @@ class ResultController extends Controller
 
         $exists = false;
         $results = collect();
-        
+
         if ($lastRecord) {
             // Check if any results exist for the current period
             $exists = Result::whereIn('student_id', $studentIds)
                 ->where('year', $lastRecord->year)
                 ->where('result_period', $lastRecord->result_period)
                 ->exists();
-            
+
             // Fetch only results for the current period
             $results = Result::whereIn('student_id', $studentIds)
                 ->where('year', $lastRecord->year)
@@ -326,13 +326,13 @@ class ResultController extends Controller
     {
         // Get the authenticated teacher
         $teacher = Teacher::findOrFail(auth()->user()->teacher->id);
-        
+
         // Get the class with its subjects
         $class = Grade::with('subjects')->findOrFail($student->class_id);
-        
+
         // Get the IDs of subjects that this teacher teaches
         $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
-        
+
         // Filter the class subjects to only include those the teacher teaches
         $class->subjects = $class->subjects->filter(function($subject) use ($teacherSubjectIds) {
             return in_array($subject->id, $teacherSubjectIds);
@@ -340,7 +340,7 @@ class ResultController extends Controller
 
         // Get the current period
         $lastRecord = ResultsStatus::latest()->first();
-        
+
         // Fetch existing results for this student in the current period
         $existingResults = collect();
         if ($lastRecord) {
@@ -384,27 +384,27 @@ class ResultController extends Controller
 
         // Get the explicit student ID from the form
         $targetStudentId = $request->student_id;
-        
+
         // Get the teacher's subject IDs
         $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
-        
+
         // Get the class to verify subjects belong to this class
         $class = Grade::with('subjects')->findOrFail($request->class_id);
         $classSubjectIds = $class->subjects->pluck('id')->toArray();
-        
+
         // Loop through results - only process for the target student
         foreach ($request->results as $studentId => $subjects) {
             // IMPORTANT: Only process results for the explicitly specified student
             if ($studentId != $targetStudentId) {
                 continue;
             }
-            
+
             foreach ($subjects as $subjectId => $data) {
                 // Only allow results for subjects the teacher teaches AND that belong to this class
                 if (!in_array($subjectId, $teacherSubjectIds) || !in_array($subjectId, $classSubjectIds)) {
                     continue;
                 }
-                
+
                 Result::updateOrCreate(
                     [
                         'class_id' => $request->class_id,
@@ -509,7 +509,7 @@ public function adminshowResult(Request $request)
     public function studentshow()
     {
         $studentId = Student::where('user_id', Auth::user()->id)->value('id');
-        
+
         // Check for outstanding fees
         $allTerms = ResultsStatus::all();
         $totalFees = 0;
@@ -518,14 +518,14 @@ public function adminshowResult(Request $request)
         }
         $totalPaid = floatval(StudentPayment::where('student_id', $studentId)->sum('amount_paid'));
         $outstandingFees = $totalFees - $totalPaid;
-        
+
         // Check for grocery arrears (only if grocery blocking is enabled and applies to this student's type)
         $groceryBlockEnabled = GroceryController::isGroceryBlockEnabled();
         $student = Student::find($studentId);
         $isGroceryExempt = $student ? $student->grocery_exempt : false;
         $appliesToType = $groceryBlockEnabled && GroceryController::isStudentTypeBlocked($student);
         $groceryArrears = ($appliesToType && !$isGroceryExempt) ? GroceryController::calculateGroceryBalance($studentId) : 0;
-        
+
         // If student has outstanding fees OR grocery arrears (when enabled and not exempt), block results view
         if ($outstandingFees > 0 || ($groceryBlockEnabled && !$isGroceryExempt && $groceryArrears > 0)) {
             $messages = [];
@@ -535,7 +535,7 @@ public function adminshowResult(Request $request)
             if ($groceryBlockEnabled && $groceryArrears > 0) {
                 $messages[] = 'Outstanding groceries: $' . number_format($groceryArrears, 2);
             }
-            
+
             return view('reports.blocked', [
                 'message' => 'You cannot view your results due to outstanding balance.',
                 'outstanding' => $outstandingFees,
@@ -543,7 +543,7 @@ public function adminshowResult(Request $request)
                 'details' => $messages
             ]);
         }
-        
+
         $paid = 'Paid';
         $lastRecord = ResultsStatus::latest()->first();
         $year = $lastRecord->year;
@@ -555,7 +555,7 @@ public function adminshowResult(Request $request)
         ->where('year', $year)
         ->with(['subject', 'teacher', 'class'])
         ->get();
-        
+
         return view('reports.index', compact('results'));
     }
 
@@ -563,7 +563,7 @@ public function adminshowResult(Request $request)
     public function viewstudentshow()
     {
         $parentId = Parents::where('user_id', Auth::user()->id)->value('id');
-        
+
         // Check if parent record exists
         if (!$parentId) {
             return view('reports.index', [
@@ -572,10 +572,10 @@ public function adminshowResult(Request $request)
                 'error' => 'Parent record not found. Please contact administrator.'
             ]);
         }
-        
+
         // Get ALL students for this parent
         $students = Student::where('parent_id', $parentId)->with('user', 'class')->get();
-        
+
         if ($students->isEmpty()) {
             return view('reports.index', [
                 'students' => collect(),
@@ -583,9 +583,9 @@ public function adminshowResult(Request $request)
                 'error' => 'No students linked to this parent account.'
             ]);
         }
-        
+
         $studentIds = $students->pluck('id');
-        
+
         // Check for outstanding fees first
         $allTerms = ResultsStatus::all();
         $totalFees = 0;
@@ -596,7 +596,7 @@ public function adminshowResult(Request $request)
         }
         $totalPaid = floatval(StudentPayment::whereIn('student_id', $studentIds)->sum('amount_paid'));
         $outstandingFees = $totalFees - $totalPaid;
-        
+
         // Check for grocery arrears for all children (only if grocery blocking is enabled and not exempt)
         $groceryBlockEnabled = GroceryController::isGroceryBlockEnabled();
         $totalGroceryArrears = 0;
@@ -609,21 +609,21 @@ public function adminshowResult(Request $request)
                 }
             }
         }
-        
+
         // If there are outstanding fees OR grocery arrears (when enabled), block results
         if ($outstandingFees > 0 || ($groceryBlockEnabled && $totalGroceryArrears > 0)) {
             // Check for verified payment for this parent (only for fees)
             $hasVerifiedPayment = PaymentVerification::where('parent_id', $parentId)
                 ->where('status', 'verified')
                 ->exists();
-            
+
             // If no verified payment OR has grocery arrears (when enabled), block results
             if (!$hasVerifiedPayment || ($groceryBlockEnabled && $totalGroceryArrears > 0)) {
                 // Check if there's a pending verification
                 $pendingVerification = PaymentVerification::where('parent_id', $parentId)
                     ->where('status', 'pending')
                     ->exists();
-                
+
                 $messages = [];
                 if ($outstandingFees > 0 && !$hasVerifiedPayment) {
                     $messages[] = 'Outstanding school fees: $' . number_format($outstandingFees, 2);
@@ -631,12 +631,12 @@ public function adminshowResult(Request $request)
                 if ($groceryBlockEnabled && $totalGroceryArrears > 0) {
                     $messages[] = 'Outstanding groceries: $' . number_format($totalGroceryArrears, 2);
                 }
-                
+
                 $message = 'You cannot view your child\'s results due to outstanding balance.';
                 if ($pendingVerification && $outstandingFees > 0) {
                     $message = 'Your payment verification is pending approval. Please wait for admin confirmation.';
                 }
-                
+
                 return view('reports.blocked', [
                     'message' => $message,
                     'outstanding' => $outstandingFees,
@@ -647,7 +647,7 @@ public function adminshowResult(Request $request)
                 ]);
             }
         }
-        
+
         // Get ALL results for all students (all terms, all years) - only approved results
         $results = Result::whereIn('student_id', $studentIds)
             ->where('approved', true)
@@ -668,7 +668,7 @@ public function adminshowResult(Request $request)
         $classes = Grade::withCount('students')->orderBy('class_name')->get();
         $years = ResultsStatus::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
         $terms = ResultsStatus::all();
-        
+
         return view('backend.results.admin-view-results', compact('classes', 'years', 'terms'));
     }
 
@@ -704,7 +704,7 @@ public function adminshowResult(Request $request)
     public function parentAssessments()
     {
         $parentId = Parents::where('user_id', Auth::user()->id)->value('id');
-        
+
         if (!$parentId) {
             return view('backend.parent.assessments', [
                 'students' => collect(),
@@ -712,10 +712,10 @@ public function adminshowResult(Request $request)
                 'error' => 'Parent record not found. Please contact administrator.'
             ]);
         }
-        
+
         // Get ALL students for this parent
         $students = Student::where('parent_id', $parentId)->with('user', 'class')->get();
-        
+
         if ($students->isEmpty()) {
             return view('backend.parent.assessments', [
                 'students' => collect(),
@@ -723,18 +723,18 @@ public function adminshowResult(Request $request)
                 'error' => 'No students linked to this parent account.'
             ]);
         }
-        
+
         $studentIds = $students->pluck('id');
-        
+
         // Get assessment marks for all students
         $assessmentMarks = AssessmentMark::whereIn('student_id', $studentIds)
             ->with(['assessment.subject', 'assessment.class', 'assessment.teacher.user', 'student.user'])
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         // Group by assessment for better display
         $groupedAssessments = $assessmentMarks->groupBy('assessment_id');
-        
+
         return view('backend.parent.assessments', compact('students', 'assessmentMarks', 'groupedAssessments'));
     }
 
@@ -789,13 +789,13 @@ public function adminshowResult(Request $request)
     {
         $classes = Grade::withCount('students')->orderBy('class_name')->get();
         $years = ResultsStatus::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
-        
+
         // Get count of pending results per class/term/year
         $pendingCounts = Result::where('approved', false)
             ->selectRaw('class_id, year, result_period, COUNT(*) as count')
             ->groupBy('class_id', 'year', 'result_period')
             ->get();
-        
+
         return view('backend.results.pending-approval', compact('classes', 'years', 'pendingCounts'));
     }
 
@@ -920,7 +920,7 @@ public function adminshowResult(Request $request)
     public function pendingAssessmentMarks()
     {
         $classes = Grade::withCount('students')->orderBy('class_name')->get();
-        
+
         // Get count of pending assessment marks per class
         $pendingCounts = AssessmentMark::where('approved', false)
             ->join('assessments', 'assessment_marks.assessment_id', '=', 'assessments.id')
@@ -928,9 +928,9 @@ public function adminshowResult(Request $request)
             ->groupBy('assessments.class_id')
             ->get()
             ->keyBy('class_id');
-        
+
         $totalPending = AssessmentMark::where('approved', false)->count();
-        
+
         return view('backend.results.pending-assessment-marks', compact('classes', 'pendingCounts', 'totalPending'));
     }
 
@@ -991,7 +991,7 @@ public function adminshowResult(Request $request)
         $classId = $request->class_id;
 
         $query = AssessmentMark::where('approved', false);
-        
+
         if ($assessmentId) {
             $query->where('assessment_id', $assessmentId);
         } elseif ($classId) {

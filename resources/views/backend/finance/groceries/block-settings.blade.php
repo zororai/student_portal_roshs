@@ -74,6 +74,85 @@
                     </p>
                 </div>
 
+                <!-- Which student types to apply blocking to (card-style toggles) -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Apply blocking to student types</label>
+                    <div id="block-type-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="block_types[]" value="day" class="hidden block-type-checkbox" {{ in_array('day', $blockedTypes ?? []) ? 'checked' : '' }}>
+                            <div class="block-type-card p-4 border rounded-lg transition-shadow flex items-start space-x-4 {{ in_array('day', $blockedTypes ?? []) ? 'border-indigo-500 bg-indigo-50 shadow-sm' : 'border-gray-200 bg-white' }}">
+                                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center">
+                                        <div class="font-semibold text-gray-800">Day Scholar</div>
+                                        <svg class="ml-3 check-icon w-5 h-5 text-indigo-600 {{ in_array('day', $blockedTypes ?? []) ? '' : 'hidden' }}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Student goes home daily</p>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="block_types[]" value="boarder" class="hidden block-type-checkbox" {{ in_array('boarder', $blockedTypes ?? []) ? 'checked' : '' }}>
+                            <div class="block-type-card p-4 border rounded-lg transition-shadow flex items-start space-x-4 {{ in_array('boarder', $blockedTypes ?? []) ? 'border-amber-500 bg-amber-50 shadow-sm' : 'border-gray-200 bg-white' }}">
+                                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2zM12 14c-4.418 0-8 1.79-8 4v2h16v-2c0-2.21-3.582-4-8-4z"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center">
+                                        <div class="font-semibold text-gray-800">Boarding</div>
+                                        <svg class="ml-3 check-icon w-5 h-5 text-amber-600 {{ in_array('boarder', $blockedTypes ?? []) ? '' : 'hidden' }}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Student stays at school</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Select which student types should be affected by grocery arrears blocking.</p>
+                </div>
+
+                <script>
+                    (function(){
+                        const labels = document.querySelectorAll('#block-type-cards label');
+                        labels.forEach(label => {
+                            const checkbox = label.querySelector('.block-type-checkbox');
+                            const card = label.querySelector('.block-type-card');
+                            const checkIcon = label.querySelector('.check-icon');
+
+                            function update() {
+                                if (checkbox.checked) {
+                                    card.classList.add('shadow-sm');
+                                    checkIcon.classList.remove('hidden');
+                                } else {
+                                    card.classList.remove('shadow-sm');
+                                    checkIcon.classList.add('hidden');
+                                }
+                            }
+
+                            // initialize
+                            update();
+
+                            // toggle on click
+                            label.addEventListener('click', function(e){
+                                // prevent double toggling when clicking the checkbox itself
+                                if (e.target.tagName.toLowerCase() === 'input') return;
+                                checkbox.checked = !checkbox.checked;
+                                update();
+                            });
+                        });
+                    })();
+                </script>
+
                 <!-- Info Box -->
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
                     <div class="flex">
