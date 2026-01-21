@@ -519,11 +519,12 @@ public function adminshowResult(Request $request)
         $totalPaid = floatval(StudentPayment::where('student_id', $studentId)->sum('amount_paid'));
         $outstandingFees = $totalFees - $totalPaid;
         
-        // Check for grocery arrears (only if grocery blocking is enabled)
+        // Check for grocery arrears (only if grocery blocking is enabled and applies to this student's type)
         $groceryBlockEnabled = GroceryController::isGroceryBlockEnabled();
         $student = Student::find($studentId);
         $isGroceryExempt = $student ? $student->grocery_exempt : false;
-        $groceryArrears = ($groceryBlockEnabled && !$isGroceryExempt) ? GroceryController::calculateGroceryBalance($studentId) : 0;
+        $appliesToType = $groceryBlockEnabled && GroceryController::isStudentTypeBlocked($student);
+        $groceryArrears = ($appliesToType && !$isGroceryExempt) ? GroceryController::calculateGroceryBalance($studentId) : 0;
         
         // If student has outstanding fees OR grocery arrears (when enabled and not exempt), block results view
         if ($outstandingFees > 0 || ($groceryBlockEnabled && !$isGroceryExempt && $groceryArrears > 0)) {
@@ -601,6 +602,8 @@ public function adminshowResult(Request $request)
         $totalGroceryArrears = 0;
         if ($groceryBlockEnabled) {
             foreach ($students as $student) {
+                // only count arrears for children whose student type is subject to blocking and who are not exempt
+                if (!GroceryController::isStudentTypeBlocked($student)) continue;
                 if (!$student->grocery_exempt) {
                     $totalGroceryArrears += GroceryController::calculateGroceryBalance($student->id);
                 }

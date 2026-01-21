@@ -25,13 +25,13 @@ class GroceryController extends Controller
         $classes = Grade::withCount('students')->get();
         $groceryLists = GroceryList::with(['classes', 'items', 'responses'])->orderBy('created_at', 'desc')->get();
         $allTerms = \App\ResultsStatus::orderBy('year', 'desc')->orderBy('result_period', 'desc')->get();
-        
+
         // Get response stats per class
         foreach ($classes as $class) {
             $activeList = GroceryList::whereHas('classes', function($q) use ($class) {
                 $q->where('class_id', $class->id);
             })->where('status', 'active')->first();
-            
+
             if ($activeList) {
                 $class->active_list = $activeList;
                 $class->total_students = $class->students_count;
@@ -53,7 +53,7 @@ class GroceryController extends Controller
                 $class->acknowledged_count = 0;
             }
         }
-        
+
         return view('backend.finance.groceries.index', compact('classes', 'groceryLists', 'allTerms'));
     }
 
@@ -102,7 +102,7 @@ class GroceryController extends Controller
     public function showClass($classId)
     {
         $class = Grade::with('students.user', 'students.parent.user')->findOrFail($classId);
-        
+
         $activeList = GroceryList::whereHas('classes', function($q) use ($classId) {
             $q->where('class_id', $classId);
         })->where('status', 'active')->with('items')->first();
@@ -155,7 +155,7 @@ class GroceryController extends Controller
         ]);
 
         $student = Student::findOrFail($validated['student_id']);
-        
+
         // If response exists, update it; otherwise create new
         if (!empty($validated['response_id'])) {
             $response = GroceryResponse::findOrFail($validated['response_id']);
@@ -185,13 +185,13 @@ class GroceryController extends Controller
     {
         $user = Auth::user();
         $parent = Parents::where('user_id', $user->id)->first();
-        
+
         if (!$parent) {
             return redirect()->back()->with('error', 'Parent record not found.');
         }
 
         $children = Student::where('parent_id', $parent->id)->with(['user', 'class'])->get();
-        
+
         $groceryData = [];
         foreach ($children as $child) {
             $activeList = GroceryList::whereHas('classes', function($q) use ($child) {
@@ -263,7 +263,7 @@ class GroceryController extends Controller
     {
         $groceryList = GroceryList::findOrFail($id);
         $groceryList->update(['status' => 'closed']);
-        
+
         return redirect()->back()->with('success', 'Grocery list closed.');
     }
 
@@ -271,11 +271,11 @@ class GroceryController extends Controller
     public function edit($id)
     {
         $groceryList = GroceryList::with(['classes', 'items'])->findOrFail($id);
-        
+
         if ($groceryList->locked) {
             return redirect()->back()->with('error', 'This grocery list is locked and cannot be edited.');
         }
-        
+
         $classes = Grade::all();
         return view('backend.finance.groceries.edit', compact('groceryList', 'classes'));
     }
@@ -284,7 +284,7 @@ class GroceryController extends Controller
     public function update(Request $request, $id)
     {
         $groceryList = GroceryList::findOrFail($id);
-        
+
         if ($groceryList->locked) {
             return redirect()->back()->with('error', 'This grocery list is locked and cannot be edited.');
         }
@@ -337,7 +337,7 @@ class GroceryController extends Controller
             'locked' => true,
             'locked_at' => now()
         ]);
-        
+
         return redirect()->back()->with('success', 'Grocery list locked. No further editing is allowed.');
     }
 
@@ -345,39 +345,39 @@ class GroceryController extends Controller
     public function studentHistory($studentId)
     {
         $student = Student::with(['user', 'class'])->findOrFail($studentId);
-        
+
         // Get all grocery responses for this student
         $responses = GroceryResponse::where('student_id', $studentId)
             ->with(['groceryList.items', 'parent.user'])
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         // Calculate accumulative balance
         $totalOwed = 0;
         $historyData = [];
-        
+
         foreach ($responses as $response) {
             $groceryList = $response->groceryList;
             $allItems = $groceryList->items;
             $boughtItemIds = $response->items_bought ?? [];
-            
+
             $listTotal = 0;
             $paidTotal = 0;
             $owedTotal = 0;
-            
+
             foreach ($allItems as $item) {
                 $itemPrice = floatval($item->price);
                 $listTotal += $itemPrice;
-                
+
                 if (in_array($item->id, $boughtItemIds)) {
                     $paidTotal += $itemPrice;
                 } else {
                     $owedTotal += $itemPrice;
                 }
             }
-            
+
             $totalOwed += $owedTotal;
-            
+
             $historyData[] = [
                 'response' => $response,
                 'list_total' => $listTotal,
@@ -387,7 +387,7 @@ class GroceryController extends Controller
                 'year' => $groceryList->year
             ];
         }
-        
+
         return view('backend.finance.groceries.student-history', compact('student', 'historyData', 'totalOwed'));
     }
 
@@ -397,23 +397,23 @@ class GroceryController extends Controller
         $responses = GroceryResponse::where('student_id', $studentId)
             ->with('groceryList.items')
             ->get();
-        
+
         $totalOwed = 0;
-        
+
         foreach ($responses as $response) {
             $groceryList = $response->groceryList;
             if (!$groceryList) continue;
-            
+
             $allItems = $groceryList->items;
             $boughtItemIds = $response->items_bought ?? [];
-            
+
             foreach ($allItems as $item) {
                 if (!in_array($item->id, $boughtItemIds)) {
                     $totalOwed += floatval($item->price);
                 }
             }
         }
-        
+
         return $totalOwed;
     }
 
@@ -422,32 +422,89 @@ class GroceryController extends Controller
     {
         $groceryList = GroceryList::findOrFail($id);
         $groceryList->delete();
-        
+
         return redirect()->route('admin.groceries.index')->with('success', 'Grocery list deleted.');
     }
 
     // Admin: View grocery block settings
-    public function blockSettings()
+    public function blockSettings(Request $request)
     {
         $groceryBlockEnabled = \App\SchoolSetting::get('grocery_block_enabled', 'true') === 'true';
-        $studentsWithArrears = self::getStudentsWithArrears();
-        
-        return view('backend.finance.groceries.block-settings', compact('groceryBlockEnabled', 'studentsWithArrears'));
+        $q = $request->query('q');
+
+        // blocked types from settings (array of 'day'|'boarder')
+        $blockedTypesRaw = \App\SchoolSetting::get('grocery_block_types', null);
+        $blockedTypes = [];
+        if ($blockedTypesRaw) {
+            $decoded = json_decode($blockedTypesRaw, true);
+            if (is_array($decoded)) $blockedTypes = $decoded;
+            else $blockedTypes = array_filter(array_map('trim', explode(',', $blockedTypesRaw)));
+        } else {
+            // default: block both types
+            $blockedTypes = ['day', 'boarder'];
+        }
+
+        // If a search query is provided, return matching students (by name or roll_number)
+        if ($q) {
+            $matched = Student::with(['user', 'class'])
+                ->where('roll_number', 'like', "%{$q}%")
+                ->orWhereHas('user', function($sub) use ($q) {
+                    $sub->where('name', 'like', "%{$q}%");
+                })
+                ->get();
+
+            $studentsWithArrears = [];
+            foreach ($matched as $student) {
+                $arrears = self::calculateGroceryBalance($student->id);
+                $studentsWithArrears[] = [
+                    'student' => $student,
+                    'arrears' => $arrears
+                ];
+            }
+        } else {
+            $studentsWithArrears = self::getStudentsWithArrears();
+        }
+
+        return view('backend.finance.groceries.block-settings', compact('groceryBlockEnabled', 'studentsWithArrears', 'q', 'blockedTypes'));
     }
 
     // Admin: Update grocery block settings
     public function updateBlockSettings(Request $request)
     {
         $enabled = $request->has('grocery_block_enabled') ? 'true' : 'false';
-        
+
         \App\SchoolSetting::set(
             'grocery_block_enabled',
             $enabled,
             'boolean',
             'Controls whether grocery arrears block parents and students from viewing results'
         );
-        
+
+        // Save which student types should be subject to grocery blocking
+        $blockTypes = $request->input('block_types'); // expected as array
+        if (is_array($blockTypes)) {
+            \App\SchoolSetting::set('grocery_block_types', json_encode(array_values($blockTypes)), 'string', 'Student types subject to grocery blocking (day, boarder)');
+        }
+
         $status = $enabled === 'true' ? 'enabled' : 'disabled';
+        // Handle apply-to-type actions (block/unblock by student_type)
+        $applyType = $request->input('apply_type'); // expected: 'day' or 'boarder'
+        $applyAction = $request->input('apply_action'); // expected: 'block' or 'exempt'
+
+        if ($applyType && $applyAction) {
+            $students = Student::where('student_type', $applyType)->get();
+            foreach ($students as $student) {
+                if ($applyAction === 'block') {
+                    $student->grocery_exempt = false;
+                } else {
+                    $student->grocery_exempt = true;
+                }
+                $student->save();
+            }
+
+            $status .= "; applied '{$applyAction}' to all '{$applyType}' students";
+        }
+
         return redirect()->route('admin.grocery-block-settings')
             ->with('success', "Grocery arrears blocking has been {$status}.");
     }
@@ -458,13 +515,31 @@ class GroceryController extends Controller
         return \App\SchoolSetting::get('grocery_block_enabled', 'true') === 'true';
     }
 
+    // Return array of student types that are subject to grocery blocking
+    public static function getBlockedTypes()
+    {
+        $raw = \App\SchoolSetting::get('grocery_block_types', null);
+        if (!$raw) return ['day', 'boarder'];
+        $decoded = json_decode($raw, true);
+        if (is_array($decoded)) return $decoded;
+        return array_filter(array_map('trim', explode(',', $raw)));
+    }
+
+    // Check whether a given student is in a type that should be blocked
+    public static function isStudentTypeBlocked($student)
+    {
+        if (!$student) return false;
+        $types = self::getBlockedTypes();
+        return in_array($student->student_type, $types);
+    }
+
     // Admin: Toggle student grocery exemption
     public function toggleExemption($studentId)
     {
         $student = Student::findOrFail($studentId);
         $student->grocery_exempt = !$student->grocery_exempt;
         $student->save();
-        
+
         $status = $student->grocery_exempt ? 'exempted from' : 'no longer exempt from';
         return redirect()->back()->with('success', "{$student->user->name} is now {$status} grocery blocking.");
     }
@@ -474,7 +549,7 @@ class GroceryController extends Controller
     {
         $students = Student::with(['user', 'class'])->get();
         $studentsWithArrears = [];
-        
+
         foreach ($students as $student) {
             $arrears = self::calculateGroceryBalance($student->id);
             if ($arrears > 0) {
@@ -484,7 +559,7 @@ class GroceryController extends Controller
                 ];
             }
         }
-        
+
         return $studentsWithArrears;
     }
 }

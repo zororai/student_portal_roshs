@@ -65,7 +65,7 @@
                 <!-- Toggle Setting -->
                 <div class="mb-6">
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" name="grocery_block_enabled" value="1" id="grocery_block_toggle" {{ $groceryBlockEnabled ? 'checked' : '' }} 
+                        <input type="checkbox" name="grocery_block_enabled" value="1" id="grocery_block_toggle" {{ $groceryBlockEnabled ? 'checked' : '' }}
                                style="width: 50px; height: 26px; cursor: pointer;">
                         <span class="ml-4 text-gray-700 font-medium">Enable Grocery Arrears Blocking</span>
                     </label>
@@ -105,6 +105,34 @@
                         </svg>
                         Save Settings
                     </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Controls: Search and Apply to Type -->
+        <div class="mt-6 mb-4 flex items-center justify-between space-x-4">
+            <form method="GET" action="{{ route('admin.grocery-block-settings') }}" class="flex-1">
+                <label class="text-sm font-medium text-gray-700">Search student</label>
+                <div class="mt-2 flex">
+                    <input name="q" value="{{ $q ?? '' }}" type="text" placeholder="Search by name or roll number" class="w-full px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none">
+                    <button type="submit" class="px-4 bg-blue-600 text-white rounded-r-lg">Search</button>
+                </div>
+            </form>
+
+            <form method="POST" action="{{ route('admin.grocery-block-settings.update') }}" class="w-96 bg-white p-4 rounded-lg shadow-sm">
+                @csrf
+                <label class="text-sm font-medium text-gray-700">Apply to student type</label>
+                <div class="mt-2 flex items-center space-x-2">
+                    <select name="apply_type" class="flex-1 px-3 py-2 border border-gray-300 rounded">
+                        <option value="">Select type</option>
+                        <option value="day">Day</option>
+                        <option value="boarder">Boarder</option>
+                    </select>
+                    <select name="apply_action" class="w-40 px-3 py-2 border border-gray-300 rounded">
+                        <option value="block">Block</option>
+                        <option value="exempt">Exempt</option>
+                    </select>
+                    <button type="submit" class="px-3 py-2 bg-emerald-600 text-white rounded">Apply</button>
                 </div>
             </form>
         </div>
