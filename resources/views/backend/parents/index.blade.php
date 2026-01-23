@@ -28,7 +28,7 @@
                                 Phone
                             </th>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                Children
+                                Student
                             </th>
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 Status
@@ -73,7 +73,7 @@
                                             </span>
                                             @endif
                                         @empty
-                                            <span class="text-xs text-gray-400 italic">No children assigned</span>
+                                            <span class="text-sm text-gray-500">N/A</span>
                                         @endforelse
                                     </div>
                                 </td>
@@ -117,7 +117,6 @@
                                     </div>
                                 </td>
                             </tr>
-                            @endif
                         @empty
                             <tr>
                                 <td colspan="6" class="px-6 py-12 text-center">

@@ -209,23 +209,84 @@
                                 </h3>
                             </div>
                             <div class="px-6 py-6">
-                                <!-- Assign Class -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign Class</label>
-                                    <div class="relative">
-                                        <select name="class_id" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 appearance-none bg-white">
-                                            <option value="">-- Select Class --</option>
-                                            @foreach ($classes as $class)
-                                                <option value="{{ $class->id }}" {{ ($class->id === $student->class_id) ? 'selected' : '' }}>
-                                                    {{ $class->class_name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                            </svg>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Assign Class -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Assign Class</label>
+                                        <div class="relative">
+                                            <select name="class_id" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 appearance-none bg-white">
+                                                <option value="">-- Select Class --</option>
+                                                @foreach ($classes as $class)
+                                                    <option value="{{ $class->id }}" {{ ($class->id === $student->class_id) ? 'selected' : '' }}>
+                                                        {{ $class->class_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </div>
                                         </div>
+                                    </div>
+
+                                    <!-- Student Type -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Student Type</label>
+                                        <div class="relative">
+                                            <select name="student_type" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 appearance-none bg-white">
+                                                <option value="day" {{ ($student->student_type == 'day') ? 'selected' : '' }}>Day</option>
+                                                <option value="boarding" {{ ($student->student_type == 'boarding') ? 'selected' : '' }}>Boarding</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Curriculum Type -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Curriculum</label>
+                                        <div class="relative">
+                                            <select name="curriculum_type" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 appearance-none bg-white">
+                                                <option value="zimsec" {{ ($student->curriculum_type == 'zimsec') ? 'selected' : '' }}>ZIMSEC</option>
+                                                <option value="cambridge" {{ ($student->curriculum_type == 'cambridge') ? 'selected' : '' }}>Cambridge</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- New Student -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Student Status</label>
+                                        <div class="relative">
+                                            <select name="is_new_student" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 appearance-none bg-white">
+                                                <option value="0" {{ (!$student->is_new_student) ? 'selected' : '' }}>Existing Student</option>
+                                                <option value="1" {{ ($student->is_new_student) ? 'selected' : '' }}>New Student</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Scholarship Percentage -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Scholarship %</label>
+                                        <input name="scholarship_percentage" type="number" min="0" max="100" step="1" value="{{ $student->scholarship_percentage ?? 0 }}" 
+                                               class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200" 
+                                               placeholder="0">
+                                        @error('scholarship_percentage')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -242,74 +303,73 @@
                                 </h3>
                             </div>
                             <div class="px-6 py-6">
-                                <div id="parent-container" class="space-y-3">
-                                    @php
-                                        $studentParents = $student->parents->pluck('id')->toArray();
-                                    @endphp
-                                    @if(count($studentParents) > 0)
-                                        @foreach($studentParents as $index => $selectedParentId)
-                                            <div class="parent-item flex items-center gap-3">
-                                                <div class="flex-1 relative">
-                                                    <select name="parent_id[]" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 appearance-none bg-white">
-                                                        <option value="">-- Select Parent --</option>
-                                                        @foreach ($parents as $parent)
-                                                            <option value="{{ $parent->id }}" {{ ($parent->id == $selectedParentId) ? 'selected' : '' }}>
-                                                                {{ $parent->user->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                                        </svg>
-                                                    </div>
+                                @php
+                                    $studentParentsList = $student->parents;
+                                @endphp
+                                
+                                @if($studentParentsList->count() > 0)
+                                <div class="mb-6">
+                                    <label class="block text-sm font-medium text-gray-700 mb-3">Current Parents</label>
+                                    <div class="space-y-2">
+                                        @foreach($studentParentsList as $existingParent)
+                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                            <div class="flex items-center">
+                                                <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold mr-3">
+                                                    {{ strtoupper(substr($existingParent->user->name ?? 'P', 0, 1)) }}
                                                 </div>
-                                                @if($index == 0)
-                                                    <button type="button" class="add-parent inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all duration-200" title="Add Another Parent">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                                        </svg>
-                                                    </button>
-                                                @else
-                                                    <button type="button" class="remove-parent inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-r from-red-500 to-rose-600 text-white hover:from-red-600 hover:to-rose-700 shadow-md hover:shadow-lg transition-all duration-200" title="Remove Parent">
-                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                                                        </svg>
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        @endforeach
-                                    @else
-                                        <div class="parent-item flex items-center gap-3">
-                                            <div class="flex-1 relative">
-                                                <select name="parent_id[]" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 appearance-none bg-white">
-                                                    <option value="">-- Select Parent --</option>
-                                                    @foreach ($parents as $parent)
-                                                        <option value="{{ $parent->id }}" {{ ($parent->id === $student->parent_id) ? 'selected' : '' }}>
-                                                            {{ $parent->user->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                                    </svg>
+                                                <div>
+                                                    <p class="text-sm font-medium text-gray-900">{{ $existingParent->user->name ?? 'N/A' }}</p>
+                                                    <p class="text-xs text-gray-500">{{ $existingParent->phone ?? 'No phone' }}</p>
                                                 </div>
                                             </div>
-                                            <button type="button" class="add-parent inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg transition-all duration-200" title="Add Another Parent">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                                </svg>
-                                            </button>
+                                            <input type="hidden" name="existing_parent_ids[]" value="{{ $existingParent->id }}">
                                         </div>
-                                    @endif
+                                        @endforeach
+                                    </div>
                                 </div>
-                                @error('parent_id')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                                @error('parent_id.*')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                @endif
+
+                                <div class="border-t border-gray-200 pt-6">
+                                    <label class="block text-sm font-medium text-gray-700 mb-3">Add New Parent</label>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-500 mb-1">Parent Name</label>
+                                            <input name="new_parent_name" type="text" value="{{ old('new_parent_name') }}" 
+                                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200" 
+                                                   placeholder="Enter parent's full name">
+                                            @error('new_parent_name')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-500 mb-1">Parent Email</label>
+                                            <input name="new_parent_email" type="email" value="{{ old('new_parent_email') }}" 
+                                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200" 
+                                                   placeholder="Enter parent's email">
+                                            @error('new_parent_email')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-500 mb-1">Parent Phone</label>
+                                            <input name="new_parent_phone" type="text" value="{{ old('new_parent_phone') }}" 
+                                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200" 
+                                                   placeholder="Enter parent's phone number">
+                                            @error('new_parent_phone')
+                                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-500 mb-1">Parent Gender</label>
+                                            <select name="new_parent_gender" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 appearance-none bg-white">
+                                                <option value="">-- Select Gender --</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <p class="mt-3 text-xs text-gray-500">Leave blank if not adding a new parent. Fill in name, email, and phone to create a new parent.</p>
+                                </div>
                             </div>
                         </div>
 
@@ -348,46 +408,6 @@
 
     $(function() {
         $("#datepicker-se").datepicker({ dateFormat: 'yy-mm-dd' });
-
-        // Add parent functionality
-        $(document).on('click', '.add-parent', function(e) {
-            e.preventDefault();
-
-            var parentOptions = `
-                <option value="">-- Select Parent --</option>
-                @foreach ($parents as $parent)
-                    <option value="{{ $parent->id }}">{{ $parent->user->name }}</option>
-                @endforeach
-            `;
-
-            var newParentField = `
-                <div class="parent-item flex items-center gap-3">
-                    <div class="flex-1 relative">
-                        <select name="parent_id[]" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 appearance-none bg-white">
-                            ${parentOptions}
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <button type="button" class="remove-parent inline-flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-r from-red-500 to-rose-600 text-white hover:from-red-600 hover:to-rose-700 shadow-md hover:shadow-lg transition-all duration-200" title="Remove Parent">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                        </svg>
-                    </button>
-                </div>
-            `;
-
-            $('#parent-container').append(newParentField);
-        });
-
-        // Remove parent functionality
-        $(document).on('click', '.remove-parent', function(e) {
-            e.preventDefault();
-            $(this).closest('.parent-item').remove();
-        });
     })
 </script>
 @endpush

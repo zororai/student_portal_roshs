@@ -207,12 +207,11 @@ class StudentController extends Controller
         $request->validate([
             'name'              => 'required|string|max:255',
             'email'             => 'required|string|email|max:255|unique:users,email,'.$student->user_id,
-            'parent_id'         => 'required|array|min:1',
-            'parent_id.*'       => 'required|numeric|exists:parents,id',
             'class_id'          => 'required|numeric',
             'roll_number'       => [
                 'required',
-                'numeric',
+                'string',
+                'max:255',
                 Rule::unique('students')->ignore($student->id)->where(function ($query) use ($request) {
                     return $query->where('class_id', $request->class_id);
                 })
@@ -221,7 +220,15 @@ class StudentController extends Controller
             'phone'             => 'required|string|max:255',
             'dateofbirth'       => 'required|date',
             'current_address'   => 'required|string|max:255',
-            'permanent_address' => 'required|string|max:255'
+            'permanent_address' => 'required|string|max:255',
+            'student_type'      => 'nullable|in:day,boarding',
+            'curriculum_type'   => 'nullable|in:zimsec,cambridge',
+            'is_new_student'    => 'nullable|boolean',
+            'scholarship_percentage' => 'nullable|numeric|min:0|max:100',
+            'new_parent_name'   => 'nullable|string|max:255',
+            'new_parent_email'  => 'nullable|email|max:255',
+            'new_parent_phone'  => 'nullable|string|max:255',
+            'new_parent_gender' => 'nullable|in:male,female',
         ]);
 
         if ($request->hasFile('profile_picture')) {
@@ -238,20 +245,62 @@ class StudentController extends Controller
         ]);
 
         $student->update([
-            'parent_id'         => $request->parent_id[0], // Keep first parent for backward compatibility
             'class_id'          => $request->class_id,
             'roll_number'       => $request->roll_number,
             'gender'            => $request->gender,
             'phone'             => $request->phone,
             'dateofbirth'       => $request->dateofbirth,
             'current_address'   => $request->current_address,
-            'permanent_address' => $request->permanent_address
+            'permanent_address' => $request->permanent_address,
+            'student_type'      => $request->student_type ?? $student->student_type,
+            'curriculum_type'   => $request->curriculum_type ?? $student->curriculum_type,
+            'is_new_student'    => $request->is_new_student ?? $student->is_new_student,
+            'scholarship_percentage' => $request->scholarship_percentage ?? $student->scholarship_percentage,
         ]);
 
-        // Sync parents (removes old, adds new)
-        $student->parents()->sync($request->parent_id);
+        // Handle parent assignment
+        $parentIds = $request->existing_parent_ids ?? [];
 
-        return redirect()->route('student.index');
+        // Create new parent if fields are filled
+        if ($request->filled('new_parent_name') && $request->filled('new_parent_phone')) {
+            // Check if email is provided and unique
+            $email = $request->new_parent_email;
+            if (!$email) {
+                $email = strtolower(Str::slug($request->new_parent_name, '.')) . '.' . time() . '@parent.local';
+            }
+            
+            // Check if user with this email already exists
+            $existingUser = User::where('email', $email)->first();
+            if (!$existingUser) {
+                // Create user for the parent
+                $parentUser = User::create([
+                    'name'     => $request->new_parent_name,
+                    'email'    => $email,
+                    'password' => Hash::make(Str::random(12)),
+                    'profile_picture' => 'avatar.png'
+                ]);
+                $parentUser->assignRole('Parent');
+
+                // Create the parent record
+                $newParent = $parentUser->parent()->create([
+                    'gender'            => $request->new_parent_gender ?? 'male',
+                    'phone'             => $request->new_parent_phone,
+                    'current_address'   => $student->current_address,
+                    'permanent_address' => $student->permanent_address,
+                ]);
+
+                $parentIds[] = $newParent->id;
+            }
+        }
+
+        // Sync parents if we have any
+        if (!empty($parentIds)) {
+            $student->parents()->sync($parentIds);
+            // Update parent_id for backward compatibility
+            $student->update(['parent_id' => $parentIds[0]]);
+        }
+
+        return redirect()->route('student.index')->with('success', 'Student updated successfully');
     }
 
     /**
