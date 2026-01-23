@@ -452,6 +452,11 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/grocery-block-settings', 'GroceryController@blockSettings')->name('admin.grocery-block-settings');
     Route::post('/admin/grocery-block-settings', 'GroceryController@updateBlockSettings')->name('admin.grocery-block-settings.update');
     Route::post('/admin/grocery-exempt/{studentId}', 'GroceryController@toggleExemption')->name('admin.grocery-exempt');
+    
+    // Scholarships Routes
+    Route::get('/admin/scholarships', 'Admin\ScholarshipController@index')->name('admin.scholarships.index');
+    Route::put('/admin/scholarships/{student}', 'Admin\ScholarshipController@update')->name('admin.scholarships.update');
+    Route::post('/admin/scholarships/bulk-update', 'Admin\ScholarshipController@bulkUpdate')->name('admin.scholarships.bulk-update');
 
     // Admin View Results Routes
     Route::get('/admin/view-results', 'ResultController@adminViewResults')->name('admin.view-results');

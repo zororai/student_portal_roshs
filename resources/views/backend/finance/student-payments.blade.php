@@ -472,68 +472,11 @@
                         <!-- Fee Types Selection -->
                         <div class="mb-4">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Select Fee Types to Pay</label>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3" id="student_fee_info">
+                            <p class="text-sm text-blue-700" id="fee_filter_info">Fee types will be filtered based on selected student's type, curriculum, and class level.</p>
+                        </div>
                         <div class="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto" id="fee_types_container">
-                            @php
-                                $feeItems = isset($currentTerm) && $currentTerm->feeStructures && $currentTerm->feeStructures->count() > 0 
-                                    ? $currentTerm->feeStructures 
-                                    : (isset($currentTerm) ? $currentTerm->termFees : collect());
-                            @endphp
-                            @if($feeItems->count() > 0)
-                                @foreach($feeItems as $feeItem)
-                                <div class="py-3 border-b border-gray-200 last:border-0 fee-item"
-                                     data-student-type="{{ $feeItem->student_type ?? 'day' }}"
-                                     data-curriculum-type="{{ $feeItem->curriculum_type ?? 'zimsec' }}"
-                                     data-is-for-new-student="{{ $feeItem->is_for_new_student ?? 0 }}"
-                                     data-level-group-id="{{ $feeItem->fee_level_group_id ?? '' }}">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center flex-1">
-                                            <input type="checkbox" 
-                                                   id="fee_{{ $feeItem->id }}"
-                                                   class="fee-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                   data-fee-id="{{ $feeItem->id }}"
-                                                   data-full-amount="{{ $feeItem->amount }}"
-                                                   onchange="toggleFeeAmount({{ $feeItem->id }})">
-                                            <label for="fee_{{ $feeItem->id }}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
-                                                {{ $feeItem->feeType->name ?? 'Fee' }}
-                                                @if($feeItem->feeLevelGroup)
-                                                    <span class="ml-1 text-xs text-gray-500">({{ $feeItem->feeLevelGroup->name }})</span>
-                                                @endif
-                                                @if($feeItem->is_for_new_student)
-                                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student Only</span>
-                                                @endif
-                                            </label>
-                                            <span class="text-sm font-semibold text-gray-600">Full: ${{ number_format($feeItem->amount, 2) }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="ml-7 mt-2 hidden" id="amount_input_{{ $feeItem->id }}">
-                                        <div class="flex items-center gap-3">
-                                            <div class="flex-1">
-                                                <label class="block text-xs text-gray-600 mb-1">Amount to Pay</label>
-                                                <input type="number" 
-                                                       name="fee_amounts[{{ $feeItem->id }}]"
-                                                       id="amount_{{ $feeItem->id }}"
-                                                       class="fee-amount-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                                                       placeholder="Enter amount"
-                                                       min="0"
-                                                       max="{{ $feeItem->amount }}"
-                                                       step="0.01"
-                                                       value="{{ $feeItem->amount }}"
-                                                       disabled
-                                                       oninput="updatePaymentCalculation()">
-                                            </div>
-                                            <button type="button" 
-                                                    onclick="setFullAmount({{ $feeItem->id }}, {{ $feeItem->amount }})"
-                                                    class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-xs font-medium mt-5">
-                                                Full Amount
-                                            </button>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-1">Maximum: ${{ number_format($feeItem->amount, 2) }}</p>
-                                    </div>
-                                </div>
-                                @endforeach
-                            @else
-                                <p class="text-gray-500 text-center py-4">No fee types available for current term</p>
-                            @endif
+                            <p class="text-gray-500 text-center py-4">Select a student and term to see applicable fees</p>
                         </div>
                         </div>
                         <div class="flex justify-between mt-4">
@@ -564,10 +507,20 @@
                     </div>
 
                         <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Reference Number (Optional)</label>
-                        <input type="text" name="reference_number" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                               placeholder="Transaction/Receipt number">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Reference Number</label>
+                        <div class="flex gap-2">
+                            <input type="text" name="reference_number" id="reference_number"
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   placeholder="Auto-generated or enter manually" readonly>
+                            <button type="button" onclick="generateReferenceNumber()" 
+                                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium whitespace-nowrap">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                                Generate
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Format: PAY-YYYYMMDD-CLASS-HHMMSS-XXXX</p>
                     </div>
 
                         <div class="mb-4">
@@ -987,39 +940,66 @@
         const termSelect = document.getElementById('modal_results_status_id');
         const selectedOption = termSelect.options[termSelect.selectedIndex];
         const feeTypesContainer = document.getElementById('fee_types_container');
+        const feeFilterInfo = document.getElementById('fee_filter_info');
         
         if (!feeTypesContainer) return;
         
         // Get selected student's type, curriculum, new student status, and class numeric
         const studentSelect = document.getElementById('modal_student_id');
         const selectedStudent = studentSelect.options[studentSelect.selectedIndex];
-        const studentType = selectedStudent && selectedStudent.value ? (selectedStudent.dataset.studentType || 'day') : 'day';
-        const curriculumType = selectedStudent && selectedStudent.value ? (selectedStudent.dataset.curriculumType || 'zimsec') : 'zimsec';
-        const isNewStudent = selectedStudent && selectedStudent.value ? (parseInt(selectedStudent.dataset.isNewStudent) === 1) : true;
-        const classNumeric = selectedStudent && selectedStudent.value ? parseInt(selectedStudent.dataset.classNumeric) : null;
+        
+        // Check if student is selected
+        if (!selectedStudent || !selectedStudent.value) {
+            feeTypesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">Select a student and term to see applicable fees</p>';
+            if (feeFilterInfo) {
+                feeFilterInfo.textContent = 'Fee types will be filtered based on selected student\'s type, curriculum, and class level.';
+            }
+            return;
+        }
+        
+        // Get student attributes (normalize to lowercase for comparison)
+        const studentType = (selectedStudent.dataset.studentType || 'day').toLowerCase();
+        const curriculumType = (selectedStudent.dataset.curriculumType || 'zimsec').toLowerCase();
+        const isNewStudent = parseInt(selectedStudent.dataset.isNewStudent) === 1;
+        const classNumeric = parseInt(selectedStudent.dataset.classNumeric) || null;
+        
+        // Debug logging
+        console.log('Student Filter:', {studentType, curriculumType, isNewStudent, classNumeric});
+        
+        // Update filter info display
+        if (feeFilterInfo) {
+            const typeLabel = studentType === 'boarding' ? 'Boarding' : 'Day';
+            const currLabel = curriculumType === 'cambridge' ? 'Cambridge' : 'ZIMSEC';
+            const statusLabel = isNewStudent ? 'New Student' : 'Existing Student';
+            feeFilterInfo.innerHTML = `Filtering for: <strong class="text-blue-800">${typeLabel}</strong> | <strong class="text-blue-800">${currLabel}</strong> | <strong class="text-blue-800">${statusLabel}</strong>` + 
+                (classNumeric ? ` | Class: <strong class="text-blue-800">${classNumeric}</strong>` : '');
+        }
         
         if (selectedOption.value && selectedOption.dataset.fees) {
             try {
                 const fees = JSON.parse(selectedOption.dataset.fees);
+                console.log('All fees from term:', fees);
                 
                 // Filter fees based on student type, curriculum type, new student status, AND level group
                 const filteredFees = fees.filter(fee => {
-                    // Check student type (day/boarding)
-                    let typeMatch = true;
-                    if (fee.student_type) {
-                        typeMatch = fee.student_type === studentType;
-                    }
+                    // Normalize fee attributes for comparison
+                    const feeStudentType = (fee.student_type || '').toLowerCase();
+                    const feeCurriculumType = (fee.curriculum_type || '').toLowerCase();
                     
-                    // Check curriculum type (zimsec/cambridge)
-                    let curriculumMatch = true;
-                    if (fee.curriculum_type) {
-                        curriculumMatch = fee.curriculum_type === curriculumType;
-                    }
+                    // Check student type (day/boarding) - MUST match exactly
+                    // Fee must have student_type and it must match
+                    let typeMatch = feeStudentType === studentType;
+                    
+                    // Check curriculum type (zimsec/cambridge) - MUST match exactly
+                    // Fee must have curriculum_type and it must match
+                    let curriculumMatch = feeCurriculumType === curriculumType;
                     
                     // Check new student status - if fee is for new students only, only show if student is new
+                    // Existing students should NOT see new-student-only fees
                     let newStudentMatch = true;
-                    if (fee.is_for_new_student && parseInt(fee.is_for_new_student) === 1) {
-                        newStudentMatch = isNewStudent;
+                    const feeIsForNewStudent = fee.is_for_new_student === true || fee.is_for_new_student === 1 || fee.is_for_new_student === '1';
+                    if (feeIsForNewStudent && !isNewStudent) {
+                        newStudentMatch = false; // Fee is for new students only, but student is not new
                     }
                     
                     // Check level group - if fee has a level group, student's class must be in range
@@ -1030,7 +1010,10 @@
                         levelGroupMatch = classNumeric >= minClass && classNumeric <= maxClass;
                     }
                     
-                    return typeMatch && curriculumMatch && newStudentMatch && levelGroupMatch;
+                    const match = typeMatch && curriculumMatch && newStudentMatch && levelGroupMatch;
+                    console.log('Fee:', fee.fee_type?.name, '| FeeType:', feeStudentType, '| FeeCurr:', feeCurriculumType, '| StudentType:', studentType, '| StudentCurr:', curriculumType, '| Match:', match);
+                    
+                    return match;
                 });
                 
                 // Clear existing fee checkboxes
@@ -1039,16 +1022,17 @@
                 if (filteredFees.length === 0) {
                     const typeLabel = studentType === 'boarding' ? 'Boarding' : 'Day';
                     const currLabel = curriculumType === 'cambridge' ? 'Cambridge' : 'ZIMSEC';
-                    feeTypesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No fee types available for ' + typeLabel + ' / ' + currLabel + ' students in selected term</p>';
+                    feeTypesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No fee types available for ' + typeLabel + ' / ' + currLabel + ' students in selected term. Please check if fee structures have been set up for this student category.</p>';
                     return;
                 }
                 
                 // Create new fee checkboxes
                 filteredFees.forEach(fee => {
+                    const levelGroupName = fee.fee_level_group ? fee.fee_level_group.name : '';
                     const feeHtml = `
-                        <div class="bg-white border border-gray-200 rounded-lg p-3">
+                        <div class="bg-white border border-gray-200 rounded-lg p-3 mb-2">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center">
+                                <div class="flex items-center flex-1">
                                     <input type="checkbox" 
                                            id="fee_${fee.id}"
                                            class="fee-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -1057,9 +1041,10 @@
                                            onchange="toggleFeeAmount(${fee.id})">
                                     <label for="fee_${fee.id}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
                                         ${fee.fee_type ? fee.fee_type.name : 'Fee'}
-                                        ${fee.is_for_new_student && parseInt(fee.is_for_new_student) === 1 ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student Only</span>' : ''}
+                                        ${levelGroupName ? '<span class="ml-1 text-xs text-gray-500">(' + levelGroupName + ')</span>' : ''}
+                                        ${fee.is_for_new_student === true || fee.is_for_new_student === 1 || fee.is_for_new_student === '1' ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student</span>' : ''}
                                     </label>
-                                    <span class="text-sm font-semibold text-gray-600">Full: $${parseFloat(fee.amount).toFixed(2)}</span>
+                                    <span class="text-sm font-semibold text-gray-600">$${parseFloat(fee.amount).toFixed(2)}</span>
                                 </div>
                             </div>
                             <div class="ml-7 mt-2 hidden" id="amount_input_${fee.id}">
@@ -1121,6 +1106,10 @@
             if (checkedFees.length === 0) {
                 showAlert('Please select at least one fee type to proceed.');
                 return;
+            }
+            // Auto-generate reference number when moving to Step 3
+            if (!document.getElementById('reference_number').value) {
+                generateReferenceNumber();
             }
         } else if (step === 3) {
             const paymentMethod = document.querySelector('select[name="payment_method"]').value;
@@ -1611,10 +1600,55 @@
         }
     }
 
+    // Reference number counter (stored in localStorage for persistence across page loads)
+    let paymentCounter = parseInt(localStorage.getItem('paymentCounter') || '0');
+    
+    function generateReferenceNumber() {
+        const studentSelect = document.getElementById('modal_student_id');
+        const selectedStudent = studentSelect.options[studentSelect.selectedIndex];
+        
+        if (!selectedStudent || !selectedStudent.value) {
+            alert('Please select a student first');
+            return;
+        }
+        
+        // Get current date and time
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        
+        // Get class name (abbreviated)
+        const classId = selectedStudent.dataset.class || '';
+        const studentName = selectedStudent.dataset.name || '';
+        // Extract class from the option text or use class ID
+        const optionText = selectedStudent.textContent;
+        const classMatch = optionText.match(/- ([^-]+) -/);
+        let className = classMatch ? classMatch[1].trim().replace(/\s+/g, '') : classId;
+        // Abbreviate class name (e.g., "Form 1A" -> "F1A")
+        className = className.replace(/Form\s*/i, 'F').replace(/Grade\s*/i, 'G').substring(0, 5);
+        
+        // Increment counter
+        paymentCounter++;
+        localStorage.setItem('paymentCounter', paymentCounter.toString());
+        const counterStr = String(paymentCounter).padStart(4, '0');
+        
+        // Generate reference: PAY-YYYYMMDD-CLASS-HHMMSS-XXXX
+        const reference = `PAY-${year}${month}${day}-${className}-${hours}${minutes}${seconds}-${counterStr}`;
+        
+        document.getElementById('reference_number').value = reference;
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('searchStudent');
         const filterClass = document.getElementById('filterClass');
         const filterStatus = document.getElementById('filterStatus');
+        
+        // Auto-generate reference number when modal opens
+        // Generate reference number automatically when moving to step 3
         
         // Add event listeners for fee checkboxes
         document.querySelectorAll('.fee-checkbox').forEach(checkbox => {
