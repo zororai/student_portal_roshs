@@ -594,21 +594,34 @@ class FinanceController extends Controller
 
     public function exportStudentPayments(Request $request)
     {
-        $currentTerm = \App\ResultsStatus::with('termFees.feeType')
+        $currentTerm = \App\ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])
             ->orderBy('year', 'desc')
             ->orderBy('result_period', 'desc')
             ->first();
         
-        $query = Student::with(['user', 'class', 'payments.termFee.feeType']);
+        // Get all terms for cumulative calculation
+        $allTermsForCalc = \App\ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])
+            ->orderBy('year', 'asc')
+            ->orderBy('result_period', 'asc')
+            ->get();
+        
+        $query = Student::with(['user', 'class', 'parent.user', 'payments.termFee.feeType']);
         
         if ($request->has('class_id') && $request->class_id != '') {
             $query->where('class_id', $request->class_id);
         }
         
+        if ($request->has('student_type') && $request->student_type != '') {
+            $query->where('student_type', $request->student_type);
+        }
+        
         $students = $query->orderBy('created_at', 'desc')->get();
         
         foreach ($students as $student) {
-            $student->total_fees = $currentTerm ? floatval($currentTerm->total_fees) : 0;
+            $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
+            $student->balance_bf = $feeBreakdown['balance_bf'];
+            $student->current_term_fees = $feeBreakdown['current_term_fees'];
+            $student->total_fees = $feeBreakdown['total_fees'];
             $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)->sum('amount_paid'));
             $student->balance = $student->total_fees - $student->amount_paid;
             
@@ -642,7 +655,7 @@ class FinanceController extends Controller
             $file = fopen('php://output', 'w');
             
             // CSV Header
-            fputcsv($file, ['#', 'Roll Number', 'Student Name', 'Class', 'Total Fees', 'Amount Paid', 'Balance', 'Status']);
+            fputcsv($file, ['#', 'Roll Number', 'Student Name', 'Class', 'Type', 'Parent', 'Balance B/F', 'Current Term Fees', 'Total Fees', 'Amount Paid', 'Balance', 'Status']);
             
             $index = 1;
             foreach ($students as $student) {
@@ -651,6 +664,10 @@ class FinanceController extends Controller
                     $student->roll_number,
                     $student->user->name ?? $student->name,
                     $student->class->class_name ?? 'N/A',
+                    ucfirst($student->student_type ?? 'day'),
+                    $student->parent->user->name ?? 'N/A',
+                    number_format($student->balance_bf, 2),
+                    number_format($student->current_term_fees, 2),
                     number_format($student->total_fees, 2),
                     number_format($student->amount_paid, 2),
                     number_format($student->balance, 2),

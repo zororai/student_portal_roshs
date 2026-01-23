@@ -455,6 +455,8 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     
     // Grocery Arrears Route
     Route::get('/finance/grocery-arrears', 'GroceryController@groceryArrears')->name('finance.grocery-arrears');
+    Route::get('/finance/grocery-arrears/export', 'GroceryController@exportGroceryArrears')->name('finance.grocery-arrears.export');
+    Route::get('/admin/groceries/student/{studentId}/print', 'GroceryController@printStudentHistory')->name('admin.groceries.student-history.print');
     
     // Scholarships Routes
     Route::get('/admin/scholarships', 'Admin\ScholarshipController@index')->name('admin.scholarships.index');
