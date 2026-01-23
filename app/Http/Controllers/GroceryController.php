@@ -578,4 +578,156 @@ class GroceryController extends Controller
 
         return $studentsWithArrears;
     }
+
+    /**
+     * Admin: Display grocery arrears page with balance brought forward
+     */
+    public function groceryArrears(Request $request)
+    {
+        $classes = Grade::orderBy('class_name')->get();
+        
+        // Get all grocery lists ordered by date
+        $allGroceryLists = GroceryList::with(['items', 'classes'])
+            ->orderBy('year', 'asc')
+            ->orderBy('term', 'asc')
+            ->get();
+        
+        // Get current grocery list (most recent)
+        $currentGroceryList = GroceryList::with(['items', 'classes'])
+            ->orderBy('year', 'desc')
+            ->orderBy('term', 'desc')
+            ->first();
+        
+        // Build query for students
+        $query = Student::with(['user', 'class', 'parent.user']);
+        
+        // Apply filters
+        if ($request->filled('class_id')) {
+            $query->where('class_id', $request->class_id);
+        }
+        if ($request->filled('student_type')) {
+            $query->where('student_type', $request->student_type);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('roll_number', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($sub) use ($search) {
+                      $sub->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        $students = $query->orderBy('created_at', 'desc')->get();
+        
+        // Calculate grocery arrears with balance brought forward for each student (item counts)
+        $studentsWithArrears = [];
+        $totalBalanceBf = 0;
+        $totalCurrentTermOwed = 0;
+        $totalGroceryItems = 0;
+        $totalProvided = 0;
+        
+        foreach ($students as $student) {
+            $arrearsData = $this->calculateGroceryArrearsWithBf($student->id, $allGroceryLists, $currentGroceryList);
+            
+            $student->balance_bf = $arrearsData['balance_bf'];
+            $student->current_term_owed = $arrearsData['current_term_owed'];
+            $student->total_owed = $arrearsData['total_owed'];
+            $student->total_grocery_items = $arrearsData['total_grocery_items'];
+            $student->total_provided = $arrearsData['total_provided'];
+            $student->arrears_breakdown = $arrearsData['breakdown'];
+            $student->missing_items = $arrearsData['missing_items'];
+            
+            $totalBalanceBf += $arrearsData['balance_bf'];
+            $totalCurrentTermOwed += $arrearsData['current_term_owed'];
+            $totalGroceryItems += $arrearsData['total_grocery_items'];
+            $totalProvided += $arrearsData['total_provided'];
+            
+            if ($arrearsData['total_owed'] > 0) {
+                $studentsWithArrears[] = $student;
+            }
+        }
+        
+        $totalOutstanding = $totalGroceryItems - $totalProvided;
+        
+        // Filter to show only students with arrears if requested
+        if ($request->filled('show_arrears_only') && $request->show_arrears_only == '1') {
+            $students = collect($studentsWithArrears);
+        }
+        
+        return view('backend.finance.grocery-arrears', compact(
+            'students', 'classes', 'currentGroceryList',
+            'totalBalanceBf', 'totalCurrentTermOwed', 'totalGroceryItems', 'totalProvided', 'totalOutstanding'
+        ));
+    }
+
+    /**
+     * Calculate grocery arrears with balance brought forward (item counts, not money)
+     */
+    private function calculateGroceryArrearsWithBf($studentId, $allGroceryLists, $currentGroceryList)
+    {
+        $responses = GroceryResponse::where('student_id', $studentId)
+            ->with('groceryList.items')
+            ->get()
+            ->keyBy('grocery_list_id');
+        
+        $balanceBfItems = 0;
+        $currentTermOwedItems = 0;
+        $totalGroceryItems = 0;
+        $totalProvidedItems = 0;
+        $breakdown = [];
+        $missingItems = [];
+        
+        foreach ($allGroceryLists as $list) {
+            $listItemCount = count($list->items);
+            $providedCount = 0;
+            $owedCount = 0;
+            $termMissingItems = [];
+            
+            $response = $responses->get($list->id);
+            $boughtItemIds = $response ? ($response->items_bought ?? []) : [];
+            
+            foreach ($list->items as $item) {
+                if (in_array($item->id, $boughtItemIds)) {
+                    $providedCount++;
+                } else {
+                    $owedCount++;
+                    $termMissingItems[] = $item->name . ($item->quantity ? ' (' . $item->quantity . ')' : '');
+                }
+            }
+            
+            $totalGroceryItems += $listItemCount;
+            $totalProvidedItems += $providedCount;
+            
+            // Track current term vs previous terms
+            if ($currentGroceryList && $list->id === $currentGroceryList->id) {
+                $currentTermOwedItems = $owedCount;
+                if ($owedCount > 0) {
+                    $missingItems = array_merge($missingItems, $termMissingItems);
+                }
+            } else if (!$currentGroceryList || $list->id < $currentGroceryList->id) {
+                $balanceBfItems += $owedCount;
+            }
+            
+            if ($owedCount > 0) {
+                $breakdown[] = [
+                    'term' => ucfirst($list->term) . ' ' . $list->year,
+                    'total_items' => $listItemCount,
+                    'provided' => $providedCount,
+                    'owed' => $owedCount,
+                    'missing_items' => $termMissingItems
+                ];
+            }
+        }
+        
+        return [
+            'balance_bf' => $balanceBfItems,
+            'current_term_owed' => $currentTermOwedItems,
+            'total_owed' => $balanceBfItems + $currentTermOwedItems,
+            'total_grocery_items' => $totalGroceryItems,
+            'total_provided' => $totalProvidedItems,
+            'breakdown' => $breakdown,
+            'missing_items' => $missingItems
+        ];
+    }
 }
