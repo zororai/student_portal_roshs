@@ -352,8 +352,8 @@ class GroceryController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Calculate accumulative balance
-        $totalOwed = 0;
+        // Calculate accumulative balance (item counts, not money)
+        $totalOwedItems = 0;
         $historyData = [];
 
         foreach ($responses as $response) {
@@ -361,34 +361,34 @@ class GroceryController extends Controller
             $allItems = $groceryList->items;
             $boughtItemIds = $response->items_bought ?? [];
 
-            $listTotal = 0;
-            $paidTotal = 0;
-            $owedTotal = 0;
+            $totalItemCount = count($allItems);
+            $providedCount = 0;
+            $owedCount = 0;
+            $missingItems = [];
 
             foreach ($allItems as $item) {
-                $itemPrice = floatval($item->price);
-                $listTotal += $itemPrice;
-
                 if (in_array($item->id, $boughtItemIds)) {
-                    $paidTotal += $itemPrice;
+                    $providedCount++;
                 } else {
-                    $owedTotal += $itemPrice;
+                    $owedCount++;
+                    $missingItems[] = $item->name . ($item->quantity ? ' (' . $item->quantity . ')' : '');
                 }
             }
 
-            $totalOwed += $owedTotal;
+            $totalOwedItems += $owedCount;
 
             $historyData[] = [
                 'response' => $response,
-                'list_total' => $listTotal,
-                'paid_total' => $paidTotal,
-                'owed_total' => $owedTotal,
+                'total_items' => $totalItemCount,
+                'provided_count' => $providedCount,
+                'owed_count' => $owedCount,
+                'missing_items' => $missingItems,
                 'term' => $groceryList->term,
                 'year' => $groceryList->year
             ];
         }
 
-        return view('backend.finance.groceries.student-history', compact('student', 'historyData', 'totalOwed'));
+        return view('backend.finance.groceries.student-history', compact('student', 'historyData', 'totalOwedItems'));
     }
 
     // Helper: Calculate grocery balance for a student
@@ -659,6 +659,138 @@ class GroceryController extends Controller
             'students', 'classes', 'currentGroceryList',
             'totalBalanceBf', 'totalCurrentTermOwed', 'totalGroceryItems', 'totalProvided', 'totalOutstanding'
         ));
+    }
+
+    /**
+     * Export grocery arrears to CSV
+     */
+    public function exportGroceryArrears(Request $request)
+    {
+        $classes = Grade::orderBy('class_name')->get();
+        
+        $allGroceryLists = GroceryList::with(['items', 'classes'])
+            ->orderBy('year', 'asc')
+            ->orderBy('term', 'asc')
+            ->get();
+        
+        $currentGroceryList = GroceryList::with(['items', 'classes'])
+            ->orderBy('year', 'desc')
+            ->orderBy('term', 'desc')
+            ->first();
+        
+        $query = Student::with(['user', 'class', 'parent.user']);
+        
+        if ($request->filled('class_id')) {
+            $query->where('class_id', $request->class_id);
+        }
+        if ($request->filled('student_type')) {
+            $query->where('student_type', $request->student_type);
+        }
+        
+        $students = $query->orderBy('created_at', 'desc')->get();
+        
+        $exportData = [];
+        foreach ($students as $student) {
+            $arrearsData = $this->calculateGroceryArrearsWithBf($student->id, $allGroceryLists, $currentGroceryList);
+            
+            if ($request->filled('show_arrears_only') && $request->show_arrears_only == '1' && $arrearsData['total_owed'] == 0) {
+                continue;
+            }
+            
+            $exportData[] = [
+                'student' => $student,
+                'balance_bf' => $arrearsData['balance_bf'],
+                'current_term_owed' => $arrearsData['current_term_owed'],
+                'total_owed' => $arrearsData['total_owed'],
+                'missing_items' => $arrearsData['missing_items']
+            ];
+        }
+        
+        $filename = 'grocery_arrears_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($exportData) {
+            $file = fopen('php://output', 'w');
+            
+            fputcsv($file, ['#', 'Roll Number', 'Student Name', 'Class', 'Type', 'Parent', 'Items B/F', 'Current Term', 'Total Owed', 'Missing Items']);
+            
+            $index = 1;
+            foreach ($exportData as $data) {
+                $student = $data['student'];
+                fputcsv($file, [
+                    $index++,
+                    $student->roll_number ?? '',
+                    $student->user->name ?? $student->name,
+                    $student->class->class_name ?? 'N/A',
+                    ucfirst($student->student_type ?? 'day'),
+                    $student->parent->user->name ?? 'No Parent',
+                    $data['balance_bf'],
+                    $data['current_term_owed'],
+                    $data['total_owed'],
+                    implode(', ', $data['missing_items'] ?? [])
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Print student grocery history as PDF
+     */
+    public function printStudentHistory($studentId)
+    {
+        $student = Student::with(['user', 'class', 'parent.user'])->findOrFail($studentId);
+
+        $responses = GroceryResponse::where('student_id', $studentId)
+            ->with(['groceryList.items', 'parent.user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $totalOwedItems = 0;
+        $totalProvidedItems = 0;
+        $historyData = [];
+
+        foreach ($responses as $response) {
+            $groceryList = $response->groceryList;
+            $allItems = $groceryList->items;
+            $boughtItemIds = $response->items_bought ?? [];
+
+            $totalItemCount = count($allItems);
+            $providedCount = 0;
+            $owedCount = 0;
+            $missingItems = [];
+
+            foreach ($allItems as $item) {
+                if (in_array($item->id, $boughtItemIds)) {
+                    $providedCount++;
+                } else {
+                    $owedCount++;
+                    $missingItems[] = $item->name . ($item->quantity ? ' (' . $item->quantity . ')' : '');
+                }
+            }
+
+            $totalOwedItems += $owedCount;
+            $totalProvidedItems += $providedCount;
+
+            $historyData[] = [
+                'response' => $response,
+                'total_items' => $totalItemCount,
+                'provided_count' => $providedCount,
+                'owed_count' => $owedCount,
+                'missing_items' => $missingItems,
+                'term' => $groceryList->term,
+                'year' => $groceryList->year
+            ];
+        }
+
+        return view('backend.finance.groceries.print-history', compact('student', 'historyData', 'totalOwedItems', 'totalProvidedItems'));
     }
 
     /**

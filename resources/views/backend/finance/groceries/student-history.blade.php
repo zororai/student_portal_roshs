@@ -23,20 +23,20 @@
                 <p class="text-3xl font-bold text-blue-700">{{ count($historyData) }}</p>
             </div>
             <div class="text-center p-4 bg-green-50 rounded-lg">
-                <p class="text-sm text-green-600 font-medium">Items Bought</p>
+                <p class="text-sm text-green-600 font-medium">Items Provided</p>
                 <p class="text-3xl font-bold text-green-700">
                     @php
-                        $totalBought = 0;
+                        $totalProvided = 0;
                         foreach($historyData as $data) {
-                            $totalBought += count($data['response']->items_bought ?? []);
+                            $totalProvided += $data['provided_count'] ?? 0;
                         }
                     @endphp
-                    {{ $totalBought }}
+                    {{ $totalProvided }} <span class="text-base font-normal">items</span>
                 </p>
             </div>
-            <div class="text-center p-4 {{ $totalOwed > 0 ? 'bg-red-50' : 'bg-green-50' }} rounded-lg">
-                <p class="text-sm {{ $totalOwed > 0 ? 'text-red-600' : 'text-green-600' }} font-medium">Accumulative Balance</p>
-                <p class="text-3xl font-bold {{ $totalOwed > 0 ? 'text-red-700' : 'text-green-700' }}">${{ number_format($totalOwed, 2) }}</p>
+            <div class="text-center p-4 {{ ($totalOwedItems ?? 0) > 0 ? 'bg-red-50' : 'bg-green-50' }} rounded-lg">
+                <p class="text-sm {{ ($totalOwedItems ?? 0) > 0 ? 'text-red-600' : 'text-green-600' }} font-medium">Outstanding Items</p>
+                <p class="text-3xl font-bold {{ ($totalOwedItems ?? 0) > 0 ? 'text-red-700' : 'text-green-700' }}">{{ $totalOwedItems ?? 0 }} <span class="text-base font-normal">items</span></p>
             </div>
         </div>
     </div>
@@ -54,9 +54,9 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Term/Year</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Submitted</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">List Total</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Paid</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Owed</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Total Items</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Provided</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Missing</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Details</th>
                     </tr>
@@ -72,9 +72,18 @@
                                 <span class="text-gray-400">Not submitted</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-600">${{ number_format($data['list_total'], 2) }}</td>
-                        <td class="px-6 py-4 text-sm text-green-600 font-medium">${{ number_format($data['paid_total'], 2) }}</td>
-                        <td class="px-6 py-4 text-sm {{ $data['owed_total'] > 0 ? 'text-red-600' : 'text-green-600' }} font-medium">${{ number_format($data['owed_total'], 2) }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ $data['total_items'] }} items</td>
+                        <td class="px-6 py-4 text-sm text-green-600 font-medium">{{ $data['provided_count'] }} items</td>
+                        <td class="px-6 py-4 text-sm {{ ($data['owed_count'] ?? 0) > 0 ? 'text-red-600' : 'text-green-600' }} font-medium">
+                            {{ $data['owed_count'] }} items
+                            @if(count($data['missing_items'] ?? []) > 0)
+                                <button type="button" onclick="showMissing('{{ addslashes(implode(', ', $data['missing_items'])) }}')" class="ml-1 text-orange-500 hover:text-orange-700" title="View missing items">
+                                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </button>
+                            @endif
+                        </td>
                         <td class="px-6 py-4">
                             @if($data['response']->acknowledged)
                                 <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Acknowledged</span>
@@ -108,4 +117,10 @@
         @endif
     </div>
 </div>
+
+<script>
+function showMissing(items) {
+    alert('Missing Items:\n\n' + items);
+}
+</script>
 @endsection
