@@ -348,6 +348,15 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/Term', 'ResultsStatusController@index')->name('results_status.index');
     Route::delete('/results-status/{id}', 'ResultsStatusController@destroy')->name('results_status.destroy');
 
+    // Fee Level Groups management
+    Route::get('/fee-level-groups', 'FeeLevelGroupController@index')->name('fee-level-groups.index');
+    Route::get('/fee-level-groups/create', 'FeeLevelGroupController@create')->name('fee-level-groups.create');
+    Route::post('/fee-level-groups', 'FeeLevelGroupController@store')->name('fee-level-groups.store');
+    Route::post('/fee-level-groups/apply-to-new-students', 'FeeLevelGroupController@applyToNewStudents')->name('fee-level-groups.apply-to-new-students');
+    Route::get('/fee-level-groups/{id}/edit', 'FeeLevelGroupController@edit')->name('fee-level-groups.edit');
+    Route::put('/fee-level-groups/{id}', 'FeeLevelGroupController@update')->name('fee-level-groups.update');
+    Route::delete('/fee-level-groups/{id}', 'FeeLevelGroupController@destroy')->name('fee-level-groups.destroy');
+
     // Fee Types management
     Route::get('/fee-types', 'FeeTypeController@index')->name('fee_types.index');
     Route::get('/fee-types/create', 'FeeTypeController@create')->name('fee_types.create');
@@ -410,6 +419,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     // Finance & Accounting Routes
     Route::get('/finance/student-payments', 'FinanceController@studentPayments')->name('finance.student-payments');
     Route::post('/finance/payments/store', 'FinanceController@storePayment')->name('finance.payments.store');
+    Route::post('/finance/enforce-fees', 'FinanceController@enforceFees')->name('finance.enforce-fees');
     Route::get('/finance/parents-arrears', 'FinanceController@parentsArrears')->name('finance.parents-arrears');
     Route::get('/finance/parents-arrears/export', 'FinanceController@exportParentsArrears')->name('finance.parents-arrears.export');
     Route::get('/finance/student-payments/export', 'FinanceController@exportStudentPayments')->name('finance.student-payments.export');

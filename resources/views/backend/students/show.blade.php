@@ -94,25 +94,67 @@
                                     </dd>
                                 </div>
                                 <div class="bg-gray-50 rounded-lg px-4 py-3">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Student Status</dt>
+                                    <dd class="mt-1">
+                                        @if($student->is_new_student)
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+                                                </svg>
+                                                New Student
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Existing Student
+                                            </span>
+                                        @endif
+                                    </dd>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg px-4 py-3">
                                     <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Curriculum</dt>
                                     <dd class="mt-1">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ ($student->curriculum_type ?? 'zimsec') == 'cambridge' ? 'bg-orange-100 text-orange-800' : 'bg-green-100 text-green-800' }}">
                                             {{ strtoupper($student->curriculum_type ?? 'ZIMSEC') }}
                                         </span>
+                                    </dd>
+                                </div>
+                                <div class="bg-gray-50 rounded-lg px-4 py-3">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Scholarship</dt>
+                                    <dd class="mt-1">
                                         @if(($student->scholarship_percentage ?? 0) > 0)
-                                            <span class="ml-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                {{ $student->scholarship_percentage }}% Scholarship
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                </svg>
+                                                {{ $student->scholarship_percentage }}%
                                             </span>
+                                        @else
+                                            <span class="text-sm text-gray-500">None</span>
                                         @endif
                                     </dd>
                                 </div>
+                                @if($student->national_id)
+                                <div class="bg-gray-50 rounded-lg px-4 py-3">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">National ID</dt>
+                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $student->national_id }}</dd>
+                                </div>
+                                @endif
+                                @if($student->created_at)
+                                <div class="bg-gray-50 rounded-lg px-4 py-3">
+                                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Enrollment Date</dt>
+                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $student->created_at->format('M d, Y') }}</dd>
+                                </div>
+                                @endif
                                 <div class="bg-gray-50 rounded-lg px-4 py-3 sm:col-span-2">
                                     <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Current Address</dt>
-                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $student->current_address }}</dd>
+                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $student->current_address ?: 'Not provided' }}</dd>
                                 </div>
                                 <div class="bg-gray-50 rounded-lg px-4 py-3 sm:col-span-2">
                                     <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">Permanent Address</dt>
-                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $student->permanent_address }}</dd>
+                                    <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $student->permanent_address ?: 'Not provided' }}</dd>
                                 </div>
                             </dl>
                         </div>

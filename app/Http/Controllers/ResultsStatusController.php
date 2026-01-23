@@ -10,6 +10,8 @@ use App\SchoolSetting;
 use Carbon\Carbon;
 use App\Grade;
 use App\LevelFeeAdjustment;
+use App\FeeLevelGroup;
+use App\FeeStructure;
 
 class ResultsStatusController extends Controller
 {
@@ -19,12 +21,14 @@ class ResultsStatusController extends Controller
         $feeTypes = FeeType::where('is_active', true)->get();
         $classes = Grade::orderBy('class_numeric', 'asc')->get();
         $upgradeDirection = SchoolSetting::get('upgrade_direction', 'ascending');
-        return view('results_status.create', compact('feeTypes', 'classes', 'upgradeDirection'));
+        $feeLevelGroups = FeeLevelGroup::where('is_active', true)->orderBy('display_order')->get();
+        return view('results_status.create', compact('feeTypes', 'classes', 'upgradeDirection', 'feeLevelGroups'));
     }
     public function index()
     {
-        $resultsStatuses = ResultsStatus::with(['termFees.feeType'])->orderBy('year', 'desc')->orderBy('result_period', 'desc')->get();
-        return view('results_status.index', compact('resultsStatuses'));
+        $resultsStatuses = ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])->orderBy('year', 'desc')->orderBy('result_period', 'desc')->get();
+        $feeLevelGroups = FeeLevelGroup::where('is_active', true)->orderBy('display_order')->get();
+        return view('results_status.index', compact('resultsStatuses', 'feeLevelGroups'));
     }
     // Method to store a new record
     public function store(Request $request)
@@ -33,18 +37,8 @@ class ResultsStatusController extends Controller
         $validatedData = $request->validate([
             'year' => 'required|integer',
             'result_period' => 'required|string',
-            'zimsec_day_fees' => 'required|array',
-            'zimsec_day_fees.*.fee_type_id' => 'required|exists:fee_types,id',
-            'zimsec_day_fees.*.amount' => 'required|numeric|min:0',
-            'zimsec_boarding_fees' => 'required|array',
-            'zimsec_boarding_fees.*.fee_type_id' => 'required|exists:fee_types,id',
-            'zimsec_boarding_fees.*.amount' => 'required|numeric|min:0',
-            'cambridge_day_fees' => 'required|array',
-            'cambridge_day_fees.*.fee_type_id' => 'required|exists:fee_types,id',
-            'cambridge_day_fees.*.amount' => 'required|numeric|min:0',
-            'cambridge_boarding_fees' => 'required|array',
-            'cambridge_boarding_fees.*.fee_type_id' => 'required|exists:fee_types,id',
-            'cambridge_boarding_fees.*.amount' => 'required|numeric|min:0',
+            // Fee structures are optional - not all schools have both ZIMSEC and Cambridge
+            'fee_structures' => 'nullable|array',
         ]);
     
         // Attempt to create a new record only if it doesn't already exist
@@ -56,77 +50,18 @@ class ResultsStatusController extends Controller
             return redirect()->back()->withErrors(['duplicate' => 'A record with the same year and result period already exists.']);
         }
     
-        // Calculate total fees for each curriculum and student type
-        $zimsecDayFees = array_sum(array_column($validatedData['zimsec_day_fees'], 'amount'));
-        $zimsecBoardingFees = array_sum(array_column($validatedData['zimsec_boarding_fees'], 'amount'));
-        $cambridgeDayFees = array_sum(array_column($validatedData['cambridge_day_fees'], 'amount'));
-        $cambridgeBoardingFees = array_sum(array_column($validatedData['cambridge_boarding_fees'], 'amount'));
-        
-        // Legacy totals (use ZIMSEC as default for backward compatibility)
-        $totalDayFees = $zimsecDayFees;
-        $totalBoardingFees = $zimsecBoardingFees;
-        $totalFees = $totalDayFees + $totalBoardingFees;
-        
-        // Create a new ResultsStatus record
+        // Create a new ResultsStatus record (fees will be calculated from fee_structures)
         $resultsStatus = ResultsStatus::create([
             'year' => $validatedData['year'],
             'result_period' => $validatedData['result_period'],
-            'total_fees' => $totalFees,
-            'total_day_fees' => $totalDayFees,
-            'total_boarding_fees' => $totalBoardingFees,
-            'zimsec_day_fees' => $zimsecDayFees,
-            'zimsec_boarding_fees' => $zimsecBoardingFees,
-            'cambridge_day_fees' => $cambridgeDayFees,
-            'cambridge_boarding_fees' => $cambridgeBoardingFees,
+            'total_fees' => 0,
+            'total_day_fees' => 0,
+            'total_boarding_fees' => 0,
+            'zimsec_day_fees' => 0,
+            'zimsec_boarding_fees' => 0,
+            'cambridge_day_fees' => 0,
+            'cambridge_boarding_fees' => 0,
         ]);
-        
-        // Create ZIMSEC day fees
-        foreach ($validatedData['zimsec_day_fees'] as $fee) {
-            TermFee::create([
-                'results_status_id' => $resultsStatus->id,
-                'fee_type_id' => $fee['fee_type_id'],
-                'student_type' => 'day',
-                'curriculum_type' => 'zimsec',
-                'amount' => $fee['amount'],
-                'is_for_new_student' => isset($fee['is_for_new_student']) ? true : false
-            ]);
-        }
-        
-        // Create ZIMSEC boarding fees
-        foreach ($validatedData['zimsec_boarding_fees'] as $fee) {
-            TermFee::create([
-                'results_status_id' => $resultsStatus->id,
-                'fee_type_id' => $fee['fee_type_id'],
-                'student_type' => 'boarding',
-                'curriculum_type' => 'zimsec',
-                'amount' => $fee['amount'],
-                'is_for_new_student' => isset($fee['is_for_new_student']) ? true : false
-            ]);
-        }
-        
-        // Create Cambridge day fees
-        foreach ($validatedData['cambridge_day_fees'] as $fee) {
-            TermFee::create([
-                'results_status_id' => $resultsStatus->id,
-                'fee_type_id' => $fee['fee_type_id'],
-                'student_type' => 'day',
-                'curriculum_type' => 'cambridge',
-                'amount' => $fee['amount'],
-                'is_for_new_student' => isset($fee['is_for_new_student']) ? true : false
-            ]);
-        }
-        
-        // Create Cambridge boarding fees
-        foreach ($validatedData['cambridge_boarding_fees'] as $fee) {
-            TermFee::create([
-                'results_status_id' => $resultsStatus->id,
-                'fee_type_id' => $fee['fee_type_id'],
-                'student_type' => 'boarding',
-                'curriculum_type' => 'cambridge',
-                'amount' => $fee['amount'],
-                'is_for_new_student' => isset($fee['is_for_new_student']) ? true : false
-            ]);
-        }
         
         // Save level-based fee adjustments
         if ($request->has('level_adjustments')) {
@@ -178,6 +113,41 @@ class ResultsStatusController extends Controller
             }
         }
         
+        // Save fee structures by level groups
+        if ($request->has('fee_structures')) {
+            foreach ($request->fee_structures as $groupId => $groupFees) {
+                foreach ($groupFees as $key => $fees) {
+                    // Key format: {curriculum}_{studentType}_{isNew} e.g., "zimsec_day_existing" or "zimsec_day_new"
+                    $parts = explode('_', $key);
+                    if (count($parts) < 3) continue;
+                    
+                    $curriculumType = $parts[0];
+                    $studentType = $parts[1];
+                    $isNewStudent = ($parts[2] === 'new');
+                    
+                    if (is_array($fees)) {
+                        foreach ($fees as $feeData) {
+                            if (!empty($feeData['fee_type_id']) && isset($feeData['amount']) && floatval($feeData['amount']) > 0) {
+                                FeeStructure::updateOrCreate(
+                                    [
+                                        'results_status_id' => $resultsStatus->id,
+                                        'fee_level_group_id' => $groupId,
+                                        'fee_type_id' => $feeData['fee_type_id'],
+                                        'student_type' => $studentType,
+                                        'curriculum_type' => $curriculumType,
+                                        'is_for_new_student' => $isNewStudent,
+                                    ],
+                                    [
+                                        'amount' => floatval($feeData['amount'])
+                                    ]
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         // Save attendance settings
         $sessionMode = $request->session_mode ?? 'morning';
         SchoolSetting::set('attendance_session_mode', $sessionMode, 'text', 'Attendance session mode (morning, afternoon, or dual)');
@@ -217,7 +187,7 @@ class ResultsStatusController extends Controller
             SchoolSetting::set('attendance_afternoon_work_hours', $afternoonHours, 'number', 'Afternoon session work hours');
         }
     
-        return redirect()->route('results_status.index')->with('success', 'Term created with attendance settings! Day fees: $' . number_format($totalDayFees, 2) . ' | Boarding fees: $' . number_format($totalBoardingFees, 2));
+        return redirect()->route('results_status.index')->with('success', 'Term created successfully with fee structures and attendance settings!');
     }
 
     public function destroy($id)

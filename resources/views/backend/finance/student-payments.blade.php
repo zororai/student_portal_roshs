@@ -4,7 +4,16 @@
 <div class="container mx-auto px-4 py-6">
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Student Payments</h2>
-        <div class="flex space-x-2">
+        <div class="flex flex-wrap gap-2">
+            <form action="{{ route('finance.enforce-fees') }}" method="POST" class="inline" onsubmit="return confirm('This will recalculate fees for all students based on the current fee structure. Continue?')">
+                @csrf
+                <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Enforce Fees
+                </button>
+            </form>
             <a href="{{ route('finance.student-payments.export', request()->query()) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -363,9 +372,14 @@
                                     <select name="results_status_id" id="modal_results_status_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" required onchange="updateFeeTypes()">
                                         <option value="">-- Select Term --</option>
                                         @foreach($allTerms as $term)
+                                            @php
+                                                $termFeeData = $term->feeStructures && $term->feeStructures->count() > 0 
+                                                    ? $term->feeStructures->load('feeType', 'feeLevelGroup') 
+                                                    : $term->termFees;
+                                            @endphp
                                             <option value="{{ $term->id }}" 
                                                     data-year="{{ $term->year }}"
-                                                    data-fees='@json($term->termFees)'
+                                                    data-fees='@json($termFeeData)'
                                                     {{ $currentTerm && $currentTerm->id == $term->id ? 'selected' : '' }}>
                                                 {{ ucfirst($term->result_period) }} Term {{ $term->year }}
                                             </option>
@@ -416,6 +430,7 @@
                                             data-amount-paid="{{ $amountPaid }}"
                                             data-balance="{{ $balance }}"
                                             data-class="{{ $student->class->id ?? '' }}"
+                                            data-class-numeric="{{ $student->class->class_numeric ?? '' }}"
                                             data-roll="{{ $student->roll_number }}"
                                             data-student-type="{{ $student->student_type ?? 'day' }}"
                                             data-curriculum-type="{{ $student->curriculum_type ?? 'zimsec' }}"
@@ -458,52 +473,61 @@
                         <div class="mb-4">
                         <label class="block text-sm font-bold text-gray-700 mb-3">Select Fee Types to Pay</label>
                         <div class="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto" id="fee_types_container">
-                            @if(isset($currentTerm) && $currentTerm->termFees->count() > 0)
-                                @foreach($currentTerm->termFees as $termFee)
+                            @php
+                                $feeItems = isset($currentTerm) && $currentTerm->feeStructures && $currentTerm->feeStructures->count() > 0 
+                                    ? $currentTerm->feeStructures 
+                                    : (isset($currentTerm) ? $currentTerm->termFees : collect());
+                            @endphp
+                            @if($feeItems->count() > 0)
+                                @foreach($feeItems as $feeItem)
                                 <div class="py-3 border-b border-gray-200 last:border-0 fee-item"
-                                     data-student-type="{{ $termFee->student_type ?? 'day' }}"
-                                     data-curriculum-type="{{ $termFee->curriculum_type ?? 'zimsec' }}"
-                                     data-is-for-new-student="{{ $termFee->is_for_new_student ?? 0 }}">
+                                     data-student-type="{{ $feeItem->student_type ?? 'day' }}"
+                                     data-curriculum-type="{{ $feeItem->curriculum_type ?? 'zimsec' }}"
+                                     data-is-for-new-student="{{ $feeItem->is_for_new_student ?? 0 }}"
+                                     data-level-group-id="{{ $feeItem->fee_level_group_id ?? '' }}">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center flex-1">
                                             <input type="checkbox" 
-                                                   id="fee_{{ $termFee->id }}"
+                                                   id="fee_{{ $feeItem->id }}"
                                                    class="fee-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                   data-fee-id="{{ $termFee->id }}"
-                                                   data-full-amount="{{ $termFee->amount }}"
-                                                   onchange="toggleFeeAmount({{ $termFee->id }})">
-                                            <label for="fee_{{ $termFee->id }}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
-                                                {{ $termFee->feeType->name }}
-                                                @if($termFee->is_for_new_student)
+                                                   data-fee-id="{{ $feeItem->id }}"
+                                                   data-full-amount="{{ $feeItem->amount }}"
+                                                   onchange="toggleFeeAmount({{ $feeItem->id }})">
+                                            <label for="fee_{{ $feeItem->id }}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
+                                                {{ $feeItem->feeType->name ?? 'Fee' }}
+                                                @if($feeItem->feeLevelGroup)
+                                                    <span class="ml-1 text-xs text-gray-500">({{ $feeItem->feeLevelGroup->name }})</span>
+                                                @endif
+                                                @if($feeItem->is_for_new_student)
                                                     <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student Only</span>
                                                 @endif
                                             </label>
-                                            <span class="text-sm font-semibold text-gray-600">Full: ${{ number_format($termFee->amount, 2) }}</span>
+                                            <span class="text-sm font-semibold text-gray-600">Full: ${{ number_format($feeItem->amount, 2) }}</span>
                                         </div>
                                     </div>
-                                    <div class="ml-7 mt-2 hidden" id="amount_input_{{ $termFee->id }}">
+                                    <div class="ml-7 mt-2 hidden" id="amount_input_{{ $feeItem->id }}">
                                         <div class="flex items-center gap-3">
                                             <div class="flex-1">
                                                 <label class="block text-xs text-gray-600 mb-1">Amount to Pay</label>
                                                 <input type="number" 
-                                                       name="fee_amounts[{{ $termFee->id }}]"
-                                                       id="amount_{{ $termFee->id }}"
+                                                       name="fee_amounts[{{ $feeItem->id }}]"
+                                                       id="amount_{{ $feeItem->id }}"
                                                        class="fee-amount-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                                                        placeholder="Enter amount"
                                                        min="0"
-                                                       max="{{ $termFee->amount }}"
+                                                       max="{{ $feeItem->amount }}"
                                                        step="0.01"
-                                                       value="{{ $termFee->amount }}"
+                                                       value="{{ $feeItem->amount }}"
                                                        disabled
                                                        oninput="updatePaymentCalculation()">
                                             </div>
                                             <button type="button" 
-                                                    onclick="setFullAmount({{ $termFee->id }}, {{ $termFee->amount }})"
+                                                    onclick="setFullAmount({{ $feeItem->id }}, {{ $feeItem->amount }})"
                                                     class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-xs font-medium mt-5">
                                                 Full Amount
                                             </button>
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-1">Maximum: ${{ number_format($termFee->amount, 2) }}</p>
+                                        <p class="text-xs text-gray-500 mt-1">Maximum: ${{ number_format($feeItem->amount, 2) }}</p>
                                     </div>
                                 </div>
                                 @endforeach
@@ -966,18 +990,19 @@
         
         if (!feeTypesContainer) return;
         
-        // Get selected student's type, curriculum, and new student status
+        // Get selected student's type, curriculum, new student status, and class numeric
         const studentSelect = document.getElementById('modal_student_id');
         const selectedStudent = studentSelect.options[studentSelect.selectedIndex];
         const studentType = selectedStudent && selectedStudent.value ? (selectedStudent.dataset.studentType || 'day') : 'day';
         const curriculumType = selectedStudent && selectedStudent.value ? (selectedStudent.dataset.curriculumType || 'zimsec') : 'zimsec';
         const isNewStudent = selectedStudent && selectedStudent.value ? (parseInt(selectedStudent.dataset.isNewStudent) === 1) : true;
+        const classNumeric = selectedStudent && selectedStudent.value ? parseInt(selectedStudent.dataset.classNumeric) : null;
         
         if (selectedOption.value && selectedOption.dataset.fees) {
             try {
                 const fees = JSON.parse(selectedOption.dataset.fees);
                 
-                // Filter fees based on student type, curriculum type, AND new student status
+                // Filter fees based on student type, curriculum type, new student status, AND level group
                 const filteredFees = fees.filter(fee => {
                     // Check student type (day/boarding)
                     let typeMatch = true;
@@ -997,7 +1022,15 @@
                         newStudentMatch = isNewStudent;
                     }
                     
-                    return typeMatch && curriculumMatch && newStudentMatch;
+                    // Check level group - if fee has a level group, student's class must be in range
+                    let levelGroupMatch = true;
+                    if (fee.fee_level_group && classNumeric) {
+                        const minClass = parseInt(fee.fee_level_group.min_class_numeric);
+                        const maxClass = parseInt(fee.fee_level_group.max_class_numeric);
+                        levelGroupMatch = classNumeric >= minClass && classNumeric <= maxClass;
+                    }
+                    
+                    return typeMatch && curriculumMatch && newStudentMatch && levelGroupMatch;
                 });
                 
                 // Clear existing fee checkboxes

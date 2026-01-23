@@ -40,4 +40,16 @@ class ResultsStatus extends Model
     {
         return $this->hasMany(TermFee::class);
     }
+
+    // A result status has many fee structures (level group based)
+    public function feeStructures()
+    {
+        return $this->hasMany(FeeStructure::class);
+    }
+
+    // A result status has many level fee adjustments
+    public function levelFeeAdjustments()
+    {
+        return $this->hasMany(LevelFeeAdjustment::class);
+    }
 }

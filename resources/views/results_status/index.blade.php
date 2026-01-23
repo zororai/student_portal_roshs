@@ -44,11 +44,8 @@
                             <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 Result Period
                             </th>
-                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                Fee Breakdown
-                            </th>
-                            <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                Total Fees
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider" colspan="2">
+                                Fee Breakdown (ZIMSEC & Cambridge)
                             </th>
                             <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                                 Actions
@@ -68,60 +65,229 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900 capitalize">{{ $resultStatus->result_period }} Term</div>
                                 </td>
-                                <td class="px-6 py-4">
-                                    @if($resultStatus->termFees && $resultStatus->termFees->count() > 0)
+                                <td class="px-6 py-4" colspan="2">
+                                    @if($resultStatus->feeStructures && $resultStatus->feeStructures->count() > 0)
                                         <div class="space-y-3">
-                                            {{-- Day Student Fees --}}
-                                            @php $dayFees = $resultStatus->termFees->where('student_type', 'day'); @endphp
-                                            @if($dayFees->count() > 0)
-                                                <div>
-                                                    <div class="text-xs font-semibold text-blue-600 mb-1 flex items-center">
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z"/></svg>
-                                                        Day Student
-                                                    </div>
-                                                    <div class="space-y-1 pl-4 border-l-2 border-blue-200">
-                                                        @foreach($dayFees as $termFee)
-                                                            <div class="flex items-center justify-between text-xs">
-                                                                <span class="text-gray-600">{{ $termFee->feeType->name }}</span>
-                                                                <span class="font-semibold text-gray-900">${{ number_format($termFee->amount, 2) }}</span>
+                                            @php 
+                                                $groupedFees = $resultStatus->feeStructures->groupBy('fee_level_group_id');
+                                            @endphp
+                                            @foreach($groupedFees as $groupId => $fees)
+                                                @php 
+                                                    $group = $fees->first()->feeLevelGroup;
+                                                    $zimsecFees = $fees->where('curriculum_type', 'zimsec');
+                                                    $cambridgeFees = $fees->where('curriculum_type', 'cambridge');
+                                                    
+                                                    // Existing students
+                                                    $zimsecDayExisting = $zimsecFees->where('student_type', 'day')->where('is_for_new_student', false);
+                                                    $zimsecBoardingExisting = $zimsecFees->where('student_type', 'boarding')->where('is_for_new_student', false);
+                                                    $cambridgeDayExisting = $cambridgeFees->where('student_type', 'day')->where('is_for_new_student', false);
+                                                    $cambridgeBoardingExisting = $cambridgeFees->where('student_type', 'boarding')->where('is_for_new_student', false);
+                                                    
+                                                    // New students
+                                                    $zimsecDayNew = $zimsecFees->where('student_type', 'day')->where('is_for_new_student', true);
+                                                    $zimsecBoardingNew = $zimsecFees->where('student_type', 'boarding')->where('is_for_new_student', true);
+                                                    $cambridgeDayNew = $cambridgeFees->where('student_type', 'day')->where('is_for_new_student', true);
+                                                    $cambridgeBoardingNew = $cambridgeFees->where('student_type', 'boarding')->where('is_for_new_student', true);
+                                                @endphp
+                                                <div class="bg-gray-50 rounded-lg p-3 text-xs border border-gray-200">
+                                                    <div class="font-bold text-rose-600 mb-2 pb-1 border-b border-rose-200">{{ $group->name ?? 'Unknown Group' }}</div>
+                                                    <div class="grid grid-cols-2 gap-4">
+                                                        <!-- ZIMSEC Column -->
+                                                        <div class="bg-indigo-50 rounded p-2 border border-indigo-200">
+                                                            <div class="font-bold text-indigo-700 mb-2 text-center">ZIMSEC</div>
+                                                            
+                                                            <!-- Existing Students Section -->
+                                                            <div class="mb-2 p-1 bg-indigo-100 rounded">
+                                                                <div class="text-center text-indigo-800 font-semibold text-xs mb-1">Existing Students</div>
+                                                                <!-- Day Scholar Existing -->
+                                                                <div class="mb-1 bg-white rounded p-2">
+                                                                    <div class="font-semibold text-blue-600 mb-1">Day Scholar</div>
+                                                                    @if($zimsecDayExisting->sum('amount') > 0)
+                                                                        @foreach($zimsecDayExisting as $fee)
+                                                                            @if($fee->amount > 0)
+                                                                            <div class="flex justify-between text-gray-600">
+                                                                                <span>{{ $fee->feeType->name ?? 'Fee' }}</span>
+                                                                                <span>${{ number_format($fee->amount, 2) }}</span>
+                                                                            </div>
+                                                                            @endif
+                                                                        @endforeach
+                                                                        <div class="flex justify-between font-bold text-blue-700 border-t border-blue-200 mt-1 pt-1">
+                                                                            <span>Total</span>
+                                                                            <span>${{ number_format($zimsecDayExisting->sum('amount'), 2) }}</span>
+                                                                        </div>
+                                                                    @else
+                                                                        <span class="text-gray-400">-</span>
+                                                                    @endif
+                                                                </div>
+                                                                <!-- Boarding Existing -->
+                                                                <div class="bg-white rounded p-2">
+                                                                    <div class="font-semibold text-green-600 mb-1">Boarding</div>
+                                                                    @if($zimsecBoardingExisting->sum('amount') > 0)
+                                                                        @foreach($zimsecBoardingExisting as $fee)
+                                                                            @if($fee->amount > 0)
+                                                                            <div class="flex justify-between text-gray-600">
+                                                                                <span>{{ $fee->feeType->name ?? 'Fee' }}</span>
+                                                                                <span>${{ number_format($fee->amount, 2) }}</span>
+                                                                            </div>
+                                                                            @endif
+                                                                        @endforeach
+                                                                        <div class="flex justify-between font-bold text-green-700 border-t border-green-200 mt-1 pt-1">
+                                                                            <span>Total</span>
+                                                                            <span>${{ number_format($zimsecBoardingExisting->sum('amount'), 2) }}</span>
+                                                                        </div>
+                                                                    @else
+                                                                        <span class="text-gray-400">-</span>
+                                                                    @endif
+                                                                </div>
                                                             </div>
-                                                        @endforeach
+                                                            
+                                                            <!-- New Students Section -->
+                                                            <div class="p-1 bg-emerald-100 rounded">
+                                                                <div class="text-center text-emerald-800 font-semibold text-xs mb-1">New Students</div>
+                                                                <!-- Day Scholar New -->
+                                                                <div class="mb-1 bg-white rounded p-2">
+                                                                    <div class="font-semibold text-blue-600 mb-1">Day Scholar</div>
+                                                                    @if($zimsecDayNew->sum('amount') > 0)
+                                                                        @foreach($zimsecDayNew as $fee)
+                                                                            @if($fee->amount > 0)
+                                                                            <div class="flex justify-between text-gray-600">
+                                                                                <span>{{ $fee->feeType->name ?? 'Fee' }}</span>
+                                                                                <span>${{ number_format($fee->amount, 2) }}</span>
+                                                                            </div>
+                                                                            @endif
+                                                                        @endforeach
+                                                                        <div class="flex justify-between font-bold text-blue-700 border-t border-blue-200 mt-1 pt-1">
+                                                                            <span>Total</span>
+                                                                            <span>${{ number_format($zimsecDayNew->sum('amount'), 2) }}</span>
+                                                                        </div>
+                                                                    @else
+                                                                        <span class="text-gray-400">-</span>
+                                                                    @endif
+                                                                </div>
+                                                                <!-- Boarding New -->
+                                                                <div class="bg-white rounded p-2">
+                                                                    <div class="font-semibold text-green-600 mb-1">Boarding</div>
+                                                                    @if($zimsecBoardingNew->sum('amount') > 0)
+                                                                        @foreach($zimsecBoardingNew as $fee)
+                                                                            @if($fee->amount > 0)
+                                                                            <div class="flex justify-between text-gray-600">
+                                                                                <span>{{ $fee->feeType->name ?? 'Fee' }}</span>
+                                                                                <span>${{ number_format($fee->amount, 2) }}</span>
+                                                                            </div>
+                                                                            @endif
+                                                                        @endforeach
+                                                                        <div class="flex justify-between font-bold text-green-700 border-t border-green-200 mt-1 pt-1">
+                                                                            <span>Total</span>
+                                                                            <span>${{ number_format($zimsecBoardingNew->sum('amount'), 2) }}</span>
+                                                                        </div>
+                                                                    @else
+                                                                        <span class="text-gray-400">-</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Cambridge Column -->
+                                                        <div class="bg-purple-50 rounded p-2 border border-purple-200">
+                                                            <div class="font-bold text-purple-700 mb-2 text-center">Cambridge</div>
+                                                            
+                                                            <!-- Existing Students Section -->
+                                                            <div class="mb-2 p-1 bg-purple-100 rounded">
+                                                                <div class="text-center text-purple-800 font-semibold text-xs mb-1">Existing Students</div>
+                                                                <!-- Day Scholar Existing -->
+                                                                <div class="mb-1 bg-white rounded p-2">
+                                                                    <div class="font-semibold text-blue-600 mb-1">Day Scholar</div>
+                                                                    @if($cambridgeDayExisting->sum('amount') > 0)
+                                                                        @foreach($cambridgeDayExisting as $fee)
+                                                                            @if($fee->amount > 0)
+                                                                            <div class="flex justify-between text-gray-600">
+                                                                                <span>{{ $fee->feeType->name ?? 'Fee' }}</span>
+                                                                                <span>${{ number_format($fee->amount, 2) }}</span>
+                                                                            </div>
+                                                                            @endif
+                                                                        @endforeach
+                                                                        <div class="flex justify-between font-bold text-blue-700 border-t border-blue-200 mt-1 pt-1">
+                                                                            <span>Total</span>
+                                                                            <span>${{ number_format($cambridgeDayExisting->sum('amount'), 2) }}</span>
+                                                                        </div>
+                                                                    @else
+                                                                        <span class="text-gray-400">-</span>
+                                                                    @endif
+                                                                </div>
+                                                                <!-- Boarding Existing -->
+                                                                <div class="bg-white rounded p-2">
+                                                                    <div class="font-semibold text-green-600 mb-1">Boarding</div>
+                                                                    @if($cambridgeBoardingExisting->sum('amount') > 0)
+                                                                        @foreach($cambridgeBoardingExisting as $fee)
+                                                                            @if($fee->amount > 0)
+                                                                            <div class="flex justify-between text-gray-600">
+                                                                                <span>{{ $fee->feeType->name ?? 'Fee' }}</span>
+                                                                                <span>${{ number_format($fee->amount, 2) }}</span>
+                                                                            </div>
+                                                                            @endif
+                                                                        @endforeach
+                                                                        <div class="flex justify-between font-bold text-green-700 border-t border-green-200 mt-1 pt-1">
+                                                                            <span>Total</span>
+                                                                            <span>${{ number_format($cambridgeBoardingExisting->sum('amount'), 2) }}</span>
+                                                                        </div>
+                                                                    @else
+                                                                        <span class="text-gray-400">-</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <!-- New Students Section -->
+                                                            <div class="p-1 bg-pink-100 rounded">
+                                                                <div class="text-center text-pink-800 font-semibold text-xs mb-1">New Students</div>
+                                                                <!-- Day Scholar New -->
+                                                                <div class="mb-1 bg-white rounded p-2">
+                                                                    <div class="font-semibold text-blue-600 mb-1">Day Scholar</div>
+                                                                    @if($cambridgeDayNew->sum('amount') > 0)
+                                                                        @foreach($cambridgeDayNew as $fee)
+                                                                            @if($fee->amount > 0)
+                                                                            <div class="flex justify-between text-gray-600">
+                                                                                <span>{{ $fee->feeType->name ?? 'Fee' }}</span>
+                                                                                <span>${{ number_format($fee->amount, 2) }}</span>
+                                                                            </div>
+                                                                            @endif
+                                                                        @endforeach
+                                                                        <div class="flex justify-between font-bold text-blue-700 border-t border-blue-200 mt-1 pt-1">
+                                                                            <span>Total</span>
+                                                                            <span>${{ number_format($cambridgeDayNew->sum('amount'), 2) }}</span>
+                                                                        </div>
+                                                                    @else
+                                                                        <span class="text-gray-400">-</span>
+                                                                    @endif
+                                                                </div>
+                                                                <!-- Boarding New -->
+                                                                <div class="bg-white rounded p-2">
+                                                                    <div class="font-semibold text-green-600 mb-1">Boarding</div>
+                                                                    @if($cambridgeBoardingNew->sum('amount') > 0)
+                                                                        @foreach($cambridgeBoardingNew as $fee)
+                                                                            @if($fee->amount > 0)
+                                                                            <div class="flex justify-between text-gray-600">
+                                                                                <span>{{ $fee->feeType->name ?? 'Fee' }}</span>
+                                                                                <span>${{ number_format($fee->amount, 2) }}</span>
+                                                                            </div>
+                                                                            @endif
+                                                                        @endforeach
+                                                                        <div class="flex justify-between font-bold text-green-700 border-t border-green-200 mt-1 pt-1">
+                                                                            <span>Total</span>
+                                                                            <span>${{ number_format($cambridgeBoardingNew->sum('amount'), 2) }}</span>
+                                                                        </div>
+                                                                    @else
+                                                                        <span class="text-gray-400">-</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            @endif
-                                            
-                                            {{-- Boarding Student Fees --}}
-                                            @php $boardingFees = $resultStatus->termFees->where('student_type', 'boarding'); @endphp
-                                            @if($boardingFees->count() > 0)
-                                                <div>
-                                                    <div class="text-xs font-semibold text-purple-600 mb-1 flex items-center">
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
-                                                        Boarding Student
-                                                    </div>
-                                                    <div class="space-y-1 pl-4 border-l-2 border-purple-200">
-                                                        @foreach($boardingFees as $termFee)
-                                                            <div class="flex items-center justify-between text-xs">
-                                                                <span class="text-gray-600">{{ $termFee->feeType->name }}</span>
-                                                                <span class="font-semibold text-gray-900">${{ number_format($termFee->amount, 2) }}</span>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            @endif
+                                            @endforeach
                                         </div>
                                     @else
-                                        <span class="text-xs text-gray-400 italic">No fees added</span>
+                                        <span class="text-xs text-gray-400 italic">No fee structures</span>
                                     @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    <div class="space-y-1">
-                                        <div class="text-xs text-blue-600">
-                                            Day: <span class="font-bold">${{ number_format($resultStatus->total_day_fees, 2) }}</span>
-                                        </div>
-                                        <div class="text-xs text-purple-600">
-                                            Boarding: <span class="font-bold">${{ number_format($resultStatus->total_boarding_fees, 2) }}</span>
-                                        </div>
-                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-2">

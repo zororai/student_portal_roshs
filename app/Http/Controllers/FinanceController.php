@@ -11,13 +11,15 @@ use App\Product;
 use App\StudentPayment;
 use App\CashBookEntry;
 use App\PaymentVerification;
+use App\FeeStructure;
+use App\FeeLevelGroup;
 use DB;
 
 class FinanceController extends Controller
 {
     public function studentPayments(Request $request)
     {
-        $currentTerm = \App\ResultsStatus::with('termFees.feeType')
+        $currentTerm = \App\ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])
             ->orderBy('year', 'desc')
             ->orderBy('result_period', 'desc')
             ->first();
@@ -93,7 +95,7 @@ class FinanceController extends Controller
         $classes = \App\Grade::orderBy('class_name')->get();
         
         // Get all available terms for the dropdown
-        $allTerms = \App\ResultsStatus::with('termFees.feeType')
+        $allTerms = \App\ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])
             ->orderBy('year', 'desc')
             ->orderBy('result_period', 'desc')
             ->get();
@@ -123,34 +125,55 @@ class FinanceController extends Controller
         $totalPaid = 0;
         $feesPaidFor = [];
 
-        foreach ($validated['fee_amounts'] as $termFeeId => $amount) {
+        foreach ($validated['fee_amounts'] as $feeId => $amount) {
             // Skip if amount is 0 or empty
             if ($amount <= 0) {
                 continue;
             }
 
-            $termFee = \App\TermFee::findOrFail($termFeeId);
+            // Try to find as FeeStructure first (new system), then fall back to TermFee (legacy)
+            $feeRecord = FeeStructure::find($feeId);
+            $isFeeStructure = true;
+            
+            if (!$feeRecord) {
+                $feeRecord = \App\TermFee::find($feeId);
+                $isFeeStructure = false;
+            }
+            
+            if (!$feeRecord) {
+                continue; // Skip if fee not found
+            }
             
             // Validate amount doesn't exceed fee amount
-            if ($amount > $termFee->amount) {
+            if ($amount > $feeRecord->amount) {
+                $feeName = $feeRecord->feeType->name ?? 'Fee';
                 return redirect()->back()
-                    ->withErrors(['fee_amounts' => 'Payment amount cannot exceed the fee amount for ' . $termFee->feeType->name])
+                    ->withErrors(['fee_amounts' => 'Payment amount cannot exceed the fee amount for ' . $feeName])
                     ->withInput();
             }
             
-            \App\StudentPayment::create([
+            // Create payment record - use appropriate column based on fee type
+            $paymentData = [
                 'student_id' => $validated['student_id'],
                 'results_status_id' => $validated['results_status_id'],
-                'term_fee_id' => $termFeeId,
                 'amount_paid' => $amount,
                 'payment_date' => $validated['payment_date'],
                 'payment_method' => $validated['payment_method'],
                 'reference_number' => $validated['reference_number'],
                 'notes' => $validated['notes'],
-            ]);
+            ];
+            
+            if ($isFeeStructure) {
+                $paymentData['fee_structure_id'] = $feeId;
+            } else {
+                $paymentData['term_fee_id'] = $feeId;
+            }
+            
+            \App\StudentPayment::create($paymentData);
 
             $totalPaid += $amount;
-            $feesPaidFor[] = $termFee->feeType->name . ' ($' . number_format($amount, 2) . ')';
+            $feeName = $feeRecord->feeType->name ?? 'Fee';
+            $feesPaidFor[] = $feeName . ' ($' . number_format($amount, 2) . ')';
         }
 
         // Calculate student's new balance for success message
@@ -1049,6 +1072,7 @@ class FinanceController extends Controller
 
     /**
      * Calculate total fees for a student based on curriculum type, student type, and scholarship percentage
+     * Now uses the new FeeStructure model with FeeLevelGroups
      */
     private function calculateStudentFees($student, $currentTerm)
     {
@@ -1056,6 +1080,69 @@ class FinanceController extends Controller
             return 0;
         }
 
+        $studentType = $student->student_type ?? 'day';
+        $curriculumType = $student->curriculum_type ?? 'zimsec';
+        $isNewStudent = $student->is_new_student ?? false;
+        $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
+
+        // Get student's class numeric
+        $classNumeric = optional($student->class)->class_numeric;
+        if (!$classNumeric) {
+            // Fallback to old method if no class assigned
+            return $this->calculateStudentFeesLegacy($student, $currentTerm);
+        }
+
+        // Find the appropriate fee level group for this student's class
+        $levelGroup = FeeLevelGroup::where('is_active', true)
+            ->where('min_class_numeric', '<=', $classNumeric)
+            ->where('max_class_numeric', '>=', $classNumeric)
+            ->first();
+
+        if (!$levelGroup) {
+            // Fallback to old method if no level group found
+            return $this->calculateStudentFeesLegacy($student, $currentTerm);
+        }
+
+        // Get fee structures for this term, level group, student type, and curriculum
+        $feeStructures = FeeStructure::where('results_status_id', $currentTerm->id)
+            ->where('fee_level_group_id', $levelGroup->id)
+            ->where('student_type', $studentType)
+            ->where('curriculum_type', $curriculumType)
+            ->where('is_for_new_student', $isNewStudent)
+            ->get();
+
+        // If no fees found for new student status, try existing student fees
+        if ($feeStructures->isEmpty() && $isNewStudent) {
+            $feeStructures = FeeStructure::where('results_status_id', $currentTerm->id)
+                ->where('fee_level_group_id', $levelGroup->id)
+                ->where('student_type', $studentType)
+                ->where('curriculum_type', $curriculumType)
+                ->where('is_for_new_student', false)
+                ->get();
+        }
+
+        // Calculate total from fee structures
+        $baseFee = $feeStructures->sum('amount');
+
+        // If still no fees, fallback to legacy calculation
+        if ($baseFee == 0) {
+            return $this->calculateStudentFeesLegacy($student, $currentTerm);
+        }
+
+        // Apply scholarship discount
+        if ($scholarshipPercentage > 0 && $scholarshipPercentage <= 100) {
+            $discount = $baseFee * ($scholarshipPercentage / 100);
+            $baseFee = $baseFee - $discount;
+        }
+
+        return $baseFee;
+    }
+
+    /**
+     * Legacy fee calculation for backward compatibility
+     */
+    private function calculateStudentFeesLegacy($student, $currentTerm)
+    {
         $studentType = $student->student_type ?? 'day';
         $curriculumType = $student->curriculum_type ?? 'zimsec';
         $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
@@ -1080,5 +1167,74 @@ class FinanceController extends Controller
         }
 
         return $baseFee;
+    }
+
+    /**
+     * Enforce/apply fee structures to students based on their category
+     * This is useful when students were added before fee structures were created
+     */
+    public function enforceFees(Request $request)
+    {
+        $currentTerm = \App\ResultsStatus::with('feeStructures.feeLevelGroup')
+            ->orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+
+        if (!$currentTerm) {
+            return redirect()->back()->with('error', 'No active term found. Please create a term first.');
+        }
+
+        // Check if fee structures exist for this term
+        if (!$currentTerm->feeStructures || $currentTerm->feeStructures->isEmpty()) {
+            return redirect()->back()->with('error', 'No fee structures found for the current term. Please set up fee structures first.');
+        }
+
+        // Get students to process
+        $studentId = $request->input('student_id');
+        
+        if ($studentId) {
+            // Process single student
+            $students = Student::with('class')->where('id', $studentId)->get();
+        } else {
+            // Process all students
+            $students = Student::with('class')->get();
+        }
+
+        $updated = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($students as $student) {
+            $classNumeric = optional($student->class)->class_numeric;
+            
+            if (!$classNumeric) {
+                $skipped++;
+                continue;
+            }
+
+            // Find the appropriate fee level group
+            $levelGroup = FeeLevelGroup::where('is_active', true)
+                ->where('min_class_numeric', '<=', $classNumeric)
+                ->where('max_class_numeric', '>=', $classNumeric)
+                ->first();
+
+            if (!$levelGroup) {
+                $skipped++;
+                continue;
+            }
+
+            // Calculate fees using the new method
+            $totalFees = $this->calculateStudentFees($student, $currentTerm);
+            
+            if ($totalFees > 0) {
+                $updated++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        $message = "Fee enforcement completed. {$updated} student(s) have fees calculated. {$skipped} student(s) skipped (no class or fee structure match).";
+        
+        return redirect()->back()->with('success', $message);
     }
 }
