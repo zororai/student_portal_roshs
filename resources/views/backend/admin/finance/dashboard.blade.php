@@ -24,6 +24,33 @@
         </div>
     </div>
 
+    <!-- Student Fees Summary -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Outstanding Student Fees</h3>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div class="text-center p-2 bg-orange-50 rounded">
+                <p class="text-xs text-gray-500">Balance B/F</p>
+                <p class="text-lg font-bold text-orange-600">${{ number_format($totalBalanceBf ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-2 bg-blue-50 rounded">
+                <p class="text-xs text-gray-500">Current Term</p>
+                <p class="text-lg font-bold text-blue-600">${{ number_format($totalCurrentTermFees ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-2 bg-gray-50 rounded">
+                <p class="text-xs text-gray-500">Total Fees</p>
+                <p class="text-lg font-bold text-gray-800">${{ number_format($totalStudentFees ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-2 bg-green-50 rounded">
+                <p class="text-xs text-gray-500">Paid</p>
+                <p class="text-lg font-bold text-green-600">${{ number_format($totalStudentPayments ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-2 bg-red-50 rounded">
+                <p class="text-xs text-gray-500">Outstanding</p>
+                <p class="text-lg font-bold text-red-600">${{ number_format($totalOutstandingFees ?? 0, 2) }}</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Yearly Summary -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
