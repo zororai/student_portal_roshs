@@ -29,9 +29,18 @@ class FinanceController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
+        // Get all terms for cumulative calculation
+        $allTermsForCalc = \App\ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])
+            ->orderBy('year', 'asc')
+            ->orderBy('result_period', 'asc')
+            ->get();
+        
         // Calculate total fees and amount paid for modal students based on student type, curriculum, and scholarship
         foreach ($allStudentsForModal as $student) {
-            $student->total_fees = $this->calculateStudentFees($student, $currentTerm);
+            $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
+            $student->current_term_fees = $feeBreakdown['current_term_fees'];
+            $student->balance_bf = $feeBreakdown['balance_bf'];
+            $student->total_fees = $feeBreakdown['total_fees'];
             $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)
                 ->sum('amount_paid'));
             $student->balance = $student->total_fees - $student->amount_paid;
@@ -54,7 +63,10 @@ class FinanceController extends Controller
         
         // Calculate total fees and amount paid for filtered students based on student type, curriculum, and scholarship
         foreach ($filteredStudents as $student) {
-            $student->total_fees = $this->calculateStudentFees($student, $currentTerm);
+            $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
+            $student->current_term_fees = $feeBreakdown['current_term_fees'];
+            $student->balance_bf = $feeBreakdown['balance_bf'];
+            $student->total_fees = $feeBreakdown['total_fees'];
             $student->amount_paid = floatval(\App\StudentPayment::where('student_id', $student->id)
                 ->sum('amount_paid'));
             $student->balance = $student->total_fees - $student->amount_paid;
@@ -251,15 +263,24 @@ class FinanceController extends Controller
 
     public function parentsArrears(Request $request)
     {
-        // Get all terms for cumulative calculation
-        $allTerms = \App\ResultsStatus::with('termFees')->get();
+        // Get all terms for cumulative calculation (ordered by date)
+        $allTerms = \App\ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])
+            ->orderBy('year', 'asc')
+            ->orderBy('result_period', 'asc')
+            ->get();
+        
+        // Get current term
+        $currentTerm = \App\ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])
+            ->orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
         
         // Get classes for filter
         $classes = \App\Grade::orderBy('class_name')->get();
         
         $parentsWithArrears = Parents::with(['user', 'students.user', 'students.class', 'students.payments.termFee.feeType', 'students.payments.resultsStatus'])
             ->get()
-            ->map(function($parent) use ($allTerms, $request) {
+            ->map(function($parent) use ($allTerms, $currentTerm, $request) {
                 // Filter students by class if provided
                 $students = $parent->students;
                 if ($request->has('class_id') && $request->class_id != '') {
@@ -277,12 +298,21 @@ class FinanceController extends Controller
                 
                 // Calculate cumulative fees from ALL terms based on student type, curriculum, and scholarship
                 $totalFees = 0;
+                $balanceBf = 0;
+                $currentTermFees = 0;
+                
                 foreach ($students as $student) {
                     $studentType = $student->student_type ?? 'day';
                     $curriculumType = $student->curriculum_type ?? 'zimsec';
                     $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
+                    $studentCreatedAt = $student->created_at;
                     
                     foreach ($allTerms as $term) {
+                        // Skip terms before student was enrolled
+                        if ($studentCreatedAt && $term->created_at < $studentCreatedAt) {
+                            continue;
+                        }
+                        
                         // Get base fee based on curriculum and student type
                         $baseFee = 0;
                         if ($curriculumType === 'cambridge') {
@@ -301,6 +331,13 @@ class FinanceController extends Controller
                         }
                         
                         $totalFees += $baseFee;
+                        
+                        // Track current term vs previous terms
+                        if ($currentTerm && $term->id === $currentTerm->id) {
+                            $currentTermFees += $baseFee;
+                        } else if (!$currentTerm || $term->id < $currentTerm->id) {
+                            $balanceBf += $baseFee;
+                        }
                     }
                 }
                 
@@ -313,6 +350,8 @@ class FinanceController extends Controller
                 $arrears = $totalFees - $totalPaid;
                 
                 $parent->filtered_students = $students;
+                $parent->balance_bf = $balanceBf;
+                $parent->current_term_fees = $currentTermFees;
                 $parent->total_fees = $totalFees;
                 $parent->total_paid = $totalPaid;
                 $parent->arrears = $arrears;
@@ -965,6 +1004,30 @@ class FinanceController extends Controller
             ->limit(12)
             ->get();
         
+        // Calculate outstanding student fees with balance B/F
+        $allTermsForCalc = \App\ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])
+            ->orderBy('year', 'asc')
+            ->orderBy('result_period', 'asc')
+            ->get();
+        
+        $currentTerm = \App\ResultsStatus::orderBy('year', 'desc')->orderBy('result_period', 'desc')->first();
+        
+        $totalStudentFees = 0;
+        $totalBalanceBf = 0;
+        $totalCurrentTermFees = 0;
+        $totalStudentPayments = 0;
+        
+        $students = Student::with(['class', 'payments'])->get();
+        foreach ($students as $student) {
+            $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
+            $totalBalanceBf += $feeBreakdown['balance_bf'];
+            $totalCurrentTermFees += $feeBreakdown['current_term_fees'];
+            $totalStudentFees += $feeBreakdown['total_fees'];
+            $totalStudentPayments += floatval(\App\StudentPayment::where('student_id', $student->id)->sum('amount_paid'));
+        }
+        
+        $totalOutstandingFees = $totalStudentFees - $totalStudentPayments;
+        
         return view('backend.finance.statements', compact(
             'totalIncome',
             'totalExpenses',
@@ -976,7 +1039,12 @@ class FinanceController extends Controller
             'years',
             'terms',
             'selectedYear',
-            'selectedTerm'
+            'selectedTerm',
+            'totalStudentFees',
+            'totalBalanceBf',
+            'totalCurrentTermFees',
+            'totalStudentPayments',
+            'totalOutstandingFees'
         ));
     }
 
@@ -1167,6 +1235,53 @@ class FinanceController extends Controller
         }
 
         return $baseFee;
+    }
+
+    /**
+     * Calculate cumulative fees for a student across all terms
+     * Returns current term fees, balance brought forward, and total fees
+     */
+    private function calculateCumulativeFees($student, $allTerms, $currentTerm)
+    {
+        $currentTermFees = 0;
+        $previousTermsFees = 0;
+        
+        if (!$currentTerm) {
+            return [
+                'current_term_fees' => 0,
+                'balance_bf' => 0,
+                'total_fees' => 0,
+            ];
+        }
+
+        // Get student's creation date to only count terms after enrollment
+        $studentCreatedAt = $student->created_at;
+
+        foreach ($allTerms as $term) {
+            // Skip terms before student was enrolled
+            if ($studentCreatedAt && $term->created_at < $studentCreatedAt) {
+                continue;
+            }
+
+            $termFees = $this->calculateStudentFees($student, $term);
+            
+            if ($currentTerm && $term->id === $currentTerm->id) {
+                $currentTermFees = $termFees;
+            } else if (!$currentTerm || $term->id < $currentTerm->id) {
+                // This is a previous term
+                $previousTermsFees += $termFees;
+            }
+        }
+
+        // Calculate balance brought forward (previous terms fees - previous payments)
+        // For simplicity, we calculate total fees and let the caller compute actual BF
+        $totalFees = $previousTermsFees + $currentTermFees;
+
+        return [
+            'current_term_fees' => $currentTermFees,
+            'balance_bf' => $previousTermsFees,
+            'total_fees' => $totalFees,
+        ];
     }
 
     /**

@@ -89,6 +89,33 @@
         </div>
     </div>
 
+    <!-- Student Fees Summary -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Outstanding Student Fees Summary</h3>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="text-center p-3 bg-orange-50 rounded-lg">
+                <p class="text-xs text-gray-500 mb-1">Balance B/F</p>
+                <p class="text-lg font-bold text-orange-600">${{ number_format($totalBalanceBf ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-3 bg-blue-50 rounded-lg">
+                <p class="text-xs text-gray-500 mb-1">Current Term</p>
+                <p class="text-lg font-bold text-blue-600">${{ number_format($totalCurrentTermFees ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                <p class="text-xs text-gray-500 mb-1">Total Fees</p>
+                <p class="text-lg font-bold text-gray-800">${{ number_format($totalStudentFees ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-3 bg-green-50 rounded-lg">
+                <p class="text-xs text-gray-500 mb-1">Total Paid</p>
+                <p class="text-lg font-bold text-green-600">${{ number_format($totalStudentPayments ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-3 bg-red-50 rounded-lg">
+                <p class="text-xs text-gray-500 mb-1">Outstanding</p>
+                <p class="text-lg font-bold text-red-600">${{ number_format($totalOutstandingFees ?? 0, 2) }}</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Income by Category -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="bg-white rounded-lg shadow p-6">

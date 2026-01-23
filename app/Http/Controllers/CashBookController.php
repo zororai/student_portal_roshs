@@ -68,10 +68,35 @@ class CashBookController extends Controller
 
         $categories = CashBookEntry::getCategories();
 
+        // Calculate outstanding student fees with balance B/F
+        $allTermsForCalc = \App\ResultsStatus::with(['termFees.feeType', 'feeStructures.feeType', 'feeStructures.feeLevelGroup'])
+            ->orderBy('year', 'asc')
+            ->orderBy('result_period', 'asc')
+            ->get();
+        
+        $currentTerm = \App\ResultsStatus::orderBy('year', 'desc')->orderBy('result_period', 'desc')->first();
+        
+        $totalStudentFees = 0;
+        $totalBalanceBf = 0;
+        $totalCurrentTermFees = 0;
+        $totalStudentPayments = 0;
+        
+        $students = \App\Student::with(['class', 'payments'])->get();
+        foreach ($students as $student) {
+            $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
+            $totalBalanceBf += $feeBreakdown['balance_bf'];
+            $totalCurrentTermFees += $feeBreakdown['current_term_fees'];
+            $totalStudentFees += $feeBreakdown['total_fees'];
+            $totalStudentPayments += floatval(\App\StudentPayment::where('student_id', $student->id)->sum('amount_paid'));
+        }
+        
+        $totalOutstandingFees = $totalStudentFees - $totalStudentPayments;
+
         return view('backend.admin.finance.cashbook.index', compact(
             'entries', 'totalReceipts', 'totalPayments', 'balance',
             'todayReceipts', 'todayPayments', 'categories',
-            'years', 'terms', 'selectedYear', 'selectedTerm'
+            'years', 'terms', 'selectedYear', 'selectedTerm',
+            'totalStudentFees', 'totalBalanceBf', 'totalCurrentTermFees', 'totalStudentPayments', 'totalOutstandingFees'
         ));
     }
 
@@ -242,5 +267,56 @@ class CashBookController extends Controller
             'totalReceipts', 'totalPayments', 'closingBalance',
             'receiptsByCategory', 'paymentsByCategory'
         ));
+    }
+
+    /**
+     * Calculate cumulative fees for a student across all terms
+     */
+    private function calculateCumulativeFees($student, $allTerms, $currentTerm)
+    {
+        $currentTermFees = 0;
+        $previousTermsFees = 0;
+        
+        if (!$currentTerm) {
+            return ['current_term_fees' => 0, 'balance_bf' => 0, 'total_fees' => 0];
+        }
+
+        $studentCreatedAt = $student->created_at;
+        $studentType = $student->student_type ?? 'day';
+        $curriculumType = $student->curriculum_type ?? 'zimsec';
+        $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
+
+        foreach ($allTerms as $term) {
+            if ($studentCreatedAt && $term->created_at < $studentCreatedAt) {
+                continue;
+            }
+
+            $baseFee = 0;
+            if ($curriculumType === 'cambridge') {
+                $baseFee = $studentType === 'boarding' 
+                    ? floatval($term->cambridge_boarding_fees ?? 0) 
+                    : floatval($term->cambridge_day_fees ?? 0);
+            } else {
+                $baseFee = $studentType === 'boarding' 
+                    ? floatval($term->zimsec_boarding_fees ?? $term->total_boarding_fees ?? 0) 
+                    : floatval($term->zimsec_day_fees ?? $term->total_day_fees ?? 0);
+            }
+            
+            if ($scholarshipPercentage > 0 && $scholarshipPercentage <= 100) {
+                $baseFee = $baseFee - ($baseFee * ($scholarshipPercentage / 100));
+            }
+            
+            if ($term->id === $currentTerm->id) {
+                $currentTermFees = $baseFee;
+            } else if ($term->id < $currentTerm->id) {
+                $previousTermsFees += $baseFee;
+            }
+        }
+
+        return [
+            'current_term_fees' => $currentTermFees,
+            'balance_bf' => $previousTermsFees,
+            'total_fees' => $previousTermsFees + $currentTermFees,
+        ];
     }
 }

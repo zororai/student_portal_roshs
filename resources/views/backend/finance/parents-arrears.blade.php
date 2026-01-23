@@ -92,6 +92,8 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Students</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance B/F</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Term</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Fees</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrears</th>
@@ -122,6 +124,12 @@
                                 @endforeach
                             </div>
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold {{ ($parent->balance_bf ?? 0) > 0 ? 'text-orange-600' : 'text-gray-500' }}">
+                            ${{ number_format($parent->balance_bf ?? 0, 2) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
+                            ${{ number_format($parent->current_term_fees ?? 0, 2) }}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                             ${{ number_format($parent->total_fees, 2) }}
                         </td>
@@ -146,7 +154,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="10" class="px-6 py-4 text-center text-gray-500">
                             <div class="flex flex-col items-center py-8">
                                 <svg class="w-16 h-16 text-green-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -184,6 +192,12 @@
                                     </div>
                                 @endforeach
                             </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-500">
+                            $0.00
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
+                            $0.00
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                             ${{ number_format($orphanParent->total_fees, 2) }}

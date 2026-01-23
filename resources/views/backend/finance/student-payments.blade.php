@@ -75,7 +75,8 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fees Paid For</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance B/F</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Term</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Fees</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Paid</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
@@ -135,18 +136,11 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $student->parent->user->name ?? 'N/A' }}
                         </td>
-                        <td class="px-6 py-4">
-                            @if($student->payments && $student->payments->count() > 0)
-                                <div class="flex flex-wrap gap-1">
-                                    @foreach($student->payments->unique('term_fee_id') as $payment)
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800" title="Paid on {{ $payment->payment_date->format('M d, Y') }}">
-                                            {{ $payment->termFee->feeType->name ?? 'N/A' }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @else
-                                <span class="text-xs text-gray-400 italic">No payments yet</span>
-                            @endif
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold {{ ($student->balance_bf ?? 0) > 0 ? 'text-orange-600' : 'text-gray-500' }}">
+                            ${{ number_format($student->balance_bf ?? 0, 2) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">
+                            ${{ number_format($student->current_term_fees ?? 0, 2) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                             ${{ number_format($totalFees, 2) }}
@@ -195,7 +189,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="10" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="11" class="px-6 py-4 text-center text-gray-500">
                             No students found
                         </td>
                     </tr>
