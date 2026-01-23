@@ -381,30 +381,50 @@
             const resultsCount = studentResults.length;
             
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer transform hover:scale-105 border-2 border-yellow-300';
-            card.onclick = () => showStudentResults(studentId, studentName, studentResults);
+            card.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all border-2 border-yellow-300';
+            card.dataset.studentId = studentId;
+            card.dataset.studentName = studentName;
             
-            card.innerHTML = `
-                <div class="bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-3">
-                    <div class="flex items-center justify-center">
-                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                        </div>
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-3 cursor-pointer';
+            headerDiv.onclick = () => showStudentResults(studentId, studentName, studentResults);
+            headerDiv.innerHTML = `
+                <div class="flex items-center justify-center">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
                     </div>
-                </div>
-                <div class="p-4 text-center">
-                    <h4 class="font-semibold text-gray-800 text-sm mb-2">${studentName}</h4>
-                    <div class="flex items-center justify-center space-x-1">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            ${resultsCount} subject${resultsCount > 1 ? 's' : ''} pending
-                        </span>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-2">Click to view results</p>
                 </div>
             `;
             
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'p-4 text-center';
+            bodyDiv.innerHTML = `
+                <h4 class="font-semibold text-gray-800 text-sm mb-2">${studentName}</h4>
+                <div class="flex items-center justify-center space-x-1">
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        ${resultsCount} subject${resultsCount > 1 ? 's' : ''} pending
+                    </span>
+                </div>
+            `;
+            
+            const exemptBtn = document.createElement('button');
+            exemptBtn.className = 'mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold py-2 px-3 rounded-lg flex items-center justify-center';
+            exemptBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                Exempt to View
+            `;
+            exemptBtn.onclick = (e) => {
+                e.stopPropagation();
+                exemptStudent(studentId, studentName);
+            };
+            
+            bodyDiv.appendChild(exemptBtn);
+            card.appendChild(headerDiv);
+            card.appendChild(bodyDiv);
             cardsGrid.appendChild(card);
         });
     }
@@ -571,6 +591,46 @@
         setTimeout(() => {
             toast.classList.add('hidden');
         }, 5000);
+    }
+
+    function exemptStudent(studentId, studentName) {
+        if (!currentYear || !currentTerm) {
+            alert('Please select year and term first.');
+            return;
+        }
+
+        const reason = prompt(`Exempt ${studentName} to view results for ${currentTerm} term ${currentYear}?\n\nEnter reason (optional):`);
+        
+        if (reason === null) {
+            return; // User cancelled
+        }
+
+        fetch('{{ route("admin.results.exempt-student") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                student_id: studentId,
+                year: currentYear,
+                term: currentTerm,
+                reason: reason
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'Failed to exempt student.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred while exempting student.', 'error');
+        });
     }
 </script>
 @endpush

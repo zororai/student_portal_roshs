@@ -12,6 +12,7 @@ use App\StudentPayment;
 use App\Assessment;
 use App\AssessmentMark;
 use App\PaymentVerification;
+use App\ResultViewExemption;
 use App\Http\Controllers\GroceryController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -548,11 +549,20 @@ public function adminshowResult(Request $request)
         $lastRecord = ResultsStatus::latest()->first();
         $year = $lastRecord->year;
         $period = $lastRecord->result_period;
+        
+        // Check if student has exemption for this term/year
+        $hasExemption = ResultViewExemption::isExempted($studentId, $year, $period);
+        
         $results = Result::where('student_id', $studentId)
-        ->where('result_period',$period)
-        ->where('status',$paid)
-        ->where('approved', true)
+        ->where('result_period', $period)
+        ->where('status', $paid)
         ->where('year', $year)
+        ->where(function($query) use ($hasExemption) {
+            $query->where('approved', true);
+            if ($hasExemption) {
+                $query->orWhere('approved', false); // Allow unapproved if exempted
+            }
+        })
         ->with(['subject', 'teacher', 'class'])
         ->get();
 
@@ -648,9 +658,32 @@ public function adminshowResult(Request $request)
             }
         }
 
-        // Get ALL results for all students (all terms, all years) - only approved results
+        // Get exempted student/year/term combinations
+        $exemptions = ResultViewExemption::whereIn('student_id', $studentIds)->get();
+        $exemptionMap = [];
+        foreach ($exemptions as $exemption) {
+            $key = $exemption->student_id . '_' . $exemption->year . '_' . $exemption->term;
+            $exemptionMap[$key] = true;
+        }
+
+        // Get ALL results for all students (all terms, all years) - approved OR exempted
         $results = Result::whereIn('student_id', $studentIds)
-            ->where('approved', true)
+            ->where(function($query) use ($exemptionMap, $studentIds) {
+                $query->where('approved', true);
+                // Also include unapproved results for exempted students
+                if (!empty($exemptionMap)) {
+                    $query->orWhere(function($q) use ($exemptionMap) {
+                        foreach ($exemptionMap as $key => $val) {
+                            list($studentId, $year, $term) = explode('_', $key);
+                            $q->orWhere(function($subQ) use ($studentId, $year, $term) {
+                                $subQ->where('student_id', $studentId)
+                                     ->where('year', $year)
+                                     ->where('result_period', $term);
+                            });
+                        }
+                    });
+                }
+            })
             ->with(['subject', 'teacher', 'class', 'student.user'])
             ->orderBy('year', 'desc')
             ->orderBy('result_period', 'desc')
@@ -1029,6 +1062,85 @@ public function adminshowResult(Request $request)
             'success' => true,
             'message' => "Successfully approved {$updated} assessment marks across all classes.",
             'approved_count' => $updated
+        ]);
+    }
+
+    /**
+     * Exempt a student to view results for a specific term/year
+     */
+    public function exemptStudentResults(Request $request)
+    {
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'year' => 'required|string',
+            'term' => 'required|string',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $exemption = ResultViewExemption::updateOrCreate(
+            [
+                'student_id' => $request->student_id,
+                'year' => $request->year,
+                'term' => $request->term,
+            ],
+            [
+                'exempted_by' => Auth::id(),
+                'reason' => $request->reason,
+            ]
+        );
+
+        $student = Student::with('user')->find($request->student_id);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$student->user->name} can now view results for {$request->term} term {$request->year}.",
+            'exemption' => $exemption
+        ]);
+    }
+
+    /**
+     * Remove exemption for a student
+     */
+    public function removeExemption(Request $request)
+    {
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'year' => 'required|string',
+            'term' => 'required|string',
+        ]);
+
+        $deleted = ResultViewExemption::where('student_id', $request->student_id)
+            ->where('year', $request->year)
+            ->where('term', $request->term)
+            ->delete();
+
+        return response()->json([
+            'success' => $deleted > 0,
+            'message' => $deleted > 0 ? 'Exemption removed successfully.' : 'No exemption found to remove.'
+        ]);
+    }
+
+    /**
+     * Get exempted students for a class/term/year
+     */
+    public function getExemptedStudents(Request $request)
+    {
+        $classId = $request->class_id;
+        $year = $request->year;
+        $term = $request->term;
+
+        $class = Grade::findOrFail($classId);
+        $studentIds = $class->students->pluck('id');
+
+        $exemptions = ResultViewExemption::whereIn('student_id', $studentIds)
+            ->where('year', $year)
+            ->where('term', $term)
+            ->with(['student.user', 'exemptedByUser'])
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'exemptions' => $exemptions
         ]);
     }
 }

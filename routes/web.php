@@ -469,6 +469,9 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('/admin/results/approve', 'ResultController@approveResults')->name('admin.results.approve');
     Route::post('/admin/results/approve-all', 'ResultController@approveAllResults')->name('admin.results.approve-all');
     Route::post('/admin/results/reject', 'ResultController@rejectResults')->name('admin.results.reject');
+    Route::post('/admin/results/exempt-student', 'ResultController@exemptStudentResults')->name('admin.results.exempt-student');
+    Route::post('/admin/results/remove-exemption', 'ResultController@removeExemption')->name('admin.results.remove-exemption');
+    Route::post('/admin/results/get-exempted', 'ResultController@getExemptedStudents')->name('admin.results.get-exempted');
 
     // Admin Assessment Marks Approval Routes
     Route::get('/admin/assessment-marks/pending', 'ResultController@pendingAssessmentMarks')->name('admin.assessment-marks.pending');
