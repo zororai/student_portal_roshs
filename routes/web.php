@@ -201,6 +201,7 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
 
     // Teacher Attendance Scanner Routes (QR Code Based)
     Route::get('attendance/logbook', 'AttendanceScanController@index')->name('attendance.logbook');
+    Route::get('attendance/logbook/export', 'AttendanceScanController@exportLogbook')->name('attendance.logbook.export');
     Route::post('attendance/scan', 'AttendanceScanController@scan')->name('attendance.scan');
     Route::get('attendance/availability', 'AttendanceScanController@availability')->name('attendance.availability');
     Route::get('attendance/teacher/{teacherId}/history', 'AttendanceScanController@teacherHistory')->name('attendance.teacher.history');

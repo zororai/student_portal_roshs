@@ -61,6 +61,76 @@ class AttendanceScanController extends Controller
     }
 
     /**
+     * Export attendance logbook to CSV
+     */
+    public function exportLogbook(Request $request)
+    {
+        $date = $request->get('date', today()->format('Y-m-d'));
+        $selectedDate = \Carbon\Carbon::parse($date);
+
+        // Get all teachers with their attendance for the selected date
+        $teachers = Teacher::with(['user', 'attendances' => function($query) use ($selectedDate) {
+            $query->whereDate('date', $selectedDate);
+        }])->get();
+
+        $filename = 'attendance_logbook_' . $selectedDate->format('Y-m-d') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($teachers, $selectedDate) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Header
+            fputcsv($file, ['#', 'Teacher Name', 'Session', 'Check In', 'Check Out', 'Status', 'Duration', 'Date']);
+            
+            $index = 1;
+            foreach ($teachers as $teacher) {
+                $attendance = $teacher->attendances->first();
+                
+                $checkIn = '-';
+                $checkOut = '-';
+                $status = 'Absent';
+                $duration = '-';
+                
+                if ($attendance) {
+                    $checkIn = $attendance->check_in_time ? \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i') : '-';
+                    $checkOut = $attendance->check_out_time ? \Carbon\Carbon::parse($attendance->check_out_time)->format('H:i') : '-';
+                    
+                    if ($attendance->status === 'IN') {
+                        $status = 'Checked In';
+                    } elseif ($attendance->status === 'OUT') {
+                        $status = 'Checked Out';
+                    } else {
+                        $status = $attendance->status;
+                    }
+                    
+                    if ($attendance->check_in_time && $attendance->check_out_time) {
+                        $duration = \Carbon\Carbon::parse($attendance->check_out_time)->diffForHumans(\Carbon\Carbon::parse($attendance->check_in_time), true);
+                    }
+                }
+                
+                fputcsv($file, [
+                    $index++,
+                    $teacher->user->name ?? 'N/A',
+                    ucfirst($teacher->session ?? 'both'),
+                    $checkIn,
+                    $checkOut,
+                    $status,
+                    $duration,
+                    $selectedDate->format('Y-m-d')
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
      * Handle QR code scan for attendance.
      */
     public function scan(Request $request)

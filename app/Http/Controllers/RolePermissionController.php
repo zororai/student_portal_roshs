@@ -47,6 +47,7 @@ class RolePermissionController extends Controller
                 'sidebar-teachers' => 'Teachers',
                 'sidebar-students' => 'Students',
                 'sidebar-subjects' => 'Subjects',
+                'sidebar-assign-subjects' => 'Assign Subjects',
                 'sidebar-classes' => 'Classes',
                 'sidebar-parents' => 'Parents'
             ],
@@ -61,7 +62,8 @@ class RolePermissionController extends Controller
                 'sidebar-results-approval' => 'Results Approval',
                 'sidebar-assessment-approval' => 'Assessment Marks Approval',
                 'sidebar-marking-scheme' => 'Marking Scheme',
-                'sidebar-attendance' => 'Attendance'
+                'sidebar-attendance' => 'Attendance',
+                'sidebar-scholarships' => 'Scholarships'
             ],
             'School Staff' => [
                 'sidebar-school-staff' => 'School Staff Section',
@@ -74,7 +76,8 @@ class RolePermissionController extends Controller
                 'sidebar-teacher-attendance' => 'Teacher Attendance',
                 'sidebar-teacher-leave' => 'Teacher Leave',
                 'sidebar-teacher-schemes' => 'Teacher Schemes',
-                'sidebar-syllabus-topics' => 'Syllabus Topics'
+                'sidebar-syllabus-topics' => 'Syllabus Topics',
+                'view-teacher-device-info' => 'Manage Teacher Devices'
             ],
             'Timetable & Media' => [
                 'sidebar-timetable' => 'Timetable',
@@ -82,6 +85,11 @@ class RolePermissionController extends Controller
             ],
             'Website Management' => [
                 'sidebar-website' => 'Website Section',
+                'sidebar-website-dashboard' => 'Website Dashboard',
+                'sidebar-website-general' => 'General Settings',
+                'sidebar-website-colors' => 'Theme Colors',
+                'sidebar-website-images' => 'Images & Logo',
+                'sidebar-website-text' => 'Text Content',
                 'sidebar-banner' => 'Banner',
                 'sidebar-newsletter' => 'Newsletter',
                 'sidebar-events' => 'Events'
@@ -89,12 +97,15 @@ class RolePermissionController extends Controller
             'Finance & Accounting' => [
                 'sidebar-finance' => 'Finance Section',
                 'sidebar-student-payments' => 'Student Payments',
+                'sidebar-payment-verification' => 'Payment Verification',
                 'sidebar-parents-arrears' => 'Parents with Arrears',
                 'sidebar-school-income' => 'School Income',
                 'sidebar-school-expenses' => 'School Expenses',
                 'sidebar-inventory' => 'Inventory',
                 'sidebar-pos' => 'POS / Sell',
                 'sidebar-student-groceries' => 'Student Groceries',
+                'sidebar-grocery-arrears' => 'Grocery Arrears',
+                'sidebar-financial-statements' => 'Financial Statements',
                 'sidebar-payroll' => 'Payroll',
                 'sidebar-cashbook' => 'Cash Book',
                 'sidebar-purchase-orders' => 'Purchase Orders',
@@ -139,6 +150,17 @@ class RolePermissionController extends Controller
             'sidebar-results-approval',
             'sidebar-assessment-approval',
             'sidebar-seat-assignment',
+            'sidebar-assign-subjects',
+            'sidebar-scholarships',
+            'view-teacher-device-info',
+            'sidebar-website-dashboard',
+            'sidebar-website-general',
+            'sidebar-website-colors',
+            'sidebar-website-images',
+            'sidebar-website-text',
+            'sidebar-payment-verification',
+            'sidebar-grocery-arrears',
+            'sidebar-financial-statements',
         ];
         
         $permissions = array_unique(array_merge($permissions, $additionalPermissions));
@@ -277,6 +299,7 @@ class RolePermissionController extends Controller
                 'sidebar-teachers' => 'Teachers',
                 'sidebar-students' => 'Students',
                 'sidebar-subjects' => 'Subjects',
+                'sidebar-assign-subjects' => 'Assign Subjects',
                 'sidebar-classes' => 'Classes',
                 'sidebar-parents' => 'Parents'
             ],
@@ -291,7 +314,8 @@ class RolePermissionController extends Controller
                 'sidebar-results-approval' => 'Results Approval',
                 'sidebar-assessment-approval' => 'Assessment Marks Approval',
                 'sidebar-marking-scheme' => 'Marking Scheme',
-                'sidebar-attendance' => 'Attendance Register'
+                'sidebar-attendance' => 'Attendance Register',
+                'sidebar-scholarships' => 'Scholarships'
             ],
             'Staff Management' => [
                 'sidebar-school-staff' => 'School Staff Section',
@@ -306,10 +330,16 @@ class RolePermissionController extends Controller
                 'sidebar-teacher-schemes' => 'Teacher Schemes',
                 'sidebar-syllabus-topics' => 'Syllabus Topics',
                 'sidebar-timetable' => 'Timetable',
-                'sidebar-webcam' => 'Webcam'
+                'sidebar-webcam' => 'Webcam',
+                'view-teacher-device-info' => 'Manage Teacher Devices'
             ],
             'Website Management' => [
                 'sidebar-website' => 'Website Section',
+                'sidebar-website-dashboard' => 'Website Dashboard',
+                'sidebar-website-general' => 'General Settings',
+                'sidebar-website-colors' => 'Theme Colors',
+                'sidebar-website-images' => 'Images & Logo',
+                'sidebar-website-text' => 'Text Content',
                 'sidebar-banner' => 'Banner',
                 'sidebar-newsletter' => 'Newsletter',
                 'sidebar-events' => 'Events'
@@ -317,12 +347,15 @@ class RolePermissionController extends Controller
             'Finance & Accounting' => [
                 'sidebar-finance' => 'Finance & Accounting',
                 'sidebar-student-payments' => 'Student Payments',
+                'sidebar-payment-verification' => 'Payment Verification',
                 'sidebar-parents-arrears' => 'Parents with Arrears',
                 'sidebar-school-income' => 'School Income',
                 'sidebar-school-expenses' => 'School Expenses',
                 'sidebar-inventory' => 'Inventory',
                 'sidebar-pos' => 'POS / Sell',
                 'sidebar-student-groceries' => 'Student Groceries',
+                'sidebar-grocery-arrears' => 'Grocery Arrears',
+                'sidebar-financial-statements' => 'Financial Statements',
                 'sidebar-payroll' => 'Payroll',
                 'sidebar-cashbook' => 'Cash Book',
                 'sidebar-purchase-orders' => 'Purchase Orders',
@@ -365,18 +398,20 @@ class RolePermissionController extends Controller
         // Define all sidebar permissions
         $sidebarPermissions = [
             'sidebar-home', 'sidebar-notifications', 'sidebar-onboard', 'sidebar-user-management', 'sidebar-teachers',
-            'sidebar-students', 'sidebar-subjects', 'sidebar-classes', 'sidebar-parents',
+            'sidebar-students', 'sidebar-subjects', 'sidebar-assign-subjects', 'sidebar-classes', 'sidebar-parents',
             'sidebar-student-section', 'sidebar-student-record', 'sidebar-seat-assignment', 'sidebar-applicants',
             'sidebar-disciplinary', 'sidebar-medical-reports', 'sidebar-results-management', 'sidebar-results-approval', 
-            'sidebar-assessment-approval', 'sidebar-marking-scheme',
+            'sidebar-assessment-approval', 'sidebar-marking-scheme', 'sidebar-scholarships',
             'sidebar-attendance', 'sidebar-school-staff', 'sidebar-staff-members', 'sidebar-logbook',
             'sidebar-attendance-scanner', 'sidebar-attendance-history', 'sidebar-teacher-sessions',
             'sidebar-leave-management', 'sidebar-teacher-attendance', 'sidebar-teacher-leave',
-            'sidebar-teacher-schemes', 'sidebar-syllabus-topics',
-            'sidebar-timetable', 'sidebar-webcam', 'sidebar-website', 'sidebar-banner',
-            'sidebar-newsletter', 'sidebar-events', 'sidebar-finance', 'sidebar-student-payments',
-            'sidebar-parents-arrears', 'sidebar-school-income', 'sidebar-school-expenses',
-            'sidebar-inventory', 'sidebar-pos', 'sidebar-student-groceries', 'sidebar-payroll', 'sidebar-cashbook', 
+            'sidebar-teacher-schemes', 'sidebar-syllabus-topics', 'view-teacher-device-info',
+            'sidebar-timetable', 'sidebar-webcam', 'sidebar-website', 'sidebar-website-dashboard',
+            'sidebar-website-general', 'sidebar-website-colors', 'sidebar-website-images', 'sidebar-website-text',
+            'sidebar-banner', 'sidebar-newsletter', 'sidebar-events', 'sidebar-finance', 'sidebar-student-payments',
+            'sidebar-payment-verification', 'sidebar-parents-arrears', 'sidebar-school-income', 'sidebar-school-expenses',
+            'sidebar-inventory', 'sidebar-pos', 'sidebar-student-groceries', 'sidebar-grocery-arrears',
+            'sidebar-financial-statements', 'sidebar-payroll', 'sidebar-cashbook', 
             'sidebar-purchase-orders', 'sidebar-reports', 'sidebar-settings'
         ];
         
