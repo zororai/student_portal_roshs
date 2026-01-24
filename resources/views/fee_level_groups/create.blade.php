@@ -104,10 +104,10 @@
                 </div>
 
                 <div class="flex justify-end space-x-3 mt-6">
-                    <a href="{{ route('fee-level-groups.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                    <a href="{{ route('fee-level-groups.index') }}" class="px-4 py-2 border border-gray-300 rounded-lg text-chover:bg-gray-50">
                         Cancel
                     </a>
-                    <button type="submit" class="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600">
+                    <button type="submit" class="px-4 py-2 bg-rose-500 text-gray-700 border border-gray-300 rounded-lg hover:bg-rose-600">
                         Create Level Groups
                     </button>
                 </div>
