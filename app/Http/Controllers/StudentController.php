@@ -262,34 +262,41 @@ class StudentController extends Controller
         $parentIds = $request->existing_parent_ids ?? [];
 
         // Create new parent if fields are filled
+        $newParentPhone = null;
+        $newParentRecord = null;
         if ($request->filled('new_parent_name') && $request->filled('new_parent_phone')) {
-            // Check if email is provided and unique
-            $email = $request->new_parent_email;
-            if (!$email) {
-                $email = strtolower(Str::slug($request->new_parent_name, '.')) . '.' . time() . '@parent.local';
-            }
+            // Generate unique registration token
+            $registrationToken = Str::random(60);
+            
+            // Create a temporary email for parent (will be updated when they register)
+            $tempEmail = 'pending_' . time() . '_' . $student->id . '@temp.parent';
             
             // Check if user with this email already exists
-            $existingUser = User::where('email', $email)->first();
+            $existingUser = User::where('email', $tempEmail)->first();
             if (!$existingUser) {
                 // Create user for the parent
                 $parentUser = User::create([
                     'name'     => $request->new_parent_name,
-                    'email'    => $email,
-                    'password' => Hash::make(Str::random(12)),
+                    'email'    => $tempEmail,
+                    'password' => Hash::make(Str::random(16)),
                     'profile_picture' => 'avatar.png'
                 ]);
                 $parentUser->assignRole('Parent');
 
-                // Create the parent record
+                // Create the parent record with registration token
                 $newParent = $parentUser->parent()->create([
-                    'gender'            => $request->new_parent_gender ?? 'male',
-                    'phone'             => $request->new_parent_phone,
-                    'current_address'   => $student->current_address,
-                    'permanent_address' => $student->permanent_address,
+                    'gender'                 => $request->new_parent_gender ?? 'male',
+                    'phone'                  => $request->new_parent_phone,
+                    'current_address'        => $student->current_address,
+                    'permanent_address'      => $student->permanent_address,
+                    'registration_token'     => $registrationToken,
+                    'token_expires_at'       => now()->addDays(7),
+                    'registration_completed' => false,
                 ]);
 
                 $parentIds[] = $newParent->id;
+                $newParentPhone = $request->new_parent_phone;
+                $newParentRecord = $newParent;
             }
         }
 
@@ -300,7 +307,32 @@ class StudentController extends Controller
             $student->update(['parent_id' => $parentIds[0]]);
         }
 
-        return redirect()->route('student.index')->with('success', 'Student updated successfully');
+        // Send SMS to new parent with registration link
+        $smsMessage = '';
+        if ($newParentPhone && $newParentRecord && $newParentRecord->registration_token) {
+            $registrationUrl = url('/parent/register/' . $newParentRecord->registration_token);
+            $message = "RSH School: {$student->user->name} registered. Complete parent registration: {$registrationUrl}";
+            
+            $smsResult = SmsHelper::sendSms($newParentPhone, $message);
+            
+            if ($smsResult['success']) {
+                $smsMessage = ' SMS sent to parent for registration.';
+                \Log::info('SMS sent to new parent from student edit', [
+                    'phone' => $newParentPhone,
+                    'student_id' => $student->id,
+                    'parent_id' => $newParentRecord->id,
+                ]);
+            } else {
+                $smsMessage = ' Failed to send SMS to parent.';
+                \Log::warning('Failed to send SMS to new parent from student edit', [
+                    'phone' => $newParentPhone,
+                    'student_id' => $student->id,
+                    'error' => $smsResult['message'] ?? 'Unknown error',
+                ]);
+            }
+        }
+
+        return redirect()->route('student.index')->with('success', 'Student updated successfully.' . $smsMessage);
     }
 
     /**
