@@ -54,7 +54,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-purple-100 text-sm font-medium">Total Students</p>
-                    <p class="text-4xl font-bold mt-2">{{ $teacher->total_students_count ?? 0 }}</p>
+                    <p class="text-4xl font-bold mt-2">{{ $teacher->classes->sum('students_count') ?? 0 }}</p>
                 </div>
                 <div class="p-3 bg-white/20 rounded-lg">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

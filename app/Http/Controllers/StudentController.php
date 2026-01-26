@@ -62,9 +62,10 @@ class StudentController extends Controller
      */
     public function index()
     {
-        $students = Student::with(['class', 'user', 'parents'])->latest()->paginate(10);
+        $classes = Grade::withCount('students')->orderBy('class_numeric')->get();
+        $students = Student::with(['class', 'user', 'parents'])->latest()->get();
 
-        return view('backend.students.index', compact('students'));
+        return view('backend.students.index', compact('classes', 'students'));
     }
 
     public function downloadIdCard($id)
