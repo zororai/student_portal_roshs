@@ -58,6 +58,7 @@ class RolePermissionController extends Controller
                 'sidebar-applicants' => 'Applicants',
                 'sidebar-disciplinary' => 'Disciplinary',
                 'sidebar-medical-reports' => 'Medical Reports',
+                'sidebar-library-records' => 'Library Records',
                 'sidebar-results-management' => 'Results Management',
                 'sidebar-results-approval' => 'Results Approval',
                 'sidebar-assessment-approval' => 'Assessment Marks Approval',
@@ -147,6 +148,7 @@ class RolePermissionController extends Controller
             'sidebar-pos',
             'sidebar-student-groceries',
             'sidebar-medical-reports',
+            'sidebar-library-records',
             'sidebar-results-approval',
             'sidebar-assessment-approval',
             'sidebar-seat-assignment',
@@ -224,6 +226,9 @@ class RolePermissionController extends Controller
 
     public function updateRole(Request $request, $id)
     {
+        // Sync permissions first to ensure all permissions exist
+        $this->syncSidebarPermissions();
+        
         $request->validate([
             'name'	=> 'required|string|max:255|unique:roles,name,'.$id
         ]);
@@ -400,7 +405,7 @@ class RolePermissionController extends Controller
             'sidebar-home', 'sidebar-notifications', 'sidebar-onboard', 'sidebar-user-management', 'sidebar-teachers',
             'sidebar-students', 'sidebar-subjects', 'sidebar-assign-subjects', 'sidebar-classes', 'sidebar-parents',
             'sidebar-student-section', 'sidebar-student-record', 'sidebar-seat-assignment', 'sidebar-applicants',
-            'sidebar-disciplinary', 'sidebar-medical-reports', 'sidebar-results-management', 'sidebar-results-approval', 
+            'sidebar-disciplinary', 'sidebar-medical-reports', 'sidebar-library-records', 'sidebar-results-management', 'sidebar-results-approval', 
             'sidebar-assessment-approval', 'sidebar-marking-scheme', 'sidebar-scholarships',
             'sidebar-attendance', 'sidebar-school-staff', 'sidebar-staff-members', 'sidebar-logbook',
             'sidebar-attendance-scanner', 'sidebar-attendance-history', 'sidebar-teacher-sessions',

@@ -320,6 +320,25 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('admin/timetable/check-conflicts', 'AdminTimetableController@checkConflicts')->name('admin.timetable.check-conflicts');
     Route::post('admin/timetable/clear', 'AdminTimetableController@clear')->name('admin.timetable.clear');
 
+    // Library Records Routes
+    Route::get('admin/library', 'LibraryController@index')->name('admin.library.index');
+    Route::get('admin/library/create', 'LibraryController@create')->name('admin.library.create');
+    Route::post('admin/library', 'LibraryController@store')->name('admin.library.store');
+    Route::get('admin/library/search-students', 'LibraryController@searchStudents')->name('admin.library.search-students');
+    Route::get('admin/library/search-books', 'LibraryController@searchBooks')->name('admin.library.search-books');
+    Route::get('admin/library/student/{studentId}/history', 'LibraryController@studentHistory')->name('admin.library.student-history');
+    Route::patch('admin/library/{id}/return', 'LibraryController@returnBook')->name('admin.library.return');
+    Route::delete('admin/library/{id}', 'LibraryController@destroy')->name('admin.library.destroy');
+
+    // Book Management Routes
+    Route::get('admin/library/books', 'LibraryController@books')->name('admin.library.books');
+    Route::get('admin/library/books/create', 'LibraryController@createBook')->name('admin.library.books.create');
+    Route::post('admin/library/books', 'LibraryController@storeBook')->name('admin.library.books.store');
+    Route::get('admin/library/books/{id}/edit', 'LibraryController@editBook')->name('admin.library.books.edit');
+    Route::put('admin/library/books/{id}', 'LibraryController@updateBook')->name('admin.library.books.update');
+    Route::get('admin/library/books/{id}/history', 'LibraryController@bookHistory')->name('admin.library.books.history');
+    Route::delete('admin/library/books/{id}', 'LibraryController@destroyBook')->name('admin.library.books.destroy');
+
     // Resend parent SMS (Admin only)
     Route::post('student/{student}/resend-parent-sms', 'StudentController@resendParentSms')->name('student.resend-parent-sms');
 
