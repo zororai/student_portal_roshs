@@ -61,11 +61,13 @@ class LibraryController extends Controller
         $search = $request->get('q', '');
         
         $students = Student::with(['user', 'class'])
-            ->whereHas('user', function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%");
-            })
-            ->orWhere('roll_number', 'like', "%{$search}%")
             ->where('is_transferred', false)
+            ->where(function ($query) use ($search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })
+                ->orWhere('roll_number', 'like', "%{$search}%");
+            })
             ->limit(15)
             ->get()
             ->map(function ($student) {
