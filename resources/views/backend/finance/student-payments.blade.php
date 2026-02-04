@@ -71,7 +71,6 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll No.</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance B/F</th>
@@ -105,9 +104,6 @@
                         }
                     @endphp
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ $student->roll_number }}
-                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
@@ -185,7 +181,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="10" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="9" class="px-6 py-4 text-center text-gray-500">
                             No students found
                         </td>
                     </tr>
