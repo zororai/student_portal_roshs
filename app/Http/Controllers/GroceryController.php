@@ -154,10 +154,8 @@ class GroceryController extends Controller
             'extra_items' => 'nullable|array',
             'extra_items.*.name' => 'required_with:extra_items|string|max:255',
             'extra_items.*.quantity' => 'nullable|string|max:100',
-            'item_extra_qty' => 'nullable|array',
-            'item_extra_qty.*' => 'nullable|integer|min:0',
-            'item_short_qty' => 'nullable|array',
-            'item_short_qty.*' => 'nullable|integer|min:0',
+            'item_actual_qty' => 'nullable|array',
+            'item_actual_qty.*' => 'nullable|integer|min:0',
             'notes' => 'nullable|string'
         ]);
 
@@ -168,15 +166,29 @@ class GroceryController extends Controller
             return !empty($item['name']);
         })->values()->toArray();
 
-        // Filter out zero extra quantities for list items
-        $itemExtraQty = collect($validated['item_extra_qty'] ?? [])->filter(function($qty) {
-            return $qty > 0;
-        })->toArray();
+        // Get grocery list to compare quantities
+        $groceryList = GroceryList::with('items')->findOrFail($validated['grocery_list_id']);
+        $itemRequiredQty = $groceryList->items->pluck('quantity', 'id')->toArray();
 
-        // Filter out zero short quantities for list items
-        $itemShortQty = collect($validated['item_short_qty'] ?? [])->filter(function($qty) {
-            return $qty > 0;
-        })->toArray();
+        // Calculate extra and short quantities based on actual vs required
+        $itemActualQty = [];
+        $itemExtraQty = [];
+        $itemShortQty = [];
+        
+        foreach ($validated['item_actual_qty'] ?? [] as $itemId => $actualQty) {
+            if ($actualQty === null || $actualQty === '') continue;
+            
+            $actualQty = (int) $actualQty;
+            $required = (int) ($itemRequiredQty[$itemId] ?? 1);
+            
+            $itemActualQty[$itemId] = $actualQty;
+            
+            if ($actualQty > $required) {
+                $itemExtraQty[$itemId] = $actualQty - $required;
+            } elseif ($actualQty < $required) {
+                $itemShortQty[$itemId] = $required - $actualQty;
+            }
+        }
 
         // If response exists, update it; otherwise create new
         if (!empty($validated['response_id'])) {
@@ -184,6 +196,7 @@ class GroceryController extends Controller
             $response->update([
                 'items_bought' => $validated['items_bought'] ?? [],
                 'extra_items' => $extraItems,
+                'item_actual_qty' => $itemActualQty,
                 'item_extra_qty' => $itemExtraQty,
                 'item_short_qty' => $itemShortQty,
                 'notes' => $validated['notes'] ?? null,
@@ -197,6 +210,7 @@ class GroceryController extends Controller
                 'parent_id' => $student->parent_id,
                 'items_bought' => $validated['items_bought'] ?? [],
                 'extra_items' => $extraItems,
+                'item_actual_qty' => $itemActualQty,
                 'item_extra_qty' => $itemExtraQty,
                 'item_short_qty' => $itemShortQty,
                 'notes' => $validated['notes'] ?? null,

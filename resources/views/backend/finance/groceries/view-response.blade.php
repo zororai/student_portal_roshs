@@ -73,6 +73,7 @@
                 @foreach($response->groceryList->items as $item)
                 @php 
                     $bought = in_array($item->id, $response->items_bought ?? []);
+                    $actualQty = ($response->item_actual_qty[$item->id] ?? null);
                     $extraQty = ($response->item_extra_qty[$item->id] ?? 0);
                     $shortQty = ($response->item_short_qty[$item->id] ?? 0);
                 @endphp
@@ -92,6 +93,9 @@
                     <div class="flex items-center space-x-3">
                         @if($item->quantity)
                         <span class="text-sm text-gray-500">Required: {{ $item->quantity }}</span>
+                        @endif
+                        @if($actualQty !== null)
+                        <span class="text-sm text-blue-600 font-medium">Brought: {{ $actualQty }}</span>
                         @endif
                         @if($shortQty > 0)
                         <span class="px-2 py-1 text-xs font-medium bg-red-200 text-red-800 rounded-full">-{{ $shortQty }} short</span>

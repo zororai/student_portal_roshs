@@ -14,7 +14,7 @@ class AddItemActualQtyToGroceryResponses extends Migration
     public function up()
     {
         Schema::table('grocery_responses', function (Blueprint $table) {
-            //
+            $table->json('item_actual_qty')->nullable()->after('item_short_qty');
         });
     }
 
@@ -26,7 +26,7 @@ class AddItemActualQtyToGroceryResponses extends Migration
     public function down()
     {
         Schema::table('grocery_responses', function (Blueprint $table) {
-            //
+            $table->dropColumn('item_actual_qty');
         });
     }
 }
