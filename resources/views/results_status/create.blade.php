@@ -122,7 +122,7 @@
                                         <span class="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>
                                         ZIMSEC Fees
                                     </h5>
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         <!-- Existing Day Students -->
                                         <div class="bg-blue-50 p-3 rounded border border-blue-200">
                                             <div class="flex justify-between items-center mb-2">
@@ -211,8 +211,8 @@
                                         <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
                                         Cambridge Fees
                                     </h5>
-                                <div id="group-{{ $group->id }}-cambridge-panel">
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                    <div id="group-{{ $group->id }}-cambridge-panel">
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         <!-- Existing Day Students -->
                                         <div class="bg-purple-50 p-3 rounded border border-purple-200">
                                             <div class="flex justify-between items-center mb-2">
@@ -295,6 +295,7 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
                         </div>
                         @endforeach
 
