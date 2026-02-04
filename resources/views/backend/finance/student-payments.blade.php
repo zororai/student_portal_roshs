@@ -74,7 +74,6 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll No.</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance B/F</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Term</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Fees</th>
@@ -112,11 +111,11 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($student->name) }}&background=random" alt="">
+                                    <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name={{ urlencode($student->user->name ?? $student->name ?? 'Unknown') }}&background=random" alt="">
                                 </div>
                                 <div class="ml-4">
-                                    <div class="text-sm font-medium text-gray-900">{{ $student->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $student->email }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $student->user->name ?? $student->name ?? 'Unknown' }}</div>
+                                    <div class="text-sm text-gray-500">{{ $student->user->email ?? $student->email ?? '' }}</div>
                                 </div>
                             </div>
                         </td>
@@ -132,9 +131,6 @@
                                     </span>
                                 @endif
                             </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {{ $student->parent->user->name ?? 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold {{ ($student->balance_bf ?? 0) > 0 ? 'text-orange-600' : 'text-gray-500' }}">
                             ${{ number_format($student->balance_bf ?? 0, 2) }}
@@ -189,7 +185,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="11" class="px-6 py-4 text-center text-gray-500">
+                        <td colspan="10" class="px-6 py-4 text-center text-gray-500">
                             No students found
                         </td>
                     </tr>
