@@ -104,6 +104,11 @@
         .badge-green { background: #dcfce7; color: #16a34a; }
         .badge-blue { background: #dbeafe; color: #2563eb; }
         .badge-yellow { background: #fef3c7; color: #d97706; }
+        .extra-items {
+            font-size: 10px;
+            color: #16a34a;
+            margin-top: 3px;
+        }
         .missing-items {
             font-size: 10px;
             color: #dc2626;
@@ -174,6 +179,7 @@
                 <th>Submitted</th>
                 <th>Total Items</th>
                 <th>Provided</th>
+                <th>Extra</th>
                 <th>Missing</th>
                 <th>Status</th>
             </tr>
@@ -192,6 +198,18 @@
                 </td>
                 <td class="text-center">{{ $data['total_items'] }} items</td>
                 <td class="text-center text-green">{{ $data['provided_count'] }} items</td>
+                <td class="text-center">
+                    @if($data['response']->extra_items && count($data['response']->extra_items) > 0)
+                        <span class="badge badge-green">+{{ count($data['response']->extra_items) }}</span>
+                        <div class="extra-items">
+                            @foreach($data['response']->extra_items as $extraItem)
+                                {{ $extraItem['name'] }}@if(!$loop->last), @endif
+                            @endforeach
+                        </div>
+                    @else
+                        -
+                    @endif
+                </td>
                 <td class="text-center {{ ($data['owed_count'] ?? 0) > 0 ? 'text-red' : 'text-green' }}">
                     {{ $data['owed_count'] }} items
                     @if(count($data['missing_items'] ?? []) > 0)

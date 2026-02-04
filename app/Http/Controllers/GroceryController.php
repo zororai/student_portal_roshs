@@ -151,16 +151,41 @@ class GroceryController extends Controller
             'response_id' => 'nullable|exists:grocery_responses,id',
             'items_bought' => 'nullable|array',
             'items_bought.*' => 'exists:grocery_items,id',
+            'extra_items' => 'nullable|array',
+            'extra_items.*.name' => 'required_with:extra_items|string|max:255',
+            'extra_items.*.quantity' => 'nullable|string|max:100',
+            'item_extra_qty' => 'nullable|array',
+            'item_extra_qty.*' => 'nullable|integer|min:0',
+            'item_short_qty' => 'nullable|array',
+            'item_short_qty.*' => 'nullable|integer|min:0',
             'notes' => 'nullable|string'
         ]);
 
         $student = Student::findOrFail($validated['student_id']);
+
+        // Filter out empty extra items
+        $extraItems = collect($validated['extra_items'] ?? [])->filter(function($item) {
+            return !empty($item['name']);
+        })->values()->toArray();
+
+        // Filter out zero extra quantities for list items
+        $itemExtraQty = collect($validated['item_extra_qty'] ?? [])->filter(function($qty) {
+            return $qty > 0;
+        })->toArray();
+
+        // Filter out zero short quantities for list items
+        $itemShortQty = collect($validated['item_short_qty'] ?? [])->filter(function($qty) {
+            return $qty > 0;
+        })->toArray();
 
         // If response exists, update it; otherwise create new
         if (!empty($validated['response_id'])) {
             $response = GroceryResponse::findOrFail($validated['response_id']);
             $response->update([
                 'items_bought' => $validated['items_bought'] ?? [],
+                'extra_items' => $extraItems,
+                'item_extra_qty' => $itemExtraQty,
+                'item_short_qty' => $itemShortQty,
                 'notes' => $validated['notes'] ?? null,
                 'submitted' => true,
                 'submitted_at' => $response->submitted_at ?? now()
@@ -171,6 +196,9 @@ class GroceryController extends Controller
                 'student_id' => $validated['student_id'],
                 'parent_id' => $student->parent_id,
                 'items_bought' => $validated['items_bought'] ?? [],
+                'extra_items' => $extraItems,
+                'item_extra_qty' => $itemExtraQty,
+                'item_short_qty' => $itemShortQty,
                 'notes' => $validated['notes'] ?? null,
                 'submitted' => true,
                 'submitted_at' => now()

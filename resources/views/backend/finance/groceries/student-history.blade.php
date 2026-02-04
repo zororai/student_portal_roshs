@@ -35,11 +35,16 @@
                 <p class="text-3xl font-bold text-green-700">
                     @php
                         $totalProvided = 0;
+                        $totalExtra = 0;
                         foreach($historyData as $data) {
                             $totalProvided += $data['provided_count'] ?? 0;
+                            $totalExtra += count($data['response']->extra_items ?? []);
                         }
                     @endphp
                     {{ $totalProvided }} <span class="text-base font-normal">items</span>
+                    @if($totalExtra > 0)
+                    <span class="ml-1 px-2 py-0.5 text-sm bg-green-200 text-green-800 rounded">+{{ $totalExtra }} extra</span>
+                    @endif
                 </p>
             </div>
             <div class="text-center p-4 {{ ($totalOwedItems ?? 0) > 0 ? 'bg-red-50' : 'bg-green-50' }} rounded-lg">
@@ -64,6 +69,7 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Submitted</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Total Items</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Provided</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Extra Items</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Missing</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Details</th>
@@ -82,6 +88,13 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $data['total_items'] }} items</td>
                         <td class="px-6 py-4 text-sm text-green-600 font-medium">{{ $data['provided_count'] }} items</td>
+                        <td class="px-6 py-4 text-sm">
+                            @if($data['response']->extra_items && count($data['response']->extra_items) > 0)
+                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">+{{ count($data['response']->extra_items) }} extra</span>
+                            @else
+                            <span class="text-gray-400">-</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-sm {{ ($data['owed_count'] ?? 0) > 0 ? 'text-red-600' : 'text-green-600' }} font-medium">
                             {{ $data['owed_count'] }} items
                             @if(count($data['missing_items'] ?? []) > 0)

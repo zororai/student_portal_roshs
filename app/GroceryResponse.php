@@ -11,6 +11,9 @@ class GroceryResponse extends Model
         'student_id',
         'parent_id',
         'items_bought',
+        'extra_items',
+        'item_extra_qty',
+        'item_short_qty',
         'submitted',
         'acknowledged',
         'submitted_at',
@@ -20,6 +23,9 @@ class GroceryResponse extends Model
 
     protected $casts = [
         'items_bought' => 'array',
+        'extra_items' => 'array',
+        'item_extra_qty' => 'array',
+        'item_short_qty' => 'array',
         'submitted' => 'boolean',
         'acknowledged' => 'boolean',
         'submitted_at' => 'datetime',
