@@ -478,6 +478,20 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/finance/grocery-arrears/export', 'GroceryController@exportGroceryArrears')->name('finance.grocery-arrears.export');
     Route::get('/admin/groceries/student/{studentId}/print', 'GroceryController@printStudentHistory')->name('admin.groceries.student-history.print');
     
+    // Grocery Stock Management Routes
+    Route::get('/admin/grocery-stock', 'GroceryStockController@index')->name('admin.grocery-stock.index');
+    Route::get('/admin/grocery-stock/items', 'GroceryStockController@items')->name('admin.grocery-stock.items');
+    Route::post('/admin/grocery-stock/items', 'GroceryStockController@storeItem')->name('admin.grocery-stock.store-item');
+    Route::put('/admin/grocery-stock/items/{id}', 'GroceryStockController@updateItem')->name('admin.grocery-stock.update-item');
+    Route::get('/admin/grocery-stock/transactions', 'GroceryStockController@transactions')->name('admin.grocery-stock.transactions');
+    Route::post('/admin/grocery-stock/transactions', 'GroceryStockController@storeTransaction')->name('admin.grocery-stock.store-transaction');
+    Route::get('/admin/grocery-stock/record-usage', 'GroceryStockController@recordUsage')->name('admin.grocery-stock.record-usage');
+    Route::post('/admin/grocery-stock/record-usage', 'GroceryStockController@storeUsage')->name('admin.grocery-stock.store-usage');
+    Route::get('/admin/grocery-stock/record-bad-stock', 'GroceryStockController@recordBadStock')->name('admin.grocery-stock.record-bad-stock');
+    Route::post('/admin/grocery-stock/record-bad-stock', 'GroceryStockController@storeBadStock')->name('admin.grocery-stock.store-bad-stock');
+    Route::post('/admin/grocery-stock/carry-forward', 'GroceryStockController@carryForward')->name('admin.grocery-stock.carry-forward');
+    Route::get('/admin/grocery-stock/print', 'GroceryStockController@print')->name('admin.grocery-stock.print');
+    
     // Scholarships Routes
     Route::get('/admin/scholarships', 'Admin\ScholarshipController@index')->name('admin.scholarships.index');
     Route::put('/admin/scholarships/{student}', 'Admin\ScholarshipController@update')->name('admin.scholarships.update');

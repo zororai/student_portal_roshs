@@ -360,6 +360,7 @@ class RolePermissionController extends Controller
                 'sidebar-pos' => 'POS / Sell',
                 'sidebar-student-groceries' => 'Student Groceries',
                 'sidebar-grocery-arrears' => 'Grocery Arrears',
+                'sidebar-grocery-stock' => 'Grocery Stock',
                 'sidebar-financial-statements' => 'Financial Statements',
                 'sidebar-payroll' => 'Payroll',
                 'sidebar-cashbook' => 'Cash Book',
@@ -416,7 +417,7 @@ class RolePermissionController extends Controller
             'sidebar-banner', 'sidebar-newsletter', 'sidebar-events', 'sidebar-finance', 'sidebar-student-payments',
             'sidebar-payment-verification', 'sidebar-parents-arrears', 'sidebar-school-income', 'sidebar-school-expenses',
             'sidebar-inventory', 'sidebar-pos', 'sidebar-student-groceries', 'sidebar-grocery-arrears',
-            'sidebar-financial-statements', 'sidebar-payroll', 'sidebar-cashbook', 
+            'sidebar-grocery-stock', 'sidebar-financial-statements', 'sidebar-payroll', 'sidebar-cashbook', 
             'sidebar-purchase-orders', 'sidebar-reports', 'sidebar-settings'
         ];
         
