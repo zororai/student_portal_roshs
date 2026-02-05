@@ -80,7 +80,11 @@ class GroceryStockController extends Controller
                         'total_collected' => 0,
                         'total_short' => 0,
                         'total_extra' => 0,
-                        'students_submitted' => 0
+                        'students_submitted' => 0,
+                        'usage' => 0,
+                        'spoiled' => 0,
+                        'balance' => 0,
+                        'stock_item_id' => null
                     ];
                 }
 
@@ -121,6 +125,33 @@ class GroceryStockController extends Controller
                     }
                 }
             }
+        }
+
+        // Get usage and spoiled data from stock transactions (match by item name)
+        foreach ($collectedItems as $itemName => &$itemData) {
+            // Find matching stock item by name (case-insensitive)
+            $stockItem = GroceryStockItem::whereRaw('LOWER(name) = ?', [strtolower($itemName)])->first();
+            
+            if ($stockItem) {
+                $itemData['stock_item_id'] = $stockItem->id;
+                
+                // Get usage for this term/year
+                $itemData['usage'] = GroceryStockTransaction::where('stock_item_id', $stockItem->id)
+                    ->where('term', $term)
+                    ->where('year', $year)
+                    ->where('type', 'usage')
+                    ->sum('quantity');
+                
+                // Get spoiled/bad stock for this term/year
+                $itemData['spoiled'] = GroceryStockTransaction::where('stock_item_id', $stockItem->id)
+                    ->where('term', $term)
+                    ->where('year', $year)
+                    ->where('type', 'bad_stock')
+                    ->sum('quantity');
+            }
+            
+            // Calculate balance: Collected - Usage - Spoiled
+            $itemData['balance'] = $itemData['total_collected'] - $itemData['usage'] - $itemData['spoiled'];
         }
 
         return collect($collectedItems)->sortBy('name')->values();
