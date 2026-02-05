@@ -49,7 +49,40 @@ class GroceryStockController extends Controller
         $terms = ['term_1', 'term_2', 'term_3'];
         $years = range(date('Y') - 2, date('Y') + 1);
 
-        return view('backend.finance.grocery-stock.index', compact('stockItems', 'term', 'year', 'terms', 'years', 'collectedGroceries'));
+        // Get all active stock items for the dropdown (including manually added ones)
+        $allStockItems = GroceryStockItem::where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->map(function($item) use ($term, $year) {
+                $usage = GroceryStockTransaction::where('stock_item_id', $item->id)
+                    ->where('term', $term)
+                    ->where('year', $year)
+                    ->where('type', 'usage')
+                    ->sum('quantity');
+                $spoiled = GroceryStockTransaction::where('stock_item_id', $item->id)
+                    ->where('term', $term)
+                    ->where('year', $year)
+                    ->where('type', 'bad_stock')
+                    ->sum('quantity');
+                $balance_bf = $this->getBalanceBroughtForward($item->id, $term, $year);
+                $received = GroceryStockTransaction::where('stock_item_id', $item->id)
+                    ->where('term', $term)
+                    ->where('year', $year)
+                    ->where('type', 'received')
+                    ->sum('quantity');
+                
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'description' => $item->description,
+                    'unit' => $item->unit,
+                    'is_manual' => $item->is_manual,
+                    'balance' => $balance_bf + $received - $usage - $spoiled,
+                    'received' => $received,
+                ];
+            });
+
+        return view('backend.finance.grocery-stock.index', compact('stockItems', 'term', 'year', 'terms', 'years', 'collectedGroceries', 'allStockItems'));
     }
 
     private function getCollectedGroceries($term, $year)
@@ -195,6 +228,7 @@ class GroceryStockController extends Controller
             if ($stockItem) {
                 $itemData['stock_item_id'] = $stockItem->id;
                 $itemData['unit'] = $stockItem->unit;
+                $itemData['description'] = $stockItem->description;
                 
                 // Get usage for this term/year
                 $itemData['usage'] = GroceryStockTransaction::where('stock_item_id', $stockItem->id)
@@ -215,6 +249,69 @@ class GroceryStockController extends Controller
             $itemData['balance'] = $itemData['total_collected'] - $itemData['usage'] - $itemData['spoiled'];
         }
 
+        // Add manually added stock items (from donors, etc.) that are not in collectedItems
+        $manualItems = GroceryStockItem::where('is_active', true)
+            ->where('is_manual', true)
+            ->get();
+        
+        foreach ($manualItems as $manualItem) {
+            // Check if this item is already in collectedItems
+            $existsInCollected = false;
+            foreach ($collectedItems as $itemName => $itemData) {
+                if (strtolower($itemName) === strtolower($manualItem->name)) {
+                    $existsInCollected = true;
+                    break;
+                }
+            }
+            
+            if (!$existsInCollected) {
+                // Get received transactions for this term/year
+                $received = GroceryStockTransaction::where('stock_item_id', $manualItem->id)
+                    ->where('term', $term)
+                    ->where('year', $year)
+                    ->where('type', 'received')
+                    ->sum('quantity');
+                
+                // Get usage for this term/year
+                $usage = GroceryStockTransaction::where('stock_item_id', $manualItem->id)
+                    ->where('term', $term)
+                    ->where('year', $year)
+                    ->where('type', 'usage')
+                    ->sum('quantity');
+                
+                // Get spoiled/bad stock for this term/year
+                $spoiled = GroceryStockTransaction::where('stock_item_id', $manualItem->id)
+                    ->where('term', $term)
+                    ->where('year', $year)
+                    ->where('type', 'bad_stock')
+                    ->sum('quantity');
+                
+                // Get balance brought forward
+                $balance_bf = $this->getBalanceBroughtForward($manualItem->id, $term, $year);
+                
+                // Total collected = balance_bf + received
+                $totalCollected = $balance_bf + $received;
+                
+                $collectedItems[$manualItem->name] = [
+                    'name' => $manualItem->name,
+                    'description' => $manualItem->description,
+                    'required_per_student' => '-',
+                    'total_required' => 0,
+                    'total_collected' => $totalCollected,
+                    'total_short' => 0,
+                    'total_extra' => 0,
+                    'students_submitted' => 0,
+                    'usage' => $usage,
+                    'spoiled' => $spoiled,
+                    'balance' => $totalCollected - $usage - $spoiled,
+                    'stock_item_id' => $manualItem->id,
+                    'unit' => $manualItem->unit,
+                    'is_extra' => false,
+                    'is_manual' => true
+                ];
+            }
+        }
+
         return collect($collectedItems)->sortBy('name')->values();
     }
 
@@ -228,6 +325,7 @@ class GroceryStockController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
             'unit' => 'required|string|max:50',
             'initial_quantity' => 'nullable|numeric|min:0'
         ]);
@@ -261,6 +359,7 @@ class GroceryStockController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
             'unit' => 'required|string|max:50',
             'quantity' => 'nullable|numeric',
             'is_active' => 'boolean'
@@ -530,5 +629,95 @@ class GroceryStockController extends Controller
             ->where('term', $term)->where('year', $year)->where('type', 'bad_stock')->sum('quantity');
 
         return $balanceBf + $received - $usage - $badStock;
+    }
+
+    /**
+     * Automatically carry forward grocery stock balances when a new term is created.
+     * Called from ResultsStatusController when a new term is created.
+     * 
+     * @param string $newTerm The new term (first, second, third)
+     * @param int $newYear The year for the new term
+     * @return int Number of items carried forward
+     */
+    public static function autoCarryForwardForNewTerm($newTerm, $newYear)
+    {
+        // Map term format
+        $termMap = [
+            'first' => 'term_1',
+            'second' => 'term_2',
+            'third' => 'term_3',
+            'term_1' => 'term_1',
+            'term_2' => 'term_2',
+            'term_3' => 'term_3'
+        ];
+        
+        $toTerm = $termMap[$newTerm] ?? $newTerm;
+        
+        // Determine the previous term
+        $previousTermMap = [
+            'term_1' => ['term' => 'term_3', 'year' => $newYear - 1],
+            'term_2' => ['term' => 'term_1', 'year' => $newYear],
+            'term_3' => ['term' => 'term_2', 'year' => $newYear]
+        ];
+        
+        $fromData = $previousTermMap[$toTerm] ?? null;
+        if (!$fromData) {
+            return 0;
+        }
+        
+        $fromTerm = $fromData['term'];
+        $fromYear = $fromData['year'];
+        
+        // Check if carry forward already exists for this term
+        $existingCarryForward = GroceryStockTransaction::where('term', $toTerm)
+            ->where('year', $newYear)
+            ->where('type', 'balance_bf')
+            ->exists();
+        
+        if ($existingCarryForward) {
+            return 0; // Already carried forward
+        }
+        
+        $stockItems = GroceryStockItem::where('is_active', true)->get();
+        $itemsCarriedForward = 0;
+        
+        foreach ($stockItems as $item) {
+            // Calculate closing balance from previous term
+            $balanceBf = GroceryStockTransaction::where('stock_item_id', $item->id)
+                ->where('term', $fromTerm)->where('year', $fromYear)->where('type', 'balance_bf')->sum('quantity');
+            
+            $received = GroceryStockTransaction::where('stock_item_id', $item->id)
+                ->where('term', $fromTerm)->where('year', $fromYear)->where('type', 'received')->sum('quantity');
+            
+            $usage = GroceryStockTransaction::where('stock_item_id', $item->id)
+                ->where('term', $fromTerm)->where('year', $fromYear)->where('type', 'usage')->sum('quantity');
+            
+            $badStock = GroceryStockTransaction::where('stock_item_id', $item->id)
+                ->where('term', $fromTerm)->where('year', $fromYear)->where('type', 'bad_stock')->sum('quantity');
+            
+            $closingBalance = $balanceBf + $received - $usage - $badStock;
+            
+            // Also add current_balance for items that may not have previous term transactions
+            if ($closingBalance <= 0 && $item->current_balance > 0) {
+                $closingBalance = $item->current_balance;
+            }
+            
+            if ($closingBalance > 0) {
+                GroceryStockTransaction::create([
+                    'stock_item_id' => $item->id,
+                    'type' => 'balance_bf',
+                    'quantity' => $closingBalance,
+                    'balance_after' => $closingBalance,
+                    'term' => $toTerm,
+                    'year' => $newYear,
+                    'description' => "Auto Balance B/F from {$fromTerm} {$fromYear}",
+                    'recorded_by' => Auth::id() ?? 1,
+                    'transaction_date' => now()->format('Y-m-d')
+                ]);
+                $itemsCarriedForward++;
+            }
+        }
+        
+        return $itemsCarriedForward;
     }
 }

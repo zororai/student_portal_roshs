@@ -28,32 +28,40 @@
         <!-- Add New Item -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Add New Stock Item</h2>
-            <form action="{{ route('admin.grocery-stock.store-item') }}" method="POST" class="flex flex-wrap items-end gap-4">
+            <form action="{{ route('admin.grocery-stock.store-item') }}" method="POST">
                 @csrf
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
-                    <input type="text" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Sugar">
+                <div class="flex flex-wrap items-end gap-4 mb-4">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
+                        <input type="text" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Sugar">
+                    </div>
+                    <div class="w-40">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                        <select name="unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="kg">Kilograms (kg)</option>
+                            <option value="litres">Litres</option>
+                            <option value="packets">Packets</option>
+                            <option value="bags">Bags</option>
+                            <option value="boxes">Boxes</option>
+                            <option value="units">Units</option>
+                            <option value="bottles">Bottles</option>
+                            <option value="tins">Tins</option>
+                        </select>
+                    </div>
+                    <div class="w-32">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Initial Qty</label>
+                        <input type="number" name="initial_quantity" step="0.01" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="0">
+                    </div>
                 </div>
-                <div class="w-40">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                    <select name="unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                        <option value="kg">Kilograms (kg)</option>
-                        <option value="litres">Litres</option>
-                        <option value="packets">Packets</option>
-                        <option value="bags">Bags</option>
-                        <option value="boxes">Boxes</option>
-                        <option value="units">Units</option>
-                        <option value="bottles">Bottles</option>
-                        <option value="tins">Tins</option>
-                    </select>
+                <div class="flex flex-wrap items-end gap-4">
+                    <div class="flex-1 min-w-[300px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-gray-400 font-normal">(e.g. Donated by XYZ Company)</span></label>
+                        <input type="text" name="description" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Donated by ABC Organization">
+                    </div>
+                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        Add Item
+                    </button>
                 </div>
-                <div class="w-32">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Initial Qty</label>
-                    <input type="number" name="initial_quantity" step="0.01" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="0">
-                </div>
-                <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                    Add Item
-                </button>
             </form>
         </div>
 
@@ -77,7 +85,12 @@
                     <tbody class="divide-y divide-gray-100">
                         @forelse($items as $item)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 text-sm font-medium text-gray-800">{{ $item->name }}</td>
+                            <td class="px-6 py-4 text-sm font-medium text-gray-800">
+                                {{ $item->name }}
+                                @if($item->description)
+                                <span class="block text-xs text-gray-500 font-normal">{{ $item->description }}</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $item->unit }}</td>
                             <td class="px-6 py-4 text-sm text-right font-medium {{ $item->current_balance < 0 ? 'text-red-600' : 'text-gray-800' }}">
                                 {{ number_format($item->current_balance, 2) }}
@@ -98,7 +111,7 @@
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @if($item->is_manual)
-                                <button onclick="openEditModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ $item->unit }}', {{ $item->current_balance }}, {{ $item->is_active ? 'true' : 'false' }})" class="text-blue-600 hover:text-blue-800" title="Edit">
+                                <button onclick="openEditModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ addslashes($item->description ?? '') }}', '{{ $item->unit }}', {{ $item->current_balance }}, {{ $item->is_active ? 'true' : 'false' }})" class="text-blue-600 hover:text-blue-800" title="Edit">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
@@ -138,6 +151,10 @@
                 <input type="text" name="name" id="edit_name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
             </div>
             <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input type="text" name="description" id="edit_description" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Donated by ABC Organization">
+            </div>
+            <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
                 <select name="unit" id="edit_unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                     <option value="kg">Kilograms (kg)</option>
@@ -170,9 +187,10 @@
 </div>
 
 <script>
-function openEditModal(id, name, unit, quantity, isActive) {
+function openEditModal(id, name, description, unit, quantity, isActive) {
     document.getElementById('editForm').action = '/admin/grocery-stock/items/' + id;
     document.getElementById('edit_name').value = name;
+    document.getElementById('edit_description').value = description;
     document.getElementById('edit_unit').value = unit;
     document.getElementById('edit_quantity').value = quantity;
     document.getElementById('edit_is_active').checked = isActive;

@@ -365,7 +365,21 @@ class ProductController extends Controller
 
     public function saleReceipt($id)
     {
-        $sale = ProductSale::with(['items', 'seller'])->findOrFail($id);
+        // Try to find by ID first, then by sale_number if not found
+        $sale = ProductSale::with(['items', 'seller'])->find($id);
+        
+        if (!$sale) {
+            // Try to find by sale_number (full or partial match)
+            $sale = ProductSale::with(['items', 'seller'])
+                ->where('sale_number', $id)
+                ->orWhere('sale_number', 'LIKE', '%' . $id)
+                ->first();
+        }
+        
+        if (!$sale) {
+            abort(404, 'Sale receipt not found');
+        }
+        
         return view('backend.finance.products.receipt', compact('sale'));
     }
 

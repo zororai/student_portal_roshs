@@ -164,13 +164,21 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse($collectedGroceries as $index => $grocery)
-                        <tr class="hover:bg-gray-50 {{ $grocery['is_extra'] ?? false ? 'bg-yellow-50' : '' }}">
+                        <tr class="hover:bg-gray-50 {{ $grocery['is_extra'] ?? false ? 'bg-yellow-50' : '' }} {{ $grocery['is_manual'] ?? false ? 'bg-blue-50' : '' }}">
                             <td class="px-4 py-4 text-sm font-medium text-gray-800">
                                 {{ $grocery['name'] }}
                                 @if($grocery['is_extra'] ?? false)
                                 <span class="ml-1 px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded">Extra</span>
                                 @endif
+                                @if($grocery['is_manual'] ?? false)
+                                <span class="ml-1 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">Manual</span>
+                                @endif
+                                @if(!empty($grocery['description']))
+                                <span class="text-xs text-gray-500 block italic">{{ $grocery['description'] }}</span>
+                                @endif
+                                @if(!($grocery['is_manual'] ?? false))
                                 <span class="text-xs text-gray-500 block">{{ $grocery['required_per_student'] }}/student</span>
+                                @endif
                             </td>
                             <td class="px-4 py-4 text-sm text-right text-gray-600">{{ $grocery['students_submitted'] }}</td>
                             <td class="px-4 py-4 text-sm text-right text-green-600 font-medium">{{ number_format($grocery['total_collected'], 2) }}</td>
@@ -344,12 +352,13 @@ function updateUsageBalance() {
     var select = document.getElementById('usageItemSelect');
     var selectedOption = select.options[select.selectedIndex];
     var balance = selectedOption.getAttribute('data-balance');
-    var collected = selectedOption.getAttribute('data-collected');
+    var received = selectedOption.getAttribute('data-received');
     var name = selectedOption.getAttribute('data-name');
+    var isManual = selectedOption.getAttribute('data-manual') === '1';
     
     if (balance && name) {
-        document.getElementById('usageSelectedItemName').textContent = name;
-        document.getElementById('usageTotalCollected').textContent = parseFloat(collected).toFixed(2);
+        document.getElementById('usageSelectedItemName').textContent = name + (isManual ? ' (Manual)' : '');
+        document.getElementById('usageTotalCollected').textContent = parseFloat(received || 0).toFixed(2);
         document.getElementById('usageCurrentBalance').textContent = parseFloat(balance).toFixed(2);
         document.getElementById('usageBalanceInfo').classList.remove('hidden');
         document.getElementById('usageQuantityInput').max = balance;
@@ -372,12 +381,13 @@ function updateSpoiledBalance() {
     var select = document.getElementById('spoiledItemSelect');
     var selectedOption = select.options[select.selectedIndex];
     var balance = selectedOption.getAttribute('data-balance');
-    var collected = selectedOption.getAttribute('data-collected');
+    var received = selectedOption.getAttribute('data-received');
     var name = selectedOption.getAttribute('data-name');
+    var isManual = selectedOption.getAttribute('data-manual') === '1';
     
     if (balance && name) {
-        document.getElementById('spoiledSelectedItemName').textContent = name;
-        document.getElementById('spoiledTotalCollected').textContent = parseFloat(collected).toFixed(2);
+        document.getElementById('spoiledSelectedItemName').textContent = name + (isManual ? ' (Manual)' : '');
+        document.getElementById('spoiledTotalCollected').textContent = parseFloat(received || 0).toFixed(2);
         document.getElementById('spoiledCurrentBalance').textContent = parseFloat(balance).toFixed(2);
         document.getElementById('spoiledBalanceInfo').classList.remove('hidden');
         document.getElementById('spoiledQuantityInput').max = balance;
@@ -478,7 +488,7 @@ function updateSpoiledBalance() {
     <div class="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 my-8">
         <div class="px-6 py-4 border-b border-gray-100 bg-blue-50">
             <h3 class="text-lg font-semibold text-gray-800">Record Daily Usage</h3>
-            <p class="text-sm text-gray-600">Deduct stock for items used from Groceries Collected</p>
+            <p class="text-sm text-gray-600">Deduct stock for items used (from Collected or Manual stock)</p>
         </div>
         <form action="{{ route('admin.grocery-stock.store-usage') }}" method="POST" class="p-6">
             @csrf
@@ -486,19 +496,18 @@ function updateSpoiledBalance() {
             <input type="hidden" name="year" value="{{ $year }}">
             
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Select Item from Collected Groceries</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Select Item from Stock</label>
                 <select name="items[0][stock_item_id]" id="usageItemSelect" required onchange="updateUsageBalance()"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                     <option value="">-- Select an item --</option>
-                    @foreach($collectedGroceries as $grocery)
-                    @if($grocery['stock_item_id'])
-                    <option value="{{ $grocery['stock_item_id'] }}" 
-                            data-balance="{{ $grocery['balance'] }}"
-                            data-collected="{{ $grocery['total_collected'] }}"
-                            data-name="{{ $grocery['name'] }}">
-                        {{ $grocery['name'] }}
+                    @foreach($allStockItems as $item)
+                    <option value="{{ $item['id'] }}" 
+                            data-balance="{{ $item['balance'] }}"
+                            data-received="{{ $item['received'] }}"
+                            data-name="{{ $item['name'] }}"
+                            data-manual="{{ $item['is_manual'] ? '1' : '0' }}">
+                        {{ $item['name'] }}{{ $item['is_manual'] ? ' (Manual)' : '' }}
                     </option>
-                    @endif
                     @endforeach
                 </select>
             </div>
@@ -549,7 +558,7 @@ function updateSpoiledBalance() {
     <div class="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 my-8">
         <div class="px-6 py-4 border-b border-gray-100 bg-red-50">
             <h3 class="text-lg font-semibold text-gray-800">Record Spoiled/Bad Stock</h3>
-            <p class="text-sm text-gray-600">Write off damaged or expired items from Groceries Collected</p>
+            <p class="text-sm text-gray-600">Write off damaged or expired items (from Collected or Manual stock)</p>
         </div>
         <form action="{{ route('admin.grocery-stock.store-bad-stock') }}" method="POST" class="p-6">
             @csrf
@@ -557,19 +566,18 @@ function updateSpoiledBalance() {
             <input type="hidden" name="year" value="{{ $year }}">
             
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Select Item from Collected Groceries</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Select Item from Stock</label>
                 <select name="items[0][stock_item_id]" id="spoiledItemSelect" required onchange="updateSpoiledBalance()"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
                     <option value="">-- Select an item --</option>
-                    @foreach($collectedGroceries as $grocery)
-                    @if($grocery['stock_item_id'])
-                    <option value="{{ $grocery['stock_item_id'] }}" 
-                            data-balance="{{ $grocery['balance'] }}"
-                            data-collected="{{ $grocery['total_collected'] }}"
-                            data-name="{{ $grocery['name'] }}">
-                        {{ $grocery['name'] }}
+                    @foreach($allStockItems as $item)
+                    <option value="{{ $item['id'] }}" 
+                            data-balance="{{ $item['balance'] }}"
+                            data-received="{{ $item['received'] }}"
+                            data-name="{{ $item['name'] }}"
+                            data-manual="{{ $item['is_manual'] ? '1' : '0' }}">
+                        {{ $item['name'] }}{{ $item['is_manual'] ? ' (Manual)' : '' }}
                     </option>
-                    @endif
                     @endforeach
                 </select>
             </div>

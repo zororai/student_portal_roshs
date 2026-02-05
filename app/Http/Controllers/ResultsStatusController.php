@@ -12,6 +12,7 @@ use App\Grade;
 use App\LevelFeeAdjustment;
 use App\FeeLevelGroup;
 use App\FeeStructure;
+use App\Http\Controllers\GroceryStockController;
 
 class ResultsStatusController extends Controller
 {
@@ -186,8 +187,18 @@ class ResultsStatusController extends Controller
             $afternoonHours = $afternoonIn->diffInHours($afternoonOut);
             SchoolSetting::set('attendance_afternoon_work_hours', $afternoonHours, 'number', 'Afternoon session work hours');
         }
+        
+        // Automatically carry forward grocery stock balances from previous term
+        $itemsCarriedForward = GroceryStockController::autoCarryForwardForNewTerm(
+            $validatedData['result_period'],
+            $validatedData['year']
+        );
+        
+        $stockMessage = $itemsCarriedForward > 0 
+            ? " Grocery stock balances carried forward for {$itemsCarriedForward} items." 
+            : "";
     
-        return redirect()->route('results_status.index')->with('success', 'Term created successfully with fee structures and attendance settings!');
+        return redirect()->route('results_status.index')->with('success', 'Term created successfully with fee structures and attendance settings!' . $stockMessage);
     }
 
     public function destroy($id)

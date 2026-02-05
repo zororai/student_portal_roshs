@@ -545,7 +545,6 @@ public function adminshowResult(Request $request)
             ]);
         }
 
-        $paid = 'Paid';
         $lastRecord = ResultsStatus::latest()->first();
         $year = $lastRecord->year;
         $period = $lastRecord->result_period;
@@ -555,12 +554,14 @@ public function adminshowResult(Request $request)
         
         $results = Result::where('student_id', $studentId)
         ->where('result_period', $period)
-        ->where('status', $paid)
         ->where('year', $year)
         ->where(function($query) use ($hasExemption) {
-            $query->where('approved', true);
+            // If student has exemption, show all approved results regardless of payment status
             if ($hasExemption) {
-                $query->orWhere('approved', false); // Allow unapproved if exempted
+                $query->where('approved', true);
+            } else {
+                // No exemption: require both 'Paid' status AND approved
+                $query->where('status', 'Paid')->where('approved', true);
             }
         })
         ->with(['subject', 'teacher', 'class'])
