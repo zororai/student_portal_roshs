@@ -10,8 +10,8 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Issue Book to Student</h1>
-                <p class="text-gray-600 mt-1">Search for a student and enter book details</p>
+                <h1 class="text-2xl font-bold text-gray-900">Issue Book</h1>
+                <p class="text-gray-600 mt-1">Issue a book to a student or teacher</p>
             </div>
         </div>
 
@@ -35,11 +35,52 @@
                 </h2>
             </div>
 
-            <form action="{{ route('admin.library.store') }}" method="POST" class="p-6 space-y-6">
+            <form action="{{ route('admin.library.store') }}" method="POST" class="p-6 space-y-6" x-data="borrowerForm()">
                 @csrf
 
-                <!-- Student Search -->
-                <div x-data="studentSearch()" class="space-y-2">
+                <!-- Borrower Type Selection -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">
+                        Issue Book To <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-all"
+                            :class="borrowerType === 'student' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-50'">
+                            <input type="radio" name="borrower_type" value="student" x-model="borrowerType" class="sr-only">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3"
+                                    :class="borrowerType === 'student' ? 'bg-blue-600' : 'bg-gray-400'">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium" :class="borrowerType === 'student' ? 'text-blue-700' : 'text-gray-700'">Student</p>
+                                    <p class="text-sm text-gray-500">Issue to a student</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-all"
+                            :class="borrowerType === 'teacher' ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:bg-gray-50'">
+                            <input type="radio" name="borrower_type" value="teacher" x-model="borrowerType" class="sr-only">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3"
+                                    :class="borrowerType === 'teacher' ? 'bg-green-600' : 'bg-gray-400'">
+                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium" :class="borrowerType === 'teacher' ? 'text-green-700' : 'text-gray-700'">Teacher</p>
+                                    <p class="text-sm text-gray-500">Issue to a teacher</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Student Search (shown when borrower_type is student) -->
+                <div x-show="borrowerType === 'student'" x-data="studentSearch()" class="space-y-2">
                     <label class="block text-sm font-medium text-gray-700">
                         Search Student <span class="text-red-500">*</span>
                     </label>
@@ -88,6 +129,66 @@
                                     <p class="text-sm text-gray-600">
                                         <span x-text="selectedStudent ? selectedStudent.class : ''"></span> • 
                                         <span>Roll: </span><span x-text="selectedStudent ? selectedStudent.roll_number : ''"></span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" @click="clearSelection()" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Search (shown when borrower_type is teacher) -->
+                <div x-show="borrowerType === 'teacher'" x-data="teacherSearch()" class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">
+                        Search Teacher <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" 
+                            x-model="searchQuery"
+                            @input.debounce.300ms="searchTeachers()"
+                            @focus="showDropdown = true"
+                            placeholder="Type teacher name..."
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        
+                        <input type="hidden" name="teacher_id" x-model="selectedTeacherId">
+
+                        <!-- Dropdown Results -->
+                        <div x-show="showDropdown && teachers.length > 0" 
+                            @click.away="showDropdown = false"
+                            class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            <template x-for="teacher in teachers" :key="teacher.id">
+                                <div @click="selectTeacher(teacher)" 
+                                    class="px-4 py-3 hover:bg-green-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                    <p class="font-medium text-gray-900" x-text="teacher.name"></p>
+                                    <p class="text-sm text-gray-500">
+                                        <span>Phone: </span><span x-text="teacher.phone"></span>
+                                    </p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- No results message -->
+                        <div x-show="showDropdown && searchQuery.length > 2 && teachers.length === 0 && !loading" 
+                            class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 text-center text-gray-500">
+                            No teachers found
+                        </div>
+                    </div>
+
+                    <!-- Selected Teacher Display -->
+                    <div x-show="selectedTeacher" class="mt-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white font-medium text-sm" x-text="selectedTeacher ? selectedTeacher.name.substring(0,2).toUpperCase() : ''"></span>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="font-medium text-gray-900" x-text="selectedTeacher ? selectedTeacher.name : ''"></p>
+                                    <p class="text-sm text-gray-600">
+                                        <span>Phone: </span><span x-text="selectedTeacher ? selectedTeacher.phone : ''"></span>
                                     </p>
                                 </div>
                             </div>
@@ -213,6 +314,12 @@
 </div>
 
 <script>
+function borrowerForm() {
+    return {
+        borrowerType: 'student'
+    }
+}
+
 function studentSearch() {
     return {
         searchQuery: '',
@@ -297,6 +404,47 @@ function bookSearch() {
             this.selectedBookTitle = '';
             this.selectedBookNumber = '';
             this.bookSearchQuery = '';
+        }
+    }
+}
+
+function teacherSearch() {
+    return {
+        searchQuery: '',
+        teachers: [],
+        selectedTeacher: null,
+        selectedTeacherId: '',
+        showDropdown: false,
+        loading: false,
+
+        async searchTeachers() {
+            if (this.searchQuery.length < 2) {
+                this.teachers = [];
+                return;
+            }
+
+            this.loading = true;
+            try {
+                const response = await fetch(`{{ route('admin.library.search-teachers') }}?q=${encodeURIComponent(this.searchQuery)}`);
+                this.teachers = await response.json();
+            } catch (error) {
+                console.error('Error searching teachers:', error);
+                this.teachers = [];
+            }
+            this.loading = false;
+        },
+
+        selectTeacher(teacher) {
+            this.selectedTeacher = teacher;
+            this.selectedTeacherId = teacher.id;
+            this.searchQuery = teacher.name;
+            this.showDropdown = false;
+        },
+
+        clearSelection() {
+            this.selectedTeacher = null;
+            this.selectedTeacherId = '';
+            this.searchQuery = '';
         }
     }
 }

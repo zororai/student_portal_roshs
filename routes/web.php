@@ -229,6 +229,15 @@ Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|
     Route::post('admin/leave/{id}/reject', 'AdminLeaveController@reject')->name('admin.leave.reject');
     Route::get('admin/leave/calendar/data', 'AdminLeaveController@calendar')->name('admin.leave.calendar');
 
+    // Non-Teaching Staff Management
+    Route::get('admin/non-teaching-staff', 'NonTeachingStaffController@index')->name('admin.non-teaching-staff.index');
+    Route::get('admin/non-teaching-staff/create', 'NonTeachingStaffController@create')->name('admin.non-teaching-staff.create');
+    Route::post('admin/non-teaching-staff', 'NonTeachingStaffController@store')->name('admin.non-teaching-staff.store');
+    Route::get('admin/non-teaching-staff/{id}', 'NonTeachingStaffController@show')->name('admin.non-teaching-staff.show');
+    Route::get('admin/non-teaching-staff/{id}/edit', 'NonTeachingStaffController@edit')->name('admin.non-teaching-staff.edit');
+    Route::put('admin/non-teaching-staff/{id}', 'NonTeachingStaffController@update')->name('admin.non-teaching-staff.update');
+    Route::delete('admin/non-teaching-staff/{id}', 'NonTeachingStaffController@destroy')->name('admin.non-teaching-staff.destroy');
+
     // Finance - Payroll Routes
     Route::get('admin/finance/payroll', 'PayrollController@index')->name('admin.finance.payroll.index');
     Route::get('admin/finance/payroll/salaries', 'PayrollController@salaries')->name('admin.finance.payroll.salaries');
@@ -595,8 +604,10 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/admin/library/create', 'LibraryController@create')->name('admin.library.create');
         Route::post('/admin/library', 'LibraryController@store')->name('admin.library.store');
         Route::get('/admin/library/search-students', 'LibraryController@searchStudents')->name('admin.library.search-students');
+        Route::get('/admin/library/search-teachers', 'LibraryController@searchTeachers')->name('admin.library.search-teachers');
         Route::get('/admin/library/search-books', 'LibraryController@searchBooks')->name('admin.library.search-books');
         Route::get('/admin/library/student/{studentId}/history', 'LibraryController@studentHistory')->name('admin.library.student-history');
+        Route::get('/admin/library/teacher/{teacherId}/history', 'LibraryController@teacherHistory')->name('admin.library.teacher-history');
         Route::patch('/admin/library/{id}/return', 'LibraryController@returnBook')->name('admin.library.return');
         Route::delete('/admin/library/{id}', 'LibraryController@destroy')->name('admin.library.destroy');
         Route::get('/admin/library/books', 'LibraryController@books')->name('admin.library.books');
@@ -618,6 +629,9 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     // Teacher Device Registration Routes
     Route::post('/teacher/device/register', 'TeacherDeviceController@registerDevice')->name('teacher.device.register');
     Route::get('/teacher/device/status', 'TeacherDeviceController@getDeviceStatus')->name('teacher.device.status');
+
+    // Teacher Library - View borrowed books
+    Route::get('/teacher/library', 'LibraryController@myTeacherLibrary')->name('teacher.library');
 
     // Teacher Leave Application Routes
     Route::get('/teacher/leave', 'TeacherLeaveController@index')->name('teacher.leave.index');

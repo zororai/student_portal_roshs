@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\LibraryRecord;
 use App\Book;
 use App\Student;
+use App\Teacher;
 use App\User;
 use Carbon\Carbon;
 
@@ -21,20 +22,28 @@ class LibraryController extends Controller
      */
     public function index(Request $request)
     {
-        $query = LibraryRecord::with(['student.user', 'student.class', 'issuedBy']);
+        $query = LibraryRecord::with(['student.user', 'student.class', 'teacher.user', 'issuedBy']);
 
         // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filter by search term (student name or book)
+        // Filter by borrower type
+        if ($request->filled('borrower_type')) {
+            $query->where('borrower_type', $request->borrower_type);
+        }
+
+        // Filter by search term (student/teacher name or book)
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('book_title', 'like', "%{$search}%")
                   ->orWhere('book_number', 'like', "%{$search}%")
                   ->orWhereHas('student.user', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('teacher.user', function ($q2) use ($search) {
                       $q2->where('name', 'like', "%{$search}%");
                   });
             });
@@ -83,19 +92,54 @@ class LibraryController extends Controller
     }
 
     /**
+     * Search teachers for AJAX autocomplete
+     */
+    public function searchTeachers(Request $request)
+    {
+        $search = $request->get('q', '');
+        
+        $teachers = Teacher::with('user')
+            ->whereHas('user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            })
+            ->limit(15)
+            ->get()
+            ->map(function ($teacher) {
+                return [
+                    'id' => $teacher->id,
+                    'name' => $teacher->user->name ?? 'Unknown',
+                    'phone' => $teacher->phone ?? 'N/A',
+                ];
+            });
+
+        return response()->json($teachers);
+    }
+
+    /**
      * Store a new library record (issue book)
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'student_id' => 'required|exists:students,id',
+        $borrowerType = $request->input('borrower_type', 'student');
+        
+        // Validate based on borrower type
+        $rules = [
+            'borrower_type' => 'required|in:student,teacher',
             'book_id' => 'nullable|exists:books,id',
             'book_title' => 'required|string|max:255',
             'book_number' => 'required|string|max:100',
             'issue_date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:issue_date',
             'notes' => 'nullable|string|max:500',
-        ]);
+        ];
+        
+        if ($borrowerType === 'teacher') {
+            $rules['teacher_id'] = 'required|exists:teachers,id';
+        } else {
+            $rules['student_id'] = 'required|exists:students,id';
+        }
+        
+        $request->validate($rules);
 
         // If a book from archive is selected, decrement available quantity
         if ($request->book_id) {
@@ -115,8 +159,8 @@ class LibraryController extends Controller
             }
         }
 
-        LibraryRecord::create([
-            'student_id' => $request->student_id,
+        $recordData = [
+            'borrower_type' => $borrowerType,
             'issued_by' => auth()->id(),
             'book_id' => $request->book_id,
             'book_title' => $request->book_title,
@@ -125,7 +169,17 @@ class LibraryController extends Controller
             'due_date' => $request->due_date,
             'status' => 'issued',
             'notes' => $request->notes,
-        ]);
+        ];
+        
+        if ($borrowerType === 'teacher') {
+            $recordData['teacher_id'] = $request->teacher_id;
+            $recordData['student_id'] = null;
+        } else {
+            $recordData['student_id'] = $request->student_id;
+            $recordData['teacher_id'] = null;
+        }
+
+        LibraryRecord::create($recordData);
 
         return redirect()->route('admin.library.index')
             ->with('success', 'Book issued successfully!');
@@ -188,6 +242,50 @@ class LibraryController extends Controller
             ->paginate(20);
 
         return view('backend.admin.library.student-history', compact('student', 'records'));
+    }
+
+    /**
+     * View library history for a specific teacher
+     */
+    public function teacherHistory($teacherId)
+    {
+        $teacher = Teacher::with('user')->findOrFail($teacherId);
+        $records = LibraryRecord::where('teacher_id', $teacherId)
+            ->where('borrower_type', 'teacher')
+            ->with('issuedBy')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return view('backend.admin.library.teacher-history', compact('teacher', 'records'));
+    }
+
+    /**
+     * Teacher's own library view - shows their borrowed books
+     */
+    public function myTeacherLibrary()
+    {
+        $teacher = Teacher::where('user_id', auth()->id())->first();
+        
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        $currentlyBorrowed = LibraryRecord::where('teacher_id', $teacher->id)
+            ->where('borrower_type', 'teacher')
+            ->where('status', 'issued')
+            ->with('issuedBy')
+            ->orderBy('issue_date', 'desc')
+            ->get();
+
+        $borrowingHistory = LibraryRecord::where('teacher_id', $teacher->id)
+            ->where('borrower_type', 'teacher')
+            ->where('status', 'returned')
+            ->with('issuedBy')
+            ->orderBy('return_date', 'desc')
+            ->limit(20)
+            ->get();
+
+        return view('backend.teacher.library', compact('teacher', 'currentlyBorrowed', 'borrowingHistory'));
     }
 
     /**
