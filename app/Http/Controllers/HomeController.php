@@ -11,6 +11,7 @@ use App\Result;
 use App\Assessment;
 use App\AssessmentMark;
 use App\Attendance;
+use App\ResultsStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -47,9 +48,31 @@ class HomeController extends Controller
             $subjects = Subject::latest()->get();
             $classes = Grade::latest()->get();
 
-            // Get pass/fail results by gender (pass = marks >= 50)
+            // Get available terms for filtering
+            $availableTerms = ResultsStatus::select('id', 'year', 'result_period')
+                ->orderBy('year', 'desc')
+                ->orderByRaw("FIELD(result_period, 'third', 'second', 'first')")
+                ->get()
+                ->map(function($term) {
+                    $periodLabels = ['first' => 'Term 1', 'second' => 'Term 2', 'third' => 'Term 3'];
+                    return [
+                        'id' => $term->id,
+                        'year' => $term->year,
+                        'period' => $term->result_period,
+                        'label' => ($periodLabels[$term->result_period] ?? ucfirst($term->result_period)) . ' ' . $term->year
+                    ];
+                });
+            
+            // Get current term
+            $currentTerm = ResultsStatus::latest()->first();
+            $currentYear = $currentTerm ? $currentTerm->year : date('Y');
+            $currentPeriod = $currentTerm ? $currentTerm->result_period : 'first';
+
+            // Get pass/fail results by gender for current term (pass = marks >= 50)
             $resultsByGender = DB::table('results')
                 ->join('students', 'results.student_id', '=', 'students.id')
+                ->where('results.year', $currentYear)
+                ->where('results.result_period', $currentPeriod)
                 ->select(
                     'students.gender',
                     DB::raw('SUM(CASE WHEN results.marks >= 50 THEN 1 ELSE 0 END) as pass_count'),
@@ -203,7 +226,7 @@ class HomeController extends Controller
                 ];
             }
 
-            return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation','assessmentStats','subjectPerformanceData','subjectAssessmentMatrix','assessmentTypes'));
+            return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation','assessmentStats','subjectPerformanceData','subjectAssessmentMatrix','assessmentTypes','availableTerms','currentYear','currentPeriod'));
 
         } elseif ($user->hasRole('Teacher')) {
 
@@ -829,12 +852,22 @@ class HomeController extends Controller
     public function getFilteredGenderStats(Request $request)
     {
         $classId = $request->get('class_id');
+        $year = $request->get('year');
+        $period = $request->get('period');
 
         $query = DB::table('results')
             ->join('students', 'results.student_id', '=', 'students.id');
 
         if ($classId && $classId !== 'all') {
             $query->where('students.class_id', $classId);
+        }
+
+        // Filter by term/year if provided
+        if ($year && $year !== 'all') {
+            $query->where('results.year', $year);
+        }
+        if ($period && $period !== 'all') {
+            $query->where('results.result_period', $period);
         }
 
         $resultsByGender = $query->select(

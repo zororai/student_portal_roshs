@@ -143,17 +143,9 @@
 
     <!-- Chair & Desk Assignment Card -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h3 class="text-lg font-semibold text-gray-900">My Seat Assignment</h3>
-                <p class="text-gray-500 text-sm">Your assigned chair and desk in class</p>
-            </div>
-            <button onclick="openChairDeskModal()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                </svg>
-                Update
-            </button>
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">My Seat Assignment</h3>
+            <p class="text-gray-500 text-sm">Your assigned chair and desk in class</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex items-center p-4 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200">
@@ -176,41 +168,6 @@
                 <div>
                     <p class="text-xs text-amber-600 font-medium uppercase tracking-wide">Desk/Table Number</p>
                     <p id="currentDesk" class="text-2xl font-bold text-gray-900">{{ $student->desk ?? 'Not assigned' }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Chair/Desk Edit Modal -->
-    <div id="chairDeskModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeChairDeskModal()"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
-                    <h3 class="text-lg font-semibold text-white">Update Seat Assignment</h3>
-                    <p class="text-blue-100 text-sm">Enter your chair and desk numbers</p>
-                </div>
-                <div class="bg-white px-6 py-4">
-                    <div class="space-y-4">
-                        <div>
-                            <label for="chairInput" class="block text-sm font-medium text-gray-700 mb-1">Chair Number</label>
-                            <input type="text" id="chairInput" value="{{ $student->chair ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., A1, B5, 12">
-                        </div>
-                        <div>
-                            <label for="deskInput" class="block text-sm font-medium text-gray-700 mb-1">Desk/Table Number</label>
-                            <input type="text" id="deskInput" value="{{ $student->desk ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., T1, D3, 7">
-                        </div>
-                    </div>
-                    <div id="chairDeskMessage" class="mt-4 hidden"></div>
-                </div>
-                <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
-                    <button type="button" onclick="closeChairDeskModal()" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition-colors">
-                        Cancel
-                    </button>
-                    <button type="button" onclick="saveChairDesk()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                        Save Changes
-                    </button>
                 </div>
             </div>
         </div>
@@ -456,52 +413,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
-
-<script>
-function openChairDeskModal() {
-    document.getElementById('chairDeskModal').classList.remove('hidden');
-}
-
-function closeChairDeskModal() {
-    document.getElementById('chairDeskModal').classList.add('hidden');
-    document.getElementById('chairDeskMessage').classList.add('hidden');
-}
-
-function saveChairDesk() {
-    const chair = document.getElementById('chairInput').value;
-    const desk = document.getElementById('deskInput').value;
-    const messageDiv = document.getElementById('chairDeskMessage');
-
-    fetch('{{ route("student.update-chair-desk") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ chair: chair, desk: desk })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('currentChair').textContent = data.chair || 'Not assigned';
-            document.getElementById('currentDesk').textContent = data.desk || 'Not assigned';
-            
-            messageDiv.innerHTML = '<div class="p-3 bg-green-100 text-green-700 rounded-lg">' + data.message + '</div>';
-            messageDiv.classList.remove('hidden');
-            
-            setTimeout(() => {
-                closeChairDeskModal();
-            }, 1500);
-        } else {
-            messageDiv.innerHTML = '<div class="p-3 bg-red-100 text-red-700 rounded-lg">' + data.message + '</div>';
-            messageDiv.classList.remove('hidden');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        messageDiv.innerHTML = '<div class="p-3 bg-red-100 text-red-700 rounded-lg">An error occurred. Please try again.</div>';
-        messageDiv.classList.remove('hidden');
-    });
-}
-</script>
