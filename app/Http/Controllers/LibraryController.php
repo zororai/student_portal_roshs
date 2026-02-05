@@ -395,4 +395,43 @@ class LibraryController extends Controller
 
         return response()->json($books);
     }
+
+    /**
+     * Student view - My Library (borrowed books and history)
+     */
+    public function myLibrary()
+    {
+        $user = auth()->user();
+        $student = Student::where('user_id', $user->id)->first();
+
+        if (!$student) {
+            return redirect()->route('home')->with('error', 'Student record not found.');
+        }
+
+        // Get currently borrowed books (status = issued)
+        $borrowedBooks = LibraryRecord::where('student_id', $student->id)
+            ->where('status', 'issued')
+            ->with(['book', 'issuedBy'])
+            ->orderBy('issue_date', 'desc')
+            ->get();
+
+        // Get borrowing history (all records)
+        $borrowingHistory = LibraryRecord::where('student_id', $student->id)
+            ->with(['book', 'issuedBy'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        // Stats
+        $totalBorrowed = LibraryRecord::where('student_id', $student->id)->count();
+        $currentlyBorrowed = $borrowedBooks->count();
+        $returned = LibraryRecord::where('student_id', $student->id)->where('status', 'returned')->count();
+        $overdue = $borrowedBooks->filter(function ($record) {
+            return $record->due_date && $record->due_date < now();
+        })->count();
+
+        return view('backend.student.library', compact(
+            'student', 'borrowedBooks', 'borrowingHistory',
+            'totalBorrowed', 'currentlyBorrowed', 'returned', 'overdue'
+        ));
+    }
 }

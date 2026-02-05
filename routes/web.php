@@ -748,5 +748,8 @@ Route::group(['middleware' => ['auth','role:Student']], function () {
    Route::get('/studentresults/studentresults', 'ResultController@studentshow')->name('viewresults.studentresults');
    Route::get('Reading/{id}','AddsubjectController@showread')->name('subject.viewreading');
    Route::get('/readings/download/{id}', 'AddsubjectController@download')->name('readings.download');
+   
+   // Student Library - View borrowed books
+   Route::get('/my-library', 'LibraryController@myLibrary')->name('student.library');
 
 });
