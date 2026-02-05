@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\GroceryStockItem;
 use App\GroceryStockTransaction;
+use App\GroceryList;
+use App\GroceryResponse;
+use App\GroceryItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class GroceryStockController extends Controller
 {
@@ -30,10 +34,96 @@ class GroceryStockController extends Controller
             $item->closing_balance = $item->balance_bf + $item->received - $item->usage - $item->bad_stock;
         }
 
+        // Get collected groceries from student responses for the selected term/year
+        $collectedGroceries = $this->getCollectedGroceries($term, $year);
+
         $terms = ['term_1', 'term_2', 'term_3'];
         $years = range(date('Y') - 2, date('Y') + 1);
 
-        return view('backend.finance.grocery-stock.index', compact('stockItems', 'term', 'year', 'terms', 'years'));
+        return view('backend.finance.grocery-stock.index', compact('stockItems', 'term', 'year', 'terms', 'years', 'collectedGroceries'));
+    }
+
+    private function getCollectedGroceries($term, $year)
+    {
+        // Map term format (term_1 -> first, term_2 -> second, term_3 -> third)
+        $termMap = [
+            'term_1' => 'first',
+            'term_2' => 'second', 
+            'term_3' => 'third',
+            'first' => 'first',
+            'second' => 'second',
+            'third' => 'third'
+        ];
+        $dbTerm = $termMap[$term] ?? $term;
+
+        // Get grocery lists for the selected term and year
+        $groceryLists = GroceryList::where('term', $dbTerm)
+            ->where('year', $year)
+            ->with(['items', 'responses' => function($query) {
+                $query->where('submitted', true);
+            }])
+            ->get();
+
+        $collectedItems = [];
+
+        foreach ($groceryLists as $list) {
+            foreach ($list->items as $item) {
+                $itemName = $item->name;
+                // Extract numeric value from quantity (e.g., "2kg" -> 2)
+                $requiredQty = floatval(preg_replace('/[^0-9.]/', '', $item->quantity ?? '0'));
+                
+                if (!isset($collectedItems[$itemName])) {
+                    $collectedItems[$itemName] = [
+                        'name' => $itemName,
+                        'required_per_student' => $item->quantity, // Keep original for display
+                        'total_required' => 0,
+                        'total_collected' => 0,
+                        'total_short' => 0,
+                        'total_extra' => 0,
+                        'students_submitted' => 0
+                    ];
+                }
+
+                foreach ($list->responses as $response) {
+                    $itemsBought = $response->items_bought ?? [];
+                    $actualQty = $response->item_actual_qty ?? [];
+                    $shortQty = $response->item_short_qty ?? [];
+                    $extraQty = $response->item_extra_qty ?? [];
+
+                    // Check if this item was bought (handle both string and int IDs)
+                    if (in_array($item->id, $itemsBought) || in_array((string)$item->id, $itemsBought)) {
+                        $collectedItems[$itemName]['students_submitted']++;
+                        $collectedItems[$itemName]['total_required'] += $requiredQty;
+                        
+                        // Get actual quantity brought
+                        $actualKey = $item->id;
+                        $actual = 0;
+                        if (isset($actualQty[$actualKey])) {
+                            $actual = floatval(preg_replace('/[^0-9.]/', '', $actualQty[$actualKey]));
+                        } elseif (isset($actualQty[(string)$actualKey])) {
+                            $actual = floatval(preg_replace('/[^0-9.]/', '', $actualQty[(string)$actualKey]));
+                        } else {
+                            $actual = $requiredQty; // Default to required if not specified
+                        }
+                        $collectedItems[$itemName]['total_collected'] += $actual;
+                        
+                        // Add short/extra quantities
+                        if (isset($shortQty[$actualKey]) && is_numeric($shortQty[$actualKey])) {
+                            $collectedItems[$itemName]['total_short'] += floatval($shortQty[$actualKey]);
+                        } elseif (isset($shortQty[(string)$actualKey]) && is_numeric($shortQty[(string)$actualKey])) {
+                            $collectedItems[$itemName]['total_short'] += floatval($shortQty[(string)$actualKey]);
+                        }
+                        if (isset($extraQty[$actualKey]) && is_numeric($extraQty[$actualKey])) {
+                            $collectedItems[$itemName]['total_extra'] += floatval($extraQty[$actualKey]);
+                        } elseif (isset($extraQty[(string)$actualKey]) && is_numeric($extraQty[(string)$actualKey])) {
+                            $collectedItems[$itemName]['total_extra'] += floatval($extraQty[(string)$actualKey]);
+                        }
+                    }
+                }
+            }
+        }
+
+        return collect($collectedItems)->sortBy('name')->values();
     }
 
     public function items()

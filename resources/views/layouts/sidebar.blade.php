@@ -862,6 +862,7 @@
                     </svg>
                     Student Groceries
                 </a>
+                @endcan
                 @can('sidebar-grocery-arrears')
                 <a href="{{ route('finance.grocery-arrears') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -877,7 +878,6 @@
                     </svg>
                     Grocery Stock
                 </a>
-                @endcan
                 @endcan
                 @can('sidebar-financial-statements')
                 <a href="{{ route('finance.statements') }}" class="flex items-center px-3 py-2 text-sm text-white rounded-lg hover:bg-blue-700 transition-colors">

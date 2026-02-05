@@ -1,4 +1,4 @@
-@extends('backend.layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Grocery Stock Management')
 
@@ -144,6 +144,90 @@
                         </tr>
                         @endforelse
                     </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Collected Groceries from Students -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+            <div class="px-6 py-4 border-b border-gray-100 bg-green-50">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    <svg class="w-5 h-5 inline-block mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Groceries Collected from Parents - {{ ucfirst(str_replace('_', ' ', $term)) }} {{ $year }}
+                </h2>
+                <p class="text-sm text-gray-600 mt-1">Summary of all groceries submitted by parents/students</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Item Name</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Required/Student</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Students</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Total Required</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Total Collected</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Short</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Extra</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Variance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($collectedGroceries as $grocery)
+                        @php
+                            $variance = $grocery['total_collected'] - $grocery['total_required'];
+                        @endphp
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-800">{{ $grocery['name'] }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-gray-600">{{ $grocery['required_per_student'] }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-gray-600">{{ $grocery['students_submitted'] }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-gray-800 font-medium">{{ number_format($grocery['total_required'], 2) }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-green-600 font-medium">{{ number_format($grocery['total_collected'], 2) }}</td>
+                            <td class="px-6 py-4 text-sm text-right text-red-600">
+                                @if($grocery['total_short'] > 0)
+                                -{{ number_format($grocery['total_short'], 2) }}
+                                @else
+                                -
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-sm text-right text-blue-600">
+                                @if($grocery['total_extra'] > 0)
+                                +{{ number_format($grocery['total_extra'], 2) }}
+                                @else
+                                -
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-sm text-right font-bold {{ $variance < 0 ? 'text-red-600' : ($variance > 0 ? 'text-green-600' : 'text-gray-600') }}">
+                                {{ $variance >= 0 ? '+' : '' }}{{ number_format($variance, 2) }}
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                                <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                </svg>
+                                No groceries collected for this term/year yet.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                    @if($collectedGroceries->count() > 0)
+                    <tfoot class="bg-gray-50">
+                        <tr>
+                            <td class="px-6 py-3 text-sm font-bold text-gray-800" colspan="3">TOTALS</td>
+                            <td class="px-6 py-3 text-sm text-right font-bold text-gray-800">{{ number_format($collectedGroceries->sum('total_required'), 2) }}</td>
+                            <td class="px-6 py-3 text-sm text-right font-bold text-green-600">{{ number_format($collectedGroceries->sum('total_collected'), 2) }}</td>
+                            <td class="px-6 py-3 text-sm text-right font-bold text-red-600">-{{ number_format($collectedGroceries->sum('total_short'), 2) }}</td>
+                            <td class="px-6 py-3 text-sm text-right font-bold text-blue-600">+{{ number_format($collectedGroceries->sum('total_extra'), 2) }}</td>
+                            @php $totalVariance = $collectedGroceries->sum('total_collected') - $collectedGroceries->sum('total_required'); @endphp
+                            <td class="px-6 py-3 text-sm text-right font-bold {{ $totalVariance < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                {{ $totalVariance >= 0 ? '+' : '' }}{{ number_format($totalVariance, 2) }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                    @endif
                 </table>
             </div>
         </div>
