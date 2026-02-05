@@ -106,6 +106,7 @@ class RolePermissionController extends Controller
                 'sidebar-pos' => 'POS / Sell',
                 'sidebar-student-groceries' => 'Student Groceries',
                 'sidebar-grocery-arrears' => 'Grocery Arrears',
+                'sidebar-grocery-stock' => 'Grocery Stock',
                 'sidebar-financial-statements' => 'Financial Statements',
                 'sidebar-payroll' => 'Payroll',
                 'sidebar-cashbook' => 'Cash Book',
@@ -162,6 +163,7 @@ class RolePermissionController extends Controller
             'sidebar-website-text',
             'sidebar-payment-verification',
             'sidebar-grocery-arrears',
+            'sidebar-grocery-stock',
             'sidebar-financial-statements',
         ];
         
