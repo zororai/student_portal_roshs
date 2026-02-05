@@ -980,12 +980,15 @@
                     // Fee must have curriculum_type and it must match
                     let curriculumMatch = feeCurriculumType === curriculumType;
                     
-                    // Check new student status - if fee is for new students only, only show if student is new
-                    // Existing students should NOT see new-student-only fees
-                    let newStudentMatch = true;
+                    // Check new student status - STRICT matching
+                    // New students should ONLY see new student fees
+                    // Existing students should ONLY see existing student fees
+                    let newStudentMatch = false;
                     const feeIsForNewStudent = fee.is_for_new_student === true || fee.is_for_new_student === 1 || fee.is_for_new_student === '1';
-                    if (feeIsForNewStudent && !isNewStudent) {
-                        newStudentMatch = false; // Fee is for new students only, but student is not new
+                    if (isNewStudent && feeIsForNewStudent) {
+                        newStudentMatch = true; // New student sees new student fees only
+                    } else if (!isNewStudent && !feeIsForNewStudent) {
+                        newStudentMatch = true; // Existing student sees existing student fees only
                     }
                     
                     // Check level group - if fee has a level group, student's class must be in range

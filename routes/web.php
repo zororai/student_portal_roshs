@@ -95,7 +95,7 @@ Route::group(['middleware' => ['auth', 'role:Admin|Teacher']], function () {
     Route::get('student/generate-roll-number', 'StudentController@generateRollNumberAjax')->name('student.generate-roll-number');
 });
 
-Route::group(['middleware' => ['auth','role:Admin']], function ()
+Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|sidebar-student-payments|sidebar-parents-arrears|sidebar-school-income|sidebar-school-expenses|sidebar-financial-statements|sidebar-grocery-arrears|sidebar-grocery-stock|sidebar-inventory|sidebar-student-groceries|sidebar-library-records|sidebar-classes|sidebar-subjects|sidebar-teachers|sidebar-parents|sidebar-students|sidebar-results|sidebar-attendance|sidebar-timetable|sidebar-settings']], function ()
 {
     Route::get('/roles-permissions', 'RolePermissionController@roles')->name('roles-permissions');
     Route::get('/role-create', 'RolePermissionController@createRole')->name('role.create');
@@ -320,25 +320,6 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::post('admin/timetable/check-conflicts', 'AdminTimetableController@checkConflicts')->name('admin.timetable.check-conflicts');
     Route::post('admin/timetable/clear', 'AdminTimetableController@clear')->name('admin.timetable.clear');
 
-    // Library Records Routes
-    Route::get('admin/library', 'LibraryController@index')->name('admin.library.index');
-    Route::get('admin/library/create', 'LibraryController@create')->name('admin.library.create');
-    Route::post('admin/library', 'LibraryController@store')->name('admin.library.store');
-    Route::get('admin/library/search-students', 'LibraryController@searchStudents')->name('admin.library.search-students');
-    Route::get('admin/library/search-books', 'LibraryController@searchBooks')->name('admin.library.search-books');
-    Route::get('admin/library/student/{studentId}/history', 'LibraryController@studentHistory')->name('admin.library.student-history');
-    Route::patch('admin/library/{id}/return', 'LibraryController@returnBook')->name('admin.library.return');
-    Route::delete('admin/library/{id}', 'LibraryController@destroy')->name('admin.library.destroy');
-
-    // Book Management Routes
-    Route::get('admin/library/books', 'LibraryController@books')->name('admin.library.books');
-    Route::get('admin/library/books/create', 'LibraryController@createBook')->name('admin.library.books.create');
-    Route::post('admin/library/books', 'LibraryController@storeBook')->name('admin.library.books.store');
-    Route::get('admin/library/books/{id}/edit', 'LibraryController@editBook')->name('admin.library.books.edit');
-    Route::put('admin/library/books/{id}', 'LibraryController@updateBook')->name('admin.library.books.update');
-    Route::get('admin/library/books/{id}/history', 'LibraryController@bookHistory')->name('admin.library.books.history');
-    Route::delete('admin/library/books/{id}', 'LibraryController@destroyBook')->name('admin.library.books.destroy');
-
     // Resend parent SMS (Admin only)
     Route::post('student/{student}/resend-parent-sms', 'StudentController@resendParentSms')->name('student.resend-parent-sms');
 
@@ -436,62 +417,6 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/student/{id}/id-card', 'StudentController@showid')->name('student.id_card');
     Route::get('/student/{id}/id-card/download', 'StudentController@downloadIdCard')->name('student.download_id_card');
 
-    // Finance & Accounting Routes
-    Route::get('/finance/student-payments', 'FinanceController@studentPayments')->name('finance.student-payments');
-    Route::post('/finance/payments/store', 'FinanceController@storePayment')->name('finance.payments.store');
-    Route::post('/finance/enforce-fees', 'FinanceController@enforceFees')->name('finance.enforce-fees');
-    Route::get('/finance/parents-arrears', 'FinanceController@parentsArrears')->name('finance.parents-arrears');
-    Route::get('/finance/parents-arrears/export', 'FinanceController@exportParentsArrears')->name('finance.parents-arrears.export');
-    Route::get('/finance/student-payments/export', 'FinanceController@exportStudentPayments')->name('finance.student-payments.export');
-    Route::get('/finance/school-income', 'FinanceController@schoolIncome')->name('finance.school-income');
-    Route::post('/finance/school-income', 'FinanceController@storeIncome')->name('finance.income.store');
-    Route::delete('/finance/school-income/{id}', 'FinanceController@destroyIncome')->name('finance.income.destroy');
-    Route::get('/finance/school-expenses', 'FinanceController@schoolExpenses')->name('finance.school-expenses');
-    Route::post('/finance/school-expenses', 'FinanceController@storeExpense')->name('finance.expense.store');
-    Route::delete('/finance/school-expenses/{id}', 'FinanceController@destroyExpense')->name('finance.expense.destroy');
-    Route::get('/finance/products-legacy', 'FinanceController@products')->name('finance.products.legacy');
-    Route::post('/finance/products-legacy', 'FinanceController@storeProduct')->name('finance.product.store.legacy');
-    Route::delete('/finance/products-legacy/{id}', 'FinanceController@destroyProduct')->name('finance.product.destroy.legacy');
-    Route::get('/finance/statements', 'FinanceController@financialStatements')->name('finance.statements');
-
-    // Admin Groceries Routes
-    Route::get('/admin/groceries', 'GroceryController@index')->name('admin.groceries.index');
-    Route::post('/admin/groceries', 'GroceryController@store')->name('admin.groceries.store');
-    Route::get('/admin/groceries/class/{classId}', 'GroceryController@showClass')->name('admin.groceries.class');
-    Route::get('/admin/groceries/response/{responseId}', 'GroceryController@viewResponse')->name('admin.groceries.response');
-    Route::put('/admin/groceries/{responseId}/acknowledge', 'GroceryController@acknowledge')->name('admin.groceries.acknowledge');
-    Route::post('/admin/groceries/update-student', 'GroceryController@updateStudentGrocery')->name('admin.groceries.update-student');
-    Route::put('/admin/groceries/{id}/close', 'GroceryController@close')->name('admin.groceries.close');
-    Route::get('/admin/groceries/{id}/edit', 'GroceryController@edit')->name('admin.groceries.edit');
-    Route::put('/admin/groceries/{id}', 'GroceryController@update')->name('admin.groceries.update');
-    Route::put('/admin/groceries/{id}/lock', 'GroceryController@lock')->name('admin.groceries.lock');
-    Route::get('/admin/groceries/student/{studentId}/history', 'GroceryController@studentHistory')->name('admin.groceries.student-history');
-    Route::delete('/admin/groceries/{id}', 'GroceryController@destroy')->name('admin.groceries.destroy');
-    
-    // Grocery Block Settings Routes
-    Route::get('/admin/grocery-block-settings', 'GroceryController@blockSettings')->name('admin.grocery-block-settings');
-    Route::post('/admin/grocery-block-settings', 'GroceryController@updateBlockSettings')->name('admin.grocery-block-settings.update');
-    Route::post('/admin/grocery-exempt/{studentId}', 'GroceryController@toggleExemption')->name('admin.grocery-exempt');
-    
-    // Grocery Arrears Route
-    Route::get('/finance/grocery-arrears', 'GroceryController@groceryArrears')->name('finance.grocery-arrears');
-    Route::get('/finance/grocery-arrears/export', 'GroceryController@exportGroceryArrears')->name('finance.grocery-arrears.export');
-    Route::get('/admin/groceries/student/{studentId}/print', 'GroceryController@printStudentHistory')->name('admin.groceries.student-history.print');
-    
-    // Grocery Stock Management Routes
-    Route::get('/admin/grocery-stock', 'GroceryStockController@index')->name('admin.grocery-stock.index');
-    Route::get('/admin/grocery-stock/items', 'GroceryStockController@items')->name('admin.grocery-stock.items');
-    Route::post('/admin/grocery-stock/items', 'GroceryStockController@storeItem')->name('admin.grocery-stock.store-item');
-    Route::put('/admin/grocery-stock/items/{id}', 'GroceryStockController@updateItem')->name('admin.grocery-stock.update-item');
-    Route::get('/admin/grocery-stock/transactions', 'GroceryStockController@transactions')->name('admin.grocery-stock.transactions');
-    Route::post('/admin/grocery-stock/transactions', 'GroceryStockController@storeTransaction')->name('admin.grocery-stock.store-transaction');
-    Route::get('/admin/grocery-stock/record-usage', 'GroceryStockController@recordUsage')->name('admin.grocery-stock.record-usage');
-    Route::post('/admin/grocery-stock/record-usage', 'GroceryStockController@storeUsage')->name('admin.grocery-stock.store-usage');
-    Route::get('/admin/grocery-stock/record-bad-stock', 'GroceryStockController@recordBadStock')->name('admin.grocery-stock.record-bad-stock');
-    Route::post('/admin/grocery-stock/record-bad-stock', 'GroceryStockController@storeBadStock')->name('admin.grocery-stock.store-bad-stock');
-    Route::post('/admin/grocery-stock/carry-forward', 'GroceryStockController@carryForward')->name('admin.grocery-stock.carry-forward');
-    Route::get('/admin/grocery-stock/print', 'GroceryStockController@print')->name('admin.grocery-stock.print');
-    
     // Scholarships Routes
     Route::get('/admin/scholarships', 'Admin\ScholarshipController@index')->name('admin.scholarships.index');
     Route::put('/admin/scholarships/{student}', 'Admin\ScholarshipController@update')->name('admin.scholarships.update');
@@ -586,6 +511,102 @@ Route::group(['middleware' => ['auth','role:Admin']], function ()
     Route::get('/admin/website/banners', 'WebsiteSettingController@banners')->name('admin.website.banners');
     Route::put('/admin/website/banners', 'WebsiteSettingController@updateBanners')->name('admin.website.banners.update');
 
+});
+
+// Routes accessible by Admin OR users with specific permissions (for custom roles)
+Route::group(['middleware' => ['auth']], function () {
+    
+    // Finance & Accounting Routes - accessible with Admin role OR sidebar-student-payments permission
+    Route::middleware(['role_or_permission:Admin|sidebar-student-payments|sidebar-finance'])->group(function () {
+        Route::get('/finance/student-payments', 'FinanceController@studentPayments')->name('finance.student-payments');
+        Route::post('/finance/payments/store', 'FinanceController@storePayment')->name('finance.payments.store');
+        Route::post('/finance/enforce-fees', 'FinanceController@enforceFees')->name('finance.enforce-fees');
+        Route::get('/finance/student-payments/export', 'FinanceController@exportStudentPayments')->name('finance.student-payments.export');
+    });
+
+    Route::middleware(['role_or_permission:Admin|sidebar-parents-arrears|sidebar-finance'])->group(function () {
+        Route::get('/finance/parents-arrears', 'FinanceController@parentsArrears')->name('finance.parents-arrears');
+        Route::get('/finance/parents-arrears/export', 'FinanceController@exportParentsArrears')->name('finance.parents-arrears.export');
+    });
+
+    Route::middleware(['role_or_permission:Admin|sidebar-school-income|sidebar-finance'])->group(function () {
+        Route::get('/finance/school-income', 'FinanceController@schoolIncome')->name('finance.school-income');
+        Route::post('/finance/school-income', 'FinanceController@storeIncome')->name('finance.income.store');
+        Route::delete('/finance/school-income/{id}', 'FinanceController@destroyIncome')->name('finance.income.destroy');
+    });
+
+    Route::middleware(['role_or_permission:Admin|sidebar-school-expenses|sidebar-finance'])->group(function () {
+        Route::get('/finance/school-expenses', 'FinanceController@schoolExpenses')->name('finance.school-expenses');
+        Route::post('/finance/school-expenses', 'FinanceController@storeExpense')->name('finance.expense.store');
+        Route::delete('/finance/school-expenses/{id}', 'FinanceController@destroyExpense')->name('finance.expense.destroy');
+    });
+
+    Route::middleware(['role_or_permission:Admin|sidebar-financial-statements|sidebar-finance'])->group(function () {
+        Route::get('/finance/statements', 'FinanceController@financialStatements')->name('finance.statements');
+    });
+
+    Route::middleware(['role_or_permission:Admin|sidebar-grocery-arrears|sidebar-finance'])->group(function () {
+        Route::get('/finance/grocery-arrears', 'GroceryController@groceryArrears')->name('finance.grocery-arrears');
+        Route::get('/finance/grocery-arrears/export', 'GroceryController@exportGroceryArrears')->name('finance.grocery-arrears.export');
+    });
+
+    Route::middleware(['role_or_permission:Admin|sidebar-grocery-stock|sidebar-finance'])->group(function () {
+        Route::get('/admin/grocery-stock', 'GroceryStockController@index')->name('admin.grocery-stock.index');
+        Route::get('/admin/grocery-stock/items', 'GroceryStockController@items')->name('admin.grocery-stock.items');
+        Route::post('/admin/grocery-stock/items', 'GroceryStockController@storeItem')->name('admin.grocery-stock.store-item');
+        Route::put('/admin/grocery-stock/items/{id}', 'GroceryStockController@updateItem')->name('admin.grocery-stock.update-item');
+        Route::get('/admin/grocery-stock/transactions', 'GroceryStockController@transactions')->name('admin.grocery-stock.transactions');
+        Route::post('/admin/grocery-stock/transactions', 'GroceryStockController@storeTransaction')->name('admin.grocery-stock.store-transaction');
+        Route::get('/admin/grocery-stock/record-usage', 'GroceryStockController@recordUsage')->name('admin.grocery-stock.record-usage');
+        Route::post('/admin/grocery-stock/record-usage', 'GroceryStockController@storeUsage')->name('admin.grocery-stock.store-usage');
+        Route::get('/admin/grocery-stock/record-bad-stock', 'GroceryStockController@recordBadStock')->name('admin.grocery-stock.record-bad-stock');
+        Route::post('/admin/grocery-stock/record-bad-stock', 'GroceryStockController@storeBadStock')->name('admin.grocery-stock.store-bad-stock');
+        Route::post('/admin/grocery-stock/carry-forward', 'GroceryStockController@carryForward')->name('admin.grocery-stock.carry-forward');
+        Route::get('/admin/grocery-stock/print', 'GroceryStockController@print')->name('admin.grocery-stock.print');
+    });
+
+    Route::middleware(['role_or_permission:Admin|sidebar-inventory|sidebar-finance'])->group(function () {
+        Route::get('/finance/products-legacy', 'FinanceController@products')->name('finance.products.legacy');
+        Route::post('/finance/products-legacy', 'FinanceController@storeProduct')->name('finance.product.store.legacy');
+        Route::delete('/finance/products-legacy/{id}', 'FinanceController@destroyProduct')->name('finance.product.destroy.legacy');
+    });
+
+    Route::middleware(['role_or_permission:Admin|sidebar-student-groceries|sidebar-finance'])->group(function () {
+        Route::get('/admin/groceries', 'GroceryController@index')->name('admin.groceries.index');
+        Route::post('/admin/groceries', 'GroceryController@store')->name('admin.groceries.store');
+        Route::get('/admin/groceries/class/{classId}', 'GroceryController@showClass')->name('admin.groceries.class');
+        Route::get('/admin/groceries/response/{responseId}', 'GroceryController@viewResponse')->name('admin.groceries.response');
+        Route::put('/admin/groceries/{responseId}/acknowledge', 'GroceryController@acknowledge')->name('admin.groceries.acknowledge');
+        Route::post('/admin/groceries/update-student', 'GroceryController@updateStudentGrocery')->name('admin.groceries.update-student');
+        Route::put('/admin/groceries/{id}/close', 'GroceryController@close')->name('admin.groceries.close');
+        Route::get('/admin/groceries/{id}/edit', 'GroceryController@edit')->name('admin.groceries.edit');
+        Route::put('/admin/groceries/{id}', 'GroceryController@update')->name('admin.groceries.update');
+        Route::put('/admin/groceries/{id}/lock', 'GroceryController@lock')->name('admin.groceries.lock');
+        Route::get('/admin/groceries/student/{studentId}/history', 'GroceryController@studentHistory')->name('admin.groceries.student-history');
+        Route::delete('/admin/groceries/{id}', 'GroceryController@destroy')->name('admin.groceries.destroy');
+        Route::get('/admin/grocery-block-settings', 'GroceryController@blockSettings')->name('admin.grocery-block-settings');
+        Route::post('/admin/grocery-block-settings', 'GroceryController@updateBlockSettings')->name('admin.grocery-block-settings.update');
+        Route::post('/admin/grocery-exempt/{studentId}', 'GroceryController@toggleExemption')->name('admin.grocery-exempt');
+        Route::get('/admin/groceries/student/{studentId}/print', 'GroceryController@printStudentHistory')->name('admin.groceries.student-history.print');
+    });
+
+    Route::middleware(['role_or_permission:Admin|sidebar-library-records'])->group(function () {
+        Route::get('/admin/library', 'LibraryController@index')->name('admin.library.index');
+        Route::get('/admin/library/create', 'LibraryController@create')->name('admin.library.create');
+        Route::post('/admin/library', 'LibraryController@store')->name('admin.library.store');
+        Route::get('/admin/library/search-students', 'LibraryController@searchStudents')->name('admin.library.search-students');
+        Route::get('/admin/library/search-books', 'LibraryController@searchBooks')->name('admin.library.search-books');
+        Route::get('/admin/library/student/{studentId}/history', 'LibraryController@studentHistory')->name('admin.library.student-history');
+        Route::patch('/admin/library/{id}/return', 'LibraryController@returnBook')->name('admin.library.return');
+        Route::delete('/admin/library/{id}', 'LibraryController@destroy')->name('admin.library.destroy');
+        Route::get('/admin/library/books', 'LibraryController@books')->name('admin.library.books');
+        Route::get('/admin/library/books/create', 'LibraryController@createBook')->name('admin.library.books.create');
+        Route::post('/admin/library/books', 'LibraryController@storeBook')->name('admin.library.books.store');
+        Route::get('/admin/library/books/{id}/edit', 'LibraryController@editBook')->name('admin.library.books.edit');
+        Route::put('/admin/library/books/{id}', 'LibraryController@updateBook')->name('admin.library.books.update');
+        Route::get('/admin/library/books/{id}/history', 'LibraryController@bookHistory')->name('admin.library.books.history');
+        Route::delete('/admin/library/books/{id}', 'LibraryController@destroyBook')->name('admin.library.books.destroy');
+    });
 });
 
 Route::group(['middleware' => ['auth','role:Teacher']], function ()

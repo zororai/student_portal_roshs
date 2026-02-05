@@ -997,6 +997,54 @@ class FinanceController extends Controller
             ->groupBy('category')
             ->get();
         
+        // Get school fees income breakdown by fee type from StudentPayments
+        $schoolFeesQuery = \App\StudentPayment::with(['feeStructure.feeType', 'student']);
+        if ($selectedYear) {
+            $schoolFeesQuery->whereYear('payment_date', $selectedYear);
+        }
+        if ($selectedTerm) {
+            $schoolFeesQuery->whereHas('resultsStatus', function($q) use ($selectedTerm) {
+                $q->where('result_period', $selectedTerm);
+            });
+        }
+        
+        $schoolFeesPayments = $schoolFeesQuery->get();
+        
+        // Group by fee type
+        $schoolFeesByType = [];
+        $schoolFeesByCategory = [
+            'zimsec_day' => ['label' => 'ZIMSEC Day', 'total' => 0],
+            'zimsec_boarding' => ['label' => 'ZIMSEC Boarding', 'total' => 0],
+            'cambridge_day' => ['label' => 'Cambridge Day', 'total' => 0],
+            'cambridge_boarding' => ['label' => 'Cambridge Boarding', 'total' => 0],
+        ];
+        
+        foreach ($schoolFeesPayments as $payment) {
+            $feeTypeName = 'General Fees';
+            if ($payment->feeStructure && $payment->feeStructure->feeType) {
+                $feeTypeName = $payment->feeStructure->feeType->name;
+            }
+            
+            if (!isset($schoolFeesByType[$feeTypeName])) {
+                $schoolFeesByType[$feeTypeName] = 0;
+            }
+            $schoolFeesByType[$feeTypeName] += floatval($payment->amount_paid);
+            
+            // Also categorize by student type
+            if ($payment->student) {
+                $studentType = $payment->student->student_type ?? 'day';
+                $curriculumType = $payment->student->curriculum_type ?? 'zimsec';
+                $categoryKey = $curriculumType . '_' . $studentType;
+                
+                if (isset($schoolFeesByCategory[$categoryKey])) {
+                    $schoolFeesByCategory[$categoryKey]['total'] += floatval($payment->amount_paid);
+                }
+            }
+        }
+        
+        arsort($schoolFeesByType);
+        $totalSchoolFeesIncome = array_sum($schoolFeesByType);
+        
         $monthlyIncome = (clone $incomeQuery)
             ->select(
                 DB::raw('MONTH(entry_date) as month'),
@@ -1034,6 +1082,17 @@ class FinanceController extends Controller
         $totalCurrentTermFees = 0;
         $totalStudentPayments = 0;
         
+        // Fee breakdown by fee type for current term
+        $feesByType = [];
+        
+        // Fee breakdown by category (student type + curriculum)
+        $feesByCategory = [
+            'zimsec_day' => ['label' => 'ZIMSEC Day', 'fees' => [], 'total' => 0, 'count' => 0],
+            'zimsec_boarding' => ['label' => 'ZIMSEC Boarding', 'fees' => [], 'total' => 0, 'count' => 0],
+            'cambridge_day' => ['label' => 'Cambridge Day', 'fees' => [], 'total' => 0, 'count' => 0],
+            'cambridge_boarding' => ['label' => 'Cambridge Boarding', 'fees' => [], 'total' => 0, 'count' => 0],
+        ];
+        
         $students = Student::with(['class', 'payments'])->get();
         foreach ($students as $student) {
             $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
@@ -1041,6 +1100,41 @@ class FinanceController extends Controller
             $totalCurrentTermFees += $feeBreakdown['current_term_fees'];
             $totalStudentFees += $feeBreakdown['total_fees'];
             $totalStudentPayments += floatval(\App\StudentPayment::where('student_id', $student->id)->sum('amount_paid'));
+            
+            // Calculate fee breakdown by type for current term
+            if ($currentTerm) {
+                $studentFeesByType = $this->getStudentFeesByType($student, $currentTerm);
+                foreach ($studentFeesByType as $feeTypeName => $amount) {
+                    if (!isset($feesByType[$feeTypeName])) {
+                        $feesByType[$feeTypeName] = 0;
+                    }
+                    $feesByType[$feeTypeName] += $amount;
+                }
+                
+                // Categorize by student type and curriculum
+                $studentType = $student->student_type ?? 'day';
+                $curriculumType = $student->curriculum_type ?? 'zimsec';
+                $categoryKey = $curriculumType . '_' . $studentType;
+                
+                if (isset($feesByCategory[$categoryKey])) {
+                    $feesByCategory[$categoryKey]['count']++;
+                    foreach ($studentFeesByType as $feeTypeName => $amount) {
+                        if (!isset($feesByCategory[$categoryKey]['fees'][$feeTypeName])) {
+                            $feesByCategory[$categoryKey]['fees'][$feeTypeName] = 0;
+                        }
+                        $feesByCategory[$categoryKey]['fees'][$feeTypeName] += $amount;
+                        $feesByCategory[$categoryKey]['total'] += $amount;
+                    }
+                }
+            }
+        }
+        
+        // Sort fee types by amount descending
+        arsort($feesByType);
+        
+        // Sort fees within each category
+        foreach ($feesByCategory as &$category) {
+            arsort($category['fees']);
         }
         
         $totalOutstandingFees = $totalStudentFees - $totalStudentPayments;
@@ -1061,7 +1155,13 @@ class FinanceController extends Controller
             'totalBalanceBf',
             'totalCurrentTermFees',
             'totalStudentPayments',
-            'totalOutstandingFees'
+            'totalOutstandingFees',
+            'feesByType',
+            'feesByCategory',
+            'currentTerm',
+            'schoolFeesByType',
+            'schoolFeesByCategory',
+            'totalSchoolFeesIncome'
         ));
     }
 
@@ -1221,6 +1321,78 @@ class FinanceController extends Controller
         }
 
         return $baseFee;
+    }
+
+    /**
+     * Get fee breakdown by fee type for a student in a specific term
+     */
+    private function getStudentFeesByType($student, $currentTerm)
+    {
+        $feesByType = [];
+        
+        if (!$currentTerm) {
+            return $feesByType;
+        }
+
+        $studentType = $student->student_type ?? 'day';
+        $curriculumType = $student->curriculum_type ?? 'zimsec';
+        $isNewStudent = $student->is_new_student ?? false;
+        $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
+
+        // Get student's class numeric
+        $classNumeric = optional($student->class)->class_numeric;
+        if (!$classNumeric) {
+            return $feesByType;
+        }
+
+        // Find the appropriate fee level group for this student's class
+        $levelGroup = FeeLevelGroup::where('is_active', true)
+            ->where('min_class_numeric', '<=', $classNumeric)
+            ->where('max_class_numeric', '>=', $classNumeric)
+            ->first();
+
+        if (!$levelGroup) {
+            return $feesByType;
+        }
+
+        // Get fee structures for this term with fee type details
+        $feeStructures = FeeStructure::where('results_status_id', $currentTerm->id)
+            ->where('fee_level_group_id', $levelGroup->id)
+            ->where('student_type', $studentType)
+            ->where('curriculum_type', $curriculumType)
+            ->where('is_for_new_student', $isNewStudent)
+            ->with('feeType')
+            ->get();
+
+        // If no fees found for new student status, try existing student fees
+        if ($feeStructures->isEmpty() && $isNewStudent) {
+            $feeStructures = FeeStructure::where('results_status_id', $currentTerm->id)
+                ->where('fee_level_group_id', $levelGroup->id)
+                ->where('student_type', $studentType)
+                ->where('curriculum_type', $curriculumType)
+                ->where('is_for_new_student', false)
+                ->with('feeType')
+                ->get();
+        }
+
+        // Group fees by type
+        foreach ($feeStructures as $feeStructure) {
+            $feeTypeName = $feeStructure->feeType ? $feeStructure->feeType->name : 'Other Fees';
+            $amount = floatval($feeStructure->amount);
+            
+            // Apply scholarship discount per fee type
+            if ($scholarshipPercentage > 0 && $scholarshipPercentage <= 100) {
+                $discount = $amount * ($scholarshipPercentage / 100);
+                $amount = $amount - $discount;
+            }
+            
+            if (!isset($feesByType[$feeTypeName])) {
+                $feesByType[$feeTypeName] = 0;
+            }
+            $feesByType[$feeTypeName] += $amount;
+        }
+
+        return $feesByType;
     }
 
     /**
