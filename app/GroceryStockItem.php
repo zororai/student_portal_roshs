@@ -8,14 +8,17 @@ class GroceryStockItem extends Model
 {
     protected $fillable = [
         'name',
+        'description',
         'unit',
         'current_balance',
-        'is_active'
+        'is_active',
+        'is_manual'
     ];
 
     protected $casts = [
         'current_balance' => 'decimal:2',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'is_manual' => 'boolean'
     ];
 
     public function transactions()

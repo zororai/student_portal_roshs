@@ -47,6 +47,10 @@
                         <option value="tins">Tins</option>
                     </select>
                 </div>
+                <div class="w-32">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Initial Qty</label>
+                    <input type="number" name="initial_quantity" step="0.01" min="0" value="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="0">
+                </div>
                 <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                     Add Item
                 </button>
@@ -65,6 +69,7 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Item Name</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Unit</th>
                             <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Current Balance</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Source</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Status</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Actions</th>
                         </tr>
@@ -78,6 +83,13 @@
                                 {{ number_format($item->current_balance, 2) }}
                             </td>
                             <td class="px-6 py-4 text-center">
+                                @if($item->is_manual)
+                                <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">Manual</span>
+                                @else
+                                <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">Collected</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-center">
                                 @if($item->is_active)
                                 <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Active</span>
                                 @else
@@ -85,16 +97,24 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <button onclick="openEditModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ $item->unit }}', {{ $item->is_active ? 'true' : 'false' }})" class="text-blue-600 hover:text-blue-800">
+                                @if($item->is_manual)
+                                <button onclick="openEditModal({{ $item->id }}, '{{ addslashes($item->name) }}', '{{ $item->unit }}', {{ $item->current_balance }}, {{ $item->is_active ? 'true' : 'false' }})" class="text-blue-600 hover:text-blue-800" title="Edit">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                 </button>
+                                @else
+                                <span class="text-xs text-gray-400" title="Auto-created from collected groceries">
+                                    <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                </span>
+                                @endif
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">No stock items found. Add your first item above.</td>
+                            <td colspan="6" class="px-6 py-8 text-center text-gray-500">No stock items found. Add your first item above.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -130,6 +150,11 @@
                     <option value="tins">Tins</option>
                 </select>
             </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Adjust Quantity</label>
+                <input type="number" name="quantity" id="edit_quantity" step="0.01" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                <p class="text-xs text-gray-500 mt-1">Current balance. Change to adjust stock (creates adjustment transaction).</p>
+            </div>
             <div class="mb-6">
                 <label class="flex items-center">
                     <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
@@ -145,10 +170,11 @@
 </div>
 
 <script>
-function openEditModal(id, name, unit, isActive) {
+function openEditModal(id, name, unit, quantity, isActive) {
     document.getElementById('editForm').action = '/admin/grocery-stock/items/' + id;
     document.getElementById('edit_name').value = name;
     document.getElementById('edit_unit').value = unit;
+    document.getElementById('edit_quantity').value = quantity;
     document.getElementById('edit_is_active').checked = isActive;
     document.getElementById('editModal').classList.remove('hidden');
 }

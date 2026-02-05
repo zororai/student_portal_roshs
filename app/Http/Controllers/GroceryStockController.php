@@ -18,6 +18,17 @@ class GroceryStockController extends Controller
         $term = $request->get('term', $this->getCurrentTerm());
         $year = $request->get('year', date('Y'));
 
+        // Get collected groceries from student responses for the selected term/year
+        $collectedGroceries = $this->getCollectedGroceries($term, $year);
+
+        // Create a lookup map of collected groceries by stock_item_id
+        $collectedByStockId = [];
+        foreach ($collectedGroceries as $grocery) {
+            if ($grocery['stock_item_id']) {
+                $collectedByStockId[$grocery['stock_item_id']] = $grocery['total_collected'];
+            }
+        }
+
         $stockItems = GroceryStockItem::where('is_active', true)
             ->with(['transactions' => function($query) use ($term, $year) {
                 $query->where('term', $term)->where('year', $year)->orderBy('transaction_date', 'desc');
@@ -28,14 +39,12 @@ class GroceryStockController extends Controller
         // Calculate balances for each item
         foreach ($stockItems as $item) {
             $item->balance_bf = $this->getBalanceBroughtForward($item->id, $term, $year);
-            $item->received = $item->transactions->where('type', 'received')->sum('quantity');
+            // Received = automatically pulled from collected groceries
+            $item->received = $collectedByStockId[$item->id] ?? 0;
             $item->usage = $item->transactions->where('type', 'usage')->sum('quantity');
             $item->bad_stock = $item->transactions->where('type', 'bad_stock')->sum('quantity');
             $item->closing_balance = $item->balance_bf + $item->received - $item->usage - $item->bad_stock;
         }
-
-        // Get collected groceries from student responses for the selected term/year
-        $collectedGroceries = $this->getCollectedGroceries($term, $year);
 
         $terms = ['term_1', 'term_2', 'term_3'];
         $years = range(date('Y') - 2, date('Y') + 1);
@@ -84,7 +93,8 @@ class GroceryStockController extends Controller
                         'usage' => 0,
                         'spoiled' => 0,
                         'balance' => 0,
-                        'stock_item_id' => null
+                        'stock_item_id' => null,
+                        'is_extra' => false
                     ];
                 }
 
@@ -125,15 +135,66 @@ class GroceryStockController extends Controller
                     }
                 }
             }
+
+            // Process extra items added by parents (not on original list)
+            foreach ($list->responses as $response) {
+                $extraItems = $response->extra_items ?? [];
+                
+                foreach ($extraItems as $extraItem) {
+                    if (empty($extraItem['name'])) continue;
+                    
+                    $itemName = trim($extraItem['name']);
+                    $quantity = floatval(preg_replace('/[^0-9.]/', '', $extraItem['quantity'] ?? '1'));
+                    
+                    if (!isset($collectedItems[$itemName])) {
+                        $collectedItems[$itemName] = [
+                            'name' => $itemName,
+                            'required_per_student' => $extraItem['quantity'] ?? '1',
+                            'total_required' => 0,
+                            'total_collected' => 0,
+                            'total_short' => 0,
+                            'total_extra' => 0,
+                            'students_submitted' => 0,
+                            'usage' => 0,
+                            'spoiled' => 0,
+                            'balance' => 0,
+                            'stock_item_id' => null,
+                            'is_extra' => true
+                        ];
+                    }
+                    
+                    $collectedItems[$itemName]['students_submitted']++;
+                    $collectedItems[$itemName]['total_collected'] += $quantity;
+                    $collectedItems[$itemName]['is_extra'] = true;
+                }
+            }
         }
 
         // Get usage and spoiled data from stock transactions (match by item name)
         foreach ($collectedItems as $itemName => &$itemData) {
             // Find matching stock item by name (case-insensitive)
-            $stockItem = GroceryStockItem::whereRaw('LOWER(name) = ?', [strtolower($itemName)])->first();
+            $stockItem = GroceryStockItem::where('name', 'LIKE', $itemName)->first();
+            if (!$stockItem) {
+                $stockItem = GroceryStockItem::where('name', $itemName)->first();
+            }
+            
+            // Auto-create stock item if it doesn't exist
+            if (!$stockItem && $itemData['total_collected'] > 0) {
+                // Extract unit from required_per_student (e.g., "2kg" -> "kg")
+                $unit = preg_replace('/[0-9.]/', '', $itemData['required_per_student'] ?? '');
+                $unit = trim($unit) ?: 'units';
+                
+                $stockItem = GroceryStockItem::create([
+                    'name' => $itemName,
+                    'unit' => $unit,
+                    'current_balance' => 0,
+                    'is_active' => true
+                ]);
+            }
             
             if ($stockItem) {
                 $itemData['stock_item_id'] = $stockItem->id;
+                $itemData['unit'] = $stockItem->unit;
                 
                 // Get usage for this term/year
                 $itemData['usage'] = GroceryStockTransaction::where('stock_item_id', $stockItem->id)
@@ -167,10 +228,31 @@ class GroceryStockController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'unit' => 'required|string|max:50'
+            'unit' => 'required|string|max:50',
+            'initial_quantity' => 'nullable|numeric|min:0'
         ]);
 
-        GroceryStockItem::create($validated);
+        $initialQty = $validated['initial_quantity'] ?? 0;
+        unset($validated['initial_quantity']);
+        
+        $validated['current_balance'] = $initialQty;
+        $validated['is_manual'] = true;
+        $item = GroceryStockItem::create($validated);
+
+        // Create initial balance transaction if quantity > 0
+        if ($initialQty > 0) {
+            GroceryStockTransaction::create([
+                'stock_item_id' => $item->id,
+                'type' => 'received',
+                'quantity' => $initialQty,
+                'balance_after' => $initialQty,
+                'term' => $this->getCurrentTerm(),
+                'year' => date('Y'),
+                'description' => 'Initial stock quantity',
+                'recorded_by' => Auth::id(),
+                'transaction_date' => now()
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Stock item added successfully!');
     }
@@ -180,10 +262,33 @@ class GroceryStockController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'unit' => 'required|string|max:50',
+            'quantity' => 'nullable|numeric',
             'is_active' => 'boolean'
         ]);
 
         $item = GroceryStockItem::findOrFail($id);
+        $newQuantity = $validated['quantity'] ?? $item->current_balance;
+        unset($validated['quantity']);
+        
+        // Check if quantity changed - create adjustment transaction
+        if ($newQuantity != $item->current_balance) {
+            $difference = $newQuantity - $item->current_balance;
+            
+            GroceryStockTransaction::create([
+                'stock_item_id' => $item->id,
+                'type' => 'adjustment',
+                'quantity' => $difference,
+                'balance_after' => $newQuantity,
+                'term' => $this->getCurrentTerm(),
+                'year' => date('Y'),
+                'description' => 'Stock adjustment via item edit',
+                'recorded_by' => Auth::id(),
+                'transaction_date' => now()
+            ]);
+            
+            $item->current_balance = $newQuantity;
+        }
+        
         $item->update($validated);
 
         return redirect()->back()->with('success', 'Stock item updated successfully!');

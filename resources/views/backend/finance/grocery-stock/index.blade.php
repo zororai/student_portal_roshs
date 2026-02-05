@@ -164,9 +164,12 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse($collectedGroceries as $index => $grocery)
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50 {{ $grocery['is_extra'] ?? false ? 'bg-yellow-50' : '' }}">
                             <td class="px-4 py-4 text-sm font-medium text-gray-800">
                                 {{ $grocery['name'] }}
+                                @if($grocery['is_extra'] ?? false)
+                                <span class="ml-1 px-1.5 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded">Extra</span>
+                                @endif
                                 <span class="text-xs text-gray-500 block">{{ $grocery['required_per_student'] }}/student</span>
                             </td>
                             <td class="px-4 py-4 text-sm text-right text-gray-600">{{ $grocery['students_submitted'] }}</td>
