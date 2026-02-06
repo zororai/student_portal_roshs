@@ -28,7 +28,7 @@
         <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg p-6 text-white">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-amber-100 text-sm font-medium">Currently Borrowed</p>
+                    <p  class="text-amber-100 text-sm font-medium text gray-100">Currently Borrowed</p>
                     <p class="text-3xl font-bold mt-1">{{ $currentlyBorrowed }}</p>
                 </div>
                 <div class="p-3 bg-white/20 rounded-lg">
@@ -74,7 +74,7 @@
     <!-- Currently Borrowed Books -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
         <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-xl">
-            <h2 class="text-xl font-semibold text-white flex items-center">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center">
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                 </svg>

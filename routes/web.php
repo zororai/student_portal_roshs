@@ -815,6 +815,7 @@ Route::group(['middleware' => ['auth','role:Student']], function () {
    Route::post('/my-exercises/{exercise}/save-answer', 'StudentExerciseController@saveAnswer')->name('student.exercises.save-answer');
    Route::post('/my-exercises/{exercise}/upload-file', 'StudentExerciseController@uploadFile')->name('student.exercises.upload-file');
    Route::post('/my-exercises/{exercise}/submit', 'StudentExerciseController@submit')->name('student.exercises.submit');
+   Route::post('/my-exercises/{exercise}/save-exit', 'StudentExerciseController@saveAndExit')->name('student.exercises.save-exit');
    Route::get('/my-exercises/{exercise}/results', 'StudentExerciseController@results')->name('student.exercises.results');
 
 });

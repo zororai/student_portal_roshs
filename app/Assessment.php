@@ -51,4 +51,9 @@ class Assessment extends Model
     {
         return $this->belongsTo(SyllabusTopic::class, 'syllabus_topic_id');
     }
+
+    public function exercise()
+    {
+        return $this->hasOne(Exercise::class);
+    }
 }

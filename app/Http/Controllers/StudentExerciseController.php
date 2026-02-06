@@ -225,6 +225,53 @@ class StudentExerciseController extends Controller
             ->with('success', 'Exercise submitted successfully!');
     }
 
+    public function saveAndExit(Request $request, Exercise $exercise)
+    {
+        $student = Student::where('user_id', Auth::id())->first();
+        $this->authorizeStudent($exercise, $student);
+
+        $submission = $exercise->getSubmissionForStudent($student->id);
+        if (!$submission || $submission->status !== 'in_progress') {
+            return redirect()->route('student.exercises.index')
+                ->with('error', 'Invalid submission state.');
+        }
+
+        // Save all answers
+        if ($request->has('answers')) {
+            foreach ($request->answers as $questionId => $answerData) {
+                $updateData = [];
+
+                if (isset($answerData['selected_option_id'])) {
+                    $updateData['selected_option_id'] = $answerData['selected_option_id'];
+                }
+                if (isset($answerData['answer_text'])) {
+                    $updateData['answer_text'] = $answerData['answer_text'];
+                }
+
+                if (!empty($updateData)) {
+                    ExerciseAnswer::updateOrCreate(
+                        [
+                            'submission_id' => $submission->id,
+                            'question_id' => $questionId,
+                        ],
+                        $updateData
+                    );
+                }
+            }
+        }
+
+        // Save remaining time
+        $timeRemaining = $request->input('time_remaining_seconds');
+        if ($timeRemaining !== null) {
+            $submission->update([
+                'time_remaining_seconds' => max(0, (int)$timeRemaining),
+            ]);
+        }
+
+        return redirect()->route('student.exercises.index')
+            ->with('success', 'Progress saved! You can continue later.');
+    }
+
     public function results(Exercise $exercise)
     {
         $student = Student::where('user_id', Auth::id())->first();

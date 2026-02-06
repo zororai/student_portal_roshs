@@ -789,7 +789,7 @@ class TeacherController extends Controller
         // Get all assessments for this class and teacher
         $allAssessments = \App\Assessment::where('teacher_id', $teacher->id)
             ->where('class_id', $class_id)
-            ->with('subject')
+            ->with(['subject', 'exercise'])
             ->orderBy('date', 'desc')
             ->get();
 
