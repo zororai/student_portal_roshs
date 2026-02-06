@@ -58,23 +58,57 @@
                     @endif
 
                     @if(in_array($question->question_type, ['multiple_choice', 'true_false']))
-                        <div class="mb-4 space-y-2">
-                            @foreach($question->options as $option)
-                                <div class="flex items-center space-x-3 p-3 rounded-lg {{ $option->is_correct ? 'bg-green-50 border border-green-200' : 'bg-gray-50' }}">
-                                    <span class="w-6 h-6 flex items-center justify-center rounded-full text-xs {{ $option->is_correct ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600' }}">
-                                        {{ chr(65 + $loop->index) }}
-                                    </span>
-                                    <span class="{{ $option->is_correct ? 'text-green-700 font-medium' : 'text-gray-700' }}">
-                                        {{ $option->option_text }}
-                                    </span>
-                                    @if($answer && $answer->selected_option_id == $option->id)
-                                        <span class="ml-auto px-2 py-1 text-xs rounded {{ $option->is_correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                                            Student's Answer
-                                        </span>
-                                    @endif
-                                </div>
-                            @endforeach
+                        @php
+                            $correctOption = $question->options->where('is_correct', true)->first();
+                            $studentOption = $answer ? $question->options->where('id', $answer->selected_option_id)->first() : null;
+                        @endphp
+                        
+                        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="text-sm font-semibold text-green-800 mb-1">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Correct Answer:
+                            </p>
+                            <p class="text-green-700 font-medium">{{ $correctOption->option_text ?? 'Not set' }}</p>
                         </div>
+
+                        <div class="mb-4 p-4 {{ $studentOption && $studentOption->is_correct ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200' }} border rounded-lg">
+                            <p class="text-sm font-semibold {{ $studentOption && $studentOption->is_correct ? 'text-green-800' : 'text-red-800' }} mb-1">
+                                Student's Answer:
+                            </p>
+                            <p class="{{ $studentOption && $studentOption->is_correct ? 'text-green-700' : 'text-red-700' }} font-medium">
+                                {{ $studentOption->option_text ?? 'No answer selected' }}
+                                @if($studentOption)
+                                    @if($studentOption->is_correct)
+                                        <span class="ml-2 text-xs px-2 py-1 bg-green-100 text-green-700 rounded">✓ Correct</span>
+                                    @else
+                                        <span class="ml-2 text-xs px-2 py-1 bg-red-100 text-red-700 rounded">✗ Incorrect</span>
+                                    @endif
+                                @endif
+                            </p>
+                        </div>
+
+                        <details class="mb-4">
+                            <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-700">View all options</summary>
+                            <div class="mt-2 space-y-2">
+                                @foreach($question->options as $option)
+                                    <div class="flex items-center space-x-3 p-3 rounded-lg {{ $option->is_correct ? 'bg-green-50 border border-green-200' : 'bg-gray-50' }}">
+                                        <span class="w-6 h-6 flex items-center justify-center rounded-full text-xs {{ $option->is_correct ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600' }}">
+                                            {{ chr(65 + $loop->index) }}
+                                        </span>
+                                        <span class="{{ $option->is_correct ? 'text-green-700 font-medium' : 'text-gray-700' }}">
+                                            {{ $option->option_text }}
+                                        </span>
+                                        @if($answer && $answer->selected_option_id == $option->id)
+                                            <span class="ml-auto px-2 py-1 text-xs rounded {{ $option->is_correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                                Student's Choice
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </details>
                     @elseif($question->question_type == 'short_answer')
                         <div class="mb-4">
                             <p class="text-sm text-gray-500 mb-2">Student's Answer:</p>

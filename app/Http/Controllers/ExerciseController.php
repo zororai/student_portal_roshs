@@ -395,7 +395,8 @@ class ExerciseController extends Controller
         $this->authorizeExercise($exercise);
 
         $submissions = $exercise->submissions()
-            ->where('status', 'submitted')
+            ->whereIn('status', ['submitted', 'in_progress'])
+            ->has('answers')
             ->with(['answers.question.options'])
             ->get();
 
@@ -494,6 +495,9 @@ class ExerciseController extends Controller
                 'assessment_id' => $exercise->assessment_id,
                 'student_id' => $student->id,
                 'mark' => $totalScore,
+                'total_marks' => $exercise->total_marks,
+                'paper_name' => $exercise->title,
+                'paper_index' => 0,
             ]);
         }
     }
