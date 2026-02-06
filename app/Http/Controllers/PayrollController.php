@@ -18,15 +18,38 @@ class PayrollController extends Controller
 
     public function index(Request $request)
     {
+        // Get current active term from ResultsStatus
+        $currentTerm = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+        
+        // Get all terms from database for filter
+        $allTerms = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->get();
+        
         $query = Payroll::with(['user', 'salary', 'approver', 'payer']);
 
-        // Filter by year and month
-        if ($request->filled('year')) {
-            $query->whereYear('pay_date', $request->year);
-        }
+        // Default to current term's year if no filter specified
+        $selectedYear = $request->has('year') ? $request->year : ($currentTerm ? $currentTerm->year : null);
+        $selectedMonth = $request->month;
+        $selectedTermId = $request->has('term_id') ? $request->term_id : ($currentTerm && !$request->hasAny(['year', 'month']) ? $currentTerm->id : null);
 
-        if ($request->filled('month')) {
-            $query->whereMonth('pay_date', $request->month);
+        // Filter by term (using term start/end dates)
+        if ($selectedTermId) {
+            $term = \App\ResultsStatus::find($selectedTermId);
+            if ($term && $term->start_date && $term->end_date) {
+                $query->whereBetween('pay_date', [$term->start_date, $term->end_date]);
+            }
+        } else {
+            // Filter by year and month if no term selected
+            if ($selectedYear) {
+                $query->whereYear('pay_date', $selectedYear);
+            }
+
+            if ($selectedMonth) {
+                $query->whereMonth('pay_date', $selectedMonth);
+            }
         }
 
         // Filter by pay period (legacy support)
@@ -49,13 +72,20 @@ class PayrollController extends Controller
             ->orderBy('year', 'desc')
             ->pluck('year');
 
-        // Stats (apply same filters)
+        // Stats (apply same filters as main query)
         $statsQuery = Payroll::query();
-        if ($request->filled('year')) {
-            $statsQuery->whereYear('pay_date', $request->year);
-        }
-        if ($request->filled('month')) {
-            $statsQuery->whereMonth('pay_date', $request->month);
+        if ($selectedTermId) {
+            $term = \App\ResultsStatus::find($selectedTermId);
+            if ($term && $term->start_date && $term->end_date) {
+                $statsQuery->whereBetween('pay_date', [$term->start_date, $term->end_date]);
+            }
+        } else {
+            if ($selectedYear) {
+                $statsQuery->whereYear('pay_date', $selectedYear);
+            }
+            if ($selectedMonth) {
+                $statsQuery->whereMonth('pay_date', $selectedMonth);
+            }
         }
 
         $stats = [
@@ -66,21 +96,18 @@ class PayrollController extends Controller
         ];
 
         // Monthly breakdown (for current year or selected year)
-        $selectedYear = $request->filled('year') ? $request->year : date('Y');
+        $breakdownYear = $selectedYear ?? ($currentTerm ? $currentTerm->year : date('Y'));
         $monthlyBreakdown = Payroll::selectRaw('MONTH(pay_date) as month, SUM(net_salary) as total')
-            ->whereYear('pay_date', $selectedYear)
+            ->whereYear('pay_date', $breakdownYear)
             ->groupBy('month')
             ->orderBy('month')
             ->get()
             ->pluck('total', 'month')
             ->toArray();
 
-        // Get all terms for term-based breakdown
-        $terms = \App\ResultsStatus::orderBy('result_period')->get();
-        
         // Term-based breakdown (map payroll to terms by date)
         $termBreakdown = [];
-        foreach ($terms as $term) {
+        foreach ($allTerms as $term) {
             $termTotal = Payroll::where(function($q) use ($term) {
                 if ($term->start_date && $term->end_date) {
                     $q->whereBetween('pay_date', [$term->start_date, $term->end_date]);
@@ -88,11 +115,15 @@ class PayrollController extends Controller
             })->sum('net_salary');
             
             if ($termTotal > 0) {
-                $termBreakdown[$term->result_period] = $termTotal;
+                $termBreakdown[$term->result_period . ' ' . $term->year] = $termTotal;
             }
         }
 
-        return view('backend.admin.finance.payroll.index', compact('payrolls', 'payPeriods', 'years', 'stats', 'monthlyBreakdown', 'selectedYear', 'termBreakdown'));
+        return view('backend.admin.finance.payroll.index', compact(
+            'payrolls', 'payPeriods', 'years', 'stats', 'monthlyBreakdown', 
+            'breakdownYear', 'termBreakdown', 'allTerms', 'currentTerm', 
+            'selectedYear', 'selectedMonth', 'selectedTermId'
+        ));
     }
 
     public function salaries()

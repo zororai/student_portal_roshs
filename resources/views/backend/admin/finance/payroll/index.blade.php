@@ -40,7 +40,7 @@
         <!-- Monthly Breakdown -->
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <h3 class="text-lg font-semibold text-gray-800">Monthly Breakdown ({{ $selectedYear }})</h3>
+                <h3 class="text-lg font-semibold text-gray-800">Monthly Breakdown ({{ $breakdownYear }})</h3>
             </div>
             <div class="p-6">
                 <div class="space-y-3">
@@ -86,15 +86,39 @@
         </div>
     </div>
 
+    <!-- Current Term Info -->
+    @if($currentTerm)
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <span class="text-blue-600 text-sm font-medium">Current Active Term:</span>
+                <span class="text-blue-800 font-bold ml-2">{{ ucfirst($currentTerm->result_period) }} {{ $currentTerm->year }}</span>
+            </div>
+            <span class="text-blue-500 text-xs">Data shown is filtered by the current term by default</span>
+        </div>
+    </div>
+    @endif
+
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
         <form method="GET" class="flex flex-wrap gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Term</label>
+                <select name="term_id" class="border rounded-lg px-3 py-2">
+                    <option value="">All Terms</option>
+                    @foreach($allTerms as $term)
+                        <option value="{{ $term->id }}" {{ $selectedTermId == $term->id ? 'selected' : '' }}>
+                            {{ ucfirst($term->result_period) }} {{ $term->year }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
                 <select name="year" class="border rounded-lg px-3 py-2">
                     <option value="">All Years</option>
                     @foreach($years as $year)
-                        <option value="{{ $year }}" {{ request('year') == $year ? 'selected' : '' }}>{{ $year }}</option>
+                        <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
                     @endforeach
                 </select>
             </div>
@@ -102,18 +126,18 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Month</label>
                 <select name="month" class="border rounded-lg px-3 py-2">
                     <option value="">All Months</option>
-                    <option value="1" {{ request('month') == '1' ? 'selected' : '' }}>January</option>
-                    <option value="2" {{ request('month') == '2' ? 'selected' : '' }}>February</option>
-                    <option value="3" {{ request('month') == '3' ? 'selected' : '' }}>March</option>
-                    <option value="4" {{ request('month') == '4' ? 'selected' : '' }}>April</option>
-                    <option value="5" {{ request('month') == '5' ? 'selected' : '' }}>May</option>
-                    <option value="6" {{ request('month') == '6' ? 'selected' : '' }}>June</option>
-                    <option value="7" {{ request('month') == '7' ? 'selected' : '' }}>July</option>
-                    <option value="8" {{ request('month') == '8' ? 'selected' : '' }}>August</option>
-                    <option value="9" {{ request('month') == '9' ? 'selected' : '' }}>September</option>
-                    <option value="10" {{ request('month') == '10' ? 'selected' : '' }}>October</option>
-                    <option value="11" {{ request('month') == '11' ? 'selected' : '' }}>November</option>
-                    <option value="12" {{ request('month') == '12' ? 'selected' : '' }}>December</option>
+                    <option value="1" {{ $selectedMonth == '1' ? 'selected' : '' }}>January</option>
+                    <option value="2" {{ $selectedMonth == '2' ? 'selected' : '' }}>February</option>
+                    <option value="3" {{ $selectedMonth == '3' ? 'selected' : '' }}>March</option>
+                    <option value="4" {{ $selectedMonth == '4' ? 'selected' : '' }}>April</option>
+                    <option value="5" {{ $selectedMonth == '5' ? 'selected' : '' }}>May</option>
+                    <option value="6" {{ $selectedMonth == '6' ? 'selected' : '' }}>June</option>
+                    <option value="7" {{ $selectedMonth == '7' ? 'selected' : '' }}>July</option>
+                    <option value="8" {{ $selectedMonth == '8' ? 'selected' : '' }}>August</option>
+                    <option value="9" {{ $selectedMonth == '9' ? 'selected' : '' }}>September</option>
+                    <option value="10" {{ $selectedMonth == '10' ? 'selected' : '' }}>October</option>
+                    <option value="11" {{ $selectedMonth == '11' ? 'selected' : '' }}>November</option>
+                    <option value="12" {{ $selectedMonth == '12' ? 'selected' : '' }}>December</option>
                 </select>
             </div>
             <div>
@@ -129,7 +153,7 @@
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                     <i class="fas fa-filter mr-2"></i>Filter
                 </button>
-                @if(request()->hasAny(['year', 'month', 'status']))
+                @if(request()->hasAny(['year', 'month', 'status', 'term_id']))
                 <a href="{{ route('admin.finance.payroll.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
                     <i class="fas fa-times mr-2"></i>Clear
                 </a>

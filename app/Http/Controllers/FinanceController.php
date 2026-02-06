@@ -683,12 +683,23 @@ class FinanceController extends Controller
 
     public function schoolIncome(Request $request)
     {
+        // Get current active term from ResultsStatus
+        $currentTerm = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+        
         // Get available years and terms for filter
         $years = range(date('Y'), date('Y') - 5);
         $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
         
-        $selectedYear = $request->year;
-        $selectedTerm = $request->term;
+        // Get all terms from database for filter
+        $allTerms = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->get();
+        
+        // Default to current term if no filter specified
+        $selectedYear = $request->has('year') ? $request->year : ($currentTerm ? $currentTerm->year : null);
+        $selectedTerm = $request->has('term') ? $request->term : ($currentTerm ? $currentTerm->result_period : null);
         
         // Get manual income records - filter by term/year fields
         $manualQuery = SchoolIncome::orderBy('date', 'desc');
@@ -962,12 +973,23 @@ class FinanceController extends Controller
 
     public function financialStatements(Request $request)
     {
+        // Get current active term from ResultsStatus
+        $activeTerm = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+        
         // Year and term filter setup
         $years = range(date('Y'), date('Y') - 5);
         $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
         
-        $selectedYear = $request->year;
-        $selectedTerm = $request->term;
+        // Get all terms from database for filter
+        $allTerms = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->get();
+        
+        // Default to current term if no filter specified
+        $selectedYear = $request->has('year') ? $request->year : ($activeTerm ? $activeTerm->year : null);
+        $selectedTerm = $request->has('term') ? $request->term : ($activeTerm ? $activeTerm->result_period : null);
         
         // Build base query with term/year filter
         $incomeQuery = CashBookEntry::where('transaction_type', 'receipt');
