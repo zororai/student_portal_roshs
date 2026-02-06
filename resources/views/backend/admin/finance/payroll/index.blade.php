@@ -39,12 +39,30 @@
     <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
         <form method="GET" class="flex flex-wrap gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Pay Period</label>
-                <select name="pay_period" class="border rounded-lg px-3 py-2">
-                    <option value="">All Periods</option>
-                    @foreach($payPeriods as $period)
-                        <option value="{{ $period }}" {{ request('pay_period') == $period ? 'selected' : '' }}>{{ $period }}</option>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                <select name="year" class="border rounded-lg px-3 py-2">
+                    <option value="">All Years</option>
+                    @foreach($years as $year)
+                        <option value="{{ $year }}" {{ request('year') == $year ? 'selected' : '' }}>{{ $year }}</option>
                     @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Month</label>
+                <select name="month" class="border rounded-lg px-3 py-2">
+                    <option value="">All Months</option>
+                    <option value="1" {{ request('month') == '1' ? 'selected' : '' }}>January</option>
+                    <option value="2" {{ request('month') == '2' ? 'selected' : '' }}>February</option>
+                    <option value="3" {{ request('month') == '3' ? 'selected' : '' }}>March</option>
+                    <option value="4" {{ request('month') == '4' ? 'selected' : '' }}>April</option>
+                    <option value="5" {{ request('month') == '5' ? 'selected' : '' }}>May</option>
+                    <option value="6" {{ request('month') == '6' ? 'selected' : '' }}>June</option>
+                    <option value="7" {{ request('month') == '7' ? 'selected' : '' }}>July</option>
+                    <option value="8" {{ request('month') == '8' ? 'selected' : '' }}>August</option>
+                    <option value="9" {{ request('month') == '9' ? 'selected' : '' }}>September</option>
+                    <option value="10" {{ request('month') == '10' ? 'selected' : '' }}>October</option>
+                    <option value="11" {{ request('month') == '11' ? 'selected' : '' }}>November</option>
+                    <option value="12" {{ request('month') == '12' ? 'selected' : '' }}>December</option>
                 </select>
             </div>
             <div>
@@ -56,8 +74,15 @@
                     <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
                 </select>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Filter</button>
+            <div class="flex items-end space-x-2">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-filter mr-2"></i>Filter
+                </button>
+                @if(request()->hasAny(['year', 'month', 'status']))
+                <a href="{{ route('admin.finance.payroll.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+                    <i class="fas fa-times mr-2"></i>Clear
+                </a>
+                @endif
             </div>
         </form>
     </div>

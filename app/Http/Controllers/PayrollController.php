@@ -20,6 +20,16 @@ class PayrollController extends Controller
     {
         $query = Payroll::with(['user', 'salary', 'approver', 'payer']);
 
+        // Filter by year and month
+        if ($request->filled('year')) {
+            $query->whereYear('pay_date', $request->year);
+        }
+
+        if ($request->filled('month')) {
+            $query->whereMonth('pay_date', $request->month);
+        }
+
+        // Filter by pay period (legacy support)
         if ($request->filled('pay_period')) {
             $query->where('pay_period', $request->pay_period);
         }
@@ -33,15 +43,29 @@ class PayrollController extends Controller
         // Get available pay periods
         $payPeriods = Payroll::select('pay_period')->distinct()->orderBy('pay_period', 'desc')->pluck('pay_period');
 
-        // Stats
+        // Get available years
+        $years = Payroll::selectRaw('YEAR(pay_date) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        // Stats (apply same filters)
+        $statsQuery = Payroll::query();
+        if ($request->filled('year')) {
+            $statsQuery->whereYear('pay_date', $request->year);
+        }
+        if ($request->filled('month')) {
+            $statsQuery->whereMonth('pay_date', $request->month);
+        }
+
         $stats = [
-            'total_pending' => Payroll::where('status', 'pending')->sum('net_salary'),
-            'total_approved' => Payroll::where('status', 'approved')->sum('net_salary'),
-            'total_paid' => Payroll::where('status', 'paid')->sum('net_salary'),
-            'pending_count' => Payroll::where('status', 'pending')->count(),
+            'total_pending' => (clone $statsQuery)->where('status', 'pending')->sum('net_salary'),
+            'total_approved' => (clone $statsQuery)->where('status', 'approved')->sum('net_salary'),
+            'total_paid' => (clone $statsQuery)->where('status', 'paid')->sum('net_salary'),
+            'pending_count' => (clone $statsQuery)->where('status', 'pending')->count(),
         ];
 
-        return view('backend.admin.finance.payroll.index', compact('payrolls', 'payPeriods', 'stats'));
+        return view('backend.admin.finance.payroll.index', compact('payrolls', 'payPeriods', 'years', 'stats'));
     }
 
     public function salaries()
@@ -55,10 +79,19 @@ class PayrollController extends Controller
         // Get users who don't have an active salary record
         $existingSalaryUserIds = EmployeeSalary::where('is_active', true)->pluck('user_id');
         
-        // Get users who are not students or parents
+        // Get user IDs that are linked to students
+        $studentUserIds = \App\Student::whereNotNull('user_id')->pluck('user_id');
+        
+        // Get user IDs that are linked to parents
+        $parentUserIds = \App\Parents::whereNotNull('user_id')->pluck('user_id');
+        
+        // Combine all excluded user IDs
+        $excludedUserIds = $existingSalaryUserIds->merge($studentUserIds)->merge($parentUserIds)->unique();
+        
+        // Get users who are not students or parents (by role AND by linked records)
         $users = User::whereDoesntHave('roles', function ($query) {
             $query->whereIn('name', ['Student', 'Parent']);
-        })->whereNotIn('id', $existingSalaryUserIds)
+        })->whereNotIn('id', $excludedUserIds)
           ->orderBy('name')
           ->get();
 

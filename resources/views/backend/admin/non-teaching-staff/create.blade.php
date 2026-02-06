@@ -125,13 +125,6 @@
                     </div>
                 </div>
 
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <p class="text-sm text-yellow-800">
-                        <strong>Note:</strong> A user account will be created with the default password: <code class="bg-yellow-100 px-1 rounded">password123</code>. 
-                        The staff member should change this password upon first login.
-                    </p>
-                </div>
-
                 <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
                     <a href="{{ route('admin.non-teaching-staff.index') }}" 
                         class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors">

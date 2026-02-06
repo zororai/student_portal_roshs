@@ -8,8 +8,11 @@
             <a href="{{ route('admin.finance.payroll.index') }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
                 <i class="fas fa-arrow-left mr-2"></i>Back to Payroll
             </a>
+            <a href="{{ route('admin.non-teaching-staff.create') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                <i class="fas fa-user-plus mr-2"></i>Add Non-Teaching Staff
+            </a>
             <a href="{{ route('admin.finance.payroll.create-salary') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                <i class="fas fa-plus mr-2"></i>Add Employee Salary
+                <i class="fas fa-plus mr-2"></i>Add Teacher Salary
             </a>
         </div>
     </div>
