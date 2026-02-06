@@ -57,7 +57,7 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-900">{{ $exercise->class->class_name ?? 'N/A' }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-900">{{ $exercise->subject->subject_name ?? 'N/A' }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900">{{ $exercise->subject->name ?? 'N/A' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500">
                                 {{ $exercise->due_date ? $exercise->due_date->format('M d, Y H:i') : 'No deadline' }}
                             </td>

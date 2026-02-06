@@ -25,7 +25,7 @@
                         <h1 class="text-2xl font-bold text-gray-900">{{ $exercise->title }}</h1>
                         {!! $exercise->status_badge !!}
                     </div>
-                    <p class="mt-2 text-gray-600">{{ $exercise->class->class_name }} | {{ $exercise->subject->subject_name }}</p>
+                    <p class="mt-2 text-gray-600">{{ $exercise->class->class_name }} | {{ $exercise->subject->name ?? 'N/A' }}</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <form action="{{ route('exercises.toggle-publish', $exercise->id) }}" method="POST">

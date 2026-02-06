@@ -10,16 +10,22 @@
             Back to Exercises
         </a>
         <h1 class="mt-4 text-3xl font-bold text-gray-900">Create New Exercise</h1>
+        @if(isset($assessment) && $assessment)
+            <p class="text-gray-600 mt-2">Creating online exercise for: <strong>{{ $assessment->topic }}</strong></p>
+        @endif
     </div>
 
     <div class="bg-white rounded-xl shadow-lg p-6">
         <form action="{{ route('exercises.store') }}" method="POST">
             @csrf
+            @if(isset($assessment) && $assessment)
+                <input type="hidden" name="assessment_id" value="{{ $assessment->id }}">
+            @endif
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="md:col-span-2">
                     <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
-                    <input type="text" name="title" id="title" value="{{ old('title') }}" required
+                    <input type="text" name="title" id="title" value="{{ old('title', isset($assessment) ? $assessment->topic : '') }}" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Enter exercise title">
                     @error('title')
@@ -47,7 +53,7 @@
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">Select Class</option>
                         @foreach($classes as $class)
-                            <option value="{{ $class->id }}" {{ old('class_id') == $class->id ? 'selected' : '' }}>
+                            <option value="{{ $class->id }}" {{ old('class_id', isset($assessment) ? $assessment->class_id : '') == $class->id ? 'selected' : '' }}>
                                 {{ $class->class_name }}
                             </option>
                         @endforeach
@@ -61,12 +67,7 @@
                     <label for="subject_id" class="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
                     <select name="subject_id" id="subject_id" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="">Select Subject</option>
-                        @foreach($subjects as $subject)
-                            <option value="{{ $subject->id }}" {{ old('subject_id') == $subject->id ? 'selected' : '' }}>
-                                {{ $subject->subject_name }}
-                            </option>
-                        @endforeach
+                        <option value="">Select Class First</option>
                     </select>
                     @error('subject_id')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -124,4 +125,53 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const classSelect = document.getElementById('class_id');
+    const subjectSelect = document.getElementById('subject_id');
+    const preSelectedSubjectId = '{{ isset($assessment) ? $assessment->subject_id : '' }}';
+    
+    function loadSubjects(classId, selectSubjectId = null) {
+        subjectSelect.innerHTML = '<option value="">Loading...</option>';
+        
+        if (!classId) {
+            subjectSelect.innerHTML = '<option value="">Select Class First</option>';
+            return;
+        }
+        
+        fetch(`/teacher/exercises/get-subjects/${classId}`)
+            .then(response => response.json())
+            .then(subjects => {
+                subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.id;
+                    option.textContent = subject.name;
+                    if (selectSubjectId && subject.id == selectSubjectId) {
+                        option.selected = true;
+                    }
+                    subjectSelect.appendChild(option);
+                });
+                
+                if (subjects.length === 0) {
+                    subjectSelect.innerHTML = '<option value="">No subjects available for this class</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching subjects:', error);
+                subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
+            });
+    }
+    
+    classSelect.addEventListener('change', function() {
+        loadSubjects(this.value);
+    });
+    
+    // Auto-load subjects if class is pre-selected (from assessment)
+    if (classSelect.value) {
+        loadSubjects(classSelect.value, preSelectedSubjectId);
+    }
+});
+</script>
 @endsection

@@ -10,7 +10,7 @@
             Back to Exercises
         </a>
         <h1 class="mt-4 text-3xl font-bold text-gray-900">{{ $exercise->title }}</h1>
-        <p class="text-gray-600">{{ $exercise->subject->subject_name ?? 'Subject' }}</p>
+        <p class="text-gray-600">{{ $exercise->subject->name ?? 'Subject' }}</p>
     </div>
 
     <div class="bg-white rounded-xl shadow-lg p-6 mb-6">

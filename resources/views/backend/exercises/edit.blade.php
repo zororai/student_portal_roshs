@@ -55,7 +55,7 @@
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         @foreach($subjects as $subject)
                             <option value="{{ $subject->id }}" {{ old('subject_id', $exercise->subject_id) == $subject->id ? 'selected' : '' }}>
-                                {{ $subject->subject_name }}
+                                {{ $subject->name }}
                             </option>
                         @endforeach
                     </select>

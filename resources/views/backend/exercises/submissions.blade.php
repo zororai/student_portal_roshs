@@ -10,7 +10,7 @@
             Back to Exercise
         </a>
         <h1 class="mt-4 text-3xl font-bold text-gray-900">Submissions: {{ $exercise->title }}</h1>
-        <p class="text-gray-600">{{ $exercise->class->class_name }} | {{ $exercise->subject->subject_name }}</p>
+        <p class="text-gray-600">{{ $exercise->class->class_name }} | {{ $exercise->subject->name ?? 'N/A' }}</p>
     </div>
 
     @if(session('success'))

@@ -25,7 +25,7 @@
                         @endif
                     </div>
                     <h1 class="mt-3 text-2xl font-bold text-gray-900">{{ $exercise->title }}</h1>
-                    <p class="text-gray-600">{{ $exercise->subject->subject_name ?? 'Subject' }} | {{ $exercise->teacher->user->name ?? 'Teacher' }}</p>
+                    <p class="text-gray-600">{{ $exercise->subject->name ?? 'Subject' }} | {{ $exercise->teacher->user->name ?? 'Teacher' }}</p>
                 </div>
             </div>
         </div>

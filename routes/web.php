@@ -762,6 +762,7 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::get('/teacher/exercises/{exercise}/submissions/{submission}/mark', 'ExerciseController@markSubmission')->name('exercises.submissions.mark');
     Route::post('/teacher/exercises/{exercise}/submissions/{submission}/save-marks', 'ExerciseController@saveMarks')->name('exercises.submissions.save-marks');
     Route::post('/teacher/exercises/{exercise}/auto-mark', 'ExerciseController@autoMark')->name('exercises.auto-mark');
+    Route::get('/teacher/exercises/get-subjects/{classId}', 'ExerciseController@getSubjectsForClass')->name('exercises.get-subjects');
 
 });
 

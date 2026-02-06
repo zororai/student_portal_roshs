@@ -44,7 +44,7 @@
                     </div>
 
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $exercise->title }}</h3>
-                    <p class="text-sm text-gray-500 mb-4">{{ $exercise->subject->subject_name ?? 'Subject' }}</p>
+                    <p class="text-sm text-gray-500 mb-4">{{ $exercise->subject->name ?? 'Subject' }}</p>
 
                     <div class="space-y-2 text-sm text-gray-600 mb-4">
                         <div class="flex items-center">

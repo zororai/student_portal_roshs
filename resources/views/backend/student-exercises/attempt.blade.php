@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">{{ $exercise->title }}</h1>
-                <p class="text-gray-600">{{ $exercise->subject->subject_name ?? 'Subject' }}</p>
+                <p class="text-gray-600">{{ $exercise->subject->name ?? 'Subject' }}</p>
             </div>
             <div class="text-right">
                 <p class="text-sm text-gray-500">Total Marks: {{ $exercise->total_marks }}</p>

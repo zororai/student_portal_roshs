@@ -35,13 +35,35 @@ class ExerciseController extends Controller
         return view('backend.exercises.index', compact('exercises'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $teacher = Teacher::where('user_id', Auth::id())->first();
-        $classes = Grade::orderBy('class_name')->get();
-        $subjects = Subject::where('teacher_id', $teacher->id)->orderBy('subject_name')->get();
         
-        return view('backend.exercises.create', compact('classes', 'subjects'));
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        // Get allowed class IDs (class teacher + subject classes) - same logic as assessments
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClassIds = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->pluck('id')->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+        
+        // Get classes the teacher has access to
+        $classes = Grade::whereIn('id', $allowedClassIds)->orderBy('class_name')->get();
+        
+        // Get subjects taught by this teacher
+        $subjects = Subject::where('teacher_id', $teacher->id)->orderBy('name')->get();
+        
+        // Check if creating from an assessment
+        $assessment = null;
+        if ($request->has('assessment_id')) {
+            $assessment = \App\Assessment::find($request->assessment_id);
+        }
+        
+        return view('backend.exercises.create', compact('classes', 'subjects', 'teacher', 'assessment'));
     }
 
     public function store(Request $request)
@@ -63,6 +85,7 @@ class ExerciseController extends Controller
             'teacher_id' => $teacher->id,
             'class_id' => $request->class_id,
             'subject_id' => $request->subject_id,
+            'assessment_id' => $request->assessment_id,
             'title' => $request->title,
             'instructions' => $request->instructions,
             'type' => $request->type,
@@ -97,10 +120,19 @@ class ExerciseController extends Controller
         $this->authorizeExercise($exercise);
         
         $teacher = Teacher::where('user_id', Auth::id())->first();
-        $classes = Grade::orderBy('class_name')->get();
-        $subjects = Subject::where('teacher_id', $teacher->id)->orderBy('subject_name')->get();
         
-        return view('backend.exercises.edit', compact('exercise', 'classes', 'subjects'));
+        // Get allowed class IDs (class teacher + subject classes) - same logic as assessments
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        $subjectClassIds = Grade::whereHas('subjects', function($query) use ($teacherSubjectIds) {
+            $query->whereIn('subjects.id', $teacherSubjectIds);
+        })->pluck('id')->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+        
+        $classes = Grade::whereIn('id', $allowedClassIds)->orderBy('class_name')->get();
+        $subjects = Subject::where('teacher_id', $teacher->id)->orderBy('name')->get();
+        
+        return view('backend.exercises.edit', compact('exercise', 'classes', 'subjects', 'teacher'));
     }
 
     public function update(Request $request, Exercise $exercise)
@@ -349,6 +381,11 @@ class ExerciseController extends Controller
             'teacher_feedback' => $request->teacher_feedback,
         ]);
 
+        // Sync marks to assessment_marks if exercise is linked to an assessment
+        if ($exercise->assessment_id) {
+            $this->syncToAssessmentMarks($exercise, $submission, $totalScore);
+        }
+
         return redirect()->route('exercises.submissions', $exercise->id)
             ->with('success', 'Marks saved successfully.');
     }
@@ -376,6 +413,11 @@ class ExerciseController extends Controller
                     'total_score' => $totalScore,
                     'status' => 'marked',
                 ]);
+                
+                // Sync to assessment marks if linked
+                if ($exercise->assessment_id) {
+                    $this->syncToAssessmentMarks($exercise, $submission, $totalScore);
+                }
             } else {
                 // Partial auto-marking, still needs manual review
                 $submission->update([
@@ -387,6 +429,30 @@ class ExerciseController extends Controller
 
         return redirect()->back()
             ->with('success', "{$count} submission(s) auto-marked successfully.");
+    }
+
+    public function getSubjectsForClass($classId)
+    {
+        $teacher = Teacher::where('user_id', Auth::id())->first();
+        
+        if (!$teacher) {
+            return response()->json([]);
+        }
+
+        $teacherSubjectIds = $teacher->subjects->pluck('id')->toArray();
+        
+        // Get subjects for this class that the teacher teaches
+        $class = Grade::with('subjects')->find($classId);
+        
+        if (!$class) {
+            return response()->json([]);
+        }
+
+        $subjects = $class->subjects->filter(function($subject) use ($teacherSubjectIds) {
+            return in_array($subject->id, $teacherSubjectIds);
+        })->values();
+
+        return response()->json($subjects);
     }
 
     private function authorizeExercise(Exercise $exercise)
@@ -401,5 +467,34 @@ class ExerciseController extends Controller
     {
         $totalMarks = $exercise->questions()->sum('marks');
         $exercise->update(['total_marks' => $totalMarks]);
+    }
+
+    private function syncToAssessmentMarks(Exercise $exercise, ExerciseSubmission $submission, $totalScore)
+    {
+        // Get the student for this submission
+        $student = $submission->student;
+        
+        if (!$student) {
+            return;
+        }
+
+        // Check if assessment mark already exists for this student and assessment
+        $existingMark = \App\AssessmentMark::where('assessment_id', $exercise->assessment_id)
+            ->where('student_id', $student->id)
+            ->first();
+
+        if ($existingMark) {
+            // Update existing mark
+            $existingMark->update([
+                'mark' => $totalScore,
+            ]);
+        } else {
+            // Create new assessment mark
+            \App\AssessmentMark::create([
+                'assessment_id' => $exercise->assessment_id,
+                'student_id' => $student->id,
+                'mark' => $totalScore,
+            ]);
+        }
     }
 }

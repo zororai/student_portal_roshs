@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Exercise extends Model
 {
+    protected $table = 'online_exercises';
     protected $fillable = [
         'teacher_id',
         'class_id',
         'subject_id',
+        'assessment_id',
         'title',
         'instructions',
         'type',
@@ -41,6 +43,11 @@ class Exercise extends Model
     public function subject()
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function assessment()
+    {
+        return $this->belongsTo(Assessment::class);
     }
 
     public function questions()
