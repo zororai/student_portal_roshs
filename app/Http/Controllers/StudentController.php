@@ -802,4 +802,14 @@ class StudentController extends Controller
             'desk' => $student->desk,
         ]);
     }
+
+    /**
+     * Bulk update all new students to existing students
+     */
+    public function bulkUpdateToExisting()
+    {
+        $updatedCount = Student::where('is_new_student', true)->update(['is_new_student' => false]);
+
+        return redirect()->route('student.index')->with('success', "{$updatedCount} student(s) updated from 'New Student' to 'Existing Student' successfully.");
+    }
 }

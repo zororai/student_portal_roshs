@@ -10,6 +10,15 @@
                     <p class="mt-2 text-sm text-gray-600">Manage and view all registered students by class</p>
                 </div>
                 <div class="flex items-center space-x-3">
+                    <form action="{{ route('students.bulk-update-to-existing') }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to change ALL new students to existing students? This action cannot be undone.')">
+                        @csrf
+                        <button type="submit" disabled class="inline-flex items-center px-5 py-3 bg-amber-600 hover:bg-amber-700 text-gray-800 text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Mark All as Existing
+                        </button>
+                    </form>
                     <a href="{{ url('/student-with-parents/create') }}" class="inline-flex items-center px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 640 512">
                             <path d="M96 224c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm448 0c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm32 32h-64c-17.6 0-33.5 7.1-45.1 18.6 40.3 22.1 68.9 62 75.1 109.4h66c17.7 0 32-14.3 32-32v-32c0-35.3-28.7-64-64-64zm-256 0c61.9 0 112-50.1 112-112S381.9 32 320 32 208 82.1 208 144s50.1 112 112 112zm76.8 32h-8.3c-20.8 10-43.9 16-68.5 16s-47.6-6-68.5-16h-8.3C179.6 288 128 339.6 128 403.2V432c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-28.8c0-63.6-51.6-115.2-115.2-115.2zm-223.7-13.4C161.5 263.1 145.6 256 128 256H64c-35.3 0-64 28.7-64 64v32c0 17.7 14.3 32 32 32h65.9c6.3-47.4 34.9-87.3 75.2-109.4z"/>

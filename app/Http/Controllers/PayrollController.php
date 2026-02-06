@@ -335,9 +335,45 @@ class PayrollController extends Controller
             'paid_at' => now(),
         ]);
 
+        // Get current term for expense recording
+        $currentTerm = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+
+        // Get or create Salaries/Payroll expense category
+        $salaryCategory = \App\ExpenseCategory::firstOrCreate(
+            ['code' => 'SAL'],
+            [
+                'name' => 'Salaries & Wages',
+                'description' => 'Employee salaries and payroll expenses',
+                'is_active' => true,
+            ]
+        );
+
+        // Create expense record for payroll
+        \App\Expense::create([
+            'expense_number' => \App\Expense::generateExpenseNumber(),
+            'expense_date' => now()->toDateString(),
+            'term' => $currentTerm ? $currentTerm->result_period : 'first',
+            'year' => $currentTerm ? $currentTerm->year : date('Y'),
+            'category_id' => $salaryCategory->id,
+            'vendor_name' => $payroll->user->name,
+            'description' => 'Salary payment for ' . $payroll->user->name . ' - ' . $payroll->pay_period,
+            'amount' => $payroll->net_salary,
+            'payment_status' => 'paid',
+            'payment_method' => $payroll->salary->payment_method ?? 'bank_transfer',
+            'receipt_number' => 'PAY-' . $payroll->id,
+            'created_by' => auth()->id(),
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+            'notes' => 'Auto-generated from Payroll #' . $payroll->id,
+        ]);
+
         // Create cash book entry for the payment
         CashBookEntry::create([
             'entry_date' => now()->toDateString(),
+            'term' => $currentTerm ? $currentTerm->result_period : 'first',
+            'year' => $currentTerm ? $currentTerm->year : date('Y'),
             'reference_number' => CashBookEntry::generateReferenceNumber(),
             'transaction_type' => 'payment',
             'category' => 'salaries',
@@ -349,7 +385,7 @@ class PayrollController extends Controller
             'created_by' => auth()->id(),
         ]);
 
-        return back()->with('success', 'Payroll marked as paid and recorded in cash book.');
+        return back()->with('success', 'Payroll marked as paid and recorded in expenses.');
     }
 
     public function payslip($id)
