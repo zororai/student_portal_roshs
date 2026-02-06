@@ -85,6 +85,7 @@ class StudentExerciseController extends Controller
         }
 
         $exercise->load(['questions.options']);
+        $submission->load('answers');
 
         return view('backend.student-exercises.attempt', compact('exercise', 'submission', 'student'));
     }
@@ -262,10 +263,9 @@ class StudentExerciseController extends Controller
 
         // Save remaining time
         $timeRemaining = $request->input('time_remaining_seconds');
-        if ($timeRemaining !== null) {
-            $submission->update([
-                'time_remaining_seconds' => max(0, (int)$timeRemaining),
-            ]);
+        if ($timeRemaining !== null && $timeRemaining !== '' && is_numeric($timeRemaining)) {
+            $submission->time_remaining_seconds = max(0, (int)$timeRemaining);
+            $submission->save();
         }
 
         return redirect()->route('student.exercises.index')

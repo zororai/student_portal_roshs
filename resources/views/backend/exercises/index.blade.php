@@ -65,8 +65,12 @@
                                 {!! $exercise->status_badge !!}
                             </td>
                             <td class="px-6 py-4">
-                                <a href="{{ route('exercises.submissions', $exercise->id) }}" class="text-sm text-gray-600 hover:text-blue-600">
-                                    {{ $exercise->submissions->whereIn('status', ['submitted', 'marked'])->count() }} submitted
+                                @php
+                                    $submittedCount = $exercise->submissions->whereIn('status', ['submitted', 'marked'])->count();
+                                @endphp
+                                <a href="{{ route('exercises.submissions', $exercise->id) }}" 
+                                   class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors {{ $submittedCount > 0 ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200' }}">
+                                    {{ $submittedCount }} submitted
                                 </a>
                             </td>
                             <td class="px-6 py-4 text-right">

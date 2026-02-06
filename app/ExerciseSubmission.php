@@ -15,6 +15,7 @@ class ExerciseSubmission extends Model
         'status',
         'total_score',
         'teacher_feedback',
+        'time_remaining_seconds',
     ];
 
     protected $casts = [

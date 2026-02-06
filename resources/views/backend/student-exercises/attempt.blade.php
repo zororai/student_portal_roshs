@@ -1,5 +1,20 @@
 @extends('layouts.app')
 
+@php
+    $savedAnswers = $submission->answers->keyBy('question_id');
+    
+    // Calculate initial time
+    if ($exercise->duration_minutes) {
+        if ($submission->time_remaining_seconds !== null) {
+            $initialTimeSeconds = $submission->time_remaining_seconds;
+        } else {
+            $initialTimeSeconds = $exercise->duration_minutes * 60;
+        }
+    } else {
+        $initialTimeSeconds = null;
+    }
+@endphp
+
 @section('content')
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-6">
@@ -11,7 +26,12 @@
             <div class="text-right">
                 <p class="text-sm text-gray-500">Total Marks: {{ $exercise->total_marks }}</p>
                 @if($exercise->duration_minutes)
-                    <p class="text-sm text-orange-600" id="timer">Time: {{ $exercise->duration_minutes }}:00</p>
+                    <div class="mt-1 px-3 py-2 bg-orange-100 rounded-lg">
+                        <p class="text-lg font-bold text-orange-600" id="timer">--:--</p>
+                    </div>
+                @endif
+                @if($exercise->due_date)
+                    <p class="text-xs text-gray-500 mt-1">Due: {{ $exercise->due_date->format('M d, Y H:i') }}</p>
                 @endif
             </div>
         </div>
@@ -26,9 +46,13 @@
 
     <form action="{{ route('student.exercises.submit', $exercise->id) }}" method="POST" enctype="multipart/form-data" id="exerciseForm">
         @csrf
+        <input type="hidden" name="time_remaining_seconds" id="timeRemainingInput" value="{{ $initialTimeSeconds }}">
 
         <div class="space-y-6">
             @foreach($exercise->questions as $index => $question)
+                @php
+                    $savedAnswer = $savedAnswers->get($question->id);
+                @endphp
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <div class="flex items-start justify-between mb-4">
                         <div>
@@ -50,7 +74,8 @@
                             @foreach($question->options as $option)
                                 <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                                     <input type="radio" name="answers[{{ $question->id }}][selected_option_id]" value="{{ $option->id }}"
-                                        class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                        {{ $savedAnswer && $savedAnswer->selected_option_id == $option->id ? 'checked' : '' }}>
                                     <span class="ml-3 text-gray-700">{{ $option->option_text }}</span>
                                 </label>
                             @endforeach
@@ -61,7 +86,8 @@
                             @foreach($question->options as $option)
                                 <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                                     <input type="radio" name="answers[{{ $question->id }}][selected_option_id]" value="{{ $option->id }}"
-                                        class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500">
+                                        class="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                        {{ $savedAnswer && $savedAnswer->selected_option_id == $option->id ? 'checked' : '' }}>
                                     <span class="ml-3 text-gray-700">{{ $option->option_text }}</span>
                                 </label>
                             @endforeach
@@ -70,10 +96,13 @@
                     @elseif($question->question_type == 'short_answer')
                         <textarea name="answers[{{ $question->id }}][answer_text]" rows="4"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Type your answer here..."></textarea>
+                            placeholder="Type your answer here...">{{ $savedAnswer->answer_text ?? '' }}</textarea>
 
                     @elseif($question->question_type == 'file_upload')
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                            @if($savedAnswer && $savedAnswer->file_path)
+                                <p class="text-green-600 mb-2">File uploaded: {{ basename($savedAnswer->file_path) }}</p>
+                            @endif
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                             </svg>
@@ -91,41 +120,98 @@
         </div>
 
         <div class="mt-8 flex items-center justify-between">
-            <a href="{{ route('student.exercises.index') }}" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                onclick="return confirm('Are you sure you want to leave? Your progress may be lost.')">
+            <button type="button" id="saveExitBtn" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                 Save & Exit
-            </a>
+            </button>
             <button type="submit" class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 onclick="return confirm('Are you sure you want to submit? You cannot change your answers after submission.')">
                 Submit Exercise
             </button>
         </div>
     </form>
+
+    <form action="{{ route('student.exercises.save-exit', $exercise->id) }}" method="POST" id="saveExitForm" class="hidden">
+        @csrf
+        <input type="hidden" name="time_remaining_seconds" id="saveExitTimeInput">
+    </form>
 </div>
 
-@if($exercise->duration_minutes)
 <script>
-    let timeLeft = {{ $exercise->duration_minutes }} * 60;
+    let timeLeft = {{ $initialTimeSeconds ?? 'null' }};
     const timerDisplay = document.getElementById('timer');
+    const timeRemainingInput = document.getElementById('timeRemainingInput');
+    const saveExitTimeInput = document.getElementById('saveExitTimeInput');
+    const exerciseForm = document.getElementById('exerciseForm');
+    const saveExitForm = document.getElementById('saveExitForm');
+    const saveExitBtn = document.getElementById('saveExitBtn');
     
-    const countdown = setInterval(function() {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        
-        timerDisplay.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-        
-        if (timeLeft <= 300) {
-            timerDisplay.classList.add('text-red-600', 'font-bold');
+    @if($exercise->due_date)
+    const dueDate = new Date('{{ $exercise->due_date->toISOString() }}');
+    @else
+    const dueDate = null;
+    @endif
+    
+    // Timer countdown
+    if (timeLeft !== null && timerDisplay) {
+        const countdown = setInterval(function() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            timeRemainingInput.value = timeLeft;
+            
+            if (timeLeft <= 300) {
+                timerDisplay.classList.add('text-red-600');
+                timerDisplay.parentElement.classList.remove('bg-orange-100');
+                timerDisplay.parentElement.classList.add('bg-red-100');
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                alert('Time is up! Your exercise will be submitted automatically.');
+                exerciseForm.submit();
+                return;
+            }
+            
+            timeLeft--;
+        }, 1000);
+    }
+    
+    // Check due date
+    if (dueDate) {
+        setInterval(function() {
+            if (new Date() >= dueDate) {
+                alert('Due date reached! Your exercise will be submitted automatically.');
+                exerciseForm.submit();
+            }
+        }, 10000);
+    }
+    
+    // Save & Exit functionality
+    saveExitBtn.addEventListener('click', function() {
+        if (confirm('Save your progress and exit? You can continue later.')) {
+            // Copy all form data to save exit form
+            const formData = new FormData(exerciseForm);
+            
+            // Clear existing dynamic inputs
+            saveExitForm.querySelectorAll('input:not([name="_token"]):not([name="time_remaining_seconds"])').forEach(el => el.remove());
+            
+            // Add all answer inputs
+            formData.forEach((value, key) => {
+                if (key !== '_token' && key !== 'time_remaining_seconds') {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = value;
+                    saveExitForm.appendChild(input);
+                }
+            });
+            
+            // Set remaining time
+            saveExitTimeInput.value = timeLeft !== null ? timeLeft : '';
+            
+            saveExitForm.submit();
         }
-        
-        if (timeLeft <= 0) {
-            clearInterval(countdown);
-            alert('Time is up! Your exercise will be submitted automatically.');
-            document.getElementById('exerciseForm').submit();
-        }
-        
-        timeLeft--;
-    }, 1000);
+    });
 </script>
-@endif
 @endsection
