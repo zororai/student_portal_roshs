@@ -744,6 +744,25 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
      Route::post('/push/unsubscribe', 'PushNotificationController@unsubscribe')->name('push.unsubscribe');
      Route::get('/push/vapid-key', 'PushNotificationController@getVapidPublicKey')->name('push.vapid-key');
 
+    // Online Exercises Routes (Teacher)
+    Route::get('/teacher/exercises', 'ExerciseController@index')->name('exercises.index');
+    Route::get('/teacher/exercises/create', 'ExerciseController@create')->name('exercises.create');
+    Route::post('/teacher/exercises', 'ExerciseController@store')->name('exercises.store');
+    Route::get('/teacher/exercises/{exercise}', 'ExerciseController@show')->name('exercises.show');
+    Route::get('/teacher/exercises/{exercise}/edit', 'ExerciseController@edit')->name('exercises.edit');
+    Route::put('/teacher/exercises/{exercise}', 'ExerciseController@update')->name('exercises.update');
+    Route::delete('/teacher/exercises/{exercise}', 'ExerciseController@destroy')->name('exercises.destroy');
+    Route::get('/teacher/exercises/{exercise}/questions', 'ExerciseController@editQuestions')->name('exercises.questions.edit');
+    Route::post('/teacher/exercises/{exercise}/questions', 'ExerciseController@storeQuestion')->name('exercises.questions.store');
+    Route::put('/teacher/exercises/{exercise}/questions/{question}', 'ExerciseController@updateQuestion')->name('exercises.questions.update');
+    Route::delete('/teacher/exercises/{exercise}/questions/{question}', 'ExerciseController@destroyQuestion')->name('exercises.questions.destroy');
+    Route::post('/teacher/exercises/{exercise}/toggle-publish', 'ExerciseController@togglePublish')->name('exercises.toggle-publish');
+    Route::post('/teacher/exercises/{exercise}/toggle-results', 'ExerciseController@toggleResults')->name('exercises.toggle-results');
+    Route::get('/teacher/exercises/{exercise}/submissions', 'ExerciseController@submissions')->name('exercises.submissions');
+    Route::get('/teacher/exercises/{exercise}/submissions/{submission}/mark', 'ExerciseController@markSubmission')->name('exercises.submissions.mark');
+    Route::post('/teacher/exercises/{exercise}/submissions/{submission}/save-marks', 'ExerciseController@saveMarks')->name('exercises.submissions.save-marks');
+    Route::post('/teacher/exercises/{exercise}/auto-mark', 'ExerciseController@autoMark')->name('exercises.auto-mark');
+
 });
 
 Route::group(['middleware' => ['auth','role:Parent']], function ()
@@ -787,5 +806,14 @@ Route::group(['middleware' => ['auth','role:Student']], function () {
    
    // Student Library - View borrowed books
    Route::get('/my-library', 'LibraryController@myLibrary')->name('student.library');
+
+   // Student Online Exercises Routes
+   Route::get('/my-exercises', 'StudentExerciseController@index')->name('student.exercises.index');
+   Route::get('/my-exercises/{exercise}', 'StudentExerciseController@show')->name('student.exercises.show');
+   Route::get('/my-exercises/{exercise}/attempt', 'StudentExerciseController@attempt')->name('student.exercises.attempt');
+   Route::post('/my-exercises/{exercise}/save-answer', 'StudentExerciseController@saveAnswer')->name('student.exercises.save-answer');
+   Route::post('/my-exercises/{exercise}/upload-file', 'StudentExerciseController@uploadFile')->name('student.exercises.upload-file');
+   Route::post('/my-exercises/{exercise}/submit', 'StudentExerciseController@submit')->name('student.exercises.submit');
+   Route::get('/my-exercises/{exercise}/results', 'StudentExerciseController@results')->name('student.exercises.results');
 
 });
