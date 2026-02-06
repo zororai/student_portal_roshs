@@ -35,6 +35,57 @@
         </div>
     </div>
 
+    <!-- Monthly & Term Breakdown -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Monthly Breakdown -->
+        <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-semibold text-gray-800">Monthly Breakdown ({{ $selectedYear }})</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-3">
+                    @php
+                        $months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                    @endphp
+                    @foreach($months as $index => $monthName)
+                        @php
+                            $monthNum = $index + 1;
+                            $amount = $monthlyBreakdown[$monthNum] ?? 0;
+                        @endphp
+                        @if($amount > 0)
+                        <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                            <span class="text-sm font-medium text-gray-700">{{ $monthName }}</span>
+                            <span class="text-sm font-bold text-gray-900">${{ number_format($amount, 2) }}</span>
+                        </div>
+                        @endif
+                    @endforeach
+                    @if(empty(array_filter($monthlyBreakdown)))
+                    <p class="text-center text-gray-500 py-4">No payroll data for {{ $selectedYear }}</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Term Breakdown -->
+        <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-semibold text-gray-800">Term Breakdown</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-3">
+                    @forelse($termBreakdown as $termName => $amount)
+                    <div class="flex items-center justify-between py-2 border-b border-gray-100">
+                        <span class="text-sm font-medium text-gray-700">{{ $termName }}</span>
+                        <span class="text-sm font-bold text-gray-900">${{ number_format($amount, 2) }}</span>
+                    </div>
+                    @empty
+                    <p class="text-center text-gray-500 py-4">No term-based payroll data</p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
         <form method="GET" class="flex flex-wrap gap-4">

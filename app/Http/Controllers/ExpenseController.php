@@ -16,12 +16,23 @@ class ExpenseController extends Controller
 
     public function index(Request $request)
     {
+        // Get current active term from ResultsStatus
+        $currentTerm = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->first();
+        
         // Year and term filter setup
         $years = range(date('Y'), date('Y') - 5);
         $terms = ['first' => 'First Term', 'second' => 'Second Term', 'third' => 'Third Term'];
         
-        $selectedYear = $request->year;
-        $selectedTerm = $request->term;
+        // Get all terms from database for filter
+        $allTerms = \App\ResultsStatus::orderBy('year', 'desc')
+            ->orderBy('result_period', 'desc')
+            ->get();
+        
+        // Default to current term if no filter specified
+        $selectedYear = $request->has('year') ? $request->year : ($currentTerm ? $currentTerm->year : date('Y'));
+        $selectedTerm = $request->has('term') ? $request->term : ($currentTerm ? $currentTerm->result_period : null);
         
         $query = Expense::with(['category', 'creator']);
         
@@ -58,7 +69,7 @@ class ExpenseController extends Controller
             'paid' => (clone $statsQuery)->where('payment_status', 'paid')->sum('amount'),
         ];
 
-        return view('backend.admin.finance.expenses.index', compact('expenses', 'categories', 'stats', 'years', 'terms', 'selectedYear', 'selectedTerm'));
+        return view('backend.admin.finance.expenses.index', compact('expenses', 'categories', 'stats', 'years', 'terms', 'selectedYear', 'selectedTerm', 'currentTerm', 'allTerms'));
     }
 
     public function create()

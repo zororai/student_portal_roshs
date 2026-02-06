@@ -65,7 +65,34 @@ class PayrollController extends Controller
             'pending_count' => (clone $statsQuery)->where('status', 'pending')->count(),
         ];
 
-        return view('backend.admin.finance.payroll.index', compact('payrolls', 'payPeriods', 'years', 'stats'));
+        // Monthly breakdown (for current year or selected year)
+        $selectedYear = $request->filled('year') ? $request->year : date('Y');
+        $monthlyBreakdown = Payroll::selectRaw('MONTH(pay_date) as month, SUM(net_salary) as total')
+            ->whereYear('pay_date', $selectedYear)
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get()
+            ->pluck('total', 'month')
+            ->toArray();
+
+        // Get all terms for term-based breakdown
+        $terms = \App\ResultsStatus::orderBy('result_period')->get();
+        
+        // Term-based breakdown (map payroll to terms by date)
+        $termBreakdown = [];
+        foreach ($terms as $term) {
+            $termTotal = Payroll::where(function($q) use ($term) {
+                if ($term->start_date && $term->end_date) {
+                    $q->whereBetween('pay_date', [$term->start_date, $term->end_date]);
+                }
+            })->sum('net_salary');
+            
+            if ($termTotal > 0) {
+                $termBreakdown[$term->result_period] = $termTotal;
+            }
+        }
+
+        return view('backend.admin.finance.payroll.index', compact('payrolls', 'payPeriods', 'years', 'stats', 'monthlyBreakdown', 'selectedYear', 'termBreakdown'));
     }
 
     public function salaries()
