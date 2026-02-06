@@ -96,7 +96,7 @@
 
                 <div>
                     <label for="due_date" class="block text-sm font-medium text-gray-700 mb-2">Due Date & Time</label>
-                    <input type="datetime-local" name="due_date" id="due_date" value="{{ old('due_date') }}"
+                    <input type="datetime-local" name="due_date" id="due_date" value="{{ old('due_date', isset($assessment) && $assessment->due_date ? $assessment->due_date->format('Y-m-d\TH:i') : '') }}"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     @error('due_date')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
