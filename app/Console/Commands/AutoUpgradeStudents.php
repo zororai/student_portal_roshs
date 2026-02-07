@@ -37,8 +37,8 @@ class AutoUpgradeStudents extends Command
             $upgradeDetails = [];
 
             foreach ($classes as $class) {
-                // Find matching class at next level - try to match stream name
-                $nextClass = $this->findNextClass($class);
+                // Find all classes at next level
+                $nextClasses = Grade::where('class_numeric', $class->class_numeric + 1)->get();
                 
                 $studentsToUpgrade = Student::where('class_id', $class->id)
                     ->where('is_transferred', false)
@@ -48,21 +48,39 @@ class AutoUpgradeStudents extends Command
                     continue;
                 }
 
-                if ($nextClass) {
-                    // Upgrade students to next class
-                    foreach ($studentsToUpgrade as $student) {
-                        $student->class_id = $nextClass->id;
-                        $student->save();
-                        $upgradedCount++;
+                if ($nextClasses->isNotEmpty()) {
+                    // Upgrade students to next class level, distributing across available classes
+                    $totalNextClasses = $nextClasses->count();
+                    $studentsPerClass = floor($studentsToUpgrade->count() / $totalNextClasses);
+                    $remainder = $studentsToUpgrade->count() % $totalNextClasses;
+                    
+                    $studentIndex = 0;
+                    $classDistribution = [];
+                    
+                    foreach ($nextClasses as $index => $nextClass) {
+                        // Calculate how many students for this class (add 1 extra for remainder distribution)
+                        $studentsForThisClass = $studentsPerClass + ($index < $remainder ? 1 : 0);
+                        
+                        for ($i = 0; $i < $studentsForThisClass && $studentIndex < $studentsToUpgrade->count(); $i++) {
+                            $student = $studentsToUpgrade[$studentIndex];
+                            $student->class_id = $nextClass->id;
+                            $student->save();
+                            $upgradedCount++;
+                            $studentIndex++;
+                        }
+                        
+                        if ($studentsForThisClass > 0) {
+                            $classDistribution[] = "{$nextClass->class_name} ({$studentsForThisClass})";
+                        }
                     }
 
                     $upgradeDetails[] = [
                         'from' => $class->class_name,
-                        'to' => $nextClass->class_name,
+                        'to' => implode(', ', $classDistribution),
                         'count' => $studentsToUpgrade->count(),
                     ];
 
-                    $this->info("Upgraded {$studentsToUpgrade->count()} students from {$class->class_name} to {$nextClass->class_name}");
+                    $this->info("Upgraded {$studentsToUpgrade->count()} students from {$class->class_name} to " . implode(', ', $classDistribution));
                 } else {
                     // Final class - mark students as graduated
                     foreach ($studentsToUpgrade as $student) {

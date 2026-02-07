@@ -83,7 +83,7 @@ class StudentUpgradeController extends Controller
             $upgradeDetails = [];
 
             foreach ($classes as $class) {
-                $nextClass = Grade::where('class_numeric', $class->class_numeric + 1)->first();
+                $nextClasses = Grade::where('class_numeric', $class->class_numeric + 1)->get();
                 
                 $studentsToUpgrade = Student::where('class_id', $class->id)
                     ->where('is_transferred', false)
@@ -93,18 +93,35 @@ class StudentUpgradeController extends Controller
                     continue;
                 }
 
-                if ($nextClass) {
-                    // Upgrade students to next class
-                    foreach ($studentsToUpgrade as $student) {
-                        $oldClassId = $student->class_id;
-                        $student->class_id = $nextClass->id;
-                        $student->save();
-                        $upgradedCount++;
+                if ($nextClasses->isNotEmpty()) {
+                    // Upgrade students to next class level, distributing across available classes
+                    $totalNextClasses = $nextClasses->count();
+                    $studentsPerClass = floor($studentsToUpgrade->count() / $totalNextClasses);
+                    $remainder = $studentsToUpgrade->count() % $totalNextClasses;
+                    
+                    $studentIndex = 0;
+                    $classDistribution = [];
+                    
+                    foreach ($nextClasses as $index => $nextClass) {
+                        // Calculate how many students for this class (add 1 extra for remainder distribution)
+                        $studentsForThisClass = $studentsPerClass + ($index < $remainder ? 1 : 0);
+                        
+                        for ($i = 0; $i < $studentsForThisClass && $studentIndex < $studentsToUpgrade->count(); $i++) {
+                            $student = $studentsToUpgrade[$studentIndex];
+                            $student->class_id = $nextClass->id;
+                            $student->save();
+                            $upgradedCount++;
+                            $studentIndex++;
+                        }
+                        
+                        if ($studentsForThisClass > 0) {
+                            $classDistribution[] = "{$nextClass->class_name} ({$studentsForThisClass})";
+                        }
                     }
 
                     $upgradeDetails[] = [
                         'from' => $class->class_name,
-                        'to' => $nextClass->class_name,
+                        'to' => implode(', ', $classDistribution),
                         'count' => $studentsToUpgrade->count(),
                     ];
                 } else {
@@ -191,8 +208,11 @@ class StudentUpgradeController extends Controller
             $totalRestored = 0;
 
             for ($step = 1; $step <= $steps; $step++) {
-                // First, restore graduated students to the highest grade
-                $highestGrade = Grade::orderBy('class_numeric', 'desc')->first();
+                // First, restore graduated students to the highest grade level
+                $highestGrades = Grade::orderBy('class_numeric', 'desc')->limit(1)->first();
+                $highestNumeric = $highestGrades ? $highestGrades->class_numeric : 0;
+                $highestLevelClasses = Grade::where('class_numeric', $highestNumeric)->get();
+                
                 $graduatedStudents = Student::where('is_transferred', true)
                     ->orderBy('updated_at', 'desc')
                     ->get();
@@ -201,30 +221,60 @@ class StudentUpgradeController extends Controller
                 $gradesAsc = Grade::orderBy('class_numeric', 'asc')->get();
                 
                 foreach ($gradesAsc as $grade) {
-                    // Find students that should move back to this grade (from next grade)
-                    $nextGrade = Grade::where('class_numeric', $grade->class_numeric + 1)->first();
+                    // Find all classes at the next level
+                    $nextGrades = Grade::where('class_numeric', $grade->class_numeric + 1)->get();
                     
-                    if ($nextGrade) {
-                        $studentsToMoveBack = Student::where('class_id', $nextGrade->id)
+                    if ($nextGrades->isNotEmpty()) {
+                        // Get all students from all classes at next level
+                        $nextGradeIds = $nextGrades->pluck('id')->toArray();
+                        $studentsToMoveBack = Student::whereIn('class_id', $nextGradeIds)
                             ->where('is_transferred', false)
                             ->get();
                         
-                        foreach ($studentsToMoveBack as $student) {
-                            $student->class_id = $grade->id;
-                            $student->save();
-                            $totalMoved++;
+                        if ($studentsToMoveBack->isNotEmpty()) {
+                            // Find all classes at current level to distribute to
+                            $currentLevelClasses = Grade::where('class_numeric', $grade->class_numeric)->get();
+                            $totalClasses = $currentLevelClasses->count();
+                            $studentsPerClass = floor($studentsToMoveBack->count() / $totalClasses);
+                            $remainder = $studentsToMoveBack->count() % $totalClasses;
+                            
+                            $studentIndex = 0;
+                            foreach ($currentLevelClasses as $index => $targetClass) {
+                                $studentsForThisClass = $studentsPerClass + ($index < $remainder ? 1 : 0);
+                                
+                                for ($i = 0; $i < $studentsForThisClass && $studentIndex < $studentsToMoveBack->count(); $i++) {
+                                    $student = $studentsToMoveBack[$studentIndex];
+                                    $student->class_id = $targetClass->id;
+                                    $student->save();
+                                    $totalMoved++;
+                                    $studentIndex++;
+                                }
+                            }
                         }
                     }
                 }
 
-                // Restore some graduated students
+                // Restore graduated students, distributing across highest level classes
                 $restoredThisStep = 0;
-                foreach ($graduatedStudents as $student) {
-                    $student->is_transferred = false;
-                    $student->class_id = $highestGrade->id;
-                    $student->save();
-                    $totalRestored++;
-                    $restoredThisStep++;
+                if ($highestLevelClasses->isNotEmpty() && $graduatedStudents->isNotEmpty()) {
+                    $totalClasses = $highestLevelClasses->count();
+                    $studentsPerClass = floor($graduatedStudents->count() / $totalClasses);
+                    $remainder = $graduatedStudents->count() % $totalClasses;
+                    
+                    $studentIndex = 0;
+                    foreach ($highestLevelClasses as $index => $targetClass) {
+                        $studentsForThisClass = $studentsPerClass + ($index < $remainder ? 1 : 0);
+                        
+                        for ($i = 0; $i < $studentsForThisClass && $studentIndex < $graduatedStudents->count(); $i++) {
+                            $student = $graduatedStudents[$studentIndex];
+                            $student->is_transferred = false;
+                            $student->class_id = $targetClass->id;
+                            $student->save();
+                            $totalRestored++;
+                            $restoredThisStep++;
+                            $studentIndex++;
+                        }
+                    }
                 }
 
                 $rollbackDetails[] = "Step $step: Moved students down, restored $restoredThisStep graduated students";
