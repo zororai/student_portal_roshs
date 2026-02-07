@@ -239,7 +239,7 @@ class StudentController extends Controller
             $profile = $student->user->profile_picture;
         }
 
-        $student->user()->update([
+        $student->user->update([
             'name'              => $request->name,
             'email'             => $request->email,
             'profile_picture'   => $profile
