@@ -32,6 +32,19 @@ class Kernel extends ConsoleKernel
         
         // Or run it monthly on the 1st at 3 AM
         // $schedule->command('school:seed')->monthlyOn(1, '3:00');
+
+        // Automatic student upgrade - runs on December 31st at 11:59 PM
+        // This upgrades all students to the next grade at year end
+        $schedule->command('students:auto-upgrade')
+            ->yearlyOn(12, 31, '23:59')
+            ->runInBackground()
+            ->withoutOverlapping()
+            ->onSuccess(function () {
+                \Log::info('Annual student upgrade completed successfully.');
+            })
+            ->onFailure(function () {
+                \Log::error('Annual student upgrade failed.');
+            });
     }
 
     /**
