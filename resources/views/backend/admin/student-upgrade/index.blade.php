@@ -143,19 +143,27 @@
         </div>
     </div>
 
-    <!-- Upgrade Action Button -->
+    <!-- Action Buttons -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <h3 class="text-lg font-semibold text-gray-900">Execute Class Upgrade</h3>
-                <p class="text-sm text-gray-500 mt-1">Click the button below to start the upgrade process. You will be asked to confirm before proceeding.</p>
+                <h3 class="text-lg font-semibold text-gray-900">Upgrade Actions</h3>
+                <p class="text-sm text-gray-500 mt-1">Upgrade students to next level or rollback if there was a mistake.</p>
             </div>
-            <button type="button" onclick="showUpgradeModal()" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-                </svg>
-                Upgrade All Students
-            </button>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="button" onclick="showRollbackModal()" class="inline-flex items-center justify-center px-5 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg shadow-md hover:from-orange-600 hover:to-red-600 transition-all">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                    </svg>
+                    Rollback Upgrade
+                </button>
+                <button type="button" onclick="showUpgradeModal()" class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:from-purple-700 hover:to-indigo-700 transition-all">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    </svg>
+                    Upgrade All Students
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -251,6 +259,60 @@
     </div>
 </div>
 
+<!-- Rollback Modal -->
+<div id="rollbackModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+        <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onclick="hideRollbackModal()"></div>
+        
+        <div class="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+            <div class="absolute top-0 right-0 pt-4 pr-4">
+                <button type="button" onclick="hideRollbackModal()" class="text-gray-400 hover:text-gray-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="sm:flex sm:items-start">
+                <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-orange-100 rounded-full sm:mx-0 sm:h-10 sm:w-10">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                    </svg>
+                </div>
+                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">Rollback Student Upgrade</h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500">
+                            This will move all students back to their previous class levels. Use this if an upgrade was done by mistake.
+                        </p>
+                        <div class="mt-4">
+                            <label for="rollbackSteps" class="block text-sm font-medium text-gray-700">Number of steps to rollback</label>
+                            <select id="rollbackSteps" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                <option value="1">1 step (Last upgrade)</option>
+                                <option value="2">2 steps</option>
+                                <option value="3">3 steps</option>
+                            </select>
+                        </div>
+                        <div class="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <p class="text-sm text-orange-700 font-medium">
+                                This will move students down one grade level per step. Students who graduated will be restored.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button type="button" id="confirmRollbackBtn" onclick="executeRollback()" class="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-orange-600 border border-transparent rounded-md shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Yes, Rollback
+                </button>
+                <button type="button" onclick="hideRollbackModal()" class="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function showUpgradeModal() {
     document.getElementById('upgradeModal').classList.remove('hidden');
@@ -258,6 +320,48 @@ function showUpgradeModal() {
 
 function hideUpgradeModal() {
     document.getElementById('upgradeModal').classList.add('hidden');
+}
+
+function showRollbackModal() {
+    document.getElementById('rollbackModal').classList.remove('hidden');
+}
+
+function hideRollbackModal() {
+    document.getElementById('rollbackModal').classList.add('hidden');
+}
+
+function executeRollback() {
+    const btn = document.getElementById('confirmRollbackBtn');
+    const steps = document.getElementById('rollbackSteps').value;
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
+
+    fetch('{{ route("admin.student-upgrade.rollback") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ steps: parseInt(steps) })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideRollbackModal();
+        if (data.success) {
+            document.getElementById('successMessage').textContent = data.message;
+            document.getElementById('upgradeDetails').innerHTML = '<div class="bg-gray-50 rounded-lg p-3 text-sm">' + data.details + '</div>';
+            document.getElementById('successModal').classList.remove('hidden');
+        } else {
+            alert('Error: ' + data.message);
+            btn.disabled = false;
+            btn.innerHTML = 'Yes, Rollback';
+        }
+    })
+    .catch(error => {
+        alert('An error occurred: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = 'Yes, Rollback';
+    });
 }
 
 function executeUpgrade() {

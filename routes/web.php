@@ -487,6 +487,7 @@ Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|
     Route::get('/admin/student-upgrade', 'StudentUpgradeController@index')->name('admin.student-upgrade.index');
     Route::get('/admin/student-upgrade/preview', 'StudentUpgradeController@preview')->name('admin.student-upgrade.preview');
     Route::post('/admin/student-upgrade/execute', 'StudentUpgradeController@execute')->name('admin.student-upgrade.execute');
+    Route::post('/admin/student-upgrade/rollback', 'StudentUpgradeController@rollback')->name('admin.student-upgrade.rollback');
 
     // School Settings Routes
     Route::get('/admin/settings/class-formats', 'SchoolSettingsController@classFormats')->name('admin.settings.class-formats');

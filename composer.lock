@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "958a51d977e6f92bcbc8b69faeddf6e8",
+    "content-hash": "eef074e013de16fc2bdf0637e117c2c4",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -2828,6 +2828,46 @@
                 "source": "https://github.com/opis/closure/tree/3.7.0"
             },
             "time": "2025-07-08T20:30:08+00:00"
+        },
+        {
+            "name": "paynow/php-sdk",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/paynow/Paynow-PHP-SDK.git",
+                "reference": "727e44412c9856551d175e2c3e9793972fb339d2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/paynow/Paynow-PHP-SDK/zipball/727e44412c9856551d175e2c3e9793972fb339d2",
+                "reference": "727e44412c9856551d175e2c3e9793972fb339d2",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "7.1"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/helper.php"
+                ],
+                "psr-4": {
+                    "Paynow\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "PHP SDK for the Paynow API",
+            "support": {
+                "issues": "https://github.com/paynow/Paynow-PHP-SDK/issues",
+                "source": "https://github.com/paynow/Paynow-PHP-SDK/tree/1.0.0"
+            },
+            "time": "2018-09-14T10:34:11+00:00"
         },
         {
             "name": "phenx/php-font-lib",

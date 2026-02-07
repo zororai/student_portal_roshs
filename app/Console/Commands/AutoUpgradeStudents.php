@@ -37,7 +37,8 @@ class AutoUpgradeStudents extends Command
             $upgradeDetails = [];
 
             foreach ($classes as $class) {
-                $nextClass = Grade::where('class_numeric', $class->class_numeric + 1)->first();
+                // Find matching class at next level - try to match stream name
+                $nextClass = $this->findNextClass($class);
                 
                 $studentsToUpgrade = Student::where('class_id', $class->id)
                     ->where('is_transferred', false)
@@ -174,5 +175,46 @@ class AutoUpgradeStudents extends Command
             'sent_by' => $systemAdmin->id,
             'priority' => 'urgent',
         ]);
+    }
+
+    private function findNextClass($currentClass)
+    {
+        $nextNumeric = $currentClass->class_numeric + 1;
+        
+        // Get all classes at the next level
+        $nextLevelClasses = Grade::where('class_numeric', $nextNumeric)->get();
+        
+        if ($nextLevelClasses->isEmpty()) {
+            return null; // No next level - student graduates
+        }
+        
+        // If only one class at next level, use it
+        if ($nextLevelClasses->count() === 1) {
+            return $nextLevelClasses->first();
+        }
+        
+        // Try to match stream name (e.g., "Form 5 Sciences" -> "Form 6 Sciences")
+        $currentStream = $this->extractStream($currentClass->class_name);
+        
+        foreach ($nextLevelClasses as $nextClass) {
+            $nextStream = $this->extractStream($nextClass->class_name);
+            if ($currentStream && $nextStream && strtolower($currentStream) === strtolower($nextStream)) {
+                return $nextClass;
+            }
+        }
+        
+        // If no matching stream, return the first available class at next level
+        return $nextLevelClasses->first();
+    }
+
+    private function extractStream($className)
+    {
+        // Extract stream from class name like "Form 5 Sciences" -> "Sciences"
+        // or "Form 4 Red" -> "Red"
+        $parts = explode(' ', $className);
+        if (count($parts) >= 3) {
+            return end($parts); // Return last word as stream
+        }
+        return null;
     }
 }

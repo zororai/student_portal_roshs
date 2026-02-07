@@ -170,4 +170,100 @@ class StudentUpgradeController extends Controller
             'history' => $history,
         ]);
     }
+
+    /**
+     * Rollback student upgrade - move students back to previous grades.
+     */
+    public function rollback(Request $request)
+    {
+        $request->validate([
+            'steps' => 'required|integer|min:1|max:5',
+        ]);
+
+        $steps = $request->input('steps', 1);
+
+        try {
+            DB::beginTransaction();
+
+            $grades = Grade::orderBy('class_numeric', 'asc')->get();
+            $rollbackDetails = [];
+            $totalMoved = 0;
+            $totalRestored = 0;
+
+            for ($step = 1; $step <= $steps; $step++) {
+                // First, restore graduated students to the highest grade
+                $highestGrade = Grade::orderBy('class_numeric', 'desc')->first();
+                $graduatedStudents = Student::where('is_transferred', true)
+                    ->orderBy('updated_at', 'desc')
+                    ->get();
+
+                // Move students down one grade (process from lowest to highest to avoid conflicts)
+                $gradesAsc = Grade::orderBy('class_numeric', 'asc')->get();
+                
+                foreach ($gradesAsc as $grade) {
+                    // Find students that should move back to this grade (from next grade)
+                    $nextGrade = Grade::where('class_numeric', $grade->class_numeric + 1)->first();
+                    
+                    if ($nextGrade) {
+                        $studentsToMoveBack = Student::where('class_id', $nextGrade->id)
+                            ->where('is_transferred', false)
+                            ->get();
+                        
+                        foreach ($studentsToMoveBack as $student) {
+                            $student->class_id = $grade->id;
+                            $student->save();
+                            $totalMoved++;
+                        }
+                    }
+                }
+
+                // Restore some graduated students
+                $restoredThisStep = 0;
+                foreach ($graduatedStudents as $student) {
+                    $student->is_transferred = false;
+                    $student->class_id = $highestGrade->id;
+                    $student->save();
+                    $totalRestored++;
+                    $restoredThisStep++;
+                }
+
+                $rollbackDetails[] = "Step $step: Moved students down, restored $restoredThisStep graduated students";
+            }
+
+            DB::commit();
+
+            // Log the rollback action
+            AuditTrail::create([
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()->name,
+                'user_role' => auth()->user()->roles->first()->name ?? 'Admin',
+                'action' => 'update',
+                'description' => "Rolled back student upgrade by $steps step(s). Restored $totalRestored graduated students.",
+                'old_values' => json_encode(['action' => 'student_upgrade_rollback', 'steps' => $steps]),
+                'new_values' => json_encode($rollbackDetails),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            // Get new distribution
+            $newDistribution = [];
+            foreach ($grades as $grade) {
+                $count = Student::where('class_id', $grade->id)->where('is_transferred', false)->count();
+                $newDistribution[] = "{$grade->class_name}: $count students";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Rollback complete. Restored $totalRestored graduated students.",
+                'details' => implode('<br>', $newDistribution),
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Rollback failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }
