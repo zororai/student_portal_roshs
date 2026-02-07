@@ -195,6 +195,12 @@ class FinanceController extends Controller
         $totalAmountPaid = \App\StudentPayment::where('student_id', $validated['student_id'])->sum('amount_paid');
         $remainingBalance = $totalFees - $totalAmountPaid;
 
+        // Change student status from "New Student" to "Existing Student" after first payment
+        if ($student && $student->is_new_student && $totalPaid > 0) {
+            $student->is_new_student = false;
+            $student->save();
+        }
+
         // Auto-create School Income and CashBookEntry if payment was made
         if ($totalPaid > 0) {
             $studentName = $student->user->name ?? ($student->name . ' ' . $student->surname);
@@ -259,6 +265,318 @@ class FinanceController extends Controller
 
         return redirect()->route('finance.student-payments')
             ->with('success', 'Payment of $' . number_format($totalPaid, 2) . ' recorded successfully! Remaining balance: $' . number_format($remainingBalance, 2));
+    }
+
+    public function paynowPayment(Request $request)
+    {
+        $validated = $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'results_status_id' => 'required|exists:results_statuses,id',
+            'fee_amounts' => 'required|array',
+            'fee_amounts.*' => 'required|numeric|min:0',
+            'payment_date' => 'required|date',
+            'paynow_phone' => 'required|string',
+            'reference_number' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            // Get Paynow credentials
+            $paynowId = \App\PaynowSetting::getPaynowId();
+            $paynowKey = \App\PaynowSetting::getPaynowKey();
+            
+            if (!$paynowId || !$paynowKey) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Paynow is not configured. Please contact administrator.',
+                ]);
+            }
+
+            // Calculate total amount
+            $totalPaid = 0;
+            $feesPaidFor = [];
+
+            foreach ($validated['fee_amounts'] as $feeId => $amount) {
+                if ($amount <= 0) continue;
+                
+                $feeRecord = FeeStructure::find($feeId);
+                if (!$feeRecord) {
+                    $feeRecord = \App\TermFee::find($feeId);
+                }
+                
+                if (!$feeRecord) continue;
+                
+                if ($amount > $feeRecord->amount) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Payment amount cannot exceed the fee amount',
+                    ]);
+                }
+                
+                $totalPaid += $amount;
+                $feeName = $feeRecord->feeType->name ?? 'Fee';
+                $feesPaidFor[] = $feeName . ' ($' . number_format($amount, 2) . ')';
+            }
+
+            if ($totalPaid <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No valid fees selected for payment',
+                ]);
+            }
+
+            // Get student info
+            $student = Student::find($validated['student_id']);
+            $studentName = $student->user->name ?? ($student->name . ' ' . $student->surname);
+            $currentTerm = \App\ResultsStatus::find($validated['results_status_id']);
+            $termName = $currentTerm ? ucfirst($currentTerm->result_period) . ' ' . $currentTerm->year : '';
+
+            // Initialize Paynow
+            $paynow = new \Paynow\Payments\Paynow(
+                $paynowId,
+                $paynowKey,
+                \App\PaynowSetting::getReturnUrl() ?: route('finance.student-payments'),
+                \App\PaynowSetting::getResultUrl() ?: route('finance.student-payments')
+            );
+
+            // Create payment
+            $payment = $paynow->createPayment(
+                'PAYMENT-' . time() . '-' . $student->id,
+                $validated['paynow_phone']
+            );
+
+            // Add items
+            $payment->add('School Fees - ' . $studentName . ' - ' . $termName, $totalPaid);
+
+            // Send payment
+            $response = $paynow->sendMobile($payment, $validated['paynow_phone'], 'ecocash');
+
+            // Log Paynow initiation
+            AuditTrail::create([
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()->name,
+                'user_role' => auth()->user()->roles->first()->name ?? 'Admin',
+                'action' => 'create',
+                'description' => "Initiated Paynow payment for $studentName - Amount: $$totalPaid",
+                'old_values' => json_encode([
+                    'payment_method' => 'paynow',
+                    'phone' => $validated['paynow_phone'],
+                    'status' => $response->success() ? 'initiated' : 'failed'
+                ]),
+                'new_values' => json_encode([
+                    'student_id' => $validated['student_id'],
+                    'amount' => $totalPaid,
+                    'fees' => $feesPaidFor,
+                    'poll_url' => $response->success() ? $response->pollUrl() : null
+                ]),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            // Check if request was successful
+            if ($response->success()) {
+                // Poll for payment status
+                $status = $paynow->pollTransaction($response->pollUrl());
+
+                if ($status->paid()) {
+                    // Payment successful - record it
+                    DB::beginTransaction();
+                    
+                    try {
+                        foreach ($validated['fee_amounts'] as $feeId => $amount) {
+                            if ($amount <= 0) continue;
+                            
+                            $feeRecord = FeeStructure::find($feeId);
+                            $isFeeStructure = true;
+                            
+                            if (!$feeRecord) {
+                                $feeRecord = \App\TermFee::find($feeId);
+                                $isFeeStructure = false;
+                            }
+                            
+                            if (!$feeRecord) continue;
+                            
+                            $paymentData = [
+                                'student_id' => $validated['student_id'],
+                                'results_status_id' => $validated['results_status_id'],
+                                'amount_paid' => $amount,
+                                'payment_date' => $validated['payment_date'],
+                                'payment_method' => 'paynow',
+                                'reference_number' => $response->reference() ?? 'PAYNOW-' . time(),
+                                'notes' => 'Paynow Payment - Phone: ' . $validated['paynow_phone'] . ($validated['notes'] ? ' | ' . $validated['notes'] : ''),
+                            ];
+                            
+                            if ($isFeeStructure) {
+                                $paymentData['fee_structure_id'] = $feeId;
+                            } else {
+                                $paymentData['term_fee_id'] = $feeId;
+                            }
+                            
+                            \App\StudentPayment::create($paymentData);
+                        }
+
+                        // Change student status from new to existing
+                        if ($student && $student->is_new_student) {
+                            $student->is_new_student = false;
+                            $student->save();
+                        }
+
+                        // Calculate balances
+                        $totalFees = $currentTerm ? $currentTerm->total_fees : 0;
+                        $totalAmountPaid = \App\StudentPayment::where('student_id', $validated['student_id'])->sum('amount_paid');
+                        $remainingBalance = $totalFees - $totalAmountPaid;
+
+                        // Create School Income record
+                        SchoolIncome::create([
+                            'date' => $validated['payment_date'],
+                            'category' => 'School Fees',
+                            'description' => 'Paynow Payment - ' . $studentName . ' - ' . $termName . ' | ' . implode(', ', $feesPaidFor),
+                            'amount' => $totalPaid,
+                            'payment_method' => 'paynow',
+                            'reference_number' => $response->reference(),
+                        ]);
+
+                        // Auto-create CashBookEntry
+                        $lastEntry = CashBookEntry::orderBy('id', 'desc')->first();
+                        $currentBalance = $lastEntry ? $lastEntry->balance : 0;
+                        $newBalance = $currentBalance + $totalPaid;
+
+                        $cashEntry = CashBookEntry::create([
+                            'entry_date' => $validated['payment_date'],
+                            'reference_number' => CashBookEntry::generateReferenceNumber(),
+                            'transaction_type' => 'receipt',
+                            'category' => 'school_fees',
+                            'description' => '[Paynow Payment] ' . $studentName . ' - ' . implode(', ', $feesPaidFor),
+                            'amount' => $totalPaid,
+                            'balance' => $newBalance,
+                            'payment_method' => 'paynow',
+                            'payer_payee' => $studentName,
+                            'created_by' => auth()->id(),
+                            'notes' => 'Auto-generated from Paynow Payment - Phone: ' . $validated['paynow_phone'] . ' | Term: ' . $termName,
+                        ]);
+                        $cashEntry->postToLedger();
+
+                        DB::commit();
+
+                        // Log successful payment
+                        AuditTrail::create([
+                            'user_id' => auth()->id(),
+                            'user_name' => auth()->user()->name,
+                            'user_role' => auth()->user()->roles->first()->name ?? 'Admin',
+                            'action' => 'create',
+                            'description' => "Paynow payment successful for $studentName - Amount: $$totalPaid",
+                            'old_values' => json_encode(['payment_method' => 'paynow', 'status' => 'paid']),
+                            'new_values' => json_encode([
+                                'student_id' => $validated['student_id'],
+                                'amount' => $totalPaid,
+                                'reference' => $response->reference(),
+                                'remaining_balance' => $remainingBalance
+                            ]),
+                            'ip_address' => $request->ip(),
+                            'user_agent' => $request->userAgent(),
+                        ]);
+
+                        // Get last payment for receipt
+                        $lastPayment = \App\StudentPayment::where('student_id', $validated['student_id'])
+                            ->orderBy('id', 'desc')
+                            ->first();
+
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Paynow payment of $' . number_format($totalPaid, 2) . ' completed successfully!',
+                            'remaining_balance' => $remainingBalance,
+                            'total_paid' => $totalPaid,
+                            'receipt' => [
+                                'id' => $lastPayment->id,
+                                'student_name' => $studentName,
+                                'amount' => $totalPaid,
+                                'date' => $validated['payment_date'],
+                                'method' => 'paynow',
+                                'reference' => $response->reference(),
+                                'term' => $termName,
+                                'fees' => implode(', ', $feesPaidFor),
+                            ]
+                        ]);
+
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        
+                        // Log failed payment
+                        AuditTrail::create([
+                            'user_id' => auth()->id(),
+                            'user_name' => auth()->user()->name,
+                            'user_role' => auth()->user()->roles->first()->name ?? 'Admin',
+                            'action' => 'error',
+                            'description' => "Paynow payment failed for $studentName - Error: " . $e->getMessage(),
+                            'old_values' => json_encode(['payment_method' => 'paynow', 'status' => 'error']),
+                            'new_values' => json_encode(['error' => $e->getMessage()]),
+                            'ip_address' => $request->ip(),
+                            'user_agent' => $request->userAgent(),
+                        ]);
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Failed to record payment: ' . $e->getMessage(),
+                        ]);
+                    }
+                } else {
+                    // Payment not completed
+                    AuditTrail::create([
+                        'user_id' => auth()->id(),
+                        'user_name' => auth()->user()->name,
+                        'user_role' => auth()->user()->roles->first()->name ?? 'Admin',
+                        'action' => 'update',
+                        'description' => "Paynow payment pending/cancelled for $studentName",
+                        'old_values' => json_encode(['payment_method' => 'paynow', 'status' => 'pending']),
+                        'new_values' => json_encode(['poll_url' => $response->pollUrl()]),
+                        'ip_address' => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Payment not completed. Please check your phone and approve the payment.',
+                    ]);
+                }
+            } else {
+                // Paynow request failed
+                AuditTrail::create([
+                    'user_id' => auth()->id(),
+                    'user_name' => auth()->user()->name,
+                    'user_role' => auth()->user()->roles->first()->name ?? 'Admin',
+                    'action' => 'error',
+                    'description' => "Paynow request failed for $studentName",
+                    'old_values' => json_encode(['payment_method' => 'paynow', 'status' => 'failed']),
+                    'new_values' => json_encode(['errors' => $response->errors()]),
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Paynow request failed: ' . implode(', ', $response->errors()),
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            // Log exception
+            AuditTrail::create([
+                'user_id' => auth()->id(),
+                'user_name' => auth()->user()->name,
+                'user_role' => auth()->user()->roles->first()->name ?? 'Admin',
+                'action' => 'error',
+                'description' => 'Paynow payment exception: ' . $e->getMessage(),
+                'old_values' => json_encode(['payment_method' => 'paynow']),
+                'new_values' => json_encode(['exception' => $e->getMessage()]),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ]);
+        }
     }
 
     public function parentsArrears(Request $request)
@@ -1020,7 +1338,11 @@ class FinanceController extends Controller
             ->get();
         
         // Get school fees income breakdown by fee type from StudentPayments
-        $schoolFeesQuery = \App\StudentPayment::with(['feeStructure.feeType', 'student']);
+        // Exclude graduated students (is_transferred = true)
+        $schoolFeesQuery = \App\StudentPayment::with(['feeStructure.feeType', 'student'])
+            ->whereHas('student', function($q) {
+                $q->where('is_transferred', false);
+            });
         if ($selectedYear) {
             $schoolFeesQuery->whereYear('payment_date', $selectedYear);
         }
@@ -1115,7 +1437,10 @@ class FinanceController extends Controller
             'cambridge_boarding' => ['label' => 'Cambridge Boarding', 'fees' => [], 'total' => 0, 'count' => 0],
         ];
         
-        $students = Student::with(['class', 'payments'])->get();
+        // Exclude graduated students (is_transferred = true) from fee calculations
+        $students = Student::with(['class', 'payments'])
+            ->where('is_transferred', false)
+            ->get();
         foreach ($students as $student) {
             $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
             $totalBalanceBf += $feeBreakdown['balance_bf'];
@@ -1137,15 +1462,38 @@ class FinanceController extends Controller
                 $studentType = $student->student_type ?? 'day';
                 $curriculumType = $student->curriculum_type ?? 'zimsec';
                 $categoryKey = $curriculumType . '_' . $studentType;
+                $isNewStudent = $student->is_new_student ?? false;
                 
                 if (isset($feesByCategory[$categoryKey])) {
                     $feesByCategory[$categoryKey]['count']++;
+                    
+                    // Track new vs existing students separately
+                    if ($isNewStudent) {
+                        $feesByCategory[$categoryKey]['new_count'] = ($feesByCategory[$categoryKey]['new_count'] ?? 0) + 1;
+                    } else {
+                        $feesByCategory[$categoryKey]['existing_count'] = ($feesByCategory[$categoryKey]['existing_count'] ?? 0) + 1;
+                    }
+                    
                     foreach ($studentFeesByType as $feeTypeName => $amount) {
                         if (!isset($feesByCategory[$categoryKey]['fees'][$feeTypeName])) {
                             $feesByCategory[$categoryKey]['fees'][$feeTypeName] = 0;
                         }
                         $feesByCategory[$categoryKey]['fees'][$feeTypeName] += $amount;
                         $feesByCategory[$categoryKey]['total'] += $amount;
+                        
+                        // Track payments for progress bar
+                        $studentPaymentsForFee = \App\StudentPayment::where('student_id', $student->id)
+                            ->whereHas('feeStructure', function($q) use ($feeTypeName) {
+                                $q->whereHas('feeType', function($q2) use ($feeTypeName) {
+                                    $q2->where('name', $feeTypeName);
+                                });
+                            })
+                            ->sum('amount_paid');
+                        
+                        if (!isset($feesByCategory[$categoryKey]['payments'][$feeTypeName])) {
+                            $feesByCategory[$categoryKey]['payments'][$feeTypeName] = 0;
+                        }
+                        $feesByCategory[$categoryKey]['payments'][$feeTypeName] += $studentPaymentsForFee;
                     }
                 }
             }

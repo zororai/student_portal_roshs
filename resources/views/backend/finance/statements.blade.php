@@ -133,15 +133,35 @@
                 <div class="border rounded-lg p-4 {{ $categoryKey == 'zimsec_day' ? 'bg-blue-50 border-blue-200' : ($categoryKey == 'zimsec_boarding' ? 'bg-green-50 border-green-200' : ($categoryKey == 'cambridge_day' ? 'bg-purple-50 border-purple-200' : 'bg-orange-50 border-orange-200')) }}">
                     <div class="flex justify-between items-center mb-3">
                         <h5 class="font-semibold text-gray-800">{{ $category['label'] }}</h5>
-                        <span class="text-xs bg-gray-200 px-2 py-1 rounded-full">{{ $category['count'] }} students</span>
+                        <div class="flex gap-2">
+                            @if(isset($category['new_count']) && $category['new_count'] > 0)
+                            <span class="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded-full">{{ $category['new_count'] }} new</span>
+                            @endif
+                            @if(isset($category['existing_count']) && $category['existing_count'] > 0)
+                            <span class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">{{ $category['existing_count'] }} existing</span>
+                            @endif
+                        </div>
                     </div>
                     
                     @if(count($category['fees']) > 0)
-                    <div class="space-y-2">
+                    <div class="space-y-3">
                         @foreach($category['fees'] as $feeTypeName => $amount)
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-700">{{ $feeTypeName }}</span>
-                            <span class="font-medium text-gray-900">${{ number_format($amount, 2) }}</span>
+                        <div>
+                            <div class="flex justify-between items-center text-sm mb-1">
+                                <span class="text-gray-700">{{ $feeTypeName }}</span>
+                                <span class="font-medium text-gray-900">${{ number_format($amount, 2) }}</span>
+                            </div>
+                            @php
+                                $payments = $category['payments'][$feeTypeName] ?? 0;
+                                $percentage = $amount > 0 ? min(($payments / $amount) * 100, 100) : 0;
+                            @endphp
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all" style="width: {{ $percentage }}%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Collected: ${{ number_format($payments, 2) }}</span>
+                                <span>{{ number_format($percentage, 1) }}%</span>
+                            </div>
                         </div>
                         @endforeach
                         <div class="border-t pt-2 mt-2 flex justify-between items-center">

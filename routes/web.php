@@ -536,6 +536,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::middleware(['role_or_permission:Admin|sidebar-student-payments|sidebar-finance'])->group(function () {
         Route::get('/finance/student-payments', 'FinanceController@studentPayments')->name('finance.student-payments');
         Route::post('/finance/payments/store', 'FinanceController@storePayment')->name('finance.payments.store');
+        Route::post('/finance/payments/paynow', 'FinanceController@paynowPayment')->name('finance.payments.paynow');
         Route::post('/finance/enforce-fees', 'FinanceController@enforceFees')->name('finance.enforce-fees');
         Route::get('/finance/student-payments/export', 'FinanceController@exportStudentPayments')->name('finance.student-payments.export');
     });

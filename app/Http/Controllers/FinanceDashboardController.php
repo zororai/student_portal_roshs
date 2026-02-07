@@ -93,13 +93,16 @@ class FinanceDashboardController extends Controller
         
         $currentTerm = \App\ResultsStatus::orderBy('year', 'desc')->orderBy('result_period', 'desc')->first();
         
+        // Active students calculations
         $totalStudentFees = 0;
         $totalBalanceBf = 0;
         $totalCurrentTermFees = 0;
         $totalStudentPayments = 0;
         
-        $students = \App\Student::with(['class', 'payments'])->get();
-        foreach ($students as $student) {
+        $activeStudents = \App\Student::with(['class', 'payments'])
+            ->where('is_transferred', false)
+            ->get();
+        foreach ($activeStudents as $student) {
             $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
             $totalBalanceBf += $feeBreakdown['balance_bf'];
             $totalCurrentTermFees += $feeBreakdown['current_term_fees'];
@@ -109,11 +112,41 @@ class FinanceDashboardController extends Controller
         
         $totalOutstandingFees = $totalStudentFees - $totalStudentPayments;
 
+        // Graduated/Transferred students calculations
+        $graduatedTotalFees = 0;
+        $graduatedTotalPayments = 0;
+        $graduatedStudentsCount = 0;
+        $graduatedStudentsWithDebt = 0;
+        $graduatedStudentsWithCredit = 0;
+        
+        $graduatedStudents = \App\Student::with(['class', 'payments'])
+            ->where('is_transferred', true)
+            ->get();
+        
+        foreach ($graduatedStudents as $student) {
+            $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
+            $graduatedTotalFees += $feeBreakdown['total_fees'];
+            $studentPayments = floatval(\App\StudentPayment::where('student_id', $student->id)->sum('amount_paid'));
+            $graduatedTotalPayments += $studentPayments;
+            
+            $balance = $feeBreakdown['total_fees'] - $studentPayments;
+            if ($balance > 0) {
+                $graduatedStudentsWithDebt++;
+            } elseif ($balance < 0) {
+                $graduatedStudentsWithCredit++;
+            }
+        }
+        
+        $graduatedStudentsCount = $graduatedStudents->count();
+        $graduatedOutstanding = $graduatedTotalFees - $graduatedTotalPayments;
+
         return view('backend.admin.finance.dashboard', compact(
             'monthlyIncome', 'monthlyExpenses', 'yearlyIncome', 'yearlyExpenses',
             'currentBalance', 'pendingPayroll', 'pendingPayrollCount', 'pendingExpenses',
             'chartData', 'expenseByCategory', 'recentTransactions', 'activeBudget',
-            'totalStudentFees', 'totalBalanceBf', 'totalCurrentTermFees', 'totalStudentPayments', 'totalOutstandingFees'
+            'totalStudentFees', 'totalBalanceBf', 'totalCurrentTermFees', 'totalStudentPayments', 'totalOutstandingFees',
+            'graduatedStudentsCount', 'graduatedTotalFees', 'graduatedTotalPayments', 'graduatedOutstanding',
+            'graduatedStudentsWithDebt', 'graduatedStudentsWithCredit'
         ));
     }
 

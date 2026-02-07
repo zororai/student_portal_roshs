@@ -538,6 +538,25 @@
                             <span class="text-xl font-bold text-red-600" id="remaining_balance">$0.00</span>
                         </div>
                         </div>
+                        <!-- Payment Method Selection -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button" onclick="selectPaymentMethod('cash')" id="cashMethodBtn" class="payment-method-btn border-2 border-gray-300 rounded-lg p-4 hover:border-blue-500 transition-all">
+                                    <svg class="w-8 h-8 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium">Cash/Card</span>
+                                </button>
+                                <button type="button" onclick="selectPaymentMethod('paynow')" id="paynowMethodBtn" class="payment-method-btn border-2 border-gray-300 rounded-lg p-4 hover:border-blue-500 transition-all">
+                                    <svg class="w-8 h-8 mx-auto mb-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                    <span class="text-sm font-medium">Paynow</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="flex justify-between mt-4">
                             <button type="button" onclick="prevStep(4)" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Previous</button>
                             <button type="button" onclick="submitPayment()" id="submitPaymentBtn" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold">
@@ -592,6 +611,52 @@
             </div>
         </div>
     </div>
+
+    <!-- Paynow Payment Modal -->
+    <div id="paynowModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Paynow Payment</h3>
+                    <button onclick="closePaynowModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600 mb-2">Student: <span class="font-semibold" id="paynow_student_name"></span></p>
+                    <p class="text-sm text-gray-600 mb-2">Amount: <span class="font-semibold text-green-600" id="paynow_amount">$0.00</span></p>
+                </div>
+
+                <form id="paynowForm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Payer Phone Number *</label>
+                        <input type="tel" id="paynow_phone" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="e.g., 0771234567 or 263771234567"
+                               pattern="^(0|\+?263)[0-9]{9}$">
+                        <p class="text-xs text-gray-500 mt-1">Enter the phone number that will make the payment</p>
+                    </div>
+
+                    <div id="paynow_alert" class="hidden mb-4 p-3 rounded-lg"></div>
+
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="closePaynowModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                            Cancel
+                        </button>
+                        <button type="submit" id="paynowSubmitBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">
+                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            Initiate Paynow Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -600,6 +665,10 @@
     let currentStudentName = '';
     let currentPayments = [];
     let lastReceiptData = null;
+    let selectedPaymentMethod = 'cash';
+    let currentStudentId = null;
+    let currentTermId = null;
+    let selectedFeesTotal = 0;
 
     function openPaymentModal() {
         // Reset form and stepper
@@ -1118,9 +1187,131 @@
     function closePaymentModal() {
         document.getElementById('paymentModal').classList.add('hidden');
         document.getElementById('paymentForm').reset();
+        selectedPaymentMethod = 'cash';
     }
 
+    function selectPaymentMethod(method) {
+        selectedPaymentMethod = method;
+        
+        // Update button styles
+        document.querySelectorAll('.payment-method-btn').forEach(btn => {
+            btn.classList.remove('border-blue-500', 'bg-blue-50');
+            btn.classList.add('border-gray-300');
+        });
+        
+        if (method === 'cash') {
+            document.getElementById('cashMethodBtn').classList.remove('border-gray-300');
+            document.getElementById('cashMethodBtn').classList.add('border-blue-500', 'bg-blue-50');
+        } else if (method === 'paynow') {
+            document.getElementById('paynowMethodBtn').classList.remove('border-gray-300');
+            document.getElementById('paynowMethodBtn').classList.add('border-blue-500', 'bg-blue-50');
+        }
+    }
+
+    function closePaynowModal() {
+        document.getElementById('paynowModal').classList.add('hidden');
+        document.getElementById('paynowForm').reset();
+        document.getElementById('paynow_alert').classList.add('hidden');
+    }
+
+    function openPaynowModal() {
+        // Set student info
+        document.getElementById('paynow_student_name').textContent = currentStudentName;
+        document.getElementById('paynow_amount').textContent = '$' + selectedFeesTotal.toFixed(2);
+        
+        // Show modal
+        document.getElementById('paynowModal').classList.remove('hidden');
+    }
+
+    // Handle Paynow form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('paynowForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const phone = document.getElementById('paynow_phone').value;
+            const submitBtn = document.getElementById('paynowSubmitBtn');
+            const alertDiv = document.getElementById('paynow_alert');
+            
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<svg class="w-5 h-5 inline mr-2 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
+            
+            // Prepare payment data
+            const formData = new FormData(document.getElementById('paymentForm'));
+            formData.append('payment_method', 'paynow');
+            formData.append('paynow_phone', phone);
+            
+            fetch('{{ route("finance.payments.paynow") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Store receipt data
+                    lastReceiptData = data.receipt;
+                    
+                    // Close Paynow modal
+                    closePaynowModal();
+                    
+                    // Close payment modal
+                    closePaymentModal();
+                    
+                    // Show success message
+                    alertDiv.classList.remove('hidden', 'bg-red-100', 'text-red-700');
+                    alertDiv.classList.add('bg-green-100', 'text-green-700');
+                    alertDiv.textContent = data.message;
+                    
+                    // Update success screen
+                    document.getElementById('success_message').textContent = data.message;
+                    document.getElementById('success_amount').textContent = '$' + parseFloat(data.total_paid).toFixed(2);
+                    document.getElementById('success_remaining').textContent = '$' + parseFloat(data.remaining_balance).toFixed(2);
+                    
+                    // Show step 5 (success)
+                    showStep(5);
+                    
+                    // Reload page after 3 seconds
+                    setTimeout(() => location.reload(), 3000);
+                } else {
+                    alertDiv.classList.remove('hidden', 'bg-green-100', 'text-green-700');
+                    alertDiv.classList.add('bg-red-100', 'text-red-700');
+                    alertDiv.textContent = data.message || 'Paynow payment failed';
+                    
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> Initiate Paynow Payment';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alertDiv.classList.remove('hidden', 'bg-green-100', 'text-green-700');
+                alertDiv.classList.add('bg-red-100', 'text-red-700');
+                alertDiv.textContent = 'An error occurred. Please try again.';
+                
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> Initiate Paynow Payment';
+            });
+        });
+    });
+
     function submitPayment() {
+        // Check if Paynow is selected
+        if (selectedPaymentMethod === 'paynow') {
+            // Validate that fees are selected
+            if (selectedFeesTotal <= 0) {
+                showAlert('Please select fees to pay before proceeding with Paynow payment.');
+                return;
+            }
+            
+            // Open Paynow modal
+            openPaynowModal();
+            return;
+        }
+        
+        // Regular cash/card payment
         const form = document.getElementById('paymentForm');
         const formData = new FormData(form);
         const submitBtn = document.getElementById('submitPaymentBtn');
@@ -1575,6 +1766,9 @@
         document.getElementById('current_balance').textContent = '$' + currentBalance.toFixed(2);
         document.getElementById('remaining_balance').textContent = '$' + remainingBalance.toFixed(2);
         
+        // Update global selectedFeesTotal for Paynow
+        selectedFeesTotal = selectedTotal;
+        
         // Change color based on remaining balance in Step 4
         const remainingElement = document.getElementById('remaining_balance');
         if (remainingBalance < 0) {
@@ -1632,6 +1826,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize payment method selection (default to cash)
+        selectPaymentMethod('cash');
+        
         const searchInput = document.getElementById('searchStudent');
         const filterClass = document.getElementById('filterClass');
         const filterStatus = document.getElementById('filterStatus');

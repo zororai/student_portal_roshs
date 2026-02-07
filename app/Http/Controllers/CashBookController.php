@@ -81,7 +81,10 @@ class CashBookController extends Controller
         $totalCurrentTermFees = 0;
         $totalStudentPayments = 0;
         
-        $students = \App\Student::with(['class', 'payments'])->get();
+        // Exclude graduated students (is_transferred = true) from fee calculations
+        $students = \App\Student::with(['class', 'payments'])
+            ->where('is_transferred', false)
+            ->get();
         foreach ($students as $student) {
             $feeBreakdown = $this->calculateCumulativeFees($student, $allTermsForCalc, $currentTerm);
             $totalBalanceBf += $feeBreakdown['balance_bf'];

@@ -26,7 +26,7 @@
 
     <!-- Student Fees Summary -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
-        <h3 class="text-sm font-semibold text-gray-700 mb-3">Outstanding Student Fees</h3>
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Outstanding Student Fees (Active Students)</h3>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div class="text-center p-2 bg-orange-50 rounded">
                 <p class="text-xs text-gray-500">Balance B/F</p>
@@ -47,6 +47,47 @@
             <div class="text-center p-2 bg-red-50 rounded">
                 <p class="text-xs text-gray-500">Outstanding</p>
                 <p class="text-lg font-bold text-red-600">${{ number_format($totalOutstandingFees ?? 0, 2) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graduated/Transferred Students Summary -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">
+            Graduated/Transferred Students 
+            <span class="text-xs font-normal text-gray-500">({{ $graduatedStudentsCount ?? 0 }} students)</span>
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div class="text-center p-2 bg-purple-50 rounded">
+                <p class="text-xs text-gray-500">Total Students</p>
+                <p class="text-lg font-bold text-purple-600">{{ $graduatedStudentsCount ?? 0 }}</p>
+            </div>
+            <div class="text-center p-2 bg-gray-50 rounded">
+                <p class="text-xs text-gray-500">Total Fees</p>
+                <p class="text-lg font-bold text-gray-800">${{ number_format($graduatedTotalFees ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-2 bg-green-50 rounded">
+                <p class="text-xs text-gray-500">Total Paid</p>
+                <p class="text-lg font-bold text-green-600">${{ number_format($graduatedTotalPayments ?? 0, 2) }}</p>
+            </div>
+            <div class="text-center p-2 {{ ($graduatedOutstanding ?? 0) > 0 ? 'bg-red-50' : 'bg-blue-50' }} rounded">
+                <p class="text-xs text-gray-500">Balance</p>
+                <p class="text-lg font-bold {{ ($graduatedOutstanding ?? 0) > 0 ? 'text-red-600' : 'text-blue-600' }}">
+                    @if(($graduatedOutstanding ?? 0) > 0)
+                        ${{ number_format($graduatedOutstanding, 2) }} (Debit)
+                    @elseif(($graduatedOutstanding ?? 0) < 0)
+                        ${{ number_format(abs($graduatedOutstanding), 2) }} (Credit)
+                    @else
+                        $0.00
+                    @endif
+                </p>
+            </div>
+            <div class="text-center p-2 bg-yellow-50 rounded">
+                <p class="text-xs text-gray-500">With Debt / Credit</p>
+                <p class="text-sm font-bold text-yellow-700">
+                    <span class="text-red-600">{{ $graduatedStudentsWithDebt ?? 0 }}</span> / 
+                    <span class="text-blue-600">{{ $graduatedStudentsWithCredit ?? 0 }}</span>
+                </p>
             </div>
         </div>
     </div>
