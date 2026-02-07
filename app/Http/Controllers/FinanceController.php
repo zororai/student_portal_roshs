@@ -1463,6 +1463,7 @@ class FinanceController extends Controller
                 $curriculumType = $student->curriculum_type ?? 'zimsec';
                 $categoryKey = $curriculumType . '_' . $studentType;
                 $isNewStudent = $student->is_new_student ?? false;
+                $scholarshipPercentage = floatval($student->scholarship_percentage ?? 0);
                 
                 if (isset($feesByCategory[$categoryKey])) {
                     $feesByCategory[$categoryKey]['count']++;
@@ -1472,6 +1473,12 @@ class FinanceController extends Controller
                         $feesByCategory[$categoryKey]['new_count'] = ($feesByCategory[$categoryKey]['new_count'] ?? 0) + 1;
                     } else {
                         $feesByCategory[$categoryKey]['existing_count'] = ($feesByCategory[$categoryKey]['existing_count'] ?? 0) + 1;
+                    }
+                    
+                    // Track scholarship students
+                    if ($scholarshipPercentage > 0) {
+                        $feesByCategory[$categoryKey]['scholarship_count'] = ($feesByCategory[$categoryKey]['scholarship_count'] ?? 0) + 1;
+                        $feesByCategory[$categoryKey]['total_scholarship_discount'] = ($feesByCategory[$categoryKey]['total_scholarship_discount'] ?? 0);
                     }
                     
                     foreach ($studentFeesByType as $feeTypeName => $amount) {

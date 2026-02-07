@@ -133,12 +133,20 @@
                 <div class="border rounded-lg p-4 {{ $categoryKey == 'zimsec_day' ? 'bg-blue-50 border-blue-200' : ($categoryKey == 'zimsec_boarding' ? 'bg-green-50 border-green-200' : ($categoryKey == 'cambridge_day' ? 'bg-purple-50 border-purple-200' : 'bg-orange-50 border-orange-200')) }}">
                     <div class="flex justify-between items-center mb-3">
                         <h5 class="font-semibold text-gray-800">{{ $category['label'] }}</h5>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 flex-wrap justify-end">
                             @if(isset($category['new_count']) && $category['new_count'] > 0)
                             <span class="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded-full">{{ $category['new_count'] }} new</span>
                             @endif
                             @if(isset($category['existing_count']) && $category['existing_count'] > 0)
                             <span class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">{{ $category['existing_count'] }} existing</span>
+                            @endif
+                            @if(isset($category['scholarship_count']) && $category['scholarship_count'] > 0)
+                            <span class="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded-full flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {{ $category['scholarship_count'] }} scholarship
+                            </span>
                             @endif
                         </div>
                     </div>
@@ -171,6 +179,14 @@
                         <div class="text-xs text-gray-500 text-right">
                             Avg per student: ${{ number_format($category['total'] / $category['count'], 2) }}
                         </div>
+                        @if(isset($category['scholarship_count']) && $category['scholarship_count'] > 0)
+                        <div class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-1 mt-2 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Amounts shown reflect scholarship discounts already applied</span>
+                        </div>
+                        @endif
                     </div>
                     @else
                     <p class="text-sm text-gray-500">No fees configured</p>
