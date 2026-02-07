@@ -512,6 +512,11 @@ Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|
     Route::post('/admin/settings/sms/preview', 'SmsSettingsController@preview')->name('admin.settings.sms.preview');
     Route::post('/admin/settings/sms/reset-count', 'SmsSettingsController@resetCount')->name('admin.settings.sms.reset-count');
 
+    // Paynow Settings Routes
+    Route::get('/admin/settings/paynow', 'PaynowSettingsController@index')->name('admin.settings.paynow');
+    Route::post('/admin/settings/paynow', 'PaynowSettingsController@store')->name('admin.settings.paynow.store');
+    Route::post('/admin/settings/paynow/test', 'PaynowSettingsController@test')->name('admin.settings.paynow.test');
+
     // Website Settings Routes
     Route::get('/admin/website', 'WebsiteSettingController@index')->name('admin.website.index');
     Route::get('/admin/website/general', 'WebsiteSettingController@general')->name('admin.website.general');
