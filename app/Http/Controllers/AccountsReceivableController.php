@@ -85,9 +85,20 @@ class AccountsReceivableController extends Controller
      */
     public function createInvoice()
     {
-        $students = Student::orderBy('name')->get();
+        // Get students with their user relationship for name
+        $students = Student::with('user')
+            ->join('users', 'students.user_id', '=', 'users.id')
+            ->orderBy('users.name')
+            ->select('students.*')
+            ->get();
         
-        return view('backend.finance.receivables.create-invoice', compact('students'));
+        // Get income accounts from ledger
+        $incomeAccounts = \App\LedgerAccount::where('account_type', 'income')
+            ->where('is_active', true)
+            ->orderBy('account_code')
+            ->get();
+        
+        return view('backend.finance.receivables.create-invoice', compact('students', 'incomeAccounts'));
     }
 
     /**

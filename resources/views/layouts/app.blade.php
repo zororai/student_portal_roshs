@@ -12,6 +12,8 @@
     <meta name="theme-color" content="#0f172a">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     
+    @stack('styles')
+    
 </head>
 <!-- Log on to codeastro.com for more projects -->
 <body class="bg-slate-50 font-sans antialiased" x-data="{ sidebarOpen: false }">

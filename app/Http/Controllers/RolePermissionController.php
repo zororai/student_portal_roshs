@@ -194,6 +194,11 @@ class RolePermissionController extends Controller
             'assets-reports',
             'asset-categories-manage',
             'asset-locations-manage',
+            'sidebar-ledger',
+            'sidebar-financial-reports',
+            'sidebar-journals',
+            'sidebar-receivables',
+            'sidebar-payables',
         ];
         
         $permissions = array_unique(array_merge($permissions, $additionalPermissions));
@@ -214,7 +219,6 @@ class RolePermissionController extends Controller
     private function removeObsoletePermissions()
     {
         $obsoletePermissions = [
-            'sidebar-ledger',
             'sidebar-budgets', 
             'sidebar-reconciliation'
         ];

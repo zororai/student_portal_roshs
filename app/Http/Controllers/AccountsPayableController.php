@@ -77,19 +77,13 @@ class AccountsPayableController extends Controller
     {
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get();
         
-        $expenseCategories = [
-            'salaries' => 'Salaries & Wages',
-            'utilities' => 'Utilities',
-            'electricity' => 'Electricity',
-            'water' => 'Water',
-            'maintenance' => 'Maintenance & Repairs',
-            'teaching_materials' => 'Teaching Materials',
-            'office_supplies' => 'Office Supplies',
-            'transport' => 'Transport & Fuel',
-            'food' => 'Food & Catering',
-        ];
+        // Get expense accounts from ledger
+        $expenseAccounts = \App\LedgerAccount::where('account_type', 'expense')
+            ->where('is_active', true)
+            ->orderBy('account_code')
+            ->get();
         
-        return view('backend.finance.payables.create-invoice', compact('suppliers', 'expenseCategories'));
+        return view('backend.finance.payables.create-invoice', compact('suppliers', 'expenseAccounts'));
     }
 
     /**
