@@ -567,11 +567,94 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::middleware(['role_or_permission:Admin|sidebar-financial-statements|sidebar-finance'])->group(function () {
         Route::get('/finance/statements', 'FinanceController@financialStatements')->name('finance.statements');
+        Route::get('/finance/accounting-guide', 'FinanceController@accountingGuide')->name('finance.accounting-guide');
+        
+        // Financial Reports
+        Route::get('/finance/reports/trial-balance', 'FinancialReportsController@trialBalance')->name('finance.reports.trial-balance');
+        Route::get('/finance/reports/profit-loss', 'FinancialReportsController@profitAndLoss')->name('finance.reports.profit-loss');
+        Route::get('/finance/reports/balance-sheet', 'FinancialReportsController@balanceSheet')->name('finance.reports.balance-sheet');
+        Route::get('/finance/reports/general-ledger', 'FinancialReportsController@generalLedger')->name('finance.reports.general-ledger');
+    });
+
+    // Asset Management Routes - Finance & Accounting
+    Route::middleware(['role_or_permission:Admin|sidebar-assets|sidebar-finance|assets-view'])->group(function () {
+        Route::get('/finance/assets', 'AssetController@index')->name('finance.assets.index');
+        Route::get('/finance/assets/create', 'AssetController@create')->name('finance.assets.create');
+        Route::post('/finance/assets', 'AssetController@store')->name('finance.assets.store');
+        Route::get('/finance/assets/categories', 'AssetController@categories')->name('finance.assets.categories');
+        Route::get('/finance/assets/categories/create', 'AssetController@createCategory')->name('finance.assets.categories.create');
+        Route::post('/finance/assets/categories', 'AssetController@storeCategory')->name('finance.assets.categories.store');
+        Route::get('/finance/assets/categories/{category}/edit', 'AssetController@editCategory')->name('finance.assets.categories.edit');
+        Route::put('/finance/assets/categories/{category}', 'AssetController@updateCategory')->name('finance.assets.categories.update');
+        Route::get('/finance/assets/locations', 'AssetController@locations')->name('finance.assets.locations');
+        Route::get('/finance/assets/locations/create', 'AssetController@createLocation')->name('finance.assets.locations.create');
+        Route::post('/finance/assets/locations', 'AssetController@storeLocation')->name('finance.assets.locations.store');
+        Route::get('/finance/assets/locations/{location}/edit', 'AssetController@editLocation')->name('finance.assets.locations.edit');
+        Route::put('/finance/assets/locations/{location}', 'AssetController@updateLocation')->name('finance.assets.locations.update');
+        Route::get('/finance/assets/maintenance', 'AssetController@maintenance')->name('finance.assets.maintenance');
+        Route::get('/finance/assets/depreciation', 'AssetController@depreciation')->name('finance.assets.depreciation');
+        Route::post('/finance/assets/depreciation/run', 'AssetController@runDepreciation')->name('finance.assets.depreciation.run');
+        Route::post('/finance/assets/depreciation/{depreciation}/post', 'AssetController@postDepreciation')->name('finance.assets.depreciation.post');
+        Route::post('/finance/assets/depreciation/post-all', 'AssetController@postAllDepreciation')->name('finance.assets.depreciation.post-all');
+        Route::get('/finance/assets/reports', 'AssetController@reports')->name('finance.assets.reports');
+        Route::get('/finance/assets/reports/register', 'AssetController@assetRegister')->name('finance.assets.reports.register');
+        Route::get('/finance/assets/reports/depreciation-schedule', 'AssetController@depreciationScheduleReport')->name('finance.assets.reports.depreciation-schedule');
+        Route::get('/finance/assets/reports/maintenance-cost', 'AssetController@maintenanceCostReport')->name('finance.assets.reports.maintenance-cost');
+        Route::get('/finance/assets/reports/disposed', 'AssetController@disposedAssetsReport')->name('finance.assets.reports.disposed');
+        Route::get('/finance/assets/reports/by-location', 'AssetController@assetsByLocation')->name('finance.assets.reports.by-location');
+        Route::get('/finance/assets/{asset}', 'AssetController@show')->name('finance.assets.show');
+        Route::get('/finance/assets/{asset}/edit', 'AssetController@edit')->name('finance.assets.edit');
+        Route::put('/finance/assets/{asset}', 'AssetController@update')->name('finance.assets.update');
+        Route::delete('/finance/assets/{asset}', 'AssetController@destroy')->name('finance.assets.destroy');
+        Route::get('/finance/assets/{asset}/assign', 'AssetController@showAssignForm')->name('finance.assets.assign.form');
+        Route::post('/finance/assets/{asset}/assign', 'AssetController@assign')->name('finance.assets.assign');
+        Route::post('/finance/assets/{asset}/unassign', 'AssetController@unassign')->name('finance.assets.unassign');
+        Route::get('/finance/assets/{asset}/dispose', 'AssetController@showDisposeForm')->name('finance.assets.dispose.form');
+        Route::post('/finance/assets/{asset}/dispose', 'AssetController@dispose')->name('finance.assets.dispose');
+        Route::get('/finance/assets/{asset}/maintenance/create', 'AssetController@createMaintenance')->name('finance.assets.maintenance.create');
+        Route::post('/finance/assets/{asset}/maintenance', 'AssetController@storeMaintenance')->name('finance.assets.maintenance.store');
+        Route::post('/finance/assets/maintenance/{maintenance}/complete', 'AssetController@completeMaintenance')->name('finance.assets.maintenance.complete');
     });
 
     Route::middleware(['role_or_permission:Admin|sidebar-grocery-arrears|sidebar-finance'])->group(function () {
         Route::get('/finance/grocery-arrears', 'GroceryController@groceryArrears')->name('finance.grocery-arrears');
         Route::get('/finance/grocery-arrears/export', 'GroceryController@exportGroceryArrears')->name('finance.grocery-arrears.export');
+    });
+
+    // General Journal Routes
+    Route::middleware(['role_or_permission:Admin|sidebar-journals|sidebar-finance'])->group(function () {
+        Route::get('/finance/journals', 'JournalController@index')->name('finance.journals.index');
+        Route::get('/finance/journals/create', 'JournalController@create')->name('finance.journals.create');
+        Route::post('/finance/journals', 'JournalController@store')->name('finance.journals.store');
+        Route::get('/finance/journals/{id}', 'JournalController@show')->name('finance.journals.show');
+        Route::get('/finance/journals/{id}/edit', 'JournalController@edit')->name('finance.journals.edit');
+        Route::put('/finance/journals/{id}', 'JournalController@update')->name('finance.journals.update');
+        Route::delete('/finance/journals/{id}', 'JournalController@destroy')->name('finance.journals.destroy');
+        Route::post('/finance/journals/{id}/approve', 'JournalController@approve')->name('finance.journals.approve');
+        Route::post('/finance/journals/{id}/post', 'JournalController@post')->name('finance.journals.post');
+    });
+
+    // Accounts Receivable Routes
+    Route::middleware(['role_or_permission:Admin|sidebar-receivables|sidebar-finance'])->group(function () {
+        Route::get('/finance/receivables', 'AccountsReceivableController@index')->name('finance.receivables.index');
+        Route::get('/finance/receivables/invoices', 'AccountsReceivableController@invoices')->name('finance.receivables.invoices');
+        Route::get('/finance/receivables/invoices/create', 'AccountsReceivableController@createInvoice')->name('finance.receivables.invoices.create');
+        Route::post('/finance/receivables/invoices', 'AccountsReceivableController@storeInvoice')->name('finance.receivables.invoices.store');
+        Route::get('/finance/receivables/invoices/{id}', 'AccountsReceivableController@showInvoice')->name('finance.receivables.invoices.show');
+        Route::get('/finance/receivables/aging', 'AccountsReceivableController@aging')->name('finance.receivables.aging');
+        Route::get('/finance/receivables/student/{id}/statement', 'AccountsReceivableController@studentStatement')->name('finance.receivables.statement');
+    });
+
+    // Accounts Payable Routes
+    Route::middleware(['role_or_permission:Admin|sidebar-payables|sidebar-finance'])->group(function () {
+        Route::get('/finance/payables', 'AccountsPayableController@index')->name('finance.payables.index');
+        Route::get('/finance/payables/invoices', 'AccountsPayableController@invoices')->name('finance.payables.invoices');
+        Route::get('/finance/payables/invoices/create', 'AccountsPayableController@createInvoice')->name('finance.payables.invoices.create');
+        Route::post('/finance/payables/invoices', 'AccountsPayableController@storeInvoice')->name('finance.payables.invoices.store');
+        Route::get('/finance/payables/invoices/{id}', 'AccountsPayableController@showInvoice')->name('finance.payables.invoices.show');
+        Route::get('/finance/payables/invoices/{id}/pay', 'AccountsPayableController@showPaymentForm')->name('finance.payables.invoices.pay');
+        Route::post('/finance/payables/invoices/{id}/pay', 'AccountsPayableController@recordPayment')->name('finance.payables.invoices.payment');
+        Route::get('/finance/payables/aging', 'AccountsPayableController@aging')->name('finance.payables.aging');
     });
 
     Route::middleware(['role_or_permission:Admin|sidebar-grocery-stock|sidebar-finance'])->group(function () {

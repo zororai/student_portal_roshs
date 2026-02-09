@@ -111,7 +111,24 @@ class RolePermissionController extends Controller
                 'sidebar-payroll' => 'Payroll',
                 'sidebar-cashbook' => 'Cash Book',
                 'sidebar-purchase-orders' => 'Purchase Orders',
-                'sidebar-reports' => 'Reports & Dashboard'
+                'sidebar-reports' => 'Reports & Dashboard',
+                'sidebar-assets' => 'Asset Management',
+                'assets-view' => 'View Assets',
+                'assets-create' => 'Create Assets',
+                'assets-edit' => 'Edit Assets',
+                'assets-delete' => 'Delete Assets',
+                'assets-assign' => 'Assign Assets',
+                'assets-dispose' => 'Dispose Assets',
+                'assets-maintenance' => 'Asset Maintenance',
+                'assets-depreciation' => 'Asset Depreciation',
+                'assets-reports' => 'Asset Reports',
+                'asset-categories-manage' => 'Manage Asset Categories',
+                'asset-locations-manage' => 'Manage Asset Locations',
+                'sidebar-ledger' => 'Double-Entry Accounting & Ledger',
+                'sidebar-financial-reports' => 'Financial Reports (Trial Balance, P&L, Balance Sheet)',
+                'sidebar-journals' => 'General Journal',
+                'sidebar-receivables' => 'Accounts Receivable',
+                'sidebar-payables' => 'Accounts Payable'
             ],
             'Settings' => [
                 'sidebar-settings' => 'Settings Section'
@@ -165,6 +182,18 @@ class RolePermissionController extends Controller
             'sidebar-grocery-arrears',
             'sidebar-grocery-stock',
             'sidebar-financial-statements',
+            'sidebar-assets',
+            'assets-view',
+            'assets-create',
+            'assets-edit',
+            'assets-delete',
+            'assets-assign',
+            'assets-dispose',
+            'assets-maintenance',
+            'assets-depreciation',
+            'assets-reports',
+            'asset-categories-manage',
+            'asset-locations-manage',
         ];
         
         $permissions = array_unique(array_merge($permissions, $additionalPermissions));
@@ -367,7 +396,19 @@ class RolePermissionController extends Controller
                 'sidebar-payroll' => 'Payroll',
                 'sidebar-cashbook' => 'Cash Book',
                 'sidebar-purchase-orders' => 'Purchase Orders',
-                'sidebar-reports' => 'Reports & Dashboard'
+                'sidebar-reports' => 'Reports & Dashboard',
+                'sidebar-assets' => 'Asset Management',
+                'assets-view' => 'View Assets',
+                'assets-create' => 'Create Assets',
+                'assets-edit' => 'Edit Assets',
+                'assets-delete' => 'Delete Assets',
+                'assets-assign' => 'Assign Assets',
+                'assets-dispose' => 'Dispose Assets',
+                'assets-maintenance' => 'Asset Maintenance',
+                'assets-depreciation' => 'Asset Depreciation',
+                'assets-reports' => 'Asset Reports',
+                'asset-categories-manage' => 'Manage Asset Categories',
+                'asset-locations-manage' => 'Manage Asset Locations'
             ],
             'Settings' => [
                 'sidebar-settings' => 'Settings Section'
@@ -420,7 +461,10 @@ class RolePermissionController extends Controller
             'sidebar-payment-verification', 'sidebar-parents-arrears', 'sidebar-school-income', 'sidebar-school-expenses',
             'sidebar-inventory', 'sidebar-pos', 'sidebar-student-groceries', 'sidebar-grocery-arrears',
             'sidebar-grocery-stock', 'sidebar-financial-statements', 'sidebar-payroll', 'sidebar-cashbook', 
-            'sidebar-purchase-orders', 'sidebar-reports', 'sidebar-settings'
+            'sidebar-purchase-orders', 'sidebar-reports', 'sidebar-settings', 'sidebar-assets',
+            'assets-view', 'assets-create', 'assets-edit', 'assets-delete', 'assets-assign',
+            'assets-dispose', 'assets-maintenance', 'assets-depreciation', 'assets-reports',
+            'asset-categories-manage', 'asset-locations-manage'
         ];
         
         // Remove all existing sidebar permissions from user

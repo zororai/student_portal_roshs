@@ -24,4 +24,26 @@ class Supplier extends Model
     {
         return $this->hasMany(PurchaseOrder::class);
     }
+
+    public function invoices()
+    {
+        return $this->hasMany(SupplierInvoice::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasManyThrough(SupplierPayment::class, SupplierInvoice::class);
+    }
+
+    /**
+     * Get total outstanding balance
+     */
+    public function getOutstandingBalance()
+    {
+        return $this->invoices()
+            ->whereIn('status', ['unpaid', 'partial'])
+            ->sum('amount') - $this->invoices()
+            ->whereIn('status', ['unpaid', 'partial'])
+            ->sum('paid_amount');
+    }
 }

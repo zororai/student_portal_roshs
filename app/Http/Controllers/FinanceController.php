@@ -1573,6 +1573,14 @@ class FinanceController extends Controller
     }
 
     /**
+     * Display double-entry accounting guide
+     */
+    public function accountingGuide()
+    {
+        return view('backend.finance.accounting-guide');
+    }
+
+    /**
      * Display payment history for parent's children
      */
     public function parentPaymentHistory()
