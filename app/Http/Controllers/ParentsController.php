@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use App\Helpers\SmsHelper;
+use App\SchoolSetting;
 
 class ParentsController extends Controller
 {
@@ -322,10 +323,15 @@ class ParentsController extends Controller
         $smsSent = false;
         if ($parent->phone) {
             $phone = $this->formatPhoneNumber($parent->phone);
-            $message = "ROSHS Password Reset\n" .
-                       "Email: {$parent->user->email}\n" .
-                       "Temp Password: {$tempPassword}\n" .
-                       "Please login and change your password immediately.";
+            $messageTemplate = SchoolSetting::get(
+                'sms_parent_password_reset_template',
+                "ROSHS Password Reset\nEmail: {email}\nTemp Password: {password}\nPlease login and change your password immediately."
+            );
+            $message = str_replace(
+                ['{name}', '{email}', '{password}'],
+                [$parent->user->name, $parent->user->email, $tempPassword],
+                $messageTemplate
+            );
             
             $result = SmsHelper::sendSms($phone, $message);
             $smsSent = $result['success'];

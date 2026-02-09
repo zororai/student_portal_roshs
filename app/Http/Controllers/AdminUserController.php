@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use App\SchoolSetting;
 
 class AdminUserController extends Controller
 {
@@ -90,7 +91,15 @@ class AdminUserController extends Controller
                 $phone = '+263' . ltrim($phone, '0');
             }
             
-            $message = "RSH School: Account created. Login: {$email}, Password: {$password}. Please change your password on first login.";
+            $messageTemplate = SchoolSetting::get(
+                'sms_admin_user_credentials_template',
+                'RSH School: Account created. Login: {email}, Password: {password}. Please change your password on first login.'
+            );
+            $message = str_replace(
+                ['{name}', '{email}', '{password}'],
+                [$name, $email, $password],
+                $messageTemplate
+            );
             
             // Send SMS using SmsHelper
             $result = \App\Helpers\SmsHelper::sendSms($phone, $message);

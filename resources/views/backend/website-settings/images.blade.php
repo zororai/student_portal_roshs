@@ -20,6 +20,26 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <ul class="list-disc list-inside">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
+        <strong>How to change images:</strong> Click "Choose Image" to select a new file, then click "Save Changes" at the bottom.
+    </div>
+
     <div class="bg-white rounded-lg shadow-md">
         <form action="{{ route('admin.website.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
@@ -68,16 +88,16 @@
                             >
                             <label 
                                 for="{{ $setting->key }}" 
+                                id="label_{{ $setting->key }}"
                                 class="w-full flex items-center justify-center px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition-colors"
                             >
                                 <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                 </svg>
-                                <span class="text-sm text-gray-600">Choose Image</span>
+                                <span class="text-sm text-gray-600" id="labeltext_{{ $setting->key }}">Choose Image</span>
                             </label>
                         </div>
-                        
-                        <p class="text-xs text-gray-400 mt-2">Recommended: PNG or JPG, max 2MB</p>
+                        <p class="text-xs text-gray-400 mt-2" id="hint_{{ $setting->key }}">Recommended: PNG or JPG, max 2MB</p>
                     </div>
                     @endforeach
                 </div>
@@ -98,6 +118,7 @@
 <script>
 function previewImage(input, key) {
     if (input.files && input.files[0]) {
+        const file = input.files[0];
         const reader = new FileReader();
         reader.onload = function(e) {
             let preview = document.getElementById('preview_' + key);
@@ -109,7 +130,27 @@ function previewImage(input, key) {
                 placeholder.innerHTML = '<img src="' + e.target.result + '" alt="Preview" class="max-w-full h-24 object-contain border rounded-lg bg-white p-2" id="preview_' + key + '">';
             }
         }
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
+        
+        // Update label to show selected filename
+        const label = document.getElementById('label_' + key);
+        const labelText = document.getElementById('labeltext_' + key);
+        const hint = document.getElementById('hint_' + key);
+        
+        if (label) {
+            label.classList.remove('border-gray-300');
+            label.classList.add('border-green-500', 'bg-green-50');
+        }
+        if (labelText) {
+            labelText.textContent = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
+            labelText.classList.remove('text-gray-600');
+            labelText.classList.add('text-green-700');
+        }
+        if (hint) {
+            hint.textContent = 'File selected! Click "Save Changes" to upload.';
+            hint.classList.remove('text-gray-400');
+            hint.classList.add('text-green-600', 'font-medium');
+        }
     }
 }
 </script>

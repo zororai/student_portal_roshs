@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade as PDF;
 use App\Helpers\SmsHelper;
+use App\SchoolSetting;
 
 class StudentController extends Controller
 {
@@ -312,7 +313,15 @@ class StudentController extends Controller
         $smsMessage = '';
         if ($newParentPhone && $newParentRecord && $newParentRecord->registration_token) {
             $registrationUrl = url('/parent/register/' . $newParentRecord->registration_token);
-            $message = "RSH School: {$student->user->name} registered. Complete parent registration: {$registrationUrl}";
+            $messageTemplate = SchoolSetting::get(
+                'sms_student_parent_registration_template',
+                'RSH School: {student_name} registered. Complete parent registration: {url}'
+            );
+            $message = str_replace(
+                ['{student_name}', '{url}'],
+                [$student->user->name, $registrationUrl],
+                $messageTemplate
+            );
             
             $smsResult = SmsHelper::sendSms($newParentPhone, $message);
             
@@ -533,8 +542,16 @@ class StudentController extends Controller
                 if ($parent && $parent->registration_token) {
                     $registrationUrl = url('/parent/register/' . $parent->registration_token);
 
-                    // Shorter message to avoid InboxIQ HTTP 500 error
-                    $message = "RSH School: {$request->student_name} registered. Complete parent registration: {$registrationUrl}";
+                    // Get message template from settings
+                    $messageTemplate = SchoolSetting::get(
+                        'sms_student_parent_registration_template',
+                        'RSH School: {student_name} registered. Complete parent registration: {url}'
+                    );
+                    $message = str_replace(
+                        ['{student_name}', '{url}'],
+                        [$request->student_name, $registrationUrl],
+                        $messageTemplate
+                    );
 
                     // Send SMS directly using SmsHelper (same as test page)
                     $smsResult = SmsHelper::sendSms($phone, $message);
@@ -658,8 +675,16 @@ class StudentController extends Controller
                 if ($parent->registration_token && $parent->token_expires_at && $parent->token_expires_at->isFuture()) {
                     $registrationUrl = url('/parent/register/' . $parent->registration_token);
                     
-                    // Shorter message to avoid InboxIQ HTTP 500 error
-                    $message = "RSH School: {$student->user->name} registered. Complete parent registration: {$registrationUrl}";
+                    // Get message template from settings
+                    $messageTemplate = SchoolSetting::get(
+                        'sms_student_parent_registration_template',
+                        'RSH School: {student_name} registered. Complete parent registration: {url}'
+                    );
+                    $message = str_replace(
+                        ['{student_name}', '{url}'],
+                        [$student->user->name, $registrationUrl],
+                        $messageTemplate
+                    );
                     
                     // Send SMS directly using SmsHelper (same as test page)
                     $result = SmsHelper::sendSms($parent->phone, $message);

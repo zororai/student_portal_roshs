@@ -1522,10 +1522,15 @@ class TeacherController extends Controller
         $smsSent = false;
         if ($teacher->phone) {
             $phone = $this->formatPhoneNumber($teacher->phone);
-            $message = "ROSHS Password Reset\n" .
-                       "Email: {$teacher->user->email}\n" .
-                       "Temp Password: {$tempPassword}\n" .
-                       "Please login and change your password immediately.";
+            $messageTemplate = SchoolSetting::get(
+                'sms_teacher_password_reset_template',
+                "ROSHS Password Reset\nEmail: {email}\nTemp Password: {password}\nPlease login and change your password immediately."
+            );
+            $message = str_replace(
+                ['{name}', '{email}', '{password}'],
+                [$teacher->user->name, $teacher->user->email, $tempPassword],
+                $messageTemplate
+            );
             
             $result = SmsHelper::sendSms($phone, $message);
             $smsSent = $result['success'];

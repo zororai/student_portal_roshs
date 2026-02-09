@@ -106,57 +106,81 @@
                     </span>
                     Message Templates
                 </h3>
-                
-                <!-- Placeholders Info -->
-                <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
-                    <div class="flex items-start">
-                        <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                        <div>
-                            <p class="text-sm font-medium text-blue-700">Available Placeholders:</p>
-                            <ul class="text-sm text-blue-600 mt-1 space-y-1">
-                                <li><code class="bg-blue-100 px-1 rounded">{name}</code> - Teacher's full name</li>
-                                <li><code class="bg-blue-100 px-1 rounded">{phone}</code> - Teacher's phone number (used as login)</li>
-                                <li><code class="bg-blue-100 px-1 rounded">{password}</code> - Default password</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="space-y-6">
+                <div class="space-y-8">
                     <!-- Teacher Credentials Template -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Teacher Account Credentials SMS <span class="text-red-500">*</span></label>
-                        <textarea name="teacher_credentials_template" rows="4" id="teacher_template"
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs mr-2">Teacher Creation</span>
+                            Teacher Account Credentials SMS <span class="text-red-500">*</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mb-2">Placeholders: <code class="bg-gray-200 px-1 rounded">{name}</code> <code class="bg-gray-200 px-1 rounded">{phone}</code> <code class="bg-gray-200 px-1 rounded">{password}</code></p>
+                        <textarea name="teacher_credentials_template" rows="3"
                             class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('teacher_credentials_template') border-red-500 @enderror"
                             placeholder="Enter SMS template...">{{ old('teacher_credentials_template', $teacherCredentialsTemplate) }}</textarea>
                         @error('teacher_credentials_template')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
-                        <div class="mt-2 flex items-center justify-between">
-                            <p class="text-xs text-gray-500">Character count: <span id="char_count">0</span>/160 (SMS limit)</p>
-                            <button type="button" onclick="previewMessage()" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Preview Message</button>
-                        </div>
                     </div>
 
-                    <!-- Preview Box -->
-                    <div id="preview_box" class="hidden">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Message Preview</label>
-                        <div class="bg-gray-100 border border-gray-200 rounded-lg p-4">
-                            <div class="flex items-start">
-                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-500 mb-1">Sample Message (using placeholder values)</p>
-                                    <p id="preview_text" class="text-sm text-gray-800"></p>
-                                    <p class="text-xs text-gray-500 mt-2">Length: <span id="preview_length">0</span> characters</p>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- Student/Parent Registration Template -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-700 text-xs mr-2">Student Registration</span>
+                            Student/Parent Registration SMS <span class="text-red-500">*</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mb-2">Placeholders: <code class="bg-gray-200 px-1 rounded">{student_name}</code> <code class="bg-gray-200 px-1 rounded">{url}</code></p>
+                        <textarea name="student_parent_registration_template" rows="3"
+                            class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('student_parent_registration_template') border-red-500 @enderror"
+                            placeholder="Enter SMS template...">{{ old('student_parent_registration_template', $studentParentRegistrationTemplate) }}</textarea>
+                        @error('student_parent_registration_template')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Parent Password Reset Template -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs mr-2">Password Reset</span>
+                            Parent Password Reset SMS <span class="text-red-500">*</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mb-2">Placeholders: <code class="bg-gray-200 px-1 rounded">{name}</code> <code class="bg-gray-200 px-1 rounded">{email}</code> <code class="bg-gray-200 px-1 rounded">{password}</code></p>
+                        <textarea name="parent_password_reset_template" rows="3"
+                            class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('parent_password_reset_template') border-red-500 @enderror"
+                            placeholder="Enter SMS template...">{{ old('parent_password_reset_template', $parentPasswordResetTemplate) }}</textarea>
+                        @error('parent_password_reset_template')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Teacher Password Reset Template -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs mr-2">Password Reset</span>
+                            Teacher Password Reset SMS <span class="text-red-500">*</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mb-2">Placeholders: <code class="bg-gray-200 px-1 rounded">{name}</code> <code class="bg-gray-200 px-1 rounded">{email}</code> <code class="bg-gray-200 px-1 rounded">{password}</code></p>
+                        <textarea name="teacher_password_reset_template" rows="3"
+                            class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('teacher_password_reset_template') border-red-500 @enderror"
+                            placeholder="Enter SMS template...">{{ old('teacher_password_reset_template', $teacherPasswordResetTemplate) }}</textarea>
+                        @error('teacher_password_reset_template')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Admin User Credentials Template -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="inline-flex items-center px-2 py-1 rounded bg-purple-100 text-purple-700 text-xs mr-2">Admin Users</span>
+                            Admin User Credentials SMS <span class="text-red-500">*</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mb-2">Placeholders: <code class="bg-gray-200 px-1 rounded">{name}</code> <code class="bg-gray-200 px-1 rounded">{email}</code> <code class="bg-gray-200 px-1 rounded">{password}</code></p>
+                        <textarea name="admin_user_credentials_template" rows="3"
+                            class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors @error('admin_user_credentials_template') border-red-500 @enderror"
+                            placeholder="Enter SMS template...">{{ old('admin_user_credentials_template', $adminUserCredentialsTemplate) }}</textarea>
+                        @error('admin_user_credentials_template')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -178,45 +202,3 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-    $(function() {
-        const textarea = $('#teacher_template');
-        const charCount = $('#char_count');
-        
-        function updateCharCount() {
-            const length = textarea.val().length;
-            charCount.text(length);
-            if (length > 160) {
-                charCount.addClass('text-red-600 font-semibold').removeClass('text-gray-500');
-            } else {
-                charCount.removeClass('text-red-600 font-semibold').addClass('text-gray-500');
-            }
-        }
-        
-        textarea.on('input', updateCharCount);
-        updateCharCount();
-    });
-    
-    function previewMessage() {
-        const template = $('#teacher_template').val();
-        
-        $.ajax({
-            url: '{{ route("admin.settings.sms.preview") }}',
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                template: template
-            },
-            success: function(response) {
-                $('#preview_text').text(response.preview);
-                $('#preview_length').text(response.character_count);
-                $('#preview_box').removeClass('hidden');
-            },
-            error: function() {
-                alert('Failed to generate preview');
-            }
-        });
-    }
-</script>
-@endpush
