@@ -517,6 +517,10 @@ Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|
     Route::post('/admin/settings/paynow', 'PaynowSettingsController@store')->name('admin.settings.paynow.store');
     Route::post('/admin/settings/paynow/test', 'PaynowSettingsController@test')->name('admin.settings.paynow.test');
 
+    // Receipt Settings Routes
+    Route::get('/admin/settings/receipt', 'SchoolSettingsController@receiptSettings')->name('admin.settings.receipt');
+    Route::put('/admin/settings/receipt', 'SchoolSettingsController@updateReceiptSettings')->name('admin.settings.receipt.update');
+
     // Website Settings Routes
     Route::get('/admin/website', 'WebsiteSettingController@index')->name('admin.website.index');
     Route::get('/admin/website/general', 'WebsiteSettingController@general')->name('admin.website.general');
@@ -524,6 +528,7 @@ Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|
     Route::get('/admin/website/images', 'WebsiteSettingController@images')->name('admin.website.images');
     Route::get('/admin/website/text', 'WebsiteSettingController@text')->name('admin.website.text');
     Route::get('/admin/website/pages', 'WebsiteSettingController@pages')->name('admin.website.pages');
+    Route::get('/admin/website/homepage', 'WebsiteSettingController@homepage')->name('admin.website.homepage');
     Route::put('/admin/website/update', 'WebsiteSettingController@update')->name('admin.website.update');
     Route::get('/admin/website/banners', 'WebsiteSettingController@banners')->name('admin.website.banners');
     Route::put('/admin/website/banners', 'WebsiteSettingController@updateBanners')->name('admin.website.banners.update');

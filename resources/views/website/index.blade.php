@@ -319,13 +319,13 @@
 		      <div class="col-md-12">
 			     <div class="tab_menu">
 				    <ul>
-					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i1.png') }}" alt="#" /></span><span>Roshs Life</span></a></li>
-					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i2.png') }}" alt="#" /></span><span>Graduation</span></a></li>
-					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i3.png') }}" alt="#" /></span><span>Athletics</span></a></li>
-					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i4.png') }}" alt="#" /></span><span>Social</span></a></li>
-					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i5.png') }}" alt="#" /></span><span>Location</span></a></li>
-					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i6.png') }}" alt="#" /></span><span>Call us</span></a></li>
-					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i5.png') }}" alt="#" /></span><span>Email</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i1.png') }}" alt="#" /></span><span>{{ \App\WebsiteSetting::get('home_tab_1_text', 'Roshs Life') }}</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i2.png') }}" alt="#" /></span><span>{{ \App\WebsiteSetting::get('home_tab_2_text', 'Graduation') }}</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i3.png') }}" alt="#" /></span><span>{{ \App\WebsiteSetting::get('home_tab_3_text', 'Athletics') }}</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i4.png') }}" alt="#" /></span><span>{{ \App\WebsiteSetting::get('home_tab_4_text', 'Social') }}</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i5.png') }}" alt="#" /></span><span>{{ \App\WebsiteSetting::get('home_tab_5_text', 'Location') }}</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i6.png') }}" alt="#" /></span><span>{{ \App\WebsiteSetting::get('home_tab_6_text', 'Call us') }}</span></a></li>
+					   <li><a href="#"><span class="icon"><img src="{{ asset('images/i5.png') }}" alt="#" /></span><span>{{ \App\WebsiteSetting::get('home_tab_7_text', 'Email') }}</span></a></li>
 					</ul>
 				 </div>
 			  </div>
@@ -338,16 +338,16 @@
             <div class="row">
 			    <div class="col-md-6">
                     <div class="full float-right_img">
-                     <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid%3D100094334670439&tabs=timeline&width=500&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId=699810548919387" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                     <iframe src="{{ \App\WebsiteSetting::get('home_facebook_embed', 'https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid%3D100094334670439&tabs=timeline&width=500&height=500&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId=699810548919387') }}" width="500" height="500" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
                     </div>
                 </div>
                 <div class="col-md-6 layout_padding_2">
                     <div class="full">
                         <div class="heading_main text_align_left">
-						   <h2><span>About Rose of Sharon</h2>
+						   <h2><span>{{ \App\WebsiteSetting::get('home_about_title', 'About Rose of Sharon') }}</h2>
                         </div>
 						<div class="full">
-						  <p>Then Rose Of Sharon High School will know that he is the Lord God who lives in Zion his holy mountain, Rose of Sharon High School will remain forever and foreign mountains will drip with sweet wine and the hills will flow with milk, water will fill the streambeds of Rose of Sharon High School and the fountain will burst forth from the Lord’s temple watering the arid valleys of Rose of Sharon High School. Rose of Sharon High School will remain forever and Rose of Sharon High School will endure through all future generations</p>
+						  <p>{{ \App\WebsiteSetting::get('home_about_text', 'Then Rose Of Sharon High School will know that he is the Lord God who lives in Zion his holy mountain, Rose of Sharon High School will remain forever and foreign mountains will drip with sweet wine and the hills will flow with milk, water will fill the streambeds of Rose of Sharon High School and the fountain will burst forth from the Lord\'s temple watering the arid valleys of Rose of Sharon High School. Rose of Sharon High School will remain forever and Rose of Sharon High School will endure through all future generations') }}</p>
 						</div>
 						<div class="full">
 						   <a class="hvr-radial-out button-theme" href="Application.html">Apply</a>
@@ -365,11 +365,11 @@
                 <div class="col-md-6 layout_padding_2">
                     <div class="full">
                         <div class="heading_main text_align_left">
-						   <h2><span>Dr. Fatima Maruta
-                            </span > DIRECTOR OF EDUCATION</h2>
+						   <h2><span>{{ \App\WebsiteSetting::get('home_director_name', 'Dr. Fatima Maruta') }}
+                            </span > {{ \App\WebsiteSetting::get('home_director_title', 'DIRECTOR OF EDUCATION') }}</h2>
                         </div>
 						<div class="full">
-						  <p>Dr. Fatima Maruta is a holder of several accounting qualifications that include a Bachelor’s Degree in Accountancy from the University of Zimbabwe and Masters Degree in Business Adminstration from Bloomsburg University, PA USA. In year 2014, she was conferred with an Honorary Doctorate Degree in Humane Letters, DHL, from the International Institute of Philanthropy IIP in recognition of practical application of expertise in Humanities. In 2016 she was conferred with an Honorary Doctor of Arts Degree and an Honorary Master of Business Leadership Degree from International Women’s University in recognition of practical application of expertise in Humanities. In the same year, she was conferred an award as Zimbabwe Top female academic leader by the Zimbabwe Leadership Awards</p>
+						  <p>{{ \App\WebsiteSetting::get('home_director_bio', 'Dr. Fatima Maruta is a holder of several accounting qualifications that include a Bachelor’s Degree in Accountancy from the University of Zimbabwe and Masters Degree in Business Adminstration from Bloomsburg University, PA USA. In year 2014, she was conferred with an Honorary Doctorate Degree in Humane Letters, DHL, from the International Institute of Philanthropy IIP in recognition of practical application of expertise in Humanities. In 2016 she was conferred with an Honorary Doctor of Arts Degree and an Honorary Master of Business Leadership Degree from International Women’s University in recognition of practical application of expertise in Humanities. In the same year, she was conferred an award as Zimbabwe Top female academic leader by the Zimbabwe Leadership Awards') }}</p>
 						</div>
 						<div class="full">
 						   <a class="hvr-radial-out button-theme" href="about.html">About more</a>
@@ -378,7 +378,7 @@
                 </div>
 				<div class="col-md-6">
                     <div class="full">
-                        <img src="images/img2.png" alt="#" />
+                        <img src="{{ asset(\App\WebsiteSetting::get('home_director_image', 'images/img2.png')) }}" alt="#" />
                     </div>
                 </div>
             </div>
@@ -467,29 +467,29 @@
                 <div class="col-md-12">
                     <div class="full">
                         <div class="heading_main text_align_center">
-						   <h2><span>OUR  </span>CLUBS</h2>
+						   <h2><span>{{ \App\WebsiteSetting::get('home_clubs_title', 'OUR CLUBS') }}</span></h2>
                         </div>
 					  </div>
                 </div>
 				<div class="col-md-4">
                     <div class="full blog_img_popular">
-                       <img class="img-responsive" src="images/drama.jpg" alt="#" />
-					   <h4>DRAMA</h4>
-                       <p>This club forms the basis of raising facts on specified topics hence providing indispensable to people. It is also aimed at developing and sharpening communication skills and inculcating confidence within learners.</p>
+                       <img class="img-responsive" src="{{ asset(\App\WebsiteSetting::get('home_club_1_image', 'images/drama.jpg')) }}" alt="#" />
+					   <h4>{{ \App\WebsiteSetting::get('home_club_1_title', 'DRAMA') }}</h4>
+                       <p>{{ \App\WebsiteSetting::get('home_club_1_text', 'This club forms the basis of raising facts on specified topics hence providing indispensable to people.') }}</p>
                     </div>
                 </div>
 				<div class="col-md-4">
                     <div class="full blog_img_popular">
-                        <img class="img-responsive" src="images/inreaction.jpg" alt="#" />
-						<h4>INTERACT</h4>
-                        <p>This club existed since 2012 at R.O.S.H. It is aimed at providing social support to the vulnerable and the deprived or underprivileged. It came into existence after the realization of some people in needy. </p>
+                        <img class="img-responsive" src="{{ asset(\App\WebsiteSetting::get('home_club_2_image', 'images/inreaction.jpg')) }}" alt="#" />
+						<h4>{{ \App\WebsiteSetting::get('home_club_2_title', 'INTERACT') }}</h4>
+                        <p>{{ \App\WebsiteSetting::get('home_club_2_text', 'This club existed since 2012 at R.O.S.H. It is aimed at providing social support to the vulnerable.') }}</p>
                     </div>
                 </div>
 				<div class="col-md-4">
                     <div class="full blog_img_popular">
-                        <img class="img-responsive" src="images/dedate.jpg" alt="#" />
-						<h4>DEBATE</h4>
-                        <p>This club forms the basis of raising facts on specified topics hence providing indispensable to people. It is also aimed at developing and sharpening communication skills and inculcating confidence within learners.</p>
+                        <img class="img-responsive" src="{{ asset(\App\WebsiteSetting::get('home_club_3_image', 'images/dedate.jpg')) }}" alt="#" />
+						<h4>{{ \App\WebsiteSetting::get('home_club_3_title', 'DEBATE') }}</h4>
+                        <p>{{ \App\WebsiteSetting::get('home_club_3_text', 'This club forms the basis of raising facts on specified topics hence providing indispensable to people.') }}</p>
                     </div>
                 </div>
             </div>
@@ -506,10 +506,10 @@
                 <div class="col-md-6">
                     <div class="full">
                         <div class="heading_main text_align_left">
-						   <h2><span>SCHOOL DECLARATION</span></h2>
+						   <h2><span>{{ \App\WebsiteSetting::get('home_declaration_title', 'SCHOOL DECLARATION') }}</span></h2>
                         </div>
 						<div class="full">
-						  <p>Then Rose Of Sharon High School will know that he is the Lord God who lives in Zion his holy mountain, Rose of Sharon High School will remain forever and foreign mountains will drip with sweet wine and the hills will flow with milk, water will fill the streambeds of Rose of Sharon High School and the fountain will burst forth from the Lord’s temple watering the arid valleys of Rose of Sharon High School. Rose of Sharon High School will remain forever and Rose of Sharon High School will endure through all future generations.</p>
+						  <p>{{ \App\WebsiteSetting::get('home_declaration_text', 'Then Rose Of Sharon High School will know that he is the Lord God who lives in Zion his holy mountain, Rose of Sharon High School will remain forever and foreign mountains will drip with sweet wine and the hills will flow with milk, water will fill the streambeds of Rose of Sharon High School and the fountain will burst forth from the Lord’s temple watering the arid valleys of Rose of Sharon High School. Rose of Sharon High School will remain forever and Rose of Sharon High School will endure through all future generations.') }}</p>
 						</div>
 						<div class="full">
 						   <a class="hvr-radial-out button-theme" href="success.html">See More</a>
@@ -518,7 +518,7 @@
                 </div>
 				<div class="col-md-6">
                     <div class="full">
-                        <img class="img-responsive" src="images/req.jpg" alt="#" />
+                        <img class="img-responsive" src="{{ asset(\App\WebsiteSetting::get('home_declaration_image', 'images/req.jpg')) }}" alt="#" />
                     </div>
                 </div>
             </div>
@@ -600,8 +600,7 @@
 				<img style="height:80px;width :100px" src="{{ asset($footerLogo) }}" alt="image">
 					 </div>
 					 <div class="full white_fonts">
-					    <p>Our Vision
-is provide a well-groomed, enriched (in ideas) and productive learner given a firm foundation for tertiary and life challenges.</p>
+					    <p>{{ \App\WebsiteSetting::get('footer_vision_text', 'Our Vision is provide a well-groomed, enriched (in ideas) and productive learner given a firm foundation for tertiary and life challenges.') }}</p>
 					 </div>
 				 </div>
 			  </div>
@@ -610,11 +609,11 @@ is provide a well-groomed, enriched (in ideas) and productive learner given a fi
 			       <div class="footer_blog footer_menu white_fonts">
 						    <h3>Quick links</h3>
 						    <ul>
-							  <li><a href="#">> Join Us</a></li>
-							  <li><a href="#">> Maintenance</a></li>
-							  <li><a href="#">> Language Packs</a></li>
-							  <li><a href="#">> LearnPress</a></li>
-							  <li><a href="#">> Release Status</a></li>
+							  <li><a href="#">> {{ \App\WebsiteSetting::get('footer_quick_link_1', 'Join Us') }}</a></li>
+							  <li><a href="#">> {{ \App\WebsiteSetting::get('footer_quick_link_2', 'Maintenance') }}</a></li>
+							  <li><a href="#">> {{ \App\WebsiteSetting::get('footer_quick_link_3', 'Language Packs') }}</a></li>
+							  <li><a href="#">> {{ \App\WebsiteSetting::get('footer_quick_link_4', 'LearnPress') }}</a></li>
+							  <li><a href="#">> {{ \App\WebsiteSetting::get('footer_quick_link_5', 'Release Status') }}</a></li>
 							</ul>
 						 </div>
 				 </div>

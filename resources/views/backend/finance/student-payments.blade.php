@@ -692,6 +692,12 @@
 </div>
 
 <script>
+    // Receipt Settings from database
+    const receiptSchoolShortName = '{{ \App\SchoolSetting::get("receipt_school_short_name", "ROSHS") }}';
+    const receiptSchoolFullName = '{{ \App\SchoolSetting::get("receipt_school_full_name", "Rose Of Sharon High School") }}';
+    const receiptFooterMessage = '{{ \App\SchoolSetting::get("receipt_footer_message", "Thank You!") }}';
+    const receiptFooterNote = '{{ \App\SchoolSetting::get("receipt_footer_note", "This is a computer-generated receipt.") }}';
+
     let currentBalance = 0;
     let currentStep = 1;
     let currentStudentName = '';
@@ -981,8 +987,8 @@
             <body>
                 <div class="receipt">
                     <div class="header">
-                        <h1>ROSHS</h1>
-                        <p>Robert Sobukwe High School</p>
+                        <h1>${receiptSchoolShortName}</h1>
+                        <p>${receiptSchoolFullName}</p>
                         <p>Payment Receipt</p>
                         <div class="receipt-no">${receiptNo}</div>
                     </div>
@@ -1020,8 +1026,8 @@
                     </div>
                     
                     <div class="footer">
-                        <p class="thank-you">Thank You!</p>
-                        <p>This is a computer-generated receipt.</p>
+                        <p class="thank-you">${receiptFooterMessage}</p>
+                        <p>${receiptFooterNote}</p>
                         <p>Printed on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                 </div>
@@ -1555,8 +1561,8 @@
             <body>
                 <div class="receipt">
                     <div class="header">
-                        <h1>ROSHS</h1>
-                        <p>Robert Sobukwe High School</p>
+                        <h1>${receiptSchoolShortName}</h1>
+                        <p>${receiptSchoolFullName}</p>
                         <p>Payment Receipt</p>
                         <div class="receipt-no">${receiptNo}</div>
                     </div>
@@ -1591,8 +1597,8 @@
                         <div class="amount-value">$${parseFloat(receipt.amount).toFixed(2)}</div>
                     </div>
                     <div class="footer">
-                        <p class="thank-you">Thank You!</p>
-                        <p>This is a computer-generated receipt.</p>
+                        <p class="thank-you">${receiptFooterMessage}</p>
+                        <p>${receiptFooterNote}</p>
                         <p>Printed on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                 </div>
@@ -1712,9 +1718,9 @@
         center();
         bold(true);
         doubleHeight(true);
-        addLine('ROSHS');
+        addLine(receiptSchoolShortName);
         doubleHeight(false);
-        addLine('Robert Sobukwe High School');
+        addLine(receiptSchoolFullName);
         bold(false);
         addLine('Payment Receipt');
         addLine('');
@@ -1752,7 +1758,7 @@
         
         // Footer
         addLine('');
-        addLine('Thank You!');
+        addLine(receiptFooterMessage);
         addLine('');
         left();
         const now = new Date();

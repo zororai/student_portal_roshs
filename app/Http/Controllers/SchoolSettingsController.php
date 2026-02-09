@@ -120,4 +120,33 @@ class SchoolSettingsController extends Controller
             'upgrade_map' => $upgradeMap,
         ]);
     }
+
+    public function receiptSettings()
+    {
+        $settings = [
+            'receipt_school_short_name' => SchoolSetting::get('receipt_school_short_name', 'ROSHS'),
+            'receipt_school_full_name' => SchoolSetting::get('receipt_school_full_name', 'Rose Of Sharon High School'),
+            'receipt_footer_message' => SchoolSetting::get('receipt_footer_message', 'Thank You!'),
+            'receipt_footer_note' => SchoolSetting::get('receipt_footer_note', 'This is a computer-generated receipt.'),
+        ];
+        
+        return view('backend.admin.settings.receipt-settings', compact('settings'));
+    }
+
+    public function updateReceiptSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'receipt_school_short_name' => 'required|string|max:50',
+            'receipt_school_full_name' => 'required|string|max:255',
+            'receipt_footer_message' => 'required|string|max:100',
+            'receipt_footer_note' => 'required|string|max:255',
+        ]);
+
+        foreach ($validated as $key => $value) {
+            SchoolSetting::set($key, $value, 'text');
+        }
+
+        return redirect()->route('admin.settings.receipt')
+            ->with('success', 'Receipt settings updated successfully!');
+    }
 }

@@ -63,6 +63,15 @@ class WebsiteSettingController extends Controller
     }
 
     /**
+     * Show homepage settings form
+     */
+    public function homepage()
+    {
+        $settings = WebsiteSetting::getByGroup('homepage');
+        return view('backend.website-settings.homepage', compact('settings'));
+    }
+
+    /**
      * Update settings
      */
     public function update(Request $request)
