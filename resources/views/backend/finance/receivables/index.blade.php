@@ -1,367 +1,141 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-4 py-4">
-    <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-1 text-gray-800">
-                        <i class="fas fa-money-bill-wave text-primary mr-2"></i>Accounts Receivable
-                    </h1>
-                    <p class="text-muted mb-0">Manage student invoices and track outstanding balances</p>
-                </div>
-                <a href="{{ route('finance.receivables.invoices.create') }}" class="btn btn-primary shadow-sm">
-                    <i class="fas fa-plus-circle mr-2"></i>Create Invoice
-                </a>
-            </div>
-        </div>
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">Accounts Receivable</h1>
+        <p class="text-gray-500 text-sm">Manage student invoices and track outstanding balances</p>
+    </div>
+    <a href="{{ route('finance.receivables.invoices.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-md transition duration-200">
+        + Create Invoice
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white shadow-md rounded-xl p-5 hover:shadow-lg transition duration-200">
+        <p class="text-sm text-gray-500">Total Receivables</p>
+        <h2 class="text-2xl font-bold text-indigo-600">${{ number_format($totalReceivables, 2) }}</h2>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Receivables</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                ${{ number_format($totalReceivables, 2) }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Overdue Invoices</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ $overdueInvoices }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Current (0-30 days)</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                ${{ number_format($agingSummary['current'], 2) }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">90+ Days</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                ${{ number_format($agingSummary['90_plus_days'], 2) }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-hourglass-end fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="bg-white shadow-md rounded-xl p-5 hover:shadow-lg transition duration-200">
+        <p class="text-sm text-gray-500">Overdue Invoices</p>
+        <h2 class="text-2xl font-bold text-red-600">{{ $overdueInvoices }}</h2>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-bolt mr-2"></i>Quick Actions
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <a href="{{ route('finance.receivables.invoices') }}" class="btn btn-outline-primary btn-block">
-                                <i class="fas fa-file-invoice mr-2"></i>View All Invoices
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <a href="{{ route('finance.receivables.aging') }}" class="btn btn-outline-warning btn-block">
-                                <i class="fas fa-chart-bar mr-2"></i>Aging Report
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
-                            <a href="{{ route('finance.receivables.invoices.create') }}" class="btn btn-outline-success btn-block">
-                                <i class="fas fa-plus mr-2"></i>New Invoice
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="{{ route('finance.reports.trial-balance') }}" class="btn btn-outline-info btn-block">
-                                <i class="fas fa-balance-scale mr-2"></i>Trial Balance
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="bg-white shadow-md rounded-xl p-5 hover:shadow-lg transition duration-200">
+        <p class="text-sm text-gray-500">Current (0-30 days)</p>
+        <h2 class="text-2xl font-bold text-blue-600">${{ number_format($agingSummary['current'], 2) }}</h2>
     </div>
 
-    <!-- Recent Invoices -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-list mr-2"></i>Recent Invoices
-            </h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover" width="100%" cellspacing="0">
-                    <thead class="thead-light">
-                        <tr>
-                            <th><i class="fas fa-hashtag mr-1"></i>Invoice #</th>
-                            <th><i class="fas fa-user mr-1"></i>Student</th>
-                            <th><i class="fas fa-calendar mr-1"></i>Date</th>
-                            <th><i class="fas fa-calendar-check mr-1"></i>Due Date</th>
-                            <th class="text-right"><i class="fas fa-dollar-sign mr-1"></i>Amount</th>
-                            <th class="text-right"><i class="fas fa-money-check mr-1"></i>Paid</th>
-                            <th class="text-right"><i class="fas fa-balance-scale mr-1"></i>Balance</th>
-                            <th><i class="fas fa-info-circle mr-1"></i>Status</th>
-                            <th class="text-center"><i class="fas fa-cog mr-1"></i>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($recentInvoices as $invoice)
-                            <tr>
-                                <td>
-                                    <a href="{{ route('finance.receivables.invoices.show', $invoice->id) }}" class="font-weight-bold text-primary">
-                                        {{ $invoice->invoice_number }}
-                                    </a>
-                                </td>
-                                <td>
-                                    <span class="text-gray-800">{{ $invoice->student->name ?? 'N/A' }}</span>
-                                </td>
-                                <td>
-                                    <small class="text-muted">
-                                        <i class="far fa-clock mr-1"></i>{{ $invoice->invoice_date->format('M d, Y') }}
-                                    </small>
-                                </td>
-                                <td>
-                                    <small class="{{ $invoice->isOverdue() ? 'text-danger font-weight-bold' : 'text-muted' }}">
-                                        <i class="far fa-calendar mr-1"></i>{{ $invoice->due_date->format('M d, Y') }}
-                                    </small>
-                                </td>
-                                <td class="text-right font-weight-bold">
-                                    ${{ number_format($invoice->amount, 2) }}
-                                </td>
-                                <td class="text-right text-success">
-                                    ${{ number_format($invoice->paid_amount, 2) }}
-                                </td>
-                                <td class="text-right font-weight-bold text-danger">
-                                    ${{ number_format($invoice->getOutstandingAmount(), 2) }}
-                                </td>
-                                <td>
-                                    @if($invoice->status == 'unpaid')
-                                        <span class="badge badge-danger badge-pill">
-                                            <i class="fas fa-times mr-1"></i>Unpaid
-                                        </span>
-                                    @elseif($invoice->status == 'partial')
-                                        <span class="badge badge-warning badge-pill">
-                                            <i class="fas fa-adjust mr-1"></i>Partial
-                                        </span>
-                                    @else
-                                        <span class="badge badge-success badge-pill">
-                                            <i class="fas fa-check-double mr-1"></i>Paid
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    <a href="{{ route('finance.receivables.invoices.show', $invoice->id) }}" 
-                                       class="btn btn-sm btn-info shadow-sm" 
-                                       title="View Details"
-                                       data-toggle="tooltip">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="text-center py-5">
-                                    <div class="text-gray-500">
-                                        <i class="fas fa-inbox fa-3x mb-3"></i>
-                                        <p class="mb-0">No recent invoices found.</p>
-                                        <a href="{{ route('finance.receivables.invoices.create') }}" class="btn btn-primary btn-sm mt-3">
-                                            <i class="fas fa-plus mr-2"></i>Create Your First Invoice
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="bg-white shadow-md rounded-xl p-5 hover:shadow-lg transition duration-200">
+        <p class="text-sm text-gray-500">90+ Days</p>
+        <h2 class="text-2xl font-bold text-orange-600">${{ number_format($agingSummary['90_plus_days'], 2) }}</h2>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-white shadow-md rounded-xl p-6 mb-8">
+    <h3 class="font-semibold text-gray-800 mb-4">Quick Actions</h3>
+    <div class="flex flex-wrap gap-3">
+        <a href="{{ route('finance.receivables.invoices') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-md transition duration-200">
+            View All Invoices
+        </a>
+        <a href="{{ route('finance.receivables.aging') }}" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg shadow-md transition duration-200">
+            Aging Report
+        </a>
+        <a href="{{ route('finance.receivables.invoices.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md transition duration-200">
+            New Invoice
+        </a>
+        <a href="{{ route('finance.reports.trial-balance') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow-md transition duration-200">
+            Trial Balance
+        </a>
+    </div>
+</div>
+
+<!-- Recent Invoices -->
+<div class="bg-white shadow-md rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b">
+        <h3 class="font-semibold text-gray-800">Recent Invoices</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50 border-b">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice #</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @forelse($recentInvoices as $invoice)
+                    <tr class="hover:bg-gray-50 transition duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="{{ route('finance.receivables.invoices.show', $invoice->id) }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                                {{ $invoice->invoice_number }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm text-gray-900">{{ $invoice->student->user->name ?? 'N/A' }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $invoice->invoice_date->format('M d, Y') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm {{ $invoice->isOverdue() ? 'text-red-600 font-semibold' : 'text-gray-500' }}">
+                                {{ $invoice->due_date->format('M d, Y') }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
+                            ${{ number_format($invoice->amount, 2) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600">
+                            ${{ number_format($invoice->paid_amount, 2) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-red-600">
+                            ${{ number_format($invoice->getOutstandingAmount(), 2) }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            @if($invoice->status == 'unpaid')
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Unpaid</span>
+                            @elseif($invoice->status == 'partial')
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Partial</span>
+                            @else
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Paid</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                            <a href="{{ route('finance.receivables.invoices.show', $invoice->id) }}" 
+                               class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition duration-150">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="9" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center text-gray-400">
+                                <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <p class="text-lg font-medium mb-2">No recent invoices found</p>
+                                <a href="{{ route('finance.receivables.invoices.create') }}" class="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200">
+                                    Create Your First Invoice
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 @endsection
 
-@push('styles')
-<style>
-    /* Reuse modern styles from journals */
-    .border-left-primary {
-        border-left: 0.25rem solid #4e73df !important;
-        background: linear-gradient(135deg, #e8eeff 0%, #ffffff 100%);
-    }
-    .border-left-warning {
-        border-left: 0.25rem solid #f6c23e !important;
-        background: linear-gradient(135deg, #fff5e6 0%, #ffffff 100%);
-    }
-    .border-left-info {
-        border-left: 0.25rem solid #36b9cc !important;
-        background: linear-gradient(135deg, #e6f7ff 0%, #ffffff 100%);
-    }
-    .border-left-danger {
-        border-left: 0.25rem solid #e74a3b !important;
-        background: linear-gradient(135deg, #ffe6e6 0%, #ffffff 100%);
-    }
-    .card {
-        border: none;
-        border-radius: 1rem;
-        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        animation: fadeIn 0.5s ease-out;
-    }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.25);
-    }
-    .card-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-bottom: none;
-        border-radius: 1rem 1rem 0 0 !important;
-        padding: 1.25rem 1.5rem;
-    }
-    .card-header h6 {
-        color: white !important;
-        margin: 0;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-    .table thead th {
-        background: linear-gradient(135deg, #f8f9fc 0%, #e9ecef 100%);
-        border: none;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 1px;
-        padding: 1rem;
-        color: #5a5c69;
-    }
-    .table tbody tr {
-        transition: all 0.3s ease;
-        border-bottom: 1px solid #f1f3f5;
-    }
-    .table tbody tr:hover {
-        background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
-        transform: scale(1.01);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    .table tbody td {
-        padding: 1.25rem 1rem;
-        vertical-align: middle;
-        border: none;
-    }
-    .badge-pill {
-        padding: 0.5rem 1rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        border-radius: 50px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-    .badge-danger {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-        border: none;
-    }
-    .badge-warning {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        border: none;
-    }
-    .badge-success {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        border: none;
-    }
-    .btn {
-        border-radius: 0.5rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        border: none;
-    }
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
-    .btn-sm {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.75rem;
-        border-radius: 0.4rem;
-    }
-    .btn-info {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-    .text-xs {
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-    }
-    .text-gray-300 {
-        opacity: 0.3;
-    }
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-</style>
-@endpush
-
-@push('scripts')
-<script>
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip();
-    });
-</script>
-@endpush
