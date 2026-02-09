@@ -523,6 +523,7 @@ Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|
     Route::get('/admin/website/colors', 'WebsiteSettingController@colors')->name('admin.website.colors');
     Route::get('/admin/website/images', 'WebsiteSettingController@images')->name('admin.website.images');
     Route::get('/admin/website/text', 'WebsiteSettingController@text')->name('admin.website.text');
+    Route::get('/admin/website/pages', 'WebsiteSettingController@pages')->name('admin.website.pages');
     Route::put('/admin/website/update', 'WebsiteSettingController@update')->name('admin.website.update');
     Route::get('/admin/website/banners', 'WebsiteSettingController@banners')->name('admin.website.banners');
     Route::put('/admin/website/banners', 'WebsiteSettingController@updateBanners')->name('admin.website.banners.update');

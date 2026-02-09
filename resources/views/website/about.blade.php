@@ -220,7 +220,7 @@
 	      <div class="row">
 		      <div class="col-12">
 			     <div class="full">
-				     <h3>About us</h3>
+				     <h3>{{ \App\WebsiteSetting::get('about_page_title', 'About us') }}</h3>
 				 </div>
 			  </div>
 		  </div>
@@ -237,30 +237,30 @@
                     <div class="full">
                         <div class="heading_main text_align_left">
 
-						   <h2><span>DIRECTOR OF</span> EDUCATION</h2>
+						   <h2><span>{{ \App\WebsiteSetting::get('about_director_title', 'DIRECTOR OF EDUCATION') }}</span></h2>
                         </div>
 						<div class="full">
-						  <p>Dr. Fatima Maruta is a holder of several accounting qualifications that include a Bachelor’s Degree in Accountancy from the University of Zimbabwe and Masters Degree in Business Adminstration from Bloomsburg University, PA USA. In year 2014, she was conferred with an Honorary Doctorate Degree in Humane Letters, DHL, from the International Institute of Philanthropy IIP in recognition of practical application of expertise in Humanities. In 2016 she was conferred with an Honorary Doctor of Arts Degree and an Honorary Master of Business Leadership Degree from International Women’s University in recognition of practical application of expertise in Humanities. In the same year, she was conferred an award as Zimbabwe Top female academic leader by the Zimbabwe Leadership Awards.In 2017 she was conferred with the Christian Leadership Excellence Lifetime Achievement Award by the Christian Business and Leadership Awards. In 2018 was conferred with award Organisation of the year special recognition in Academic Leadership Excellence</p>
+						  <p>{{ \App\WebsiteSetting::get('about_director_bio', 'Director biography goes here.') }}</p>
 						</div>
 
                     </div>
                 </div>
 				<div class="col-md-6">
                     <div class="full">
-                        <img src="images/img2.png" alt="#" />
+                        <img src="{{ asset(\App\WebsiteSetting::get('about_director_image', 'images/img2.png')) }}" alt="Director" />
                     </div>
                 </div>
             </div>
                  <div class="row">
                     <div class="col-lg-6 order-1 order-lg-2 mb-4 mb-lg-0">
-                        <img src="images/award.png" alt="Image" style="height: 300px; border-radius: 20px" class="img-fluid">
-                        <p style="margin-top: 20px"> In 2021 I was conferred with the Honorary Commissionership with the Honour and Status of Commissioner. In 2021 I was conferred with the Honorary Doctorate of Diplomacy and International Relations Degree of a Doctor of Diplomacy and International Relations, Hon. DIR</p>
+                        <img src="{{ asset(\App\WebsiteSetting::get('about_awards_image', 'images/award.png')) }}" alt="Awards" style="height: 300px; border-radius: 20px" class="img-fluid">
+                        <p style="margin-top: 20px">{{ \App\WebsiteSetting::get('about_awards_additional', '') }}</p>
                     </div>
                     <div class="col-lg-5 mr-auto align-self-center order-2 order-lg-1">
                         <h2 class="section-title-underline mb-5">
-                            <span>Award winning school</span>
+                            <span>{{ \App\WebsiteSetting::get('about_awards_title', 'Award winning school') }}</span>
                         </h2>
-                        <p>In 2020 was conferred with an award Top female business and Community Development Leadership of the year. In 2020 was conferred with an honorary Doctorate of Entrepreneurship, Innovation Marverick Leadership Degree. In 2020 was conferred with a Philanthropic and Humanitarian Organisation of the year named among the Zimbabwe Top 100 business brands of the year. In 2020 was conferred with an honorary Doctorate Degree in Community development by UNISA In 2021 was conferred with the Honorary Ambassadorship, Honour and status of Her Excellence, H.E Ambassador.</p>
+                        <p>{{ \App\WebsiteSetting::get('about_awards_text', '') }}</p>
                     </div>
                 </div>
         </div>
@@ -273,26 +273,26 @@
                 <div class="col-md-12">
                     <div class="full">
                         <div class="heading_main text_align_center">
-						   <h2><span>Our </span>School</h2>
+						   <h2><span>{{ \App\WebsiteSetting::get('about_school_section_title', 'Our School') }}</span></h2>
                         </div>
 					  </div>
                 </div>
 				<div class="col-md-4">
                     <div class="full blog_img_popular">
-                       <img class="img-responsive" src="images/p1.png" alt="#" />
-					   <h4>Our 'A' level</h4>
+                       <img class="img-responsive" src="{{ asset(\App\WebsiteSetting::get('about_gallery_image_1', 'images/p1.png')) }}" alt="Gallery 1" />
+					   <h4>{{ \App\WebsiteSetting::get('about_gallery_caption_1', 'Our \'A\' level') }}</h4>
                     </div>
                 </div>
 				<div class="col-md-4">
                     <div class="full blog_img_popular">
-                        <img class="img-responsive" src="images/p2.png" alt="#" />
-						<h4>Our Admin Stuff and students</h4>
+                        <img class="img-responsive" src="{{ asset(\App\WebsiteSetting::get('about_gallery_image_2', 'images/p2.png')) }}" alt="Gallery 2" />
+						<h4>{{ \App\WebsiteSetting::get('about_gallery_caption_2', 'Our Admin Stuff and students') }}</h4>
                     </div>
                 </div>
 				<div class="col-md-4">
                     <div class="full blog_img_popular">
-                        <img class="img-responsive" src="images/p3.png" alt="#" />
-						<h4>Intermediate Accounting</h4>
+                        <img class="img-responsive" src="{{ asset(\App\WebsiteSetting::get('about_gallery_image_3', 'images/p3.png')) }}" alt="Gallery 3" />
+						<h4>{{ \App\WebsiteSetting::get('about_gallery_caption_3', 'Intermediate Accounting') }}</h4>
                     </div>
                 </div>
             </div>
@@ -302,14 +302,14 @@
             <div class="row">
               <div class="col-lg-4">
                 <h2 class="section-title-underline">
-                  <span>Academy History</span>
+                  <span>{{ \App\WebsiteSetting::get('about_history_title', 'Academy History') }}</span>
                 </h2>
               </div>
               <div class="col-lg-4">
-                <p>Then Rose Of Sharon High School will know that he is the Lord God who lives in Zion his holy mountain, Rose of Sharon High School will remain forever and foreign mountains will drip with sweet wine and the hills will flow with milk,</p>
+                <p>{{ \App\WebsiteSetting::get('about_history_text_1', '') }}</p>
               </div>
               <div class="col-lg-4">
-                <p> water will fill the streambeds of Rose of Sharon High School and the fountain will burst forth from the Lord’s temple watering the arid valleys of Rose of Sharon High School. Rose of Sharon High School will remain forever and Rose of Sharon High School will endure through all future generations</p>
+                <p>{{ \App\WebsiteSetting::get('about_history_text_2', '') }}</p>
               </div>
             </div>
           </div> -->

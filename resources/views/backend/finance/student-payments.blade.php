@@ -172,7 +172,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
                                 <button type="button" 
-                                        onclick="showPaymentHistory({{ $student->id }}, '{{ addslashes($student->user->name ?? $student->name ?? 'Unknown') }}', {{ json_encode($paymentHistory) }}, {{ $student->current_term_fees ?? 0 }}, {{ $balance }})"
+                                        onclick="showPaymentHistory({{ $student->id }}, '{{ addslashes($student->user->name ?? $student->name ?? 'Unknown') }}', {{ json_encode($paymentHistory) }}, {{ $student->current_term_fees ?? 0 }}, {{ $balance }}, {{ $student->scholarship ? 'true' : 'false' }})"
                                         class="text-blue-600 hover:text-blue-900" title="Payment History">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -224,18 +224,30 @@
 
                 <!-- Student Name and Financial Summary -->
                 <div class="mb-4 p-4 bg-blue-50 rounded-lg">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <p class="text-sm text-gray-600">Student</p>
                             <p class="text-lg font-bold text-gray-900" id="history_student_name">-</p>
+                            <div id="history_scholarship_badge" class="hidden mt-1">
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                    Scholarship
+                                </span>
+                            </div>
                         </div>
                         <div class="text-center">
                             <p class="text-sm text-gray-600">Expected Fee (Term)</p>
                             <p class="text-xl font-bold text-blue-600" id="history_expected_fee">$0.00</p>
                         </div>
-                        <div class="text-right">
+                        <div class="text-center">
                             <p class="text-sm text-gray-600">Current Balance</p>
                             <p class="text-xl font-bold text-red-600" id="history_balance">$0.00</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">Total Paid</p>
+                            <p class="text-xl font-bold text-green-600" id="history_total_paid_summary">$0.00</p>
                         </div>
                     </div>
                 </div>
@@ -684,6 +696,8 @@
     let currentStep = 1;
     let currentStudentName = '';
     let currentPayments = [];
+    let currentExpectedFee = 0;
+    let currentIsScholarship = false;
     let lastReceiptData = null;
     let selectedPaymentMethod = 'cash';
     let currentStudentId = null;
@@ -756,12 +770,20 @@
         document.getElementById('modal_alert').classList.add('hidden');
     }
 
-    function showPaymentHistory(studentId, studentName, payments, expectedFee = 0, balance = 0) {
+    function showPaymentHistory(studentId, studentName, payments, expectedFee = 0, balance = 0, isScholarship = false) {
         document.getElementById('history_student_name').textContent = studentName;
         
         // Update financial summary
         document.getElementById('history_expected_fee').textContent = '$' + parseFloat(expectedFee).toFixed(2);
         document.getElementById('history_balance').textContent = '$' + parseFloat(balance).toFixed(2);
+        
+        // Show/hide scholarship badge
+        const scholarshipBadge = document.getElementById('history_scholarship_badge');
+        if (isScholarship) {
+            scholarshipBadge.classList.remove('hidden');
+        } else {
+            scholarshipBadge.classList.add('hidden');
+        }
         
         const tbody = document.getElementById('payment_history_body');
         const noPaymentsMsg = document.getElementById('no_payments_message');
@@ -773,6 +795,7 @@
             table.classList.add('hidden');
             noPaymentsMsg.classList.remove('hidden');
             document.getElementById('history_total_paid').textContent = '$0.00';
+            document.getElementById('history_total_paid_summary').textContent = '$0.00';
         } else {
             table.classList.remove('hidden');
             noPaymentsMsg.classList.add('hidden');
@@ -780,6 +803,10 @@
             let totalPaid = 0;
             currentStudentName = studentName;
             currentPayments = payments;
+            currentExpectedFee = expectedFee;
+            currentBalance = balance;
+            currentIsScholarship = isScholarship;
+            
             payments.forEach((payment, index) => {
                 totalPaid += parseFloat(payment.amount) || 0;
                 const row = `
@@ -804,6 +831,7 @@
             });
             
             document.getElementById('history_total_paid').textContent = '$' + totalPaid.toFixed(2);
+            document.getElementById('history_total_paid_summary').textContent = '$' + totalPaid.toFixed(2);
         }
         
         document.getElementById('paymentHistoryModal').classList.remove('hidden');
@@ -817,6 +845,11 @@
         const studentName = document.getElementById('history_student_name').textContent;
         const tableContent = document.getElementById('payment_history_body').innerHTML;
         const totalPaid = document.getElementById('history_total_paid').textContent;
+        const expectedFee = document.getElementById('history_expected_fee').textContent;
+        const balance = document.getElementById('history_balance').textContent;
+        const isScholarship = currentIsScholarship || false;
+        
+        const scholarshipBadge = isScholarship ? '<span style="display: inline-block; background: #f3e8ff; color: #7c3aed; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 10px;">★ SCHOLARSHIP</span>' : '';
         
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
@@ -830,8 +863,15 @@
                     .header h1 { margin: 0; color: #1f2937; font-size: 24px; }
                     .header p { margin: 5px 0; color: #6b7280; }
                     .student-info { background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-                    .student-info p { margin: 0; }
+                    .student-info p { margin: 5px 0; }
                     .student-info .name { font-size: 18px; font-weight: bold; color: #1f2937; }
+                    .financial-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; }
+                    .summary-item { text-align: center; }
+                    .summary-label { font-size: 11px; color: #6b7280; text-transform: uppercase; margin-bottom: 5px; }
+                    .summary-value { font-size: 20px; font-weight: bold; }
+                    .summary-value.expected { color: #2563eb; }
+                    .summary-value.balance { color: #dc2626; }
+                    .summary-value.paid { color: #059669; }
                     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
                     th { background: #f3f4f6; padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6b7280; border-bottom: 2px solid #e5e7eb; }
                     td { padding: 12px 8px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
@@ -849,7 +889,21 @@
                 </div>
                 <div class="student-info">
                     <p style="color: #6b7280; font-size: 12px;">Student</p>
-                    <p class="name">${studentName}</p>
+                    <p class="name">${studentName}${scholarshipBadge}</p>
+                </div>
+                <div class="financial-summary">
+                    <div class="summary-item">
+                        <div class="summary-label">Expected Fee (Term)</div>
+                        <div class="summary-value expected">${expectedFee}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Total Paid</div>
+                        <div class="summary-value paid">${totalPaid}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Current Balance</div>
+                        <div class="summary-value balance">${balance}</div>
+                    </div>
                 </div>
                 <table>
                     <thead>

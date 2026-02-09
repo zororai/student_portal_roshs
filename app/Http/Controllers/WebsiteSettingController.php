@@ -54,6 +54,15 @@ class WebsiteSettingController extends Controller
     }
 
     /**
+     * Show pages settings form
+     */
+    public function pages()
+    {
+        $settings = WebsiteSetting::getByGroup('pages');
+        return view('backend.website-settings.pages', compact('settings'));
+    }
+
+    /**
      * Update settings
      */
     public function update(Request $request)

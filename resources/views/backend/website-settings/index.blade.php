@@ -20,6 +20,92 @@
     @endif
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- General Settings Card -->
+        <a href="{{ route('admin.website.general') }}" class="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-800">General Settings</h3>
+                        <p class="text-sm text-gray-600">School name, contact info</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Colors Card -->
+        <a href="{{ route('admin.website.colors') }}" class="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-full">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Theme Colors</h3>
+                        <p class="text-sm text-gray-600">Customize website colors</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Images Card -->
+        <a href="{{ route('admin.website.images') }}" class="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-pink-100 rounded-full">
+                        <svg class="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Images</h3>
+                        <p class="text-sm text-gray-600">Logo, favicon, footer logo</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Text Content Card -->
+        <a href="{{ route('admin.website.text') }}" class="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-yellow-100 rounded-full">
+                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Text Content</h3>
+                        <p class="text-sm text-gray-600">Vision, mission, about text</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Pages Card -->
+        <a href="{{ route('admin.website.pages') }}" class="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+            <div class="p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-teal-100 rounded-full">
+                        <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Pages</h3>
+                        <p class="text-sm text-gray-600">About & Courses page content</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
         <!-- Home Banners Card -->
         <a href="{{ route('admin.website.banners') }}" class="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
             <div class="p-6">
