@@ -13,6 +13,11 @@ class AddMissingColumnsToOnlineExerciseSubmissions extends Migration
      */
     public function up()
     {
+        // Skip if online_exercise_submissions table doesn't exist (exercise_submissions table is used instead)
+        if (!Schema::hasTable('online_exercise_submissions')) {
+            return;
+        }
+        
         Schema::table('online_exercise_submissions', function (Blueprint $table) {
             if (!Schema::hasColumn('online_exercise_submissions', 'status')) {
                 $table->string('status')->default('not_started')->after('student_id');

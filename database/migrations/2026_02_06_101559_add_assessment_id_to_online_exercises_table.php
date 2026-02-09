@@ -13,6 +13,11 @@ class AddAssessmentIdToOnlineExercisesTable extends Migration
      */
     public function up()
     {
+        // Skip if online_exercises table doesn't exist (exercises table is used instead)
+        if (!Schema::hasTable('online_exercises')) {
+            return;
+        }
+        
         Schema::table('online_exercises', function (Blueprint $table) {
             $table->unsignedBigInteger('assessment_id')->nullable()->after('id');
             $table->foreign('assessment_id')->references('id')->on('assessments')->onDelete('set null');

@@ -13,6 +13,11 @@ class MakeSubmittedAtNullableInOnlineExerciseSubmissions extends Migration
      */
     public function up()
     {
+        // Skip if online_exercise_submissions table doesn't exist (exercise_submissions table is used instead)
+        if (!Schema::hasTable('online_exercise_submissions')) {
+            return;
+        }
+        
         \DB::statement('ALTER TABLE `online_exercise_submissions` MODIFY `submitted_at` TIMESTAMP NULL');
     }
 

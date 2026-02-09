@@ -13,6 +13,11 @@ class AddTypeToOnlineExercisesTable extends Migration
      */
     public function up()
     {
+        // Skip if online_exercises table doesn't exist (exercises table is used instead)
+        if (!Schema::hasTable('online_exercises')) {
+            return;
+        }
+        
         Schema::table('online_exercises', function (Blueprint $table) {
             if (!Schema::hasColumn('online_exercises', 'type')) {
                 $table->string('type')->default('quiz')->after('instructions');

@@ -13,6 +13,11 @@ class CreateOnlineExerciseRelatedTables extends Migration
      */
     public function up()
     {
+        // Skip if online_exercises table doesn't exist (exercises table is used instead)
+        if (!Schema::hasTable('online_exercises')) {
+            return;
+        }
+        
         // Questions table
         if (!Schema::hasTable('online_exercise_questions')) {
             Schema::create('online_exercise_questions', function (Blueprint $table) {

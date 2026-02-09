@@ -13,6 +13,11 @@ class AddTimeRemainingToOnlineExerciseSubmissions extends Migration
      */
     public function up()
     {
+        // Skip if online_exercise_submissions table doesn't exist (exercise_submissions table is used instead)
+        if (!Schema::hasTable('online_exercise_submissions')) {
+            return;
+        }
+        
         Schema::table('online_exercise_submissions', function (Blueprint $table) {
             $table->integer('time_remaining_seconds')->nullable()->after('started_at');
         });
