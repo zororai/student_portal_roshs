@@ -25,7 +25,7 @@ class FinanceController extends Controller
             ->first();
         
         // Get ALL students for the Record Payment modal (unfiltered)
-        $allStudentsForModal = Student::with(['user', 'class', 'parent.user', 'payments.termFee.feeType'])
+        $allStudentsForModal = Student::with(['user', 'class', 'parent.user', 'payments.termFee.feeType', 'payments.feeStructure.feeType', 'payments.resultsStatus'])
             ->orderBy('created_at', 'desc')
             ->get();
         
@@ -47,7 +47,7 @@ class FinanceController extends Controller
         }
         
         // Build query for table (with filters)
-        $query = Student::with(['user', 'class', 'parent.user', 'payments.termFee.feeType']);
+        $query = Student::with(['user', 'class', 'parent.user', 'payments.termFee.feeType', 'payments.feeStructure.feeType', 'payments.resultsStatus']);
         
         // Apply class filter if provided
         if ($request->has('class_id') && $request->class_id != '') {
@@ -265,6 +265,36 @@ class FinanceController extends Controller
 
         return redirect()->route('finance.student-payments')
             ->with('success', 'Payment of $' . number_format($totalPaid, 2) . ' recorded successfully! Remaining balance: $' . number_format($remainingBalance, 2));
+    }
+
+    public function getStudentFeePayments(Request $request)
+    {
+        $studentId = $request->input('student_id');
+        $termId = $request->input('results_status_id');
+        
+        if (!$studentId || !$termId) {
+            return response()->json([]);
+        }
+        
+        // Get all payments for this student and term
+        $payments = \App\StudentPayment::where('student_id', $studentId)
+            ->where('results_status_id', $termId)
+            ->get();
+        
+        // Group payments by fee (either fee_structure_id or term_fee_id)
+        $feePayments = [];
+        
+        foreach ($payments as $payment) {
+            $feeId = $payment->fee_structure_id ?? $payment->term_fee_id;
+            if ($feeId) {
+                if (!isset($feePayments[$feeId])) {
+                    $feePayments[$feeId] = 0;
+                }
+                $feePayments[$feeId] += floatval($payment->amount_paid);
+            }
+        }
+        
+        return response()->json($feePayments);
     }
 
     public function paynowPayment(Request $request)

@@ -150,12 +150,20 @@
                         </td>
                         @php
                             $paymentHistory = $student->payments->map(function($p) {
+                                // Try to get fee type from feeStructure first, then termFee
+                                $feeType = 'N/A';
+                                if ($p->feeStructure && $p->feeStructure->feeType) {
+                                    $feeType = $p->feeStructure->feeType->name;
+                                } elseif ($p->termFee && $p->termFee->feeType) {
+                                    $feeType = $p->termFee->feeType->name;
+                                }
+                                
                                 return [
                                     'id' => $p->id,
                                     'amount' => $p->amount_paid,
                                     'date' => $p->payment_date->format('M d, Y'),
                                     'method' => $p->payment_method,
-                                    'fee_type' => $p->termFee->feeType->name ?? 'N/A',
+                                    'fee_type' => $feeType,
                                     'reference' => $p->reference_number,
                                     'term' => ($p->resultsStatus->result_period ?? '') . ' ' . ($p->resultsStatus->year ?? '')
                                 ];
@@ -164,7 +172,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
                                 <button type="button" 
-                                        onclick="showPaymentHistory({{ $student->id }}, '{{ addslashes($student->name) }}', {{ json_encode($paymentHistory) }})"
+                                        onclick="showPaymentHistory({{ $student->id }}, '{{ addslashes($student->user->name ?? $student->name ?? 'Unknown') }}', {{ json_encode($paymentHistory) }}, {{ $student->current_term_fees ?? 0 }}, {{ $balance }})"
                                         class="text-blue-600 hover:text-blue-900" title="Payment History">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -214,10 +222,22 @@
                     </button>
                 </div>
 
-                <!-- Student Name -->
-                <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-                    <p class="text-sm text-gray-600">Student</p>
-                    <p class="text-lg font-bold text-gray-900" id="history_student_name">-</p>
+                <!-- Student Name and Financial Summary -->
+                <div class="mb-4 p-4 bg-blue-50 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Student</p>
+                            <p class="text-lg font-bold text-gray-900" id="history_student_name">-</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600">Expected Fee (Term)</p>
+                            <p class="text-xl font-bold text-blue-600" id="history_expected_fee">$0.00</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">Current Balance</p>
+                            <p class="text-xl font-bold text-red-600" id="history_balance">$0.00</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Payment History Table -->
@@ -736,8 +756,12 @@
         document.getElementById('modal_alert').classList.add('hidden');
     }
 
-    function showPaymentHistory(studentId, studentName, payments) {
+    function showPaymentHistory(studentId, studentName, payments, expectedFee = 0, balance = 0) {
         document.getElementById('history_student_name').textContent = studentName;
+        
+        // Update financial summary
+        document.getElementById('history_expected_fee').textContent = '$' + parseFloat(expectedFee).toFixed(2);
+        document.getElementById('history_balance').textContent = '$' + parseFloat(balance).toFixed(2);
         
         const tbody = document.getElementById('payment_history_body');
         const noPaymentsMsg = document.getElementById('no_payments_message');
@@ -1084,55 +1108,140 @@
                     return;
                 }
                 
-                // Create new fee checkboxes
-                filteredFees.forEach(fee => {
-                    const levelGroupName = fee.fee_level_group ? fee.fee_level_group.name : '';
-                    const feeHtml = `
-                        <div class="bg-white border border-gray-200 rounded-lg p-3 mb-2">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center flex-1">
-                                    <input type="checkbox" 
-                                           id="fee_${fee.id}"
-                                           class="fee-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                           data-fee-id="${fee.id}"
-                                           data-full-amount="${fee.amount}"
-                                           onchange="toggleFeeAmount(${fee.id})">
-                                    <label for="fee_${fee.id}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
-                                        ${fee.fee_type ? fee.fee_type.name : 'Fee'}
-                                        ${levelGroupName ? '<span class="ml-1 text-xs text-gray-500">(' + levelGroupName + ')</span>' : ''}
-                                        ${fee.is_for_new_student === true || fee.is_for_new_student === 1 || fee.is_for_new_student === '1' ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student</span>' : ''}
-                                    </label>
-                                    <span class="text-sm font-semibold text-gray-600">$${parseFloat(fee.amount).toFixed(2)}</span>
-                                </div>
-                            </div>
-                            <div class="ml-7 mt-2 hidden" id="amount_input_${fee.id}">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex-1">
-                                        <label class="block text-xs text-gray-600 mb-1">Amount to Pay</label>
-                                        <input type="number" 
-                                               name="fee_amounts[${fee.id}]"
-                                               id="amount_${fee.id}"
-                                               class="fee-amount-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                                               placeholder="Enter amount"
-                                               min="0"
-                                               max="${fee.amount}"
-                                               step="0.01"
-                                               value="${fee.amount}"
-                                               disabled
-                                               oninput="updatePaymentCalculation()">
+                // Fetch payment history for this student and term
+                fetch(`{{ route('finance.student-fee-payments') }}?student_id=${selectedStudent.value}&results_status_id=${selectedOption.value}`)
+                    .then(response => response.json())
+                    .then(feePayments => {
+                        console.log('Fee payments:', feePayments);
+                        
+                        // Create new fee checkboxes with payment info
+                        filteredFees.forEach(fee => {
+                            const levelGroupName = fee.fee_level_group ? fee.fee_level_group.name : '';
+                            const amountPaid = feePayments[fee.id] || 0;
+                            const remaining = parseFloat(fee.amount) - parseFloat(amountPaid);
+                            const isPartiallyPaid = amountPaid > 0 && remaining > 0;
+                            const isFullyPaid = remaining <= 0;
+                            
+                            let paymentStatusHtml = '';
+                            if (isFullyPaid) {
+                                paymentStatusHtml = '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Fully Paid</span>';
+                            } else if (isPartiallyPaid) {
+                                paymentStatusHtml = `<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Partial: $${parseFloat(amountPaid).toFixed(2)} paid</span>`;
+                            }
+                            
+                            const feeHtml = `
+                                <div class="bg-white border ${isPartiallyPaid ? 'border-yellow-300 bg-yellow-50' : isFullyPaid ? 'border-green-300 bg-green-50' : 'border-gray-200'} rounded-lg p-3 mb-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center flex-1">
+                                            <input type="checkbox" 
+                                                   id="fee_${fee.id}"
+                                                   class="fee-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                   data-fee-id="${fee.id}"
+                                                   data-full-amount="${remaining}"
+                                                   data-amount-paid="${amountPaid}"
+                                                   ${isFullyPaid ? 'disabled' : ''}
+                                                   onchange="toggleFeeAmount(${fee.id})">
+                                            <label for="fee_${fee.id}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
+                                                ${fee.fee_type ? fee.fee_type.name : 'Fee'}
+                                                ${levelGroupName ? '<span class="ml-1 text-xs text-gray-500">(' + levelGroupName + ')</span>' : ''}
+                                                ${fee.is_for_new_student === true || fee.is_for_new_student === 1 || fee.is_for_new_student === '1' ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student</span>' : ''}
+                                                ${paymentStatusHtml}
+                                            </label>
+                                            <span class="text-sm font-semibold ${isFullyPaid ? 'text-green-600' : isPartiallyPaid ? 'text-yellow-600' : 'text-gray-600'}">
+                                                ${isPartiallyPaid || isFullyPaid ? 'Remaining: ' : ''}$${parseFloat(remaining).toFixed(2)}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <button type="button" 
-                                            onclick="setFullAmount(${fee.id}, ${fee.amount})"
-                                            class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-xs font-medium mt-5">
-                                        Full Amount
-                                    </button>
+                                    ${isPartiallyPaid ? `
+                                    <div class="ml-7 mt-2 text-xs text-gray-600">
+                                        <div class="flex justify-between items-center">
+                                            <span>Original Amount: <strong>$${parseFloat(fee.amount).toFixed(2)}</strong></span>
+                                            <span>Paid: <strong class="text-green-600">$${parseFloat(amountPaid).toFixed(2)}</strong></span>
+                                            <span>Balance: <strong class="text-red-600">$${parseFloat(remaining).toFixed(2)}</strong></span>
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                    <div class="ml-7 mt-2 hidden" id="amount_input_${fee.id}">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex-1">
+                                                <label class="block text-xs text-gray-600 mb-1">Amount to Pay</label>
+                                                <input type="number" 
+                                                       name="fee_amounts[${fee.id}]"
+                                                       id="amount_${fee.id}"
+                                                       class="fee-amount-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                                       placeholder="Enter amount"
+                                                       min="0"
+                                                       max="${remaining}"
+                                                       step="0.01"
+                                                       value="${remaining}"
+                                                       disabled
+                                                       oninput="updatePaymentCalculation()">
+                                            </div>
+                                            <button type="button" 
+                                                    onclick="setFullAmount(${fee.id}, ${remaining})"
+                                                    class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-xs font-medium mt-5">
+                                                Full Amount
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Maximum: $${parseFloat(remaining).toFixed(2)}</p>
+                                    </div>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">Maximum: $${parseFloat(fee.amount).toFixed(2)}</p>
-                            </div>
-                        </div>
-                    `;
-                    feeTypesContainer.insertAdjacentHTML('beforeend', feeHtml);
-                });
+                            `;
+                            feeTypesContainer.insertAdjacentHTML('beforeend', feeHtml);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching payment history:', error);
+                        // Fallback to showing fees without payment info
+                        filteredFees.forEach(fee => {
+                            const levelGroupName = fee.fee_level_group ? fee.fee_level_group.name : '';
+                            const feeHtml = `
+                                <div class="bg-white border border-gray-200 rounded-lg p-3 mb-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center flex-1">
+                                            <input type="checkbox" 
+                                                   id="fee_${fee.id}"
+                                                   class="fee-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                   data-fee-id="${fee.id}"
+                                                   data-full-amount="${fee.amount}"
+                                                   onchange="toggleFeeAmount(${fee.id})">
+                                            <label for="fee_${fee.id}" class="ml-3 text-sm font-medium text-gray-700 flex-1">
+                                                ${fee.fee_type ? fee.fee_type.name : 'Fee'}
+                                                ${levelGroupName ? '<span class="ml-1 text-xs text-gray-500">(' + levelGroupName + ')</span>' : ''}
+                                                ${fee.is_for_new_student === true || fee.is_for_new_student === 1 || fee.is_for_new_student === '1' ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">New Student</span>' : ''}
+                                            </label>
+                                            <span class="text-sm font-semibold text-gray-600">$${parseFloat(fee.amount).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-7 mt-2 hidden" id="amount_input_${fee.id}">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex-1">
+                                                <label class="block text-xs text-gray-600 mb-1">Amount to Pay</label>
+                                                <input type="number" 
+                                                       name="fee_amounts[${fee.id}]"
+                                                       id="amount_${fee.id}"
+                                                       class="fee-amount-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                                       placeholder="Enter amount"
+                                                       min="0"
+                                                       max="${fee.amount}"
+                                                       step="0.01"
+                                                       value="${fee.amount}"
+                                                       disabled
+                                                       oninput="updatePaymentCalculation()">
+                                            </div>
+                                            <button type="button" 
+                                                    onclick="setFullAmount(${fee.id}, ${fee.amount})"
+                                                    class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-xs font-medium mt-5">
+                                                Full Amount
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Maximum: $${parseFloat(fee.amount).toFixed(2)}</p>
+                                    </div>
+                                </div>
+                            `;
+                            feeTypesContainer.insertAdjacentHTML('beforeend', feeHtml);
+                        });
+                    });
             } catch (e) {
                 console.error('Error parsing fees:', e);
             }
