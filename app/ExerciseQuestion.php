@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExerciseQuestion extends Model
 {
-    protected $table = 'online_exercise_questions';
+    protected $table = 'exercise_questions';
     protected $fillable = [
         'exercise_id',
         'question_type',

@@ -1330,11 +1330,14 @@ class TeacherController extends Controller
             return response()->json(['success' => false, 'message' => 'Assessment not found.'], 404);
         }
 
+        // Delete linked online exercises
+        \App\Exercise::where('assessment_id', $assessment->id)->delete();
+
         $assessment->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Assessment deleted successfully!'
+            'message' => 'Assessment and linked exercises deleted successfully!'
         ]);
     }
 

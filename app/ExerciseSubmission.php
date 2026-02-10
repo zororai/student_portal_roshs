@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExerciseSubmission extends Model
 {
-    protected $table = 'online_exercise_submissions';
+    protected $table = 'exercise_submissions';
     protected $fillable = [
         'exercise_id',
         'student_id',
