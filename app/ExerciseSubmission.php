@@ -63,7 +63,6 @@ class ExerciseSubmission extends Model
             
             // Skip if no question found
             if (!$question) {
-                \Log::info("AutoMark: No question found for answer ID {$answer->id}");
                 continue;
             }
             
@@ -79,28 +78,14 @@ class ExerciseSubmission extends Model
                         return $opt->is_correct == true || $opt->is_correct == 1;
                     });
                     
-                    // Debug logging
-                    \Log::info("AutoMark Debug", [
-                        'question_id' => $question->id,
-                        'question_type' => $question->question_type,
-                        'selected_option_id' => $answer->selected_option_id,
-                        'correct_option_id' => $correctOption ? $correctOption->id : 'NONE',
-                        'correct_option_is_correct' => $correctOption ? $correctOption->is_correct : 'N/A',
-                        'all_options' => $question->options->map(function($o) {
-                            return ['id' => $o->id, 'text' => $o->option_text, 'is_correct' => $o->is_correct];
-                        })->toArray(),
-                    ]);
-                    
                     // Compare using integer casting for reliable comparison
                     if ($correctOption && (int)$answer->selected_option_id === (int)$correctOption->id) {
                         $answer->is_correct = true;
                         $answer->marks_awarded = $question->marks;
                         $totalScore += $question->marks;
-                        \Log::info("AutoMark: CORRECT - awarded {$question->marks} marks");
                     } else {
                         $answer->is_correct = false;
                         $answer->marks_awarded = 0;
-                        \Log::info("AutoMark: INCORRECT - no marks awarded");
                     }
                     $answer->save();
                 }
