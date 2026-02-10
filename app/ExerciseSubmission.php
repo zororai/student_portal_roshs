@@ -52,12 +52,34 @@ class ExerciseSubmission extends Model
     public function calculateAutoMarks()
     {
         $totalScore = 0;
+        
+        // Load answers with questions and options if not already loaded
+        if (!$this->relationLoaded('answers')) {
+            $this->load(['answers.question.options']);
+        }
+        
         foreach ($this->answers as $answer) {
             $question = $answer->question;
+            
+            // Skip if no question found
+            if (!$question) {
+                continue;
+            }
+            
             if ($question->isAutoMarkable()) {
                 if ($question->question_type === 'multiple_choice' || $question->question_type === 'true_false') {
-                    $correctOption = $question->options()->where('is_correct', true)->first();
-                    if ($correctOption && $answer->selected_option_id == $correctOption->id) {
+                    // Load options if not loaded
+                    if (!$question->relationLoaded('options')) {
+                        $question->load('options');
+                    }
+                    
+                    // Find the correct option from loaded options
+                    $correctOption = $question->options->first(function ($opt) {
+                        return $opt->is_correct == true || $opt->is_correct == 1;
+                    });
+                    
+                    // Compare using integer casting for reliable comparison
+                    if ($correctOption && (int)$answer->selected_option_id === (int)$correctOption->id) {
                         $answer->is_correct = true;
                         $answer->marks_awarded = $question->marks;
                         $totalScore += $question->marks;
