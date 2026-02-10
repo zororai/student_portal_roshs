@@ -197,6 +197,14 @@ class ExerciseController extends Controller
 
         $maxOrder = $exercise->questions()->max('order') ?? 0;
 
+        // For short answer, use short_answer_correct field; for true/false use correct_answer
+        $correctAnswerValue = null;
+        if ($request->question_type === 'short_answer') {
+            $correctAnswerValue = $request->short_answer_correct;
+        } elseif ($request->question_type === 'true_false') {
+            $correctAnswerValue = $request->correct_answer;
+        }
+
         $question = ExerciseQuestion::create([
             'exercise_id' => $exercise->id,
             'question_type' => $request->question_type,
@@ -204,7 +212,7 @@ class ExerciseController extends Controller
             'question_image' => $imagePath,
             'marks' => $request->marks,
             'order' => $maxOrder + 1,
-            'correct_answer' => $request->correct_answer,
+            'correct_answer' => $correctAnswerValue,
         ]);
 
         // Handle MCQ options

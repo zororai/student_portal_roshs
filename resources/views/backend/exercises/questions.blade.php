@@ -178,7 +178,7 @@
 
                         <div id="short-answer-field" class="hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Expected Answer (optional)</label>
-                            <input type="text" name="correct_answer" 
+                            <input type="text" name="short_answer_correct" id="short_answer_input"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg"
                                 placeholder="For reference only">
                         </div>
