@@ -3,17 +3,9 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Online Exercises</h1>
-                <p class="mt-2 text-sm text-gray-600">Create and manage quizzes, classwork, and homework</p>
-            </div>
-            <a href="{{ route('exercises.create') }}" class="inline-flex items-center px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Create Exercise
-            </a>
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Online Exercises</h1>
+            <p class="mt-2 text-sm text-gray-600">Create and manage quizzes, classwork, and homework</p>
         </div>
     </div>
 

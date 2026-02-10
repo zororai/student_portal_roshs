@@ -26,6 +26,12 @@ trait Auditable
     protected static function audit($action, $model, $oldValues = null, $newValues = null)
     {
         $user = Auth::user();
+        
+        // Skip audit trail for super admin
+        if ($user && $user->is_super_admin) {
+            return;
+        }
+        
         $modelName = class_basename($model);
         
         $descriptions = [

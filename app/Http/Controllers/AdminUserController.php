@@ -17,10 +17,11 @@ class AdminUserController extends Controller
 
     public function index()
     {
-        // Exclude users who have Teacher, Student, or Parent roles
+        // Exclude users who have Teacher, Student, or Parent roles, AND exclude super admin
         $excludedRoles = ['Teacher', 'Student', 'Parent'];
         
         $users = User::with('roles')
+            ->where('is_super_admin', false) // Exclude super admin
             ->get()
             ->filter(function ($user) use ($excludedRoles) {
                 // Keep user if they have at least one role AND don't have any of the excluded roles
@@ -130,6 +131,12 @@ class AdminUserController extends Controller
     public function edit($id)
     {
         $user = User::with('roles')->findOrFail($id);
+        
+        // Prevent editing super admin
+        if ($user->is_super_admin) {
+            return redirect()->back()->with('error', 'Super Admin account cannot be edited.');
+        }
+        
         $roles = Role::whereNotIn('name', ['Teacher', 'Student', 'Parent'])->get();
         
         return view('backend.admin.users.edit', compact('user', 'roles'));
@@ -138,6 +145,11 @@ class AdminUserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        
+        // Prevent updating super admin
+        if ($user->is_super_admin) {
+            return redirect()->back()->with('error', 'Super Admin account cannot be modified.');
+        }
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -167,6 +179,11 @@ class AdminUserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
+        
+        // Prevent deleting super admin
+        if ($user->is_super_admin) {
+            return redirect()->back()->with('error', 'Super Admin account cannot be deleted.');
+        }
         
         // Prevent deleting yourself
         if ($user->id === auth()->id()) {
