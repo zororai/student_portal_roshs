@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Application Form - Rose Of Sharon High School</title>
-    <link href="images/favicon.ico" rel="icon">
+    <link href="{{ asset(\App\WebsiteSetting::get('favicon', 'images/favicon.ico')) }}" rel="icon">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}?v={{ time() }}" />
     <link rel="stylesheet" href="{{ asset('css/style.css')}}?v={{ time() }}" />
     <link rel="stylesheet" href="{{ asset('css/responsive.css') }}?v={{ time() }}" />
@@ -510,7 +510,7 @@
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
                     <div class="footer_blog">
                         <div class="full margin-bottom_30">
-                            <img style="height:80px;width:100px" src="images/logo.png" alt="image">
+                            <img style="height:80px;width:100px" src="{{ asset(\App\WebsiteSetting::get('footer_logo', 'images/logo.png')) }}" alt="image">
                         </div>
                         <div class="full white_fonts">
                             <p>Our Vision is to provide a well-groomed, enriched (in ideas) and productive learner given a firm foundation for tertiary and life challenges.</p>

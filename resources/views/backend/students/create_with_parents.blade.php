@@ -98,10 +98,14 @@
                             @enderror
                         </div>
 
+                        @php
+                            $emailDomain = \App\WebsiteSetting::get('student_email_domain', 'roshs.co.zw');
+                        @endphp
                         <div class="mb-3">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Email Address (Auto-generated) *</label>
-                            <input name="student_email" id="student_email" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" type="email" value="{{ strtolower($nextRollNumber) }}@roshs.co.zw" readonly placeholder="Auto-generated from roll number">
-                            <p class="text-xs text-gray-500 mt-1">Email: {{ $nextRollNumber }}@roshs.co.zw | Default Password: 12345678 (must be changed on first login)</p>
+                            <input name="student_email" id="student_email" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" type="email" value="{{ strtolower($nextRollNumber) }}@{{ $emailDomain }}" readonly placeholder="Auto-generated from roll number">
+                            <input type="hidden" id="email_domain" value="{{ $emailDomain }}">
+                            <p class="text-xs text-gray-500 mt-1">Email: {{ $nextRollNumber }}@{{ $emailDomain }} | Default Password: 12345678 (must be changed on first login)</p>
                             @error('student_email')
                                 <p class="text-red-500 text-xs mt-1 flex items-center">
                                     <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -1013,8 +1017,9 @@
             console.log('Response data:', data);
             if (data.roll_number) {
                 display.textContent = data.roll_number;
-                // Also update the email field with the new roll number
-                emailInput.value = data.roll_number.toLowerCase() + '@roshs.co.zw';
+                // Also update the email field with the new roll number using dynamic domain
+                const emailDomain = document.getElementById('email_domain').value || 'roshs.co.zw';
+                emailInput.value = data.roll_number.toLowerCase() + '@' + emailDomain;
                 console.log('Roll number updated to:', data.roll_number);
             }
         })

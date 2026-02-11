@@ -17,7 +17,7 @@
 <meta name="google-site-verification" content="j0WLEeSR9tfA1xzwociTgtoABBROCrIIp_RJAFHuD9s" />
 
     <!-- Site Icons -->
-    <link href="images/favicon.ico" rel="icon">
+    <link href="{{ asset(\App\WebsiteSetting::get('favicon', 'images/favicon.ico')) }}" rel="icon">
     <link rel="apple-touch-icon" href="#" />
 
 

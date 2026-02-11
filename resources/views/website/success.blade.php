@@ -16,7 +16,7 @@
     <meta name="author" content="">
 
     <!-- Site Icons -->
-    <link href="images/favicon.ico" rel="icon">
+    <link href="{{ asset(\App\WebsiteSetting::get('favicon', 'images/favicon.ico')) }}" rel="icon">
     <link rel="apple-touch-icon" href="#" />
 
 
@@ -226,7 +226,7 @@ Investing in tomorrow's leader's</h3>
 		      <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3">
 			     <div class="footer_blog">
 				    <div class="full margin-bottom_30">
-					  <img style="height:80px;width :100px" src="images/logo.png" alt="image">
+					  <img style="height:80px;width :100px" src="{{ asset($footerLogo) }}" alt="image">
 					 </div>
 					 <div class="full white_fonts">
 					    <p>Our Vision
