@@ -4,9 +4,11 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Services\LedgerPostingService;
+use App\Traits\FinancialModelProtection;
 
 class SupplierPayment extends Model
 {
+    use FinancialModelProtection;
     protected $fillable = [
         'payment_number',
         'supplier_invoice_id',

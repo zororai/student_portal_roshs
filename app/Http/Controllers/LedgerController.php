@@ -153,34 +153,20 @@ class LedgerController extends Controller
         return view('backend.admin.finance.ledger.create-entry', compact('accounts'));
     }
 
+    /**
+     * Store a ledger entry - DISABLED for governance compliance
+     * Single-sided entries violate double-entry accounting principles.
+     * Use Journal Entries for manual ledger postings instead.
+     */
     public function storeEntry(Request $request)
     {
-        $request->validate([
-            'entry_date' => 'required|date',
-            'account_id' => 'required|exists:ledger_accounts,id',
-            'entry_type' => 'required|in:debit,credit',
-            'amount' => 'required|numeric|min:0.01',
-            'description' => 'required|string|max:500',
-            'notes' => 'nullable|string',
-        ]);
-
-        $entry = LedgerEntry::create([
-            'entry_date' => $request->entry_date,
-            'reference_number' => LedgerEntry::generateReferenceNumber(),
-            'account_id' => $request->account_id,
-            'entry_type' => $request->entry_type,
-            'amount' => $request->amount,
-            'description' => $request->description,
-            'created_by' => auth()->id(),
-            'notes' => $request->notes,
-        ]);
-
-        // Update account balance
-        $account = LedgerAccount::find($request->account_id);
-        $account->updateBalance();
-
-        return redirect()->route('admin.finance.ledger.entries')
-            ->with('success', 'Ledger entry created successfully.');
+        // GOVERNANCE COMPLIANCE: Direct ledger entries are not allowed
+        // All ledger entries must go through LedgerPostingService to ensure
+        // double-entry integrity (Debit = Credit)
+        // 
+        // Redirect users to use Journal Entries for manual postings
+        return redirect()->route('finance.journals.create')
+            ->with('warning', 'Direct ledger entries are disabled for compliance. Please use Journal Entries for manual postings to ensure double-entry integrity.');
     }
 
     public function trialBalance(Request $request)

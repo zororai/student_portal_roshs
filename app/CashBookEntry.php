@@ -5,9 +5,12 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use App\LedgerAccount;
 use App\LedgerEntry;
+use App\Services\LedgerPostingService;
+use App\Traits\FinancialModelProtection;
 
 class CashBookEntry extends Model
 {
+    use FinancialModelProtection;
     protected $fillable = [
         'entry_date',
         'term',
@@ -162,61 +165,51 @@ class CashBookEntry extends Model
             ]
         );
 
-        // Create ledger entries based on transaction type
+        // Post through LedgerPostingService (GOVERNANCE COMPLIANT)
+        $ledgerService = app(LedgerPostingService::class);
+        
         if ($this->transaction_type === 'receipt') {
             // Receipt: Debit Cash, Credit Income
-            LedgerEntry::create([
-                'entry_date' => $this->entry_date,
-                'reference_number' => LedgerEntry::generateReferenceNumber(),
-                'account_id' => $cashAccount->id,
-                'entry_type' => 'debit',
-                'amount' => $this->amount,
-                'description' => $this->description,
-                'cash_book_entry_id' => $this->id,
-                'created_by' => $this->created_by,
-                'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
-            ]);
-
-            LedgerEntry::create([
-                'entry_date' => $this->entry_date,
-                'reference_number' => LedgerEntry::generateReferenceNumber(),
-                'account_id' => $correspondingAccount->id,
-                'entry_type' => 'credit',
-                'amount' => $this->amount,
-                'description' => $this->description,
-                'cash_book_entry_id' => $this->id,
-                'created_by' => $this->created_by,
-                'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
-            ]);
+            $ledgerService->postTransaction(
+                [['account_code' => '1001', 'amount' => $this->amount, 'description' => $this->description]],
+                [['account_code' => $mapping['code'], 'amount' => $this->amount, 'description' => $this->description]],
+                [
+                    'entry_date' => $this->entry_date,
+                    'cash_book_entry_id' => $this->id,
+                    'created_by' => $this->created_by,
+                    'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
+                ]
+            );
         } else {
-            // Payment: Credit Cash, Debit Expense
-            LedgerEntry::create([
-                'entry_date' => $this->entry_date,
-                'reference_number' => LedgerEntry::generateReferenceNumber(),
-                'account_id' => $cashAccount->id,
-                'entry_type' => 'credit',
-                'amount' => $this->amount,
-                'description' => $this->description,
-                'cash_book_entry_id' => $this->id,
-                'created_by' => $this->created_by,
-                'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
-            ]);
-
-            LedgerEntry::create([
-                'entry_date' => $this->entry_date,
-                'reference_number' => LedgerEntry::generateReferenceNumber(),
-                'account_id' => $correspondingAccount->id,
-                'entry_type' => 'debit',
-                'amount' => $this->amount,
-                'description' => $this->description,
-                'cash_book_entry_id' => $this->id,
-                'created_by' => $this->created_by,
-                'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
-            ]);
+            // Payment: Debit Expense, Credit Cash
+            $ledgerService->postTransaction(
+                [['account_code' => $mapping['code'], 'amount' => $this->amount, 'description' => $this->description]],
+                [['account_code' => '1001', 'amount' => $this->amount, 'description' => $this->description]],
+                [
+                    'entry_date' => $this->entry_date,
+                    'cash_book_entry_id' => $this->id,
+                    'created_by' => $this->created_by,
+                    'notes' => 'Auto-posted from Cash Book: ' . $this->reference_number,
+                ]
+            );
         }
+    }
 
-        // Update account balances
-        $cashAccount->updateBalance();
-        $correspondingAccount->updateBalance();
+    /**
+     * Ensure a ledger account exists
+     */
+    protected function ensureAccountExists($code, $name, $type, $category, $description)
+    {
+        return LedgerAccount::firstOrCreate(
+            ['account_code' => $code],
+            [
+                'account_name' => $name,
+                'account_type' => $type,
+                'category' => $category,
+                'description' => $description,
+                'opening_balance' => 0,
+                'current_balance' => 0,
+            ]
+        );
     }
 }

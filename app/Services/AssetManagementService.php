@@ -11,12 +11,19 @@ use App\LedgerAccount;
 use App\LedgerEntry;
 use App\AuditTrail;
 use App\PurchaseOrder;
+use App\Services\LedgerPostingService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class AssetManagementService
 {
+    protected $ledgerService;
+
+    public function __construct(LedgerPostingService $ledgerService = null)
+    {
+        $this->ledgerService = $ledgerService ?? app(LedgerPostingService::class);
+    }
     /**
      * Create a new asset from a purchase order
      */
@@ -93,65 +100,41 @@ class AssetManagementService
      */
     public function postAssetPurchaseToLedger(Asset $asset)
     {
-        // Find or create Fixed Assets account
-        $assetAccount = LedgerAccount::firstOrCreate(
-            ['account_code' => '1200'],
+        // Ensure accounts exist
+        $this->ensureAccountExists('1200', 'Fixed Assets', 'asset', 'Non-Current Assets', 'School fixed assets');
+        $this->ensureAccountExists('1001', 'Cash', 'asset', 'Current Assets', 'Cash on hand and in bank');
+
+        $description = "Asset purchase: {$asset->name} ({$asset->asset_code})";
+
+        // Post through LedgerPostingService (GOVERNANCE COMPLIANT)
+        $this->ledgerService->postTransaction(
+            [['account_code' => '1200', 'amount' => $asset->purchase_cost, 'description' => $description]],
+            [['account_code' => '1001', 'amount' => $asset->purchase_cost, 'description' => $description]],
             [
-                'account_name' => 'Fixed Assets',
-                'account_type' => 'asset',
-                'category' => 'Non-Current Assets',
-                'description' => 'School fixed assets',
+                'entry_date' => $asset->purchase_date,
+                'term' => $this->getCurrentTerm(),
+                'year' => $asset->purchase_date->year,
+                'notes' => 'Auto-posted from Asset Management',
+            ]
+        );
+    }
+
+    /**
+     * Ensure a ledger account exists
+     */
+    protected function ensureAccountExists($code, $name, $type, $category, $description)
+    {
+        return LedgerAccount::firstOrCreate(
+            ['account_code' => $code],
+            [
+                'account_name' => $name,
+                'account_type' => $type,
+                'category' => $category,
+                'description' => $description,
                 'opening_balance' => 0,
                 'current_balance' => 0,
             ]
         );
-
-        // Find or create Cash account
-        $cashAccount = LedgerAccount::firstOrCreate(
-            ['account_code' => '1001'],
-            [
-                'account_name' => 'Cash',
-                'account_type' => 'asset',
-                'category' => 'Current Assets',
-                'description' => 'Cash on hand and in bank',
-                'opening_balance' => 0,
-                'current_balance' => 0,
-            ]
-        );
-
-        $referenceNumber = LedgerEntry::generateReferenceNumber();
-
-        // Debit Fixed Assets
-        LedgerEntry::create([
-            'entry_date' => $asset->purchase_date,
-            'term' => $this->getCurrentTerm(),
-            'year' => $asset->purchase_date->year,
-            'reference_number' => $referenceNumber,
-            'account_id' => $assetAccount->id,
-            'entry_type' => 'debit',
-            'amount' => $asset->purchase_cost,
-            'description' => "Asset purchase: {$asset->name} ({$asset->asset_code})",
-            'created_by' => Auth::id() ?? 1,
-            'notes' => 'Auto-posted from Asset Management',
-        ]);
-
-        // Credit Cash
-        LedgerEntry::create([
-            'entry_date' => $asset->purchase_date,
-            'term' => $this->getCurrentTerm(),
-            'year' => $asset->purchase_date->year,
-            'reference_number' => $referenceNumber,
-            'account_id' => $cashAccount->id,
-            'entry_type' => 'credit',
-            'amount' => $asset->purchase_cost,
-            'description' => "Asset purchase: {$asset->name} ({$asset->asset_code})",
-            'created_by' => Auth::id() ?? 1,
-            'notes' => 'Auto-posted from Asset Management',
-        ]);
-
-        // Update account balances
-        $assetAccount->updateBalance();
-        $cashAccount->updateBalance();
     }
 
     /**
@@ -234,70 +217,28 @@ class AssetManagementService
         return DB::transaction(function () use ($depreciation) {
             $asset = $depreciation->asset;
 
-            // Find or create Depreciation Expense account
-            $depreciationExpenseAccount = LedgerAccount::firstOrCreate(
-                ['account_code' => '5010'],
+            // Ensure accounts exist
+            $this->ensureAccountExists('5010', 'Depreciation Expense', 'expense', 'Operating Expenses', 'Annual depreciation expense for fixed assets');
+            $this->ensureAccountExists('1201', 'Accumulated Depreciation', 'asset', 'Non-Current Assets', 'Accumulated depreciation on fixed assets (contra-asset)');
+
+            $description = "Depreciation: {$asset->name} ({$asset->asset_code}) - Year {$depreciation->year}";
+
+            // Post through LedgerPostingService (GOVERNANCE COMPLIANT)
+            $entries = $this->ledgerService->postTransaction(
+                [['account_code' => '5010', 'amount' => $depreciation->depreciation_amount, 'description' => $description]],
+                [['account_code' => '1201', 'amount' => $depreciation->depreciation_amount, 'description' => $description]],
                 [
-                    'account_name' => 'Depreciation Expense',
-                    'account_type' => 'expense',
-                    'category' => 'Operating Expenses',
-                    'description' => 'Annual depreciation expense for fixed assets',
-                    'opening_balance' => 0,
-                    'current_balance' => 0,
+                    'entry_date' => Carbon::create($depreciation->year, 12, 31),
+                    'term' => 3,
+                    'year' => $depreciation->year,
+                    'notes' => 'Auto-posted depreciation',
                 ]
             );
-
-            // Find or create Accumulated Depreciation account (contra-asset)
-            $accumulatedDepreciationAccount = LedgerAccount::firstOrCreate(
-                ['account_code' => '1201'],
-                [
-                    'account_name' => 'Accumulated Depreciation',
-                    'account_type' => 'asset',
-                    'category' => 'Non-Current Assets',
-                    'description' => 'Accumulated depreciation on fixed assets (contra-asset)',
-                    'opening_balance' => 0,
-                    'current_balance' => 0,
-                ]
-            );
-
-            $referenceNumber = LedgerEntry::generateReferenceNumber();
-
-            // Debit Depreciation Expense
-            $debitEntry = LedgerEntry::create([
-                'entry_date' => Carbon::create($depreciation->year, 12, 31),
-                'term' => 3,
-                'year' => $depreciation->year,
-                'reference_number' => $referenceNumber,
-                'account_id' => $depreciationExpenseAccount->id,
-                'entry_type' => 'debit',
-                'amount' => $depreciation->depreciation_amount,
-                'description' => "Depreciation: {$asset->name} ({$asset->asset_code}) - Year {$depreciation->year}",
-                'created_by' => Auth::id() ?? 1,
-                'notes' => 'Auto-posted depreciation',
-            ]);
-
-            // Credit Accumulated Depreciation
-            LedgerEntry::create([
-                'entry_date' => Carbon::create($depreciation->year, 12, 31),
-                'term' => 3,
-                'year' => $depreciation->year,
-                'reference_number' => $referenceNumber,
-                'account_id' => $accumulatedDepreciationAccount->id,
-                'entry_type' => 'credit',
-                'amount' => $depreciation->depreciation_amount,
-                'description' => "Depreciation: {$asset->name} ({$asset->asset_code}) - Year {$depreciation->year}",
-                'created_by' => Auth::id() ?? 1,
-                'notes' => 'Auto-posted depreciation',
-            ]);
 
             // Mark depreciation as posted
             $depreciation->posted_to_ledger = true;
-            $depreciation->ledger_entry_id = $debitEntry->id;
+            $depreciation->ledger_entry_id = $entries[0]->id ?? null;
             $depreciation->save();
-
-            // Update account balances
-            $depreciationExpenseAccount->updateBalance();
-            $accumulatedDepreciationAccount->updateBalance();
 
             // Log audit trail
             AuditTrail::log('create', "Depreciation posted for {$asset->asset_code} - Year {$depreciation->year}", $depreciation);
@@ -424,11 +365,11 @@ class AssetManagementService
     }
 
     /**
-     * Post asset disposal to ledger
+     * Post asset disposal to ledger (GOVERNANCE COMPLIANT)
      */
     protected function postDisposalToLedger(Asset $asset)
     {
-        // Find accounts
+        // Ensure base accounts exist
         $fixedAssetsAccount = LedgerAccount::where('account_code', '1200')->first();
         $accumulatedDepreciationAccount = LedgerAccount::where('account_code', '1201')->first();
         
@@ -441,89 +382,45 @@ class AssetManagementService
         $bookValue = $asset->purchase_cost - $totalDepreciation;
         $gainLoss = ($asset->disposal_value ?? 0) - $bookValue;
 
-        $referenceNumber = LedgerEntry::generateReferenceNumber();
-
-        // Remove from Fixed Assets (Credit)
-        LedgerEntry::create([
-            'entry_date' => now(),
-            'term' => $this->getCurrentTerm(),
-            'year' => now()->year,
-            'reference_number' => $referenceNumber,
-            'account_id' => $fixedAssetsAccount->id,
-            'entry_type' => 'credit',
-            'amount' => $asset->purchase_cost,
-            'description' => "Asset disposal: {$asset->name} ({$asset->asset_code})",
-            'created_by' => Auth::id() ?? 1,
-            'notes' => 'Auto-posted from Asset Disposal',
-        ]);
+        // Build balanced debit and credit entries
+        $debitEntries = [];
+        $creditEntries = [];
+        $description = "Asset disposal: {$asset->name} ({$asset->asset_code})";
 
         // Remove Accumulated Depreciation (Debit)
-        LedgerEntry::create([
-            'entry_date' => now(),
-            'term' => $this->getCurrentTerm(),
-            'year' => now()->year,
-            'reference_number' => $referenceNumber,
-            'account_id' => $accumulatedDepreciationAccount->id,
-            'entry_type' => 'debit',
-            'amount' => $totalDepreciation,
-            'description' => "Asset disposal: {$asset->name} ({$asset->asset_code})",
-            'created_by' => Auth::id() ?? 1,
-            'notes' => 'Auto-posted from Asset Disposal',
-        ]);
+        if ($totalDepreciation > 0) {
+            $debitEntries[] = ['account_code' => '1201', 'amount' => $totalDepreciation, 'description' => $description];
+        }
+
+        // Remove from Fixed Assets (Credit)
+        $creditEntries[] = ['account_code' => '1200', 'amount' => $asset->purchase_cost, 'description' => $description];
+
+        // If there's disposal proceeds - Debit Cash
+        if ($asset->disposal_value > 0) {
+            $this->ensureAccountExists('1001', 'Cash', 'asset', 'Current Assets', 'Cash on hand and in bank');
+            $debitEntries[] = ['account_code' => '1001', 'amount' => $asset->disposal_value, 'description' => "Proceeds from disposal: {$asset->name}"];
+        }
 
         // Record gain/loss if any
-        if ($gainLoss != 0) {
-            $gainLossAccount = LedgerAccount::firstOrCreate(
-                ['account_code' => $gainLoss > 0 ? '4010' : '5011'],
-                [
-                    'account_name' => $gainLoss > 0 ? 'Gain on Asset Disposal' : 'Loss on Asset Disposal',
-                    'account_type' => $gainLoss > 0 ? 'income' : 'expense',
-                    'category' => 'Other',
-                    'description' => 'Gain or loss from asset disposal',
-                    'opening_balance' => 0,
-                    'current_balance' => 0,
-                ]
-            );
+        if ($gainLoss > 0) {
+            $this->ensureAccountExists('4010', 'Gain on Asset Disposal', 'income', 'Other', 'Gain from asset disposal');
+            $creditEntries[] = ['account_code' => '4010', 'amount' => $gainLoss, 'description' => "Gain on disposal: {$asset->name}"];
+        } elseif ($gainLoss < 0) {
+            $this->ensureAccountExists('5011', 'Loss on Asset Disposal', 'expense', 'Other', 'Loss from asset disposal');
+            $debitEntries[] = ['account_code' => '5011', 'amount' => abs($gainLoss), 'description' => "Loss on disposal: {$asset->name}"];
+        }
 
-            LedgerEntry::create([
+        // Post through LedgerPostingService (GOVERNANCE COMPLIANT)
+        $this->ledgerService->postTransaction(
+            $debitEntries,
+            $creditEntries,
+            [
                 'entry_date' => now(),
                 'term' => $this->getCurrentTerm(),
                 'year' => now()->year,
-                'reference_number' => $referenceNumber,
-                'account_id' => $gainLossAccount->id,
-                'entry_type' => $gainLoss > 0 ? 'credit' : 'debit',
-                'amount' => abs($gainLoss),
-                'description' => "Gain/Loss on disposal: {$asset->name} ({$asset->asset_code})",
-                'created_by' => Auth::id() ?? 1,
                 'notes' => 'Auto-posted from Asset Disposal',
-            ]);
-
-            $gainLossAccount->updateBalance();
-        }
-
-        // If there's disposal proceeds
-        if ($asset->disposal_value > 0) {
-            $cashAccount = LedgerAccount::where('account_code', '1001')->first();
-            if ($cashAccount) {
-                LedgerEntry::create([
-                    'entry_date' => now(),
-                    'term' => $this->getCurrentTerm(),
-                    'year' => now()->year,
-                    'reference_number' => $referenceNumber,
-                    'account_id' => $cashAccount->id,
-                    'entry_type' => 'debit',
-                    'amount' => $asset->disposal_value,
-                    'description' => "Proceeds from asset disposal: {$asset->name} ({$asset->asset_code})",
-                    'created_by' => Auth::id() ?? 1,
-                    'notes' => 'Auto-posted from Asset Disposal',
-                ]);
-                $cashAccount->updateBalance();
-            }
-        }
-
-        // Update account balances
-        $fixedAssetsAccount->updateBalance();
-        $accumulatedDepreciationAccount->updateBalance();
+            ]
+        );
     }
 
     /**

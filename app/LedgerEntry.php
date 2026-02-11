@@ -3,9 +3,11 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\FinancialModelProtection;
 
 class LedgerEntry extends Model
 {
+    use FinancialModelProtection;
     protected $fillable = [
         'entry_date',
         'term',

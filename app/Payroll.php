@@ -3,9 +3,11 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\FinancialModelProtection;
 
 class Payroll extends Model
 {
+    use FinancialModelProtection;
     protected $fillable = [
         'user_id',
         'salary_id',

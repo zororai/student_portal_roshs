@@ -1201,16 +1201,43 @@ class FinanceController extends Controller
         return redirect()->route('finance.school-income')->with('success', 'Income recorded successfully!');
     }
 
+    /**
+     * Reverse an income record (GOVERNANCE COMPLIANT)
+     * Instead of deleting, create a reversal entry to maintain audit trail
+     */
     public function destroyIncome($id)
     {
         $income = SchoolIncome::findOrFail($id);
         
-        // Delete related CashBookEntry
-        CashBookEntry::where('notes', 'Auto-generated from School Income #' . $id)->delete();
+        // Find the original cash book entry
+        $originalEntry = CashBookEntry::where('notes', 'Auto-generated from School Income #' . $id)->first();
         
-        $income->delete();
+        if ($originalEntry) {
+            // Create reversal entry instead of deleting (GOVERNANCE COMPLIANT)
+            $lastEntry = CashBookEntry::orderBy('id', 'desc')->first();
+            $currentBalance = $lastEntry ? $lastEntry->balance : 0;
+            $newBalance = $currentBalance - $originalEntry->amount; // Reverse the receipt
+            
+            $reversalEntry = CashBookEntry::create([
+                'entry_date' => now(),
+                'reference_number' => CashBookEntry::generateReferenceNumber(),
+                'transaction_type' => 'payment', // Opposite of receipt
+                'category' => $originalEntry->category,
+                'description' => '[REVERSAL] ' . $originalEntry->description,
+                'amount' => $originalEntry->amount,
+                'balance' => $newBalance,
+                'payment_method' => $originalEntry->payment_method,
+                'payer_payee' => $originalEntry->payer_payee,
+                'created_by' => auth()->id(),
+                'notes' => 'Reversal of Income #' . $id . ' - Original ref: ' . $originalEntry->reference_number,
+            ]);
+            $reversalEntry->postToLedger();
+        }
+        
+        // Soft-mark income as reversed instead of deleting
+        $income->update(['description' => '[REVERSED] ' . $income->description]);
 
-        return redirect()->route('finance.school-income')->with('success', 'Income record deleted!');
+        return redirect()->route('finance.school-income')->with('success', 'Income record reversed successfully!');
     }
 
     public function storeExpense(Request $request)
@@ -1247,16 +1274,43 @@ class FinanceController extends Controller
         return redirect()->route('finance.school-expenses')->with('success', 'Expense recorded successfully!');
     }
 
+    /**
+     * Reverse an expense record (GOVERNANCE COMPLIANT)
+     * Instead of deleting, create a reversal entry to maintain audit trail
+     */
     public function destroyExpense($id)
     {
         $expense = SchoolExpense::findOrFail($id);
         
-        // Delete related CashBookEntry
-        CashBookEntry::where('notes', 'Auto-generated from School Expense #' . $id)->delete();
+        // Find the original cash book entry
+        $originalEntry = CashBookEntry::where('notes', 'Auto-generated from School Expense #' . $id)->first();
         
-        $expense->delete();
+        if ($originalEntry) {
+            // Create reversal entry instead of deleting (GOVERNANCE COMPLIANT)
+            $lastEntry = CashBookEntry::orderBy('id', 'desc')->first();
+            $currentBalance = $lastEntry ? $lastEntry->balance : 0;
+            $newBalance = $currentBalance + $originalEntry->amount; // Reverse the payment
+            
+            $reversalEntry = CashBookEntry::create([
+                'entry_date' => now(),
+                'reference_number' => CashBookEntry::generateReferenceNumber(),
+                'transaction_type' => 'receipt', // Opposite of payment
+                'category' => $originalEntry->category,
+                'description' => '[REVERSAL] ' . $originalEntry->description,
+                'amount' => $originalEntry->amount,
+                'balance' => $newBalance,
+                'payment_method' => $originalEntry->payment_method,
+                'payer_payee' => $originalEntry->payer_payee,
+                'created_by' => auth()->id(),
+                'notes' => 'Reversal of Expense #' . $id . ' - Original ref: ' . $originalEntry->reference_number,
+            ]);
+            $reversalEntry->postToLedger();
+        }
+        
+        // Soft-mark expense as reversed instead of deleting
+        $expense->update(['description' => '[REVERSED] ' . $expense->description]);
 
-        return redirect()->route('finance.school-expenses')->with('success', 'Expense record deleted!');
+        return redirect()->route('finance.school-expenses')->with('success', 'Expense record reversed successfully!');
     }
 
     public function storeProduct(Request $request)

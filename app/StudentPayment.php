@@ -4,10 +4,11 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Auditable;
+use App\Traits\FinancialModelProtection;
 
 class StudentPayment extends Model
 {
-    use Auditable;
+    use Auditable, FinancialModelProtection;
     protected $fillable = [
         'student_id',
         'results_status_id',
