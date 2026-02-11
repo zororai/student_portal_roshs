@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Newsletter;
 use App\Banner;
+use App\StudentAchievement;
 
 class websiteController extends Controller
 {
@@ -21,7 +22,9 @@ class websiteController extends Controller
             ];
         }
         
-        return view('website.index', compact('banner'));
+        $achievements = StudentAchievement::active()->get();
+        
+        return view('website.index', compact('banner', 'achievements'));
     }
 
     public function about()

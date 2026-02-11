@@ -533,6 +533,14 @@ Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|
     Route::get('/admin/website/banners', 'WebsiteSettingController@banners')->name('admin.website.banners');
     Route::put('/admin/website/banners', 'WebsiteSettingController@updateBanners')->name('admin.website.banners.update');
 
+    // Student Achievements Routes
+    Route::get('/admin/achievements', 'StudentAchievementController@index')->name('admin.achievements.index');
+    Route::get('/admin/achievements/create', 'StudentAchievementController@create')->name('admin.achievements.create');
+    Route::post('/admin/achievements', 'StudentAchievementController@store')->name('admin.achievements.store');
+    Route::get('/admin/achievements/{achievement}/edit', 'StudentAchievementController@edit')->name('admin.achievements.edit');
+    Route::put('/admin/achievements/{achievement}', 'StudentAchievementController@update')->name('admin.achievements.update');
+    Route::delete('/admin/achievements/{achievement}', 'StudentAchievementController@destroy')->name('admin.achievements.destroy');
+
 });
 
 // Routes accessible by Admin OR users with specific permissions (for custom roles)

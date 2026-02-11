@@ -392,65 +392,47 @@
               </div>
                <div class="row">
                 <div class="col-lg-12">
-                    <div id="demo" class="carousel slide" data-ride="carousel">
+                    <div id="achievementsCarousel" class="carousel slide" data-ride="carousel">
 
                         <!-- The slideshow -->
                         <div class="carousel-inner">
-                            <div class="carousel-item active">
-                                <div class="row">
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-                                       <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/1 (1).jpg" alt="#" />
-
+                            @if(isset($achievements) && $achievements->count() > 0)
+                                @foreach($achievements->chunk(2) as $index => $chunk)
+                                <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
+                                    <div class="row">
+                                        @foreach($chunk as $achievement)
+                                        <div class="col-lg-6 col-md-6 col-sm-12">
+                                           <div class="full blog_img_popular">
+                                              <img class="img-responsive" src="{{ asset('storage/' . $achievement->image_path) }}" alt="{{ $achievement->student_name }}" />
+                                            </div>
                                         </div>
+                                        @endforeach
                                     </div>
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-                                        <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/1 (2).jpg" alt="#" />
-
+                                </div>
+                                @endforeach
+                            @else
+                                <div class="carousel-item active">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-6 col-sm-12">
+                                           <div class="full blog_img_popular">
+                                              <img class="img-responsive" src="images/1 (1).jpg" alt="#" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6 col-sm-12">
+                                            <div class="full blog_img_popular">
+                                              <img class="img-responsive" src="images/1 (2).jpg" alt="#" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="carousel-item">
-                                <div class="row">
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-                                       <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/1 (3).jpg" alt="#" />
-
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-                                        <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/1 (4).jpg" alt="#" />
-
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                                  <div class="carousel-item">
-                                <div class="row">
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-                                       <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/1 (5).jpg" alt="#" />
-
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-                                        <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/1 (2).jpg" alt="#" />
-
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            @endif
                         </div>
 
                         <!-- Left and right controls -->
-                        <a class="carousel-control-prev" href="#demo" data-slide="prev">
+                        <a class="carousel-control-prev" href="#achievementsCarousel" data-slide="prev">
                             <span class="carousel-control-prev-icon"></span>
                         </a>
-                        <a class="carousel-control-next" href="#demo" data-slide="next">
+                        <a class="carousel-control-next" href="#achievementsCarousel" data-slide="next">
                             <span class="carousel-control-next-icon"></span>
                         </a>
 
@@ -533,49 +515,50 @@
 			  </div>
                <div class="row">
                 <div class="col-lg-12">
-                    <div id="demo" class="carousel slide" data-ride="carousel">
+                    <div id="studentsCarousel" class="carousel slide" data-ride="carousel">
 
                         <!-- The slideshow -->
                         <div class="carousel-inner">
-                            <div class="carousel-item active">
-                                <div class="row">
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-									   <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/img9.png" alt="#" />
-
-										</div>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-                                        <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/img8.png" alt="#" />
-
-										</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <div class="row">
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-									   <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/img9.png" alt="#" />
-
-										</div>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-sm-12">
-                                        <div class="full blog_img_popular">
-                                          <img class="img-responsive" src="images/img8.png" alt="#" />
-
-										</div>
+                            @if(isset($achievements) && $achievements->count() > 0)
+                                @foreach($achievements->chunk(2) as $index => $chunk)
+                                <div class="carousel-item {{ $index == 0 ? 'active' : '' }}">
+                                    <div class="row">
+                                        @foreach($chunk as $achievement)
+                                        <div class="col-lg-6 col-md-6 col-sm-12">
+									       <div class="full blog_img_popular" style="position: relative;">
+                                              <img class="img-responsive" src="{{ asset('storage/' . $achievement->image_path) }}" alt="{{ $achievement->student_name }}" />
+                                              <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to right, #c9302c, #1e7e34); color: white; padding: 10px 15px; font-weight: bold; font-size: 16px;">
+                                                  {{ strtoupper($achievement->student_name) }}
+                                              </div>
+										    </div>
+                                        </div>
+                                        @endforeach
                                     </div>
                                 </div>
-                            </div>
+                                @endforeach
+                            @else
+                                <div class="carousel-item active">
+                                    <div class="row">
+                                        <div class="col-lg-6 col-md-6 col-sm-12">
+									       <div class="full blog_img_popular">
+                                              <img class="img-responsive" src="images/img9.png" alt="#" />
+										    </div>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6 col-sm-12">
+                                            <div class="full blog_img_popular">
+                                              <img class="img-responsive" src="images/img8.png" alt="#" />
+										    </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Left and right controls -->
-                        <a class="carousel-control-prev" href="#demo" data-slide="prev">
+                        <a class="carousel-control-prev" href="#studentsCarousel" data-slide="prev">
                             <span class="carousel-control-prev-icon"></span>
                         </a>
-                        <a class="carousel-control-next" href="#demo" data-slide="next">
+                        <a class="carousel-control-next" href="#studentsCarousel" data-slide="next">
                             <span class="carousel-control-next-icon"></span>
                         </a>
 
