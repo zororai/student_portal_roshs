@@ -19,7 +19,8 @@ class StudentAnalyticsController extends Controller
      */
     public function index(Request $request)
     {
-        $classes = Grade::orderBy('class_numeric')->get();
+        // Get classes with student counts
+        $classes = Grade::withCount('students')->orderBy('class_numeric')->get();
         $subjects = Subject::orderBy('name')->get();
         
         // Get available terms
@@ -50,17 +51,22 @@ class StudentAnalyticsController extends Controller
 
         $students = collect();
         $analyticsData = null;
+        $selectedClass = null;
+        $selectedStudent = null;
 
-        // If a class is selected, get students
+        // If a class is selected, get students with user info
         if ($selectedClassId) {
+            $selectedClass = Grade::find($selectedClassId);
             $students = Student::where('class_id', $selectedClassId)
                 ->with('user')
+                ->whereHas('user')
                 ->orderBy('roll_number')
                 ->get();
         }
 
         // If a student is selected, get analytics data
         if ($selectedStudentId) {
+            $selectedStudent = Student::with(['user', 'class'])->find($selectedStudentId);
             $analyticsData = $this->getStudentAnalytics($selectedStudentId, $selectedYear, $selectedTerm);
         }
 
@@ -70,9 +76,11 @@ class StudentAnalyticsController extends Controller
             'availableTerms',
             'students',
             'selectedClassId',
+            'selectedClass',
             'selectedYear',
             'selectedTerm',
             'selectedStudentId',
+            'selectedStudent',
             'analyticsData',
             'currentYear',
             'currentPeriod'

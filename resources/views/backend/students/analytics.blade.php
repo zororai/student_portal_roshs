@@ -9,63 +9,133 @@
                 <h1 class="text-3xl font-bold text-gray-900">Student Analytics</h1>
                 <p class="mt-2 text-sm text-gray-600">Compare student assessment performance vs term results for each subject</p>
             </div>
+            @if($selectedClassId)
+            <a href="{{ route('admin.student-analytics.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Classes
+            </a>
+            @endif
         </div>
     </div>
 
-    <!-- Filter Section -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-        <form method="GET" action="{{ route('admin.student-analytics.index') }}" id="analyticsFilterForm">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Class</label>
-                    <select name="class_id" id="classFilter" class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Class</option>
-                        @foreach($classes as $class)
-                            <option value="{{ $class->id }}" {{ $selectedClassId == $class->id ? 'selected' : '' }}>{{ $class->class_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Student</label>
-                    <select name="student_id" id="studentFilter" class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Student</option>
-                        @foreach($students as $student)
-                            <option value="{{ $student->id }}" {{ $selectedStudentId == $student->id ? 'selected' : '' }}>
-                                {{ $student->user ? $student->user->name : 'N/A' }} ({{ $student->roll_number }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Year</label>
-                    <select name="year" id="yearFilter" class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        @php
-                            $currentYearVal = date('Y');
-                            for($y = $currentYearVal; $y >= $currentYearVal - 5; $y--) {
-                                $selected = $selectedYear == $y ? 'selected' : '';
-                                echo "<option value=\"$y\" $selected>$y</option>";
-                            }
-                        @endphp
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Term</label>
-                    <select name="term" id="termFilter" class="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="first" {{ $selectedTerm == 'first' ? 'selected' : '' }}>Term 1</option>
-                        <option value="second" {{ $selectedTerm == 'second' ? 'selected' : '' }}>Term 2</option>
-                        <option value="third" {{ $selectedTerm == 'third' ? 'selected' : '' }}>Term 3</option>
-                    </select>
-                </div>
+    <!-- Year/Term Filter (always visible) -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+        <form method="GET" action="{{ route('admin.student-analytics.index') }}" id="termFilterForm" class="flex items-center space-x-4">
+            @if($selectedClassId)
+            <input type="hidden" name="class_id" value="{{ $selectedClassId }}">
+            @endif
+            @if($selectedStudentId)
+            <input type="hidden" name="student_id" value="{{ $selectedStudentId }}">
+            @endif
+            <div class="flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700">Year:</label>
+                <select name="year" id="yearFilter" onchange="this.form.submit()" class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @php
+                        $currentYearVal = date('Y');
+                        for($y = $currentYearVal; $y >= $currentYearVal - 5; $y--) {
+                            $selected = $selectedYear == $y ? 'selected' : '';
+                            echo "<option value=\"$y\" $selected>$y</option>";
+                        }
+                    @endphp
+                </select>
             </div>
-            <div class="mt-4 flex justify-end">
-                <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow transition-all">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    View Analytics
-                </button>
+            <div class="flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700">Term:</label>
+                <select name="term" id="termFilter" onchange="this.form.submit()" class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="first" {{ $selectedTerm == 'first' ? 'selected' : '' }}>Term 1</option>
+                    <option value="second" {{ $selectedTerm == 'second' ? 'selected' : '' }}>Term 2</option>
+                    <option value="third" {{ $selectedTerm == 'third' ? 'selected' : '' }}>Term 3</option>
+                </select>
             </div>
+            <button type="submit" class="inline-flex items-center px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow transition-colors">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                Filter
+            </button>
         </form>
+    </div>
+
+    @if(!$selectedClassId)
+    <!-- CLASS CARDS VIEW -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        @foreach($classes as $class)
+        <a href="{{ route('admin.student-analytics.index', ['class_id' => $class->id, 'year' => $selectedYear, 'term' => $selectedTerm]) }}" 
+           class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-blue-300 transition-all transform hover:-translate-y-1 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                    {{ $class->students_count ?? 0 }} students
+                </span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">{{ $class->class_name }}</h3>
+            <p class="text-sm text-gray-500 mt-1">Click to view students</p>
+        </a>
+        @endforeach
+    </div>
+
+    @elseif($selectedClassId && !$selectedStudentId)
+    <!-- STUDENT CARDS VIEW -->
+    <div class="mb-6">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">{{ $selectedClass->class_name ?? 'Class' }}</h2>
+                <p class="text-sm text-gray-500">{{ $students->count() }} students - Select a student to view analytics</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        @forelse($students as $student)
+        <a href="{{ route('admin.student-analytics.index', ['class_id' => $selectedClassId, 'student_id' => $student->id, 'year' => $selectedYear, 'term' => $selectedTerm]) }}" 
+           class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-green-300 transition-all transform hover:-translate-y-1 p-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span class="text-lg font-bold text-white">{{ substr($student->user->name ?? 'S', 0, 1) }}</span>
+                </div>
+                <div class="min-w-0">
+                    <h3 class="text-sm font-semibold text-gray-900 truncate">{{ $student->user->name ?? 'N/A' }}</h3>
+                    <p class="text-xs text-gray-500">{{ $student->roll_number }}</p>
+                </div>
+            </div>
+            <div class="mt-3 flex items-center justify-between">
+                <span class="text-xs text-gray-400">Click for analytics</span>
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+        </a>
+        @empty
+        <div class="col-span-full bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center">
+            <svg class="w-12 h-12 text-yellow-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <p class="text-yellow-700 font-medium">No students found in this class</p>
+        </div>
+        @endforelse
+    </div>
+
+    @else
+    <!-- STUDENT ANALYTICS VIEW -->
+    <div class="mb-6">
+        <a href="{{ route('admin.student-analytics.index', ['class_id' => $selectedClassId, 'year' => $selectedYear, 'term' => $selectedTerm]) }}" 
+           class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mb-4">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to {{ $selectedClass->class_name ?? 'Class' }} Students
+        </a>
     </div>
 
     @if($analyticsData)
@@ -236,53 +306,22 @@
             </table>
         </div>
     </div>
-    @elseif($selectedClassId && !$selectedStudentId)
-    <!-- Prompt to select student -->
+    @else
+    <!-- No data message -->
     <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center">
         <svg class="w-16 h-16 text-yellow-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
         </svg>
-        <h3 class="text-lg font-semibold text-yellow-800 mb-2">Select a Student</h3>
-        <p class="text-yellow-600">Please select a student from the dropdown above to view their analytics.</p>
+        <h3 class="text-lg font-semibold text-yellow-800 mb-2">No Data Available</h3>
+        <p class="text-yellow-600">No assessment or term result data found for this student in the selected term.</p>
     </div>
-    @else
-    <!-- Prompt to select class -->
-    <div class="bg-blue-50 border border-blue-200 rounded-xl p-8 text-center">
-        <svg class="w-16 h-16 text-blue-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-        </svg>
-        <h3 class="text-lg font-semibold text-blue-800 mb-2">Get Started</h3>
-        <p class="text-blue-600">Select a class to begin viewing student analytics and compare assessment performance to term results.</p>
-    </div>
+    @endif
     @endif
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Dynamic student loading when class changes
-    const classFilter = document.getElementById('classFilter');
-    const studentFilter = document.getElementById('studentFilter');
-    
-    classFilter.addEventListener('change', function() {
-        const classId = this.value;
-        studentFilter.innerHTML = '<option value="">Select Student</option>';
-        
-        if (classId) {
-            fetch(`/api/student-analytics/students?class_id=${classId}`)
-                .then(response => response.json())
-                .then(data => {
-                    data.students.forEach(student => {
-                        const option = document.createElement('option');
-                        option.value = student.id;
-                        option.textContent = `${student.name} (${student.roll_number})`;
-                        studentFilter.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error fetching students:', error));
-        }
-    });
-
     @if($analyticsData)
     // Comparison Chart
     const ctx = document.getElementById('comparisonChart');
