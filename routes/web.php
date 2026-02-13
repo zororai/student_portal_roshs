@@ -543,6 +543,11 @@ Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|
     Route::delete('/admin/achievements/{achievement}', 'StudentAchievementController@destroy')->name('admin.achievements.destroy');
     Route::post('/admin/achievements/{achievement}/toggle', 'StudentAchievementController@toggleStatus')->name('admin.achievements.toggle');
 
+    // Student Analytics Routes
+    Route::get('/admin/student-analytics', 'StudentAnalyticsController@index')->name('admin.student-analytics.index');
+    Route::get('/api/student-analytics/students', 'StudentAnalyticsController@getStudentsByClass')->name('api.student-analytics.students');
+    Route::get('/api/student-analytics/data', 'StudentAnalyticsController@getStudentAnalyticsApi')->name('api.student-analytics.data');
+
 });
 
 // Routes accessible by Admin OR users with specific permissions (for custom roles)
