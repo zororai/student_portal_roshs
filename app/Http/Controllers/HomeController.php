@@ -151,6 +151,53 @@ class HomeController extends Controller
                 ];
             }
 
+            // Get assessment performance by type AND gender
+            $assessmentStatsByGender = [];
+            foreach ($assessmentTypes as $type) {
+                $assessments = Assessment::where('assessment_type', $type)->pluck('id');
+                
+                // Get marks with student gender information
+                $marksByGender = DB::table('assessment_marks')
+                    ->join('students', 'assessment_marks.student_id', '=', 'students.id')
+                    ->whereIn('assessment_marks.assessment_id', $assessments)
+                    ->whereNotNull('assessment_marks.mark')
+                    ->where('assessment_marks.total_marks', '>', 0)
+                    ->select(
+                        'students.gender',
+                        DB::raw('SUM(assessment_marks.mark) as obtained_marks'),
+                        DB::raw('SUM(assessment_marks.total_marks) as total_marks'),
+                        DB::raw('COUNT(*) as marks_count')
+                    )
+                    ->groupBy('students.gender')
+                    ->get();
+
+                $maleObtained = 0;
+                $maleTotal = 0;
+                $femaleObtained = 0;
+                $femaleTotal = 0;
+
+                foreach ($marksByGender as $row) {
+                    if (in_array(strtolower($row->gender), ['male', 'm'])) {
+                        $maleObtained += $row->obtained_marks;
+                        $maleTotal += $row->total_marks;
+                    } elseif (in_array(strtolower($row->gender), ['female', 'f'])) {
+                        $femaleObtained += $row->obtained_marks;
+                        $femaleTotal += $row->total_marks;
+                    }
+                }
+
+                $malePerformance = $maleTotal > 0 ? round(($maleObtained / $maleTotal) * 100, 1) : 0;
+                $femalePerformance = $femaleTotal > 0 ? round(($femaleObtained / $femaleTotal) * 100, 1) : 0;
+
+                $assessmentStatsByGender[] = [
+                    'type' => $type,
+                    'male_performance' => $malePerformance,
+                    'female_performance' => $femalePerformance,
+                    'male_marks_count' => $maleTotal > 0 ? 1 : 0,
+                    'female_marks_count' => $femaleTotal > 0 ? 1 : 0
+                ];
+            }
+
             // Get subject-wise assessment performance for admin
             $subjectPerformanceData = [];
             $subjectAssessmentMatrix = [];
@@ -226,7 +273,7 @@ class HomeController extends Controller
                 ];
             }
 
-            return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation','assessmentStats','subjectPerformanceData','subjectAssessmentMatrix','assessmentTypes','availableTerms','currentYear','currentPeriod'));
+            return view('home', compact('parents','teachers','students','subjects','classes','genderStats','classroomPopulation','assessmentStats','assessmentStatsByGender','subjectPerformanceData','subjectAssessmentMatrix','assessmentTypes','availableTerms','currentYear','currentPeriod'));
 
         } elseif ($user->hasRole('Teacher')) {
 
@@ -964,6 +1011,81 @@ class HomeController extends Controller
         return response()->json([
             'success' => true,
             'stats' => $assessmentStats
+        ]);
+    }
+
+    /**
+     * Get filtered assessment stats by gender for AJAX requests
+     */
+    public function getFilteredAssessmentStatsByGender(Request $request)
+    {
+        $classId = $request->get('class_id');
+        $year = $request->get('year');
+        $term = $request->get('term');
+
+        $assessmentTypes = ['Quiz', 'Test', 'In Class Test', 'Monthly Test', 'Assignment', 'Exercise', 'Project', 'Fort Night', 'Exam', 'Vacation Exam', 'National Exam'];
+        $assessmentStatsByGender = [];
+
+        foreach ($assessmentTypes as $type) {
+            $query = Assessment::where('assessment_type', $type);
+
+            if ($classId && $classId !== 'all') {
+                $query->where('class_id', $classId);
+            }
+
+            if ($year && $year !== 'all') {
+                $query->where('academic_year', $year);
+            }
+
+            if ($term && $term !== 'all') {
+                $query->where('term', $term);
+            }
+
+            $assessmentIds = $query->pluck('id');
+
+            // Get marks with student gender information
+            $marksByGender = DB::table('assessment_marks')
+                ->join('students', 'assessment_marks.student_id', '=', 'students.id')
+                ->whereIn('assessment_marks.assessment_id', $assessmentIds)
+                ->whereNotNull('assessment_marks.mark')
+                ->where('assessment_marks.total_marks', '>', 0)
+                ->select(
+                    'students.gender',
+                    DB::raw('SUM(assessment_marks.mark) as obtained_marks'),
+                    DB::raw('SUM(assessment_marks.total_marks) as total_marks'),
+                    DB::raw('COUNT(*) as marks_count')
+                )
+                ->groupBy('students.gender')
+                ->get();
+
+            $maleObtained = 0;
+            $maleTotal = 0;
+            $femaleObtained = 0;
+            $femaleTotal = 0;
+
+            foreach ($marksByGender as $row) {
+                if (in_array(strtolower($row->gender), ['male', 'm'])) {
+                    $maleObtained += $row->obtained_marks;
+                    $maleTotal += $row->total_marks;
+                } elseif (in_array(strtolower($row->gender), ['female', 'f'])) {
+                    $femaleObtained += $row->obtained_marks;
+                    $femaleTotal += $row->total_marks;
+                }
+            }
+
+            $malePerformance = $maleTotal > 0 ? round(($maleObtained / $maleTotal) * 100, 1) : 0;
+            $femalePerformance = $femaleTotal > 0 ? round(($femaleObtained / $femaleTotal) * 100, 1) : 0;
+
+            $assessmentStatsByGender[] = [
+                'type' => $type,
+                'male_performance' => $malePerformance,
+                'female_performance' => $femalePerformance
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'stats' => $assessmentStatsByGender
         ]);
     }
 

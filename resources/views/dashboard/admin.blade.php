@@ -190,6 +190,142 @@
 </div>
 @endif
 
+<!-- Assessment Performance by Type by Gender -->
+@if(isset($assessmentStatsByGender))
+<div class="w-full block mt-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+            <div class="mb-4 lg:mb-0">
+                <h3 class="text-xl font-bold text-gray-900 mb-1">Assessment Performance by Type & Gender</h3>
+                <p class="text-sm text-gray-600">Compare how male and female students perform across different assessment types</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <select id="genderClassFilter" class="block w-full sm:w-40 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="all">All Classes</option>
+                    @foreach($classes as $class)
+                        <option value="{{ $class->id }}">{{ $class->class_name }}</option>
+                    @endforeach
+                </select>
+                <select id="genderYearFilter" class="block w-full sm:w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="all">All Years</option>
+                    @php
+                        $currentYearVal = date('Y');
+                        for($y = $currentYearVal; $y >= $currentYearVal - 5; $y--) {
+                            echo "<option value=\"$y\">$y</option>";
+                        }
+                    @endphp
+                </select>
+                <select id="genderTermFilter" class="block w-full sm:w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="all">All Terms</option>
+                    <option value="first">Term 1</option>
+                    <option value="second">Term 2</option>
+                    <option value="third">Term 3</option>
+                </select>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Chart -->
+            <div class="bg-gray-50 rounded-lg p-4" style="height: 400px;">
+                <canvas id="assessmentByGenderChart"></canvas>
+            </div>
+            <!-- Summary Table & Stats -->
+            <div>
+                <h5 class="text-sm font-semibold text-gray-700 mb-3">Performance Comparison</h5>
+                <div class="overflow-x-auto max-h-72 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="sticky top-0 bg-white">
+                            <tr class="bg-gray-100">
+                                <th class="text-left py-2 px-3 rounded-l-lg">Type</th>
+                                <th class="text-center py-2 px-3">
+                                    <span class="inline-flex items-center">
+                                        <span class="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>Male
+                                    </span>
+                                </th>
+                                <th class="text-center py-2 px-3">
+                                    <span class="inline-flex items-center">
+                                        <span class="w-3 h-3 bg-pink-500 rounded-full mr-2"></span>Female
+                                    </span>
+                                </th>
+                                <th class="text-center py-2 px-3 rounded-r-lg">Better</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $maleBetterCount = 0;
+                                $femaleBetterCount = 0;
+                                $tieCount = 0;
+                            @endphp
+                            @foreach($assessmentStatsByGender as $stat)
+                            @php
+                                $diff = $stat['male_performance'] - $stat['female_performance'];
+                                if ($stat['male_performance'] > 0 || $stat['female_performance'] > 0) {
+                                    if ($diff > 0) $maleBetterCount++;
+                                    elseif ($diff < 0) $femaleBetterCount++;
+                                    else $tieCount++;
+                                }
+                            @endphp
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-2 px-3 text-gray-700 font-medium">{{ $stat['type'] }}</td>
+                                <td class="text-center py-2 px-3">
+                                    @if($stat['male_performance'] > 0)
+                                    <span class="px-2 py-1 rounded text-xs font-medium {{ $stat['male_performance'] >= 50 ? 'bg-blue-100 text-blue-700' : 'bg-blue-50 text-blue-600' }}">
+                                        {{ $stat['male_performance'] }}%
+                                    </span>
+                                    @else
+                                    <span class="text-gray-400">--</span>
+                                    @endif
+                                </td>
+                                <td class="text-center py-2 px-3">
+                                    @if($stat['female_performance'] > 0)
+                                    <span class="px-2 py-1 rounded text-xs font-medium {{ $stat['female_performance'] >= 50 ? 'bg-pink-100 text-pink-700' : 'bg-pink-50 text-pink-600' }}">
+                                        {{ $stat['female_performance'] }}%
+                                    </span>
+                                    @else
+                                    <span class="text-gray-400">--</span>
+                                    @endif
+                                </td>
+                                <td class="text-center py-2 px-3">
+                                    @if($stat['male_performance'] > 0 || $stat['female_performance'] > 0)
+                                        @if($diff > 0)
+                                        <span class="text-blue-600 font-semibold text-xs">♂ +{{ abs(round($diff, 1)) }}%</span>
+                                        @elseif($diff < 0)
+                                        <span class="text-pink-600 font-semibold text-xs">♀ +{{ abs(round($diff, 1)) }}%</span>
+                                        @else
+                                        <span class="text-gray-500 text-xs">Tie</span>
+                                        @endif
+                                    @else
+                                    <span class="text-gray-400">--</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Overall Summary -->
+                <div class="mt-4 grid grid-cols-3 gap-3">
+                    <div class="bg-blue-50 rounded-lg p-3 text-center border border-blue-200">
+                        <p class="text-xs font-medium text-blue-600">Male Leads</p>
+                        <p class="text-xl font-bold text-blue-900">{{ $maleBetterCount }}</p>
+                        <p class="text-xs text-blue-500">assessment types</p>
+                    </div>
+                    <div class="bg-pink-50 rounded-lg p-3 text-center border border-pink-200">
+                        <p class="text-xs font-medium text-pink-600">Female Leads</p>
+                        <p class="text-xl font-bold text-pink-900">{{ $femaleBetterCount }}</p>
+                        <p class="text-xs text-pink-500">assessment types</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3 text-center border border-gray-200">
+                        <p class="text-xs font-medium text-gray-600">Tied</p>
+                        <p class="text-xl font-bold text-gray-900">{{ $tieCount }}</p>
+                        <p class="text-xs text-gray-500">assessment types</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Subject Performance Chart with Pagination -->
 @if(isset($subjectPerformanceData) && count($subjectPerformanceData) > 0)
 <div class="w-full block mt-8" x-data="subjectPerformance()">
@@ -570,6 +706,139 @@
             if (classFilter && subjectFilter) {
                 classFilter.addEventListener('change', updateAssessmentStats);
                 subjectFilter.addEventListener('change', updateAssessmentStats);
+            }
+        @endif
+
+        // Assessment Performance by Gender Chart
+        @if(isset($assessmentStatsByGender))
+            let genderChart = null;
+            const genderCtx = document.getElementById('assessmentByGenderChart');
+            const genderTable = document.querySelector('#assessmentByGenderChart').closest('.grid').querySelector('tbody');
+            const genderSummaryCards = document.querySelector('#assessmentByGenderChart').closest('.grid').querySelectorAll('.grid-cols-3 > div');
+            
+            function createGenderChart(data) {
+                const labels = data.map(s => s.type.length > 12 ? s.type.substring(0, 12) + '...' : s.type);
+                const malePerf = data.map(s => s.male_performance);
+                const femalePerf = data.map(s => s.female_performance);
+                
+                if (genderChart) {
+                    genderChart.destroy();
+                }
+                
+                genderChart = new Chart(genderCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Male',
+                                data: malePerf,
+                                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Female',
+                                data: femalePerf,
+                                backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                                borderColor: 'rgba(236, 72, 153, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: { display: true, text: 'Performance (%)' }
+                            }
+                        },
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: { display: true, text: 'Assessment Performance: Male vs Female' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.raw + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function updateGenderTable(data) {
+                let maleBetter = 0, femaleBetter = 0, tied = 0;
+                let tableHtml = '';
+                
+                data.forEach(stat => {
+                    const diff = stat.male_performance - stat.female_performance;
+                    if (stat.male_performance > 0 || stat.female_performance > 0) {
+                        if (diff > 0) maleBetter++;
+                        else if (diff < 0) femaleBetter++;
+                        else tied++;
+                    }
+                    
+                    const maleClass = stat.male_performance >= 50 ? 'bg-blue-100 text-blue-700' : 'bg-blue-50 text-blue-600';
+                    const femaleClass = stat.female_performance >= 50 ? 'bg-pink-100 text-pink-700' : 'bg-pink-50 text-pink-600';
+                    const maleText = stat.male_performance > 0 ? `<span class="px-2 py-1 rounded text-xs font-medium ${maleClass}">${stat.male_performance}%</span>` : '<span class="text-gray-400">--</span>';
+                    const femaleText = stat.female_performance > 0 ? `<span class="px-2 py-1 rounded text-xs font-medium ${femaleClass}">${stat.female_performance}%</span>` : '<span class="text-gray-400">--</span>';
+                    
+                    let betterText = '<span class="text-gray-400">--</span>';
+                    if (stat.male_performance > 0 || stat.female_performance > 0) {
+                        if (diff > 0) betterText = `<span class="text-blue-600 font-semibold text-xs">♂ +${Math.abs(diff.toFixed(1))}%</span>`;
+                        else if (diff < 0) betterText = `<span class="text-pink-600 font-semibold text-xs">♀ +${Math.abs(diff.toFixed(1))}%</span>`;
+                        else betterText = '<span class="text-gray-500 text-xs">Tie</span>';
+                    }
+                    
+                    tableHtml += `<tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-2 px-3 text-gray-700 font-medium">${stat.type}</td>
+                        <td class="text-center py-2 px-3">${maleText}</td>
+                        <td class="text-center py-2 px-3">${femaleText}</td>
+                        <td class="text-center py-2 px-3">${betterText}</td>
+                    </tr>`;
+                });
+                
+                if (genderTable) genderTable.innerHTML = tableHtml;
+                
+                // Update summary cards
+                if (genderSummaryCards && genderSummaryCards.length >= 3) {
+                    genderSummaryCards[0].querySelector('.text-xl').textContent = maleBetter;
+                    genderSummaryCards[1].querySelector('.text-xl').textContent = femaleBetter;
+                    genderSummaryCards[2].querySelector('.text-xl').textContent = tied;
+                }
+            }
+            
+            function fetchGenderStats() {
+                const classId = document.getElementById('genderClassFilter').value;
+                const year = document.getElementById('genderYearFilter').value;
+                const term = document.getElementById('genderTermFilter').value;
+                
+                fetch(`/api/assessment-stats-by-gender?class_id=${classId}&year=${year}&term=${term}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            createGenderChart(data.stats);
+                            updateGenderTable(data.stats);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching gender stats:', error));
+            }
+            
+            // Initialize chart with initial data
+            if (genderCtx) {
+                const initialGenderData = {!! json_encode($assessmentStatsByGender) !!};
+                createGenderChart(initialGenderData);
+                
+                // Add filter event listeners
+                document.getElementById('genderClassFilter').addEventListener('change', fetchGenderStats);
+                document.getElementById('genderYearFilter').addEventListener('change', fetchGenderStats);
+                document.getElementById('genderTermFilter').addEventListener('change', fetchGenderStats);
             }
         @endif
 

@@ -1,0 +1,247 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Student;
+use App\Grade;
+use App\Subject;
+use App\Assessment;
+use App\AssessmentMark;
+use App\Result;
+use App\ResultsStatus;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class StudentAnalyticsController extends Controller
+{
+    /**
+     * Display the student analytics index page
+     */
+    public function index(Request $request)
+    {
+        $classes = Grade::orderBy('class_numeric')->get();
+        $subjects = Subject::orderBy('name')->get();
+        
+        // Get available terms
+        $availableTerms = ResultsStatus::select('id', 'year', 'result_period')
+            ->orderBy('year', 'desc')
+            ->orderByRaw("FIELD(result_period, 'third', 'second', 'first')")
+            ->get()
+            ->map(function($term) {
+                $periodLabels = ['first' => 'Term 1', 'second' => 'Term 2', 'third' => 'Term 3'];
+                return [
+                    'id' => $term->id,
+                    'year' => $term->year,
+                    'period' => $term->result_period,
+                    'label' => ($periodLabels[$term->result_period] ?? ucfirst($term->result_period)) . ' ' . $term->year
+                ];
+            });
+
+        // Get current term
+        $currentTerm = ResultsStatus::latest()->first();
+        $currentYear = $currentTerm ? $currentTerm->year : date('Y');
+        $currentPeriod = $currentTerm ? $currentTerm->result_period : 'first';
+
+        // Get selected filters
+        $selectedClassId = $request->get('class_id');
+        $selectedYear = $request->get('year', $currentYear);
+        $selectedTerm = $request->get('term', $currentPeriod);
+        $selectedStudentId = $request->get('student_id');
+
+        $students = collect();
+        $analyticsData = null;
+
+        // If a class is selected, get students
+        if ($selectedClassId) {
+            $students = Student::where('class_id', $selectedClassId)
+                ->with('user')
+                ->orderBy('roll_number')
+                ->get();
+        }
+
+        // If a student is selected, get analytics data
+        if ($selectedStudentId) {
+            $analyticsData = $this->getStudentAnalytics($selectedStudentId, $selectedYear, $selectedTerm);
+        }
+
+        return view('backend.students.analytics', compact(
+            'classes',
+            'subjects',
+            'availableTerms',
+            'students',
+            'selectedClassId',
+            'selectedYear',
+            'selectedTerm',
+            'selectedStudentId',
+            'analyticsData',
+            'currentYear',
+            'currentPeriod'
+        ));
+    }
+
+    /**
+     * Get analytics data for a specific student
+     */
+    private function getStudentAnalytics($studentId, $year, $term)
+    {
+        $student = Student::with(['user', 'class'])->find($studentId);
+        if (!$student) {
+            return null;
+        }
+
+        // Get student's subjects (from their class or explicitly assigned)
+        $studentSubjects = $student->subjects;
+        if ($studentSubjects->isEmpty()) {
+            // If no subjects explicitly assigned, get subjects from their class
+            $studentSubjects = Subject::whereHas('grades', function($q) use ($student) {
+                $q->where('grades.id', $student->class_id);
+            })->get();
+        }
+
+        $subjectAnalytics = [];
+
+        foreach ($studentSubjects as $subject) {
+            // Get assessments for this subject, student's class, year, and term
+            $assessments = Assessment::where('subject_id', $subject->id)
+                ->where('class_id', $student->class_id)
+                ->where('academic_year', $year)
+                ->where('term', $term)
+                ->with(['marks' => function($q) use ($studentId) {
+                    $q->where('student_id', $studentId);
+                }])
+                ->get();
+
+            // Calculate assessment performance
+            $totalAssessmentMarks = 0;
+            $obtainedAssessmentMarks = 0;
+            $assessmentCount = 0;
+            $assessmentDetails = [];
+
+            foreach ($assessments as $assessment) {
+                $mark = $assessment->marks->first();
+                if ($mark && $mark->mark !== null && $mark->total_marks > 0) {
+                    $totalAssessmentMarks += $mark->total_marks;
+                    $obtainedAssessmentMarks += $mark->mark;
+                    $assessmentCount++;
+                    
+                    $assessmentDetails[] = [
+                        'type' => $assessment->assessment_type,
+                        'topic' => $assessment->topic,
+                        'date' => $assessment->date,
+                        'mark' => $mark->mark,
+                        'total' => $mark->total_marks,
+                        'percentage' => round(($mark->mark / $mark->total_marks) * 100, 1)
+                    ];
+                }
+            }
+
+            $assessmentPerformance = $totalAssessmentMarks > 0 
+                ? round(($obtainedAssessmentMarks / $totalAssessmentMarks) * 100, 1) 
+                : null;
+
+            // Get term result for this subject
+            $termResult = Result::where('student_id', $studentId)
+                ->where('subject_id', $subject->id)
+                ->where('year', $year)
+                ->where('result_period', $term)
+                ->first();
+
+            $termPerformance = $termResult ? $termResult->marks : null;
+            $termGrade = $termResult ? $termResult->mark_grade : null;
+
+            // Calculate difference
+            $difference = null;
+            if ($assessmentPerformance !== null && $termPerformance !== null) {
+                $difference = round($termPerformance - $assessmentPerformance, 1);
+            }
+
+            $subjectAnalytics[] = [
+                'subject_id' => $subject->id,
+                'subject_name' => $subject->name,
+                'assessment_count' => $assessmentCount,
+                'assessment_performance' => $assessmentPerformance,
+                'term_performance' => $termPerformance,
+                'term_grade' => $termGrade,
+                'difference' => $difference,
+                'assessment_details' => $assessmentDetails
+            ];
+        }
+
+        // Calculate overall stats
+        $totalAssessmentPerf = 0;
+        $totalTermPerf = 0;
+        $subjectsWithBoth = 0;
+
+        foreach ($subjectAnalytics as $sa) {
+            if ($sa['assessment_performance'] !== null && $sa['term_performance'] !== null) {
+                $totalAssessmentPerf += $sa['assessment_performance'];
+                $totalTermPerf += $sa['term_performance'];
+                $subjectsWithBoth++;
+            }
+        }
+
+        $overallAssessmentAvg = $subjectsWithBoth > 0 ? round($totalAssessmentPerf / $subjectsWithBoth, 1) : null;
+        $overallTermAvg = $subjectsWithBoth > 0 ? round($totalTermPerf / $subjectsWithBoth, 1) : null;
+        $overallDifference = ($overallAssessmentAvg !== null && $overallTermAvg !== null) 
+            ? round($overallTermAvg - $overallAssessmentAvg, 1) 
+            : null;
+
+        return [
+            'student' => $student,
+            'year' => $year,
+            'term' => $term,
+            'subjects' => $subjectAnalytics,
+            'overall' => [
+                'assessment_avg' => $overallAssessmentAvg,
+                'term_avg' => $overallTermAvg,
+                'difference' => $overallDifference,
+                'subjects_count' => count($subjectAnalytics),
+                'subjects_with_data' => $subjectsWithBoth
+            ]
+        ];
+    }
+
+    /**
+     * API endpoint for getting students by class
+     */
+    public function getStudentsByClass(Request $request)
+    {
+        $classId = $request->get('class_id');
+        
+        $students = Student::where('class_id', $classId)
+            ->with('user')
+            ->orderBy('roll_number')
+            ->get()
+            ->map(function($student) {
+                return [
+                    'id' => $student->id,
+                    'name' => $student->user ? $student->user->name : 'N/A',
+                    'roll_number' => $student->roll_number
+                ];
+            });
+
+        return response()->json(['students' => $students]);
+    }
+
+    /**
+     * API endpoint for getting student analytics data
+     */
+    public function getStudentAnalyticsApi(Request $request)
+    {
+        $studentId = $request->get('student_id');
+        $year = $request->get('year');
+        $term = $request->get('term');
+
+        if (!$studentId || !$year || !$term) {
+            return response()->json(['error' => 'Missing required parameters'], 400);
+        }
+
+        $analytics = $this->getStudentAnalytics($studentId, $year, $term);
+
+        if (!$analytics) {
+            return response()->json(['error' => 'Student not found'], 404);
+        }
+
+        return response()->json(['success' => true, 'data' => $analytics]);
+    }
+}
