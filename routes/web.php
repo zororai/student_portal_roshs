@@ -540,6 +540,7 @@ Route::group(['middleware' => ['auth','role_or_permission:Admin|sidebar-finance|
     Route::get('/admin/achievements/{achievement}/edit', 'StudentAchievementController@edit')->name('admin.achievements.edit');
     Route::put('/admin/achievements/{achievement}', 'StudentAchievementController@update')->name('admin.achievements.update');
     Route::delete('/admin/achievements/{achievement}', 'StudentAchievementController@destroy')->name('admin.achievements.destroy');
+    Route::post('/admin/achievements/{achievement}/toggle', 'StudentAchievementController@toggleStatus')->name('admin.achievements.toggle');
 
 });
 

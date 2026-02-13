@@ -59,11 +59,18 @@
                             <span class="text-sm font-bold text-green-600">{{ $achievement->points }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            @if($achievement->is_active)
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
-                            @else
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Inactive</span>
-                            @endif
+                            <form action="{{ route('admin.achievements.toggle', $achievement) }}" method="POST" class="inline">
+                                @csrf
+                                @if($achievement->is_active)
+                                    <button type="submit" class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 hover:bg-green-200 transition-colors" title="Click to disable">
+                                        Active ✓
+                                    </button>
+                                @else
+                                    <button type="submit" class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors" title="Click to enable">
+                                        Inactive
+                                    </button>
+                                @endif
+                            </form>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <a href="{{ route('admin.achievements.edit', $achievement) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>

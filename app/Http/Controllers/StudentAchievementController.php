@@ -103,4 +103,11 @@ class StudentAchievementController extends Controller
         }
         return response()->json(['success' => true]);
     }
+
+    public function toggleStatus(StudentAchievement $achievement)
+    {
+        $achievement->update(['is_active' => !$achievement->is_active]);
+        $status = $achievement->is_active ? 'enabled' : 'disabled';
+        return redirect()->route('admin.achievements.index')->with('success', "Achievement {$status} successfully!");
+    }
 }
