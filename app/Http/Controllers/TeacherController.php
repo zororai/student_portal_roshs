@@ -1355,8 +1355,19 @@ class TeacherController extends Controller
             return redirect()->route('home')->with('error', 'Teacher profile not found.');
         }
 
-        // Verify the class belongs to this teacher
-        $class = $teacher->classes()->findOrFail($class_id);
+        // Get allowed class IDs (class teacher + subject classes)
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjects = \App\Subject::where('teacher_id', $teacher->id)->with('grades')->get();
+        $subjectClassIds = $teacherSubjects->flatMap(function($subject) {
+            return $subject->grades->pluck('id');
+        })->unique()->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+
+        if (!in_array($class_id, $allowedClassIds)) {
+            return redirect()->route('teacher.assessment')->with('error', 'You do not have access to this class.');
+        }
+
+        $class = \App\Grade::findOrFail($class_id);
 
         // Get assessments with marks for this class
         $assessments = \App\Assessment::where('teacher_id', $teacher->id)
@@ -1393,8 +1404,19 @@ class TeacherController extends Controller
             return redirect()->back()->with('error', 'Please select an assessment to export.');
         }
 
-        // Verify the class belongs to this teacher
-        $class = $teacher->classes()->findOrFail($class_id);
+        // Get allowed class IDs (class teacher + subject classes)
+        $classTeacherClassIds = $teacher->classes()->pluck('id')->toArray();
+        $teacherSubjects = \App\Subject::where('teacher_id', $teacher->id)->with('grades')->get();
+        $subjectClassIds = $teacherSubjects->flatMap(function($subject) {
+            return $subject->grades->pluck('id');
+        })->unique()->toArray();
+        $allowedClassIds = array_unique(array_merge($classTeacherClassIds, $subjectClassIds));
+
+        if (!in_array($class_id, $allowedClassIds)) {
+            return redirect()->route('teacher.assessment')->with('error', 'You do not have access to this class.');
+        }
+
+        $class = \App\Grade::findOrFail($class_id);
 
         // Get the assessment
         $assessment = \App\Assessment::where('id', $assessmentId)

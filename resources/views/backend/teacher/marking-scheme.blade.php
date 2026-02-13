@@ -88,6 +88,21 @@
         let currentAssessmentId = null;
         let currentPapers = [];
 
+        // Auto-select assessment from URL parameter on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const assessmentId = urlParams.get('assessment');
+            
+            if (assessmentId) {
+                const select = document.getElementById('assessmentSelect');
+                select.value = assessmentId;
+                
+                if (select.value === assessmentId) {
+                    loadMarks();
+                }
+            }
+        });
+
         function loadMarks() {
             const select = document.getElementById('assessmentSelect');
             const selectedOption = select.options[select.selectedIndex];
