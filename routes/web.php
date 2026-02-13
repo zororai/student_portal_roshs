@@ -761,6 +761,9 @@ Route::group(['middleware' => ['auth','role:Teacher']], function ()
     Route::get('/teacher/student-record', 'TeacherController@studentRecord')->name('teacher.studentrecord');
     Route::get('/teacher/student-record/{class_id}', 'TeacherController@classStudents')->name('teacher.class.students');
     Route::post('/teacher/student/{student_id}/transfer', 'TeacherController@transferStudent')->name('teacher.student.transfer');
+    
+    // Teacher Student Analytics Route
+    Route::get('/teacher/student-analytics', 'StudentAnalyticsController@teacherIndex')->name('teacher.student-analytics');
 
     // Class Teacher Routes (for teachers marked as class teachers)
     Route::get('/teacher/my-class-students', 'TeacherController@myClassStudents')->name('teacher.class-students');
@@ -886,6 +889,9 @@ Route::group(['middleware' => ['auth','role:Parent']], function ()
     
     // Parent Assessments Route
     Route::get('/parent/assessments', 'ResultController@parentAssessments')->name('parent.assessments');
+    
+    // Parent Student Analytics Route
+    Route::get('/parent/student-analytics', 'StudentAnalyticsController@parentIndex')->name('parent.student-analytics');
     
     // Parent Groceries Routes
     Route::get('/parent/groceries', 'GroceryController@parentIndex')->name('parent.groceries.index');

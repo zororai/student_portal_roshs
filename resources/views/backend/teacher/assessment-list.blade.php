@@ -371,7 +371,7 @@
                     <!-- Due Date -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                        <input type="date" name="due_date" min="{{ date('Y-m-d') }}"
+                        <input type="date" name="due_date"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                     </div>
 

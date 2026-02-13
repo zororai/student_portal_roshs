@@ -272,4 +272,128 @@ class StudentAnalyticsController extends Controller
 
         return response()->json(['success' => true, 'data' => $analytics]);
     }
+
+    /**
+     * Display the parent student analytics page
+     * Shows analytics for the parent's children
+     */
+    public function parentIndex(Request $request)
+    {
+        $user = auth()->user();
+        $parent = $user->parent;
+
+        if (!$parent) {
+            return redirect()->route('home')->with('error', 'Parent profile not found.');
+        }
+
+        // Get parent's children
+        $children = $parent->students()->with(['user', 'class'])->get();
+
+        // Get current term
+        $currentTerm = ResultsStatus::latest()->first();
+        $currentYear = $currentTerm ? $currentTerm->year : date('Y');
+        $currentPeriod = $currentTerm ? $currentTerm->result_period : 'first';
+
+        // Get selected filters
+        $selectedYear = $request->get('year', $currentYear);
+        $selectedTerm = $request->get('term', $currentPeriod);
+        $selectedStudentId = $request->get('student_id');
+
+        $analyticsData = null;
+        $selectedStudent = null;
+
+        // If a student is selected, get analytics data
+        if ($selectedStudentId) {
+            // Verify the student belongs to this parent
+            $isChildOfParent = $children->contains('id', $selectedStudentId);
+            if ($isChildOfParent) {
+                $selectedStudent = Student::with(['user', 'class'])->find($selectedStudentId);
+                $analyticsData = $this->getStudentAnalytics($selectedStudentId, $selectedYear, $selectedTerm);
+            }
+        }
+
+        return view('parent.student-analytics', compact(
+            'children',
+            'selectedYear',
+            'selectedTerm',
+            'selectedStudentId',
+            'selectedStudent',
+            'analyticsData',
+            'currentYear',
+            'currentPeriod'
+        ));
+    }
+
+    /**
+     * Display the teacher student analytics page
+     * Shows analytics for students in teacher's classes
+     */
+    public function teacherIndex(Request $request)
+    {
+        $user = auth()->user();
+        $teacher = $user->teacher;
+
+        if (!$teacher) {
+            return redirect()->route('home')->with('error', 'Teacher profile not found.');
+        }
+
+        // Get classes the teacher teaches (via subjects pivot table) or is class teacher of
+        $teacherSubjects = Subject::where('teacher_id', $teacher->id)->with('grades')->get();
+        $subjectClassIds = $teacherSubjects->flatMap(function($subject) {
+            return $subject->grades->pluck('id');
+        })->unique()->toArray();
+        
+        $teacherClasses = Grade::where(function($q) use ($subjectClassIds, $teacher) {
+            $q->whereIn('id', $subjectClassIds)
+              ->orWhere('teacher_id', $teacher->id);
+        })->withCount('students')
+          ->orderBy('class_numeric')
+          ->get();
+
+        // Get current term
+        $currentTerm = ResultsStatus::latest()->first();
+        $currentYear = $currentTerm ? $currentTerm->year : date('Y');
+        $currentPeriod = $currentTerm ? $currentTerm->result_period : 'first';
+
+        // Get selected filters
+        $selectedClassId = $request->get('class_id');
+        $selectedYear = $request->get('year', $currentYear);
+        $selectedTerm = $request->get('term', $currentPeriod);
+        $selectedStudentId = $request->get('student_id');
+
+        $students = collect();
+        $analyticsData = null;
+        $selectedClass = null;
+        $selectedStudent = null;
+
+        // If a class is selected, get students
+        if ($selectedClassId) {
+            $selectedClass = Grade::find($selectedClassId);
+            $students = Student::where('class_id', $selectedClassId)
+                ->with('user')
+                ->whereHas('user')
+                ->orderBy('roll_number')
+                ->get();
+        }
+
+        // If a student is selected, get analytics data
+        if ($selectedStudentId) {
+            $selectedStudent = Student::with(['user', 'class'])->find($selectedStudentId);
+            $analyticsData = $this->getStudentAnalytics($selectedStudentId, $selectedYear, $selectedTerm);
+        }
+
+        return view('teacher.student-analytics', compact(
+            'teacherClasses',
+            'students',
+            'selectedClassId',
+            'selectedClass',
+            'selectedYear',
+            'selectedTerm',
+            'selectedStudentId',
+            'selectedStudent',
+            'analyticsData',
+            'currentYear',
+            'currentPeriod'
+        ));
+    }
 }

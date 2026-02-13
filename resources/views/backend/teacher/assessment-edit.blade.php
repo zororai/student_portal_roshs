@@ -140,7 +140,7 @@
                 <!-- Due Date -->
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                    <input type="date" name="due_date" value="{{ old('due_date', $assessment->due_date ? $assessment->due_date->format('Y-m-d') : '') }}" min="{{ date('Y-m-d') }}" required
+                    <input type="date" name="due_date" value="{{ old('due_date', $assessment->due_date ? $assessment->due_date->format('Y-m-d') : '') }}" required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                 </div>
 
