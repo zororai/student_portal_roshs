@@ -89,13 +89,33 @@ class StudentAnalyticsController extends Controller
             return null;
         }
 
-        // Get student's subjects (from their class or explicitly assigned)
-        $studentSubjects = $student->subjects;
-        if ($studentSubjects->isEmpty()) {
-            // If no subjects explicitly assigned, get subjects from their class
+        // Get subjects from assessments or results for this student in this term
+        // First, get subjects where the student has assessments or results
+        $subjectIdsFromAssessments = DB::table('assessment_marks')
+            ->join('assessments', 'assessment_marks.assessment_id', '=', 'assessments.id')
+            ->where('assessment_marks.student_id', $studentId)
+            ->where('assessments.academic_year', $year)
+            ->where('assessments.term', $term)
+            ->distinct()
+            ->pluck('assessments.subject_id')
+            ->toArray();
+
+        $subjectIdsFromResults = Result::where('student_id', $studentId)
+            ->where('year', $year)
+            ->where('result_period', $term)
+            ->distinct()
+            ->pluck('subject_id')
+            ->toArray();
+
+        $allSubjectIds = array_unique(array_merge($subjectIdsFromAssessments, $subjectIdsFromResults));
+
+        // If no subjects found from assessments/results, try getting from class
+        if (empty($allSubjectIds)) {
             $studentSubjects = Subject::whereHas('grades', function($q) use ($student) {
                 $q->where('grades.id', $student->class_id);
             })->get();
+        } else {
+            $studentSubjects = Subject::whereIn('id', $allSubjectIds)->orderBy('name')->get();
         }
 
         $subjectAnalytics = [];
